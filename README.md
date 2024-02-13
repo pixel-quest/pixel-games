@@ -3,4 +3,4 @@
 Репозиторий содержит исходный код игр проекта [Pixel Quest](https://pixelquest.ru), написанных на языке Lua.
 Здесь представлены не все игры проекта, часть игр по-прежнему написана на языке Go и со временем будет также перенесена на Lua.
 
-### Базовая структура скрипта игры с подробными комментариями описана в файле [base.lua](https://github.com/Pixel-Quest/pixel-games/blob/main/base.lua)
+#### Шаблон скрипта с подробными комментариями находится в файле [base.lua](https://github.com/Pixel-Quest/pixel-games/blob/main/base.lua)
