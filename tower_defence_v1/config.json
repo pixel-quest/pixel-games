@@ -1,0 +1,9 @@
+{
+  "Bright": 6,
+  "BaseColor": 2,
+  "WinDurationMS": 10000,
+  "UnitSpawnDelay": 5000,
+  "UnitThinkDelay": 500,
+  "ProjectileDelay": 90,  
+  "Difficulty": "Easy"
+}

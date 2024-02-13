@@ -1,0 +1,191 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+  "Buttons": [
+    2,
+    6,
+    10,
+    14,
+    18,
+    22,
+    26,
+    30,
+    34,
+    38,
+    42,
+    46,
+    50,
+    54,
+    58,
+    62,
+    65,
+    69,
+    73,
+    77
+  ],
+  "Durations": {
+    "DurationOn": 120,
+    "DurationOff": 200
+  },
+  "StartGame": [
+    {
+      "X": 8,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 12,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 16,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 16,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 12,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 8,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    }
+  ],
+  "StartPositions": [
+    {
+      "X": 1,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 5,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 9,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 13,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 17,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 21,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 23,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 23,
+      "Y": 5,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 23,
+      "Y": 9,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 23,
+      "Y": 13,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 21,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 17,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 13,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 9,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 5,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 1,
+      "Y": 14,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 1,
+      "Y": 13,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 1,
+      "Y": 9,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 1,
+      "Y": 5,
+      "Clik": false,
+      "Color": 2
+    },
+    {
+      "X": 1,
+      "Y": 1,
+      "Clik": false,
+      "Color": 2
+    }
+  ],
+  "StartPositionSize": 2
+}

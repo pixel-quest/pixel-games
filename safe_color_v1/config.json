@@ -1,0 +1,8 @@
+{
+  "Bright": 5,
+  "StartLives": 0,
+  "StagesQty": 10,
+  "StageDurationSec": 4,
+  "StopDurationSec": 4,
+  "WinDurationSec": 10
+}

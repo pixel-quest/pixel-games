@@ -1,0 +1,41 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+  "Buttons": 
+  [
+    2,
+    6,
+    10,
+    14,
+    18,
+    22,
+    26,
+    30,
+    34,
+    42,
+    46,
+    50,
+    54,
+    58,
+    62,
+    65,
+    69,
+    73,
+    77
+  ],
+  "StartPositions": [
+    {
+      "X": 3,
+      "Y": 3,
+      "Color": 3
+    },
+    {
+      "X": 3,
+      "Y": 11,
+      "Color": 5
+    }
+  ],
+  "StartPositionSizeX": 19,
+  "StartPositionSizeY": 3,
+  "Direction": "left"
+}

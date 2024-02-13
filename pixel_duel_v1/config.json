@@ -1,0 +1,6 @@
+{
+  "Bright": 5,
+  "PointsToWin": 10,
+  "MoveAllPixels": false,
+  "WinDurationSec": 10
+}
