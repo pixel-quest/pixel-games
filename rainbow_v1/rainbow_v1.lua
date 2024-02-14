@@ -99,12 +99,12 @@ function StartGame(gameJson, gameConfigJson)
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = Pixel -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = shallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
     for b=1, 2*(GameObj.Cols+GameObj.Rows) do
-        ButtonsList[b] = Pixel -- тип аналогичен пикселю
+        ButtonsList[b] = shallowCopy(Pixel) -- тип аналогичен пикселю
     end
 
     GradientLength = table.getn(GameObj.Colors)
@@ -226,3 +226,12 @@ function DefectButton(defect)
 end
 
 -- ======== Ниже вспомогательные методы внутренней логики =======
+
+-- Функция-помощник для неглубокого копирования таблицы
+function shallowCopy(t)
+    local t2 = {}
+    for k,v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
+end
