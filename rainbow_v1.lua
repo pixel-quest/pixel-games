@@ -1,3 +1,7 @@
+-- Название: Заставка Радуга
+-- Автор: @AnatoliyB (телеграм)
+-- Описание механики: диагональная радуга
+
 -- Методы работы с JSON
 --      .decode(jsonString) - декодирование строки в объект
 --      .encode(jsonObject) - кодирование объекта в строку
@@ -14,9 +18,11 @@ local time = require("time")
 --      .StopBackground() - останавливает фоновую музыку
 --      .PlaySync(name) - проигрывает звук синхронно
 --      .PlaySyncFromScratch(name) - проигрывает звук синхронно, очищая существующую очередь звуков
+--      .PlaySyncColorSound(color) - проигрывает название цвета по его номеру
+--      .PlayLeftAudio(num) - проигрывает голос "остатка" по числу (22, 12, 5 ... 0)
 --      .PlayAsync(name) - проигрывает звук асинхронно
 -- Станданртные звуки: CLICK, MISCLICK, GAME_OVER, GAME_SUCCESS, STAGE_DONE
--- Стандартные голоса: PAUSE, DEFEAT, VICTORY, CHOOSE_COLOR, LEFT_10SEC, LEFT_20SEC, BUTTONS
+-- Стандартные голоса: START_GAME, PAUSE, DEFEAT, VICTORY, CHOOSE_COLOR, LEFT_10SEC, LEFT_20SEC, BUTTONS
 --              числа: ZERO, ONE, TWO, THREE, FOUR, FIVE
 --              цвета: RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 local audio = require("audio")
@@ -25,14 +31,26 @@ local audio = require("audio")
 -- Константы яркости (0 - 7): BRIGHT0, BRIGHT15, BRIGHT30, BRIGHT45, BRIGHT60, BRIGHT70, BRIGHT85, BRIGHT100
 local colors = require("colors")
 
+-- Полезные стандартные функции
+--      math.floor() – отбрасывает дробную часть и переводит значение в целочисленный тип
+--      math.random(upper) – генерирует целое число в диапазоне [1..upper]
+--      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
+--      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
+
 -- Импортированные конфиги (ниже приведен лишь ПРИМЕР структуры,
 --  сами объекты будут переопределены в StartGame() при декодировании json)
-local gameObj = { -- Объект игры
-    cols = 24, -- пикселей по горизонтали (X)
-    rows = 15, -- пикселей по вертикали (Y)
+local GameObj = { -- Объект игры
+    Cols = 24, -- пикселей по горизонтали (X)
+    Rows = 15, -- пикселей по вертикали (Y)
+    Colors = { -- массив градиента цветов для радуги
+        {Color=colors.RED,Bright=colors.BRIGHT15},
+        {Color=colors.RED,Bright=colors.BRIGHT30},
+    }
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
-local gameConfigObj = {}
+local GameConfigObj = {
+    Delay = 100, -- задержка отрисовки в мс
+}
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
 -- Переодически запрашивается через метод GetStats()
@@ -64,31 +82,37 @@ local GameResults = {
 local FloorMatrix = {} -- матрица пола
 local ButtonsList = {} -- список кнопок
 local Pixel = { -- пиксель тип
-    color = colors.NONE,
-    bright = colors.BRIGHT0,
-    click = false,
-    defect = false,
+    Color = colors.NONE,
+    Bright = colors.BRIGHT0,
 }
+local GradientLength = 0
+local GradientOffset = 0
+local LastChangesTimestamp = 0
 
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
-    gameObj = json.decode(gameJson)
-    gameConfigObj = json.decode(gameConfigJson)
+    GameObj = json.decode(gameJson)
+    GameConfigObj = json.decode(gameConfigJson)
 
-    for x=1,gameObj.cols do
-        FloorMatrix[x] = {}    -- create a new col
-        for y=1,gameObj.rows do
-            FloorMatrix[x][y] = Pixel -- init by zero pixels
+    for x=1,GameObj.Cols do
+        FloorMatrix[x] = {}    -- новый столбец
+        for y=1,GameObj.Rows do
+            FloorMatrix[x][y] = Pixel -- заполняем нулевыми пикселями
         end
     end
 
-    for b=1, 2*(gameObj.cols+gameObj.rows) do
-        ButtonsList[b] = Pixel -- the same type as pixel
+    for b=1, 2*(GameObj.Cols+GameObj.Rows) do
+        ButtonsList[b] = Pixel -- тип аналогичен пикселю
     end
+
+    GradientLength = table.getn(GameObj.Colors)
+    audio.PlaySyncFromScratch("") -- just reset audio player on start new game
+    audio.PlayRandomBackground()
 end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    audio.PlaySyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
@@ -96,17 +120,37 @@ function ResumeGame()
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
+--  Бывает полезно, чтобы отснять краткое превью игры для каталога
 function SwitchStage()
 end
 
 -- NextTick (служебный): метод игрового тика
--- Вызывается ПРИМЕРНО 28 раз в секунду (период ~35мс)
+-- Вызывается ПРИМЕРНО каждые ~35мс (28 кадров в секунду)
 -- Ориентировать на время периода нельзя, вместо этого нужно использовать абсолютное время time.unix()
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
-    GameResults.Won=true
-    return GameResults
+    local diffMs = (time.unix() - LastChangesTimestamp) * 1000
+
+    if diffMs < GameConfigObj.Delay then
+        return
+    end
+
+    for x=1,GameObj.Cols do
+        for y=1,GameObj.Rows do
+            FloorMatrix[x][y]=GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1]
+        end
+    end
+
+    for b=1, table.getn(ButtonsList) do
+        ButtonsList[b]=GameObj.Colors[(b+GradientOffset) % GradientLength + 1]
+    end
+
+    GradientOffset = GradientOffset + 1
+    LastChangesTimestamp = time.unix()
+
+    -- Эта заставка бесконечная
+    -- return GameResult
 end
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
@@ -116,14 +160,14 @@ end
 --  setPixel = func(x int, y int, color int, bright int)
 --  setButton = func(button int, color int, bright int)
 function RangeFloor(setPixel, setButton)
-    for x=1,gameObj.cols do
-        for y=1,gameObj.rows do
-            setPixel(x,y,FloorMatrix[x][y].color,FloorMatrix[x][y].bright)
+    for x=1,GameObj.Cols do
+        for y=1,GameObj.Rows do
+            setPixel(x,y,FloorMatrix[x][y].Color,FloorMatrix[x][y].Bright)
         end
     end
 
     for b=1, table.getn(ButtonsList) do
-        setButton(b,ButtonsList[b].color,ButtonsList[b].bright)
+        setButton(b,ButtonsList[b].Color,ButtonsList[b].Bright)
     end
 end
 
@@ -144,7 +188,6 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
-    FloorMatrix[click.X][click.Y].click = click.click
 end
 
 -- ButtonClick (служебный): метод нажатия/отпускания кнопки
@@ -155,7 +198,6 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
-    ButtonsList[click.Button].click = click.Click
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
@@ -168,7 +210,6 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
-    FloorMatrix[defect.X][defect.Y].click = defect.Defect
 end
 
 -- DefectButton (служебный): метод дефектовки/раздефектовки кнопки
@@ -180,5 +221,6 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
-    ButtonsList[defect.Button].click = defect.Defect
 end
+
+-- ======== Ниже вспомогательные методы внутренней логики =======
