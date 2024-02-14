@@ -1,6 +1,7 @@
--- Название: Заставка Радуга
--- Автор: @AnatoliyB (телеграм)
--- Описание механики: диагональная радуга
+-- Название: Название механики
+-- Автор: @ваш_телеграм
+-- Описание механики: в общих словах, что происходит в механике
+-- Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
 
 -- Методы работы с JSON
 --      .decode(jsonString) - декодирование строки в объект
@@ -33,24 +34,20 @@ local colors = require("colors")
 
 -- Полезные стандартные функции
 --      math.floor() – отбрасывает дробную часть и переводит значение в целочисленный тип
+--      math.random() – генерирует псевдослучайное вещественное число в диапазоне [0 до 1]
 --      math.random(upper) – генерирует целое число в диапазоне [1..upper]
---      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
 --      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
 
 -- Импортированные конфиги (ниже приведен лишь ПРИМЕР структуры,
 --  сами объекты будут переопределены в StartGame() при декодировании json)
-local GameObj = { -- Объект игры
+-- Объект игры, см. файл game.json
+local GameObj = {
     Cols = 24, -- пикселей по горизонтали (X)
     Rows = 15, -- пикселей по вертикали (Y)
-    Colors = { -- массив градиента цветов для радуги
-        {Color=colors.RED,Bright=colors.BRIGHT15},
-        {Color=colors.RED,Bright=colors.BRIGHT30},
-    }
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
-local GameConfigObj = {
-    Delay = 100, -- задержка отрисовки в мс
-}
+-- Объект конфига игры, см. файл config.json
+local GameConfigObj = {}
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
 -- Переодически запрашивается через метод GetStats()
@@ -84,10 +81,9 @@ local ButtonsList = {} -- список кнопок
 local Pixel = { -- пиксель тип
     Color = colors.NONE,
     Bright = colors.BRIGHT0,
+    Click = false,
+    Defect = false,
 }
-local GradientLength = 0
-local GradientOffset = 0
-local LastChangesTimestamp = 0
 
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
@@ -104,15 +100,10 @@ function StartGame(gameJson, gameConfigJson)
     for b=1, 2*(GameObj.Cols+GameObj.Rows) do
         ButtonsList[b] = Pixel -- тип аналогичен пикселю
     end
-
-    GradientLength = table.getn(GameObj.Colors)
-    audio.PlaySyncFromScratch("") -- just reset audio player on start new game
-    audio.PlayRandomBackground()
 end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlaySyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
@@ -130,27 +121,8 @@ end
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
-    local diffMs = (time.unix() - LastChangesTimestamp) * 1000
-
-    if diffMs < GameConfigObj.Delay then
-        return
-    end
-
-    for x=1,GameObj.Cols do
-        for y=1,GameObj.Rows do
-            FloorMatrix[x][y]=GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1]
-        end
-    end
-
-    for b=1, table.getn(ButtonsList) do
-        ButtonsList[b]=GameObj.Colors[(b+GradientOffset) % GradientLength + 1]
-    end
-
-    GradientOffset = GradientOffset + 1
-    LastChangesTimestamp = time.unix()
-
-    -- Эта заставка бесконечная
-    -- return GameResult
+    GameResults.Won=true
+    return GameResults
 end
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
@@ -188,6 +160,7 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
+    FloorMatrix[click.X][click.Y].Click = click.Click
 end
 
 -- ButtonClick (служебный): метод нажатия/отпускания кнопки
@@ -198,6 +171,7 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
+    ButtonsList[click.Button].Click = click.Click
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
@@ -210,6 +184,7 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
+    FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
 end
 
 -- DefectButton (служебный): метод дефектовки/раздефектовки кнопки
@@ -221,6 +196,16 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    ButtonsList[defect.Button].Defect = defect.Defect
 end
 
 -- ======== Ниже вспомогательные методы внутренней логики =======
+
+-- Функция-помощник для неглубокого копирования таблицы
+function shallowCopy(t)
+    local t2 = {}
+    for k,v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
+end

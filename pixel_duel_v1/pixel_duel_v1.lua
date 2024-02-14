@@ -37,6 +37,7 @@ local audio = require("audio")
 local colors = require("colors")
 
 -- Полезные стандартные функции
+--      math.ceil() – округление вверх
 --      math.floor() – отбрасывает дробную часть и переводит значение в целочисленный тип
 --      math.random(upper) – генерирует целое число в диапазоне [1..upper]
 --      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
@@ -44,7 +45,8 @@ local colors = require("colors")
 
 -- Импортированные конфиги (ниже приведен лишь ПРИМЕР структуры,
 --  сами объекты будут переопределены в StartGame() при декодировании json)
-local GameObj = { -- Объект игры
+-- Объект игры, см. файл game.json
+local GameObj = {
     Cols = 24, -- пикселей по горизонтали (X)
     Rows = 15, -- пикселей по вертикали (Y)
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
@@ -58,11 +60,12 @@ local GameObj = { -- Объект игры
     },
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
+-- Объект конфига игры, см. файл config.json
 local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     PointsToWin = 10, -- сколько очков необходимо набрать для победы
     MoveAllPixels = false, -- hard режим – при нажатии пиксели других игроков тоже перемещаются в новые места
-    WinDurationSec = 5, -- длительность этапа победы перед завершением игры
+    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -100,13 +103,14 @@ local Pixel = { -- пиксель тип
     Click = false,
     Defect = false,
 }
+local StartPlayersCount = 0 -- количество игроков в момент нажатия кнопки старт
 
 -- Этапы игры
 local CONST_STAGE_CHOOSE_COLOR = 0 -- выбор цвета
 local CONST_STAGE_GAME = 1 -- игра
 local CONST_STAGE_WIN = 2 -- победа
 local Stage = CONST_STAGE_CHOOSE_COLOR -- текущий этап
-local StartStageTime = 0 -- время начала текущего этапа
+local StageStartTime = 0 -- время начала текущего этапа
 
 -- Звуки оставшихся очков, проигрываются только один раз
 local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
@@ -131,12 +135,15 @@ function StartGame(gameJson, gameConfigJson)
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = Pixel -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = shallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
     for b=1, 2*(GameObj.Cols+GameObj.Rows) do
-        ButtonsList[b] = Pixel -- тип аналогичен пикселю
+        ButtonsList[b] = shallowCopy(Pixel) -- тип аналогичен пикселю
+        -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
+        ButtonsList[b].Color = colors.BLUE
+        ButtonsList[b].Bright = colors.BRIGHT70
     end
 
     GameStats.TotalStars = GameConfigObj.PointsToWin
@@ -144,6 +151,7 @@ function StartGame(gameJson, gameConfigJson)
     audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
     audio.PlaySync("voices/get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
@@ -158,7 +166,7 @@ end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
 function SwitchStage()
-    -- В этой игре нечего переключать
+    switchStage(Stage+1)
 end
 
 -- NextTick (служебный): метод игрового тика
@@ -179,6 +187,30 @@ function NextTick()
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
+
+        local currentPlayersCount = countActivePlayers()
+        if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
+                or currentPlayersCount < 2 then -- если менее двух игроков
+            -- нельзя стартовать
+            StartPlayersCount = 0
+            resetCountdown()
+        end
+
+        if StartPlayersCount > 0 then
+            local timeSinceCountdown = time.unix() - StageStartTime
+            GameStats.StageTotalDuration = 3 -- сек обратный отсчет
+            GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
+
+            local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
+            if alreadyPlayed ~= nil and not alreadyPlayed then
+                audio.PlayLeftAudio(GameStats.StageLeftDuration)
+                LeftAudioPlayed[GameStats.StageLeftDuration] = true
+            end
+
+            if GameStats.StageLeftDuration <= 0 then -- начинаем игру
+                switchStage(Stage+1)
+            end
+        end
     elseif Stage == CONST_STAGE_GAME then -- этап игры
         -- Вся логика происходит в обработке клика
     elseif Stage == CONST_STAGE_WIN then -- этап выигрыша
@@ -187,9 +219,11 @@ function NextTick()
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
-            -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
-            return GameResults
+            switchStage(Stage+1)
         end
+    else
+        -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
+        return GameResults
     end
 end
 
@@ -236,25 +270,25 @@ function PixelClick(click)
 
     -- Если есть игрок с таким цветом, засчитываем очки
     local clickedColor = FloorMatrix[click.X][click.Y].Color
-    local playerIdx = playerIdxByColor(clickedColor)
-    if playerIdx < 0 then
+    local player = getPlayerByColor(clickedColor)
+    if player == nil then
         return
     end
 
-    audio.PlayOnce(audio.CLICK)
-    GameStats.Players[playerIdx].Score = GameStats.Players[playerIdx].Score + 1
+    audio.PlayAsync(audio.CLICK)
+    player.Score = player.Score + 1
 
     -- игрок набрал нужное количесто очков для победы
-    if GameStats.Players[playerIdx].Score >= GameConfigObj.PointsToWin then
+    if player.Score >= GameConfigObj.PointsToWin then
         audio.PlaySync(audio.GAME_SUCCESS)
-        audio.PlaySyncColorSound(GameStats.Players[playerIdx].Color)
+        audio.PlaySyncColorSound(player.Color)
         audio.PlaySync(audio.VICTORY)
 
         switchStage(CONST_STAGE_WIN)
-        setGlobalColorBright(GameStats.Players[playerIdx].Color, GameConfigObj.Bright)
+        setGlobalColorBright(player.Color, GameConfigObj.Bright)
         return
     else -- еще не победил
-        local leftScores = GameConfigObj.PointsToWin - GameStats.Players[playerIdx].Score
+        local leftScores = GameConfigObj.PointsToWin - player.Score
         local alreadyPlayed = LeftAudioPlayed[leftScores]
         if alreadyPlayed ~= nil and not alreadyPlayed then
             audio.PlayLeftAudio(leftScores)
@@ -267,7 +301,7 @@ function PixelClick(click)
         setGlobalColorBright(colors.NONE, canproto.ColorBright0)
         placeAllPlayerPixels()
     else -- переместим только пиксель нажавшего игрока
-        placePixel(g.GameStats.Players[playerIdx].Color)
+        placePixel(player.Color)
         FloorMatrix[click.X][click.Y].Color = colors.NONE
     end
 
@@ -285,6 +319,12 @@ function ButtonClick(click)
         return -- не интересуют клики кнопок вне этапа выбора цвета
     end
     ButtonsList[click.Button].Click = click.Click
+
+    -- нажали кнопку, стартуем обратный отсчет
+    if StartPlayersCount == 0 and click.Click then
+        StartPlayersCount = countActivePlayers()
+        StageStartTime = time.unix()
+    end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
@@ -319,10 +359,28 @@ end
 -- }
 function DefectButton(defect)
     ButtonsList[defect.Button].defect = defect.Defect
+    -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
+    if defect.Defect then
+        ButtonsList[defect.Button].Color = colors.NONE
+        ButtonsList[defect.Button].Bright = colors.BRIGHT0
+    else
+        ButtonsList[defect.Button].Color = colors.BLUE
+        ButtonsList[defect.Button].Bright = colors.BRIGHT70
+    end
 end
 
 -- ======== Ниже вспомогательные методы внутренней логики =======
 
+-- Функция-помощник для неглубокого копирования таблицы
+function shallowCopy(t)
+    local t2 = {}
+    for k,v in pairs(t) do
+        t2[k] = v
+    end
+    return t2
+end
+
+-- Установка глобального цвета
 function setGlobalColorBright(color, bright)
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
@@ -337,12 +395,23 @@ function setGlobalColorBright(color, bright)
     end
 end
 
+-- Сбросить звук обратного отсчета
+function resetCountdown()
+    for i = 1, #LeftAudioPlayed do
+        LeftAudioPlayed[i] = false
+    end
+end
+
+-- Переключение этапа игры
 function switchStage(newStage)
     Stage = newStage
-    StartStageTime = time.unix()
+    StageStartTime = time.unix()
+
+    resetCountdown()
 
     if Stage == CONST_STAGE_GAME then
         audio.PlayRandomBackground()
+        audio.PlaySync(audio.START_GAME)
 
         -- Поставим по одному пикселю каждому игроку
         -- Тут важно не поставить пиксель на начальную позицию, поэтому очистим их уже ПОСЛЕ расстановки
@@ -357,12 +426,14 @@ function switchStage(newStage)
     end
 end
 
+-- Расставить пиксели всех игроков
 function placeAllPlayerPixels()
     for playerIdx, player in ipairs(GameStats.Players) do
         placePixel(player.Color)
     end
 end
 
+-- Поставить пиксель конкретного цвета в случайном месте
 function placePixel(color)
     if color == colors.NONE then
         return
@@ -380,8 +451,9 @@ function placePixel(color)
     end
 end
 
+-- Проверить стартовую позицию на ниличие человека на ней
 function checkPositionClick(startPosition, positionSize)
-    for i=1, positionSize*positionSize do
+    for i=0, positionSize*positionSize-1 do
         local x = startPosition.X + i%positionSize
         local y = startPosition.Y + math.floor(i/positionSize)
 
@@ -398,8 +470,9 @@ function checkPositionClick(startPosition, positionSize)
     return false
 end
 
+-- Установить цвет стартовой позиции
 function setColorBrightForStartPosition(startPosition, positionSize, color, bright)
-    for i=1, positionSize*positionSize do
+    for i=0, positionSize*positionSize-1 do
         local x = startPosition.X + i%positionSize
         local y = startPosition.Y + math.floor(i/positionSize)
 
@@ -414,18 +487,19 @@ function setColorBrightForStartPosition(startPosition, positionSize, color, brig
     end
 end
 
-function playerIdxByColor(color)
+-- Найти игрока по цвету
+function getPlayerByColor(color)
     if color == colors.NONE then
-        return 0
+        return nil
     end
     for playerIdx, player in ipairs(GameStats.Players) do
         if player.Color == color then
-            return playerIdx
+            return player
         end
     end
-    return 0
 end
 
+-- Посчитать количество активных игроков
 function countActivePlayers()
     local activePlayers = 0
     for _, player in ipairs(GameStats.Players) do
