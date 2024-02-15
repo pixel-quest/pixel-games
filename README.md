@@ -5,9 +5,10 @@
 Репозиторий содержит исходный код игр проекта [Pixel Quest](https://pixelquest.ru), написанных на языке Lua.
 Здесь представлены исходники не всех игр проекта, часть игр по-прежнему написана на Go и со временем будет также перенесена на Lua.
 
-#### Шаблон скрипта с подробными комментариями – [template.lua](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua)
+**Шаблон скрипта с подробными комментариями – [template.lua](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua)**
+
 Скрипты обслуживаются виртуальной машиной [GopherLua](https://github.com/yuin/gopher-lua), написанной на языке Go.  
-На момент Февраля 2024 г. используется **GopherLua v1.1.1** (Lua5.1 + goto statement in Lua5.2).
+На момент февраля 2024 г. используется **GopherLua v1.1.1** (Lua5.1 + goto оператор из Lua5.2).
 
 ### Список текущих механик Pixel Quest:
 - Заставка **Радуга** (Lua) – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/rainbow_v1/rainbow_v1.lua)
