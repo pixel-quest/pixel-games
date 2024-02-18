@@ -42,8 +42,9 @@ local colors = require("colors")
 --  сами объекты будут переопределены в StartGame() при декодировании json)
 -- Объект игры, см. файл game.json
 local GameObj = {
-    Cols = 24, -- пикселей по горизонтали (X)
-    Rows = 15, -- пикселей по вертикали (Y)
+    Cols = 24, -- пикселей по горизонтали (X), обязательные параметр для всех игр
+    Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
+    Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
@@ -97,8 +98,8 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    for b=1, 2*(GameObj.Cols+GameObj.Rows) do
-        ButtonsList[b] = Pixel -- тип аналогичен пикселю
+    for i, num in pairs(GameObj.Buttons) do
+        ButtonsList[num] = shallowCopy(Pixel) -- тип аналогичен пикселю
     end
 end
 
@@ -138,8 +139,8 @@ function RangeFloor(setPixel, setButton)
         end
     end
 
-    for b=1, table.getn(ButtonsList) do
-        setButton(b,ButtonsList[b].Color,ButtonsList[b].Bright)
+    for num, button in pairs(ButtonsList) do
+        setButton(num,button.Color,button.Bright)
     end
 end
 

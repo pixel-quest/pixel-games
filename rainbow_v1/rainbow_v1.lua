@@ -41,8 +41,9 @@ local colors = require("colors")
 --  сами объекты будут переопределены в StartGame() при декодировании json)
 -- Объект игры, см. файл game.json
 local GameObj = {
-    Cols = 24, -- пикселей по горизонтали (X)
-    Rows = 15, -- пикселей по вертикали (Y)
+    Cols = 24, -- пикселей по горизонтали (X), обязательные параметр для всех игр
+    Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
+    Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     Colors = { -- массив градиента цветов для радуги
         {Color=colors.RED,Bright=colors.BRIGHT15},
         {Color=colors.RED,Bright=colors.BRIGHT30},
@@ -103,8 +104,8 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    for b=1, 2*(GameObj.Cols+GameObj.Rows) do
-        ButtonsList[b] = shallowCopy(Pixel) -- тип аналогичен пикселю
+    for i, num in pairs(GameObj.Buttons) do
+        ButtonsList[num] = shallowCopy(Pixel) -- тип аналогичен пикселю
     end
 
     GradientLength = table.getn(GameObj.Colors)
@@ -144,8 +145,8 @@ function NextTick()
         end
     end
 
-    for b=1, table.getn(ButtonsList) do
-        ButtonsList[b]=GameObj.Colors[(b+GradientOffset) % GradientLength + 1]
+    for num, button in pairs(ButtonsList) do
+        ButtonsList[num]=GameObj.Colors[(num+GradientOffset) % GradientLength + 1]
     end
 
     GradientOffset = GradientOffset + 1
@@ -168,8 +169,8 @@ function RangeFloor(setPixel, setButton)
         end
     end
 
-    for b=1, table.getn(ButtonsList) do
-        setButton(b,ButtonsList[b].Color,ButtonsList[b].Bright)
+    for num, button in pairs(ButtonsList) do
+        setButton(num,button.Color,button.Bright)
     end
 end
 

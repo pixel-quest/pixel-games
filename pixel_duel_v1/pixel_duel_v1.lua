@@ -47,8 +47,9 @@ local colors = require("colors")
 --  сами объекты будут переопределены в StartGame() при декодировании json)
 -- Объект игры, см. файл game.json
 local GameObj = {
-    Cols = 24, -- пикселей по горизонтали (X)
-    Rows = 15, -- пикселей по вертикали (Y)
+    Cols = 24, -- пикселей по горизонтали (X), обязательные параметр для всех игр
+    Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
+    Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
     StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
         { X = 2, Y = 2, Color = colors.RED },
@@ -139,11 +140,11 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    for b=1, 2*(GameObj.Cols+GameObj.Rows) do
-        ButtonsList[b] = shallowCopy(Pixel) -- тип аналогичен пикселю
+    for i, num in pairs(GameObj.Buttons) do
+        ButtonsList[num] = shallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
-        ButtonsList[b].Color = colors.BLUE
-        ButtonsList[b].Bright = colors.BRIGHT70
+        ButtonsList[num].Color = colors.BLUE
+        ButtonsList[num].Bright = colors.BRIGHT70
     end
 
     GameStats.TotalStars = GameConfigObj.PointsToWin
@@ -240,8 +241,8 @@ function RangeFloor(setPixel, setButton)
         end
     end
 
-    for b=1, table.getn(ButtonsList) do
-        setButton(b,ButtonsList[b].Color,ButtonsList[b].Bright)
+    for num, button in pairs(ButtonsList) do
+        setButton(num,button.Color,button.Bright)
     end
 end
 
@@ -298,7 +299,7 @@ function PixelClick(click)
 
     -- и переместим пиксель в другое пустое место
     if GameConfigObj.MoveAllPixels then -- для всех игроков
-        setGlobalColorBright(colors.NONE, canproto.ColorBright0)
+        setGlobalColorBright(colors.NONE, colors.BRIGHT0)
         placeAllPlayerPixels()
     else -- переместим только пиксель нажавшего игрока
         placePixel(player.Color)
@@ -389,9 +390,9 @@ function setGlobalColorBright(color, bright)
         end
     end
 
-    for b=1, table.getn(ButtonsList) do
-        ButtonsList[b].Color = color
-        ButtonsList[b].Bright = bright
+    for num, button in pairs(ButtonsList) do
+        ButtonsList[num].Color = color
+        ButtonsList[num].Bright = bright
     end
 end
 
@@ -413,14 +414,11 @@ function switchStage(newStage)
         audio.PlayRandomBackground()
         audio.PlaySync(audio.START_GAME)
 
-        -- Поставим по одному пикселю каждому игроку
-        -- Тут важно не поставить пиксель на начальную позицию, поэтому очистим их уже ПОСЛЕ расстановки
-        placeAllPlayerPixels()
+        -- Очистим поле
+        setGlobalColorBright(colors.NONE, colors.BRIGHT0)
 
-        -- Очищаем стартовые позиции
-        for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
-            setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, colors.NONE, colors.BRIGHT0)
-        end
+        -- Поставим по одному пикселю каждому игроку
+        placeAllPlayerPixels()
     else
         audio.StopBackground()
     end
@@ -477,7 +475,7 @@ function setColorBrightForStartPosition(startPosition, positionSize, color, brig
         local y = startPosition.Y + math.floor(i/positionSize)
 
         if x < 1 or x > GameObj.Cols or
-            y < 1 or y > GameObj.Rows then
+                y < 1 or y > GameObj.Rows then
             goto continue -- ignore outside the game field
         end
 
