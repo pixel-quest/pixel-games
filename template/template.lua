@@ -103,19 +103,6 @@ function StartGame(gameJson, gameConfigJson)
     end
 end
 
--- PauseGame (служебный): пауза игры
-function PauseGame()
-end
-
--- ResumeGame (служебный): снятие игры с паузы
-function ResumeGame()
-end
-
--- SwitchStage (служебный): может быть использован для принудительного переключению этапа
---  Бывает полезно, чтобы отснять краткое превью игры для каталога
-function SwitchStage()
-end
-
 -- NextTick (служебный): метод игрового тика
 -- Вызывается ПРИМЕРНО каждые ~35мс (28 кадров в секунду)
 -- Ориентировать на время периода нельзя, вместо этого нужно использовать абсолютное время time.unix()
@@ -150,6 +137,18 @@ function GetStats()
     return GameStats
 end
 
+-- PauseGame (служебный): пауза игры
+function PauseGame()
+end
+
+-- ResumeGame (служебный): снятие игры с паузы
+function ResumeGame()
+end
+
+-- SwitchStage (служебный): может быть использован для принудительного переключению этапа
+--  Бывает полезно, чтобы отснять краткое превью игры для каталога
+function SwitchStage()
+end
 
 -- PixelClick (служебный): метод нажатия/отпускания пикселя
 --
