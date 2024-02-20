@@ -10,8 +10,8 @@
 Скрипты обслуживаются виртуальной машиной [GopherLua](https://github.com/yuin/gopher-lua), написанной на языке Go.  
 На момент февраля 2024 г. используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
 
-### Отладочный стенд
-Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить после вступления в группу в телеграме [@pixel_quest_games](https://t.me/pixel_quest_games)
+### Отладочная платформа
+Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить, вступив в группу телеграм [@pixel_quest_games](https://t.me/pixel_quest_games)
 
 <img src="https://github.com/pixel-quest/pixel-games/raw/main/img/stand1.jpg">
 
@@ -60,3 +60,5 @@
   - [DefectButton(defect)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L198) – событие дефектовки/радефектовки кнопки
 - **Вспомогательные функции:**
   - [shallowCopy(t)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L205) – неглубокое копирование таблиц, полезно для заполнения матрицы пола
+
+### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
