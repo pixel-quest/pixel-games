@@ -28,7 +28,7 @@ local time = require("time")
 --              цвета: RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 local audio = require("audio")
 
--- Константы цветов (0 - 7): NONE, RED, YELLOW, GREEN, CYAN, BLUE, MAGENTA, WHITE
+-- Константы цветов (0 - 7): NONE, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 -- Константы яркости (0 - 7): BRIGHT0, BRIGHT15, BRIGHT30, BRIGHT45, BRIGHT60, BRIGHT70, BRIGHT85, BRIGHT100
 local colors = require("colors")
 
