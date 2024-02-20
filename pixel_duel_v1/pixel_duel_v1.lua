@@ -339,7 +339,7 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
-    FloorMatrix[defect.X][defect.Y].Click = defect.Defect
+    FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
 
     if defect.Defect then
         FloorMatrix[defect.X][defect.Y].Click = false
@@ -360,7 +360,7 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
-    ButtonsList[defect.Button].defect = defect.Defect
+    ButtonsList[defect.Button].Defect = defect.Defect
     -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
     if defect.Defect then
         ButtonsList[defect.Button].Color = colors.NONE
