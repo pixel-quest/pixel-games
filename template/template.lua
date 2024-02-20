@@ -94,7 +94,7 @@ function StartGame(gameJson, gameConfigJson)
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = Pixel -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = shallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
