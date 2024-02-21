@@ -51,24 +51,31 @@
 - **Дефект** (подсвечивается красным) – вывод пикселя/кнопки из игры ввиду неисправности, на такие пиксели/кнопки не должны назначаться задания в играх
 
 ### Базовая структура Lua скрипта
-- Таблица [GameObj](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L44)  – заполняется из Game Json, должна обязательно содержать поля Cols x Rows для задания размера пола
-- Таблица [GameConfigObj](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L51) – заполняется из Config Json, настройки игры перед стартом (сложность, скорость, очки, жизни и т.д)
-- Таблица [GameStats](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L55) – информация для отображения на табло (время, жизни, очки, цвета)
-- Таблица [GameResults](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L75) – результат завершения игры, возвращается в последнем вздохе NextTick()
+- **Подключенные библиотеки:**
+  - [log]() – содержит функцию _.print()_, которая печатает сообщение в консоль разработчика в браузере
+  - [inspect]() – порт библиотеки [kikito/inspect.lua](https://github.com/kikito/inspect.lua) для человекочитаемого вывода, например _log.print(inspect(table))_
+  - [help]() – содержит функцию _.shallowCopy(t)_ для неглубокого копирования таблицы
+  - [json]() – методы кодировани/декодирования JSON
+  - [time]() – методы получения времени в unix формате
+  - [audio]() – методы проигрывания аудио
+  - [colors]() – константы цветов и яркости
+- **Локальные переменные:**
+  - Таблица [GameObj]() – заполняется из Game Json, должна обязательно содержать поля Cols x Rows для задания размера пола
+  - Таблица [GameConfigObj]() – заполняется из Config Json, настройки игры перед стартом (сложность, скорость, очки, жизни и т.д)
+  - Таблица [GameStats]() – информация для отображения на табло (время, жизни, очки, цвета)
+  - Таблица [GameResults]() – результат завершения игры, возвращается в последнем вздохе NextTick()
 - **Обязательные функции:**
-  - [StartGame(gameJson, gameConfigJson)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L90) – инициализация игры, на входе Game Json и Config Json
-  - [NextTick()](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L111) – тик игрового мира, здесь вся основная логика
-  - [RangeFloor(setPixel, setButton)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L122) – забор снапшота пола, вызывается следом за NextTick()
-  - [GetStats()](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L136) – забор статистики игры, вызывается следом за RangeFloor()
-  - [PauseGame()](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L141) – событие паузы игры
-  - [ResumeGame()](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L145) – событие снятия игры с паузы
-  - [SwitchStage()](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L150) – рычаг админа для переключения этапа, может быть полезен в некоторых играх
-  - [PixelClick(click)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L162) – событие клика/отпускания пикселя
-  - [ButtonClick(click)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L173) – событие клика/отпускания кнопки
-  - [DefectPixel(defect)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L186) – событие дефектовки/раздефектовки пикселя
-  - [DefectButton(defect)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L198) – событие дефектовки/радефектовки кнопки
-- **Вспомогательные функции:**
-  - [shallowCopy(t)](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua#L205) – неглубокое копирование таблиц, полезно для заполнения матрицы пола
+  - [StartGame(gameJson, gameConfigJson)]() – инициализация игры, на входе Game Json и Config Json
+  - [NextTick()]() – тик игрового мира, здесь вся основная логика
+  - [RangeFloor(setPixel, setButton)]() – забор снапшота пола, вызывается следом за NextTick()
+  - [GetStats()]() – забор статистики игры, вызывается следом за RangeFloor()
+  - [PauseGame()]() – событие паузы игры
+  - [ResumeGame()]() – событие снятия игры с паузы
+  - [SwitchStage()]() – рычаг админа для переключения этапа, может быть полезен в некоторых играх
+  - [PixelClick(click)]() – событие клика/отпускания пикселя
+  - [ButtonClick(click)]() – событие клика/отпускания кнопки
+  - [DefectPixel(defect)]() – событие дефектовки/раздефектовки пикселя
+  - [DefectButton(defect)]() – событие дефектовки/радефектовки кнопки
 
 ### FAQ
 - **Как создать новый файл на платформе?** – никак. В настоящий момент времени платформа поддерживает работу только с одним набором файлов Lua Script / Game Json / Config Json для каждого пользователя. Хотите начать разрабатывать новую игру, вручную сохраняете текущие файлы и начинаете писать заново. 

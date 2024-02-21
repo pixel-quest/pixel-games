@@ -3,6 +3,18 @@
 -- Описание механики: в общих словах, что происходит в механике
 -- Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
 
+-- Логгер в консоль
+--      .print(string) - напечатать строку в консоль разработчика в браузере
+local log = require("log")
+
+-- Библиотека github.com/kikito/inspect.lua
+-- для человекочитаемого вывода
+local inspect = require("inspect")
+
+-- Вспомогательные методы
+--      .shallowCopy(table) - неглубокое копирования таблицы
+local help = require("help")
+
 -- Методы работы с JSON
 --      .decode(jsonString) - декодирование строки в объект
 --      .encode(jsonObject) - кодирование объекта в строку
@@ -94,12 +106,12 @@ function StartGame(gameJson, gameConfigJson)
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = shallowCopy(Pixel) -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = help.shallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
     for i, num in pairs(GameObj.Buttons) do
-        ButtonsList[num] = shallowCopy(Pixel) -- тип аналогичен пикселю
+        ButtonsList[num] = help.shallowCopy(Pixel) -- тип аналогичен пикселю
     end
 end
 
@@ -197,15 +209,4 @@ end
 -- }
 function DefectButton(defect)
     ButtonsList[defect.Button].Defect = defect.Defect
-end
-
--- ======== Ниже вспомогательные методы внутренней логики =======
-
--- Функция-помощник для неглубокого копирования таблицы
-function shallowCopy(t)
-    local t2 = {}
-    for k,v in pairs(t) do
-        t2[k] = v
-    end
-    return t2
 end
