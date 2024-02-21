@@ -17,7 +17,7 @@ local log = require("log")
 local inspect = require("inspect")
 
 -- Вспомогательные методы
---      .shallowCopy(table) - неглубокое копирования таблицы
+--      .ShallowCopy(table) - неглубокое копирования таблицы
 local help = require("help")
 
 -- Методы работы с JSON
@@ -149,12 +149,12 @@ function StartGame(gameJson, gameConfigJson)
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = help.shallowCopy(Pixel) -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = help.ShallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
     for i, num in pairs(GameObj.Buttons) do
-        ButtonsList[num] = help.shallowCopy(Pixel) -- тип аналогичен пикселю
+        ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
         ButtonsList[num].Color = colors.BLUE
         ButtonsList[num].Bright = colors.BRIGHT70
