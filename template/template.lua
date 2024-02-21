@@ -7,8 +7,7 @@
 --      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
 
--- Библиотека github.com/kikito/inspect.lua
--- для человекочитаемого вывода
+-- Библиотека github.com/kikito/inspect.lua для человекочитаемого вывода
 local inspect = require("inspect")
 
 -- Вспомогательные методы
