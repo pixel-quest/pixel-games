@@ -12,6 +12,7 @@ local inspect = require("inspect")
 
 -- Вспомогательные методы
 --      .ShallowCopy(table) - неглубокое копирования таблицы
+--      .DeepCopy(table) - глубокое копирования таблицы
 local help = require("help")
 
 -- Методы работы с JSON
