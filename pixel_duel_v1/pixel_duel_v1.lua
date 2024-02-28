@@ -162,7 +162,7 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num].Bright = colors.BRIGHT70
     end
 
-    GameStats.TotalStars = GameConfigObj.PointsToWin
+    GameStats.TargetScore = GameConfigObj.PointsToWin
 
     audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
