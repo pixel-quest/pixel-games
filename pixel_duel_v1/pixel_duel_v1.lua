@@ -228,6 +228,7 @@ function NextTick()
             end
         end
     elseif Stage == CONST_STAGE_GAME then -- этап игры
+        GameStats.StageTotalDuration = 0
         -- Вся логика происходит в обработке клика
     elseif Stage == CONST_STAGE_WIN then -- этап выигрыша
         local timeSinceStageStart = time.unix() - StageStartTime
