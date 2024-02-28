@@ -1,5 +1,5 @@
 -- Название: Название механики
--- Автор: @ваш_телеграм
+-- Автор: @ваш_телеграм (телеграм)
 -- Описание механики: в общих словах, что происходит в механике
 -- Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
 
@@ -21,8 +21,7 @@ local help = require("help")
 local json = require("json")
 
 -- Имплементация некоторых функций работы с временем
---      .unix_nano() - возвращает текущее время в наносекундах
---      .unix() - возвращает текущее время в секундах (с дробной частью), по сути это unix_nano() / 1 000 000 000
+--      .unix() - возвращает текущее время в секундах (с дробной частью)
 local time = require("time")
 
 -- Методы работы с аудио
@@ -69,6 +68,7 @@ local GameStats = {
     StageTotalDuration = 0, -- seconds
     CurrentStars = 0,
     TotalStars = 0,
+    CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
         { Score = 0, Lives = 0, Color = colors.NONE },
@@ -76,8 +76,9 @@ local GameStats = {
         { Score = 0, Lives = 0, Color = colors.NONE },
         { Score = 0, Lives = 0, Color = colors.NONE },
         { Score = 0, Lives = 0, Color = colors.NONE },
-        { Score = 0, Lives = 0, Color = colors.NONE }
+        { Score = 0, Lives = 0, Color = colors.NONE },
     },
+    TargetScore = 0,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = colors.NONE,
