@@ -184,6 +184,9 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
+    if ButtonsList[click.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
+    end
     ButtonsList[click.Button].Click = click.Click
 end
 
@@ -209,5 +212,8 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    if ButtonsList[defect.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
+    end
     ButtonsList[defect.Button].Defect = defect.Defect
 end

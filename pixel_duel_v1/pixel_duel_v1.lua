@@ -335,6 +335,9 @@ function ButtonClick(click)
     if Stage ~= CONST_STAGE_CHOOSE_COLOR then
         return -- не интересуют клики кнопок вне этапа выбора цвета
     end
+    if ButtonsList[click.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
+    end
     ButtonsList[click.Button].Click = click.Click
 
     -- нажали кнопку, стартуем обратный отсчет
@@ -375,6 +378,9 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    if ButtonsList[defect.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
+    end
     ButtonsList[defect.Button].Defect = defect.Defect
     -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
     if defect.Defect then
