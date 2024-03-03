@@ -1,5 +1,5 @@
 -- Название: Пиксель дуэль
--- Автор: @AnatoliyB (телеграм)
+-- Автор: @GhostVeek (телеграм)
 -- Описание механики: соревновательная механика, кто быстрее соберет необходимое количество очков, наступая на пиксели своего цвета
 --      пиксели могут перемещаться после нажатия, могут не воявляться до обновления пола(настраиваемо).
 --      После окончания этапа пол становится "заморожен", за исключением пикселей на которых стоит игрок. Наступать на другие пиксели нельзя
@@ -77,7 +77,6 @@ local GameConfigObj = {
     PointsToWin = 10, -- очки, необходимые для победы
     FillingPercentage = 10, -- процент заполнения пола цветными пикселями
     MovePixels = false, -- переменная, отвечающая за движение пикселя после нажатия
-    StartDuration = 8, -- продолжительность старта
     StageDuration = 10, -- продолжительность этапа
     WinDurationSec = 10, -- продолжительность этапа победы перед завершением игры
     StopDurationSec = 3, -- продолжительность "заморозки"
@@ -125,13 +124,7 @@ local Pixel = { -- пиксель тип
     Bright = colors.BRIGHT0,
     Click = false, -- переменная означающая, можно ли совершить клик по пикселю
     Defect = false, -- дефектный пиксель
-    effect = {
-        activatedAt = 0.5,
-        durations = {
-            durationOff = 500,
-            durationOn = 500,
-        },
-    },
+    EffectActivatedAt = nil,
 }
 
 
@@ -200,33 +193,6 @@ end
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
 function SwitchStage()
     switchStage(Stage+1)
-end
-
--- processEffects: отвечает за эфект моргания во время этапа заморозки пола
-function processEffects()
-    for x=1,GameObj.Cols do
-        for y=1,GameObj.Rows do
-            local pixel = FloorMatrix[x][y]
-            if pixel.effect ~= nil then
-                -- воспроизведем эффект
-                local timeSinceEffectActivated = (time.unix() - pixel.effect.activatedAt) * 1000
-                if timeSinceEffectActivated > GameConfigObj.WrongEffectDuration then
-                    pixel.effect = nil
-                    goto continue
-                end
-
-                while timeSinceEffectActivated > pixel.effect.durations.durationOn+pixel.effect.durations.durationOff do
-                    timeSinceEffectActivated = timeSinceEffectActivated - (pixel.effect.durations.durationOn + pixel.effect.durations.durationOff)
-                end
-                if timeSinceEffectActivated < pixel.effect.durations.durationOn then
-                    pixel.Color = GameConfigObj.WrongColor
-                else
-                    pixel.Color = colors.NONE
-                end
-            end
-            ::continue::
-        end
-    end
 end
 
 -- NextTick (служебный): метод игрового тика
@@ -330,12 +296,6 @@ function GetStats()
     return GameStats
 end
 
--- переменная, отвечающая за начало и конец моргания processEffects
-local wrongAreaEffect = {
-    durationOn =  200,
-    durationOff = 120,
-}
-
 local flag = true
 
 -- PixelClick (служебный): метод нажатия/отпускания пикселя
@@ -374,7 +334,7 @@ function PixelClick(click)
 
 
 
-    if click.Click and pixel.effect == nil and clickedColor > colors.NONE then
+    if click.Click and pixel.EffectActivatedAt == nil and clickedColor > colors.NONE then
         if freezed == false then
             local playerIdx = playerIdxByColor(clickedColor)
             if playerIdx >= 0 then
@@ -391,9 +351,9 @@ function PixelClick(click)
         elseif clickedColor == GameConfigObj.StopColor then
             audio.PlayAsync(audio.MISCLICK)
             if freezed then
-                FloorMatrix[click.X][click.Y].effect = {
-                    activatedAt = time.unix(),
-                    durations = help.ShallowCopy(wrongAreaEffect),
+                FloorMatrix[click.X][click.Y].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = help.ShallowCopy(GameObj.Durations),
                 }
             end
         end
@@ -475,6 +435,34 @@ function DefectButton(defect)
     end
 end
 
+
+-- processEffects: отвечает за эфект моргания во время этапа заморозки пола
+function processEffects()
+    for x=1,GameObj.Cols do
+        for y=1,GameObj.Rows do
+            local pixel = FloorMatrix[x][y]
+            if pixel.EffectActivatedAt ~= nil then
+                -- воспроизведем эффект
+                local timeSinceEffectActivated = (time.unix() - pixel.EffectActivatedAt.ActivatedAt) * 1000
+                if timeSinceEffectActivated > GameConfigObj.WrongEffectDuration then
+                    pixel.EffectActivatedAt = nil
+                    goto continue
+                end
+
+                while timeSinceEffectActivated > pixel.EffectActivatedAt.Durations.DurationOn+pixel.EffectActivatedAt.Durations.DurationOff do
+                    timeSinceEffectActivated = timeSinceEffectActivated - (pixel.EffectActivatedAt.Durations.DurationOn + pixel.EffectActivatedAt.Durations.DurationOff)
+                end
+                if timeSinceEffectActivated < pixel.EffectActivatedAt.Durations.DurationOn then
+                    pixel.Color = GameConfigObj.WrongColor
+                else
+                    pixel.Color = colors.NONE
+                end
+            end
+            ::continue::
+        end
+    end
+end
+
 -- Установка глобального цвета
 function setGlobalColorBright(color, bright)
     for x=1,GameObj.Cols do
@@ -517,7 +505,7 @@ function switchStage(newStage)
     -- очистим поле
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y].effect = nil
+            FloorMatrix[x][y].EffectActivatedAt = nil
             FloorMatrix[x][y].Color = colors.NONE
             FloorMatrix[x][y].Bright = colors.BRIGHT0
         end
