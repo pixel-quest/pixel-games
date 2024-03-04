@@ -82,7 +82,7 @@ local GameConfigObj = {
     PointsToWin = 50, -- очки, необходимые для победы
     FillingPercentage = 50, -- процент заполнения пола цветными пикселями
     MovePixels = true, -- переменная, отвечающая за движение пикселя после нажатия
-    StageDuration = 8, -- продолжительность этапа
+    StageDurationSec = 8, -- продолжительность этапа
     WinDurationSec = 10, -- продолжительность этапа победы перед завершением игры
     StopDurationSec = 3, -- продолжительность "заморозки"
 }
@@ -240,16 +240,16 @@ function NextTick()
         -- часть логики производится в обработке клика
         -- происходит проверка длительности этапа и вызов эфекта заморозки
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageLeftDuration = GameConfigObj.StageDuration - timeSinceStageStart + 1
-        if timeSinceStageStart > GameConfigObj.StageDuration+GameConfigObj.StopDurationSec then
+        GameStats.StageLeftDuration = GameConfigObj.StageDurationSec - timeSinceStageStart + 1
+        if timeSinceStageStart > GameConfigObj.StageDurationSec+GameConfigObj.StopDurationSec then
             switchStage(GameStats.StageNum+1)
-        elseif timeSinceStageStart > GameConfigObj.StageDuration then
+        elseif timeSinceStageStart > GameConfigObj.StageDurationSec then
             audio.StopBackground()
             GameStats.StageLeftDuration = 0
             stageFreeze()
             processEffects()
 
-        elseif timeSinceStageStart > GameConfigObj.StageDuration-2.5 then
+        elseif timeSinceStageStart > GameConfigObj.StageDurationSec-2.5 then
             if not Freezing then
                 audio.PlaySync(audio.ONE_TWO_FREE_FREEZE)
                 Freezing = true
@@ -465,7 +465,7 @@ end
 function switchStage(newStage)
     GameStats.StageNum = newStage
     StageStartTime = time.unix()
-    GameStats.StageTotalDuration = GameConfigObj.StageDuration
+    GameStats.StageTotalDuration = GameConfigObj.StageDurationSec
     Freezing = false
     Freezed = false
     resetCountdown()

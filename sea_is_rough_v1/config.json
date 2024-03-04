@@ -2,7 +2,7 @@
   "Bright": 5,
   "MovePixels": true,
   "PointsToWin": 50,
-  "StageDuration": 8,
+  "StageDurationSec": 8,
   "WinDurationSec": 10,
   "StopDurationSec": 3,
   "FillingPercentage": 50
