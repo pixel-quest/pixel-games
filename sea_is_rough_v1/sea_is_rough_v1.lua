@@ -7,14 +7,26 @@
 -- Идеи по доработке:
 --      1. Кооперативное прохождение
 
+-- Логгер в консоль
+--      .print(string) - напечатать строку в консоль разработчика в браузере
+local log = require("log")
+
+-- Библиотека github.com/kikito/inspect.lua
+-- для человекочитаемого вывода
+local inspect = require("inspect")
+
+-- Вспомогательные методы
+--      .ShallowCopy(table) - неглубокое копирования таблицы
+--      .DeepCopy(table) - глубокое копирования таблицы
+local help = require("help")
+
 -- Методы работы с JSON
 --      .decode(jsonString) - декодирование строки в объект
 --      .encode(jsonObject) - кодирование объекта в строку
 local json = require("json")
 
 -- Имплементация некоторых функций работы с временем
---      .unix_nano() - возвращает текущее время в наносекундах
---      .unix() - возвращает текущее время в секундах (с дробной частью), по сути это unix_nano() / 1 000 000 000
+--      .unix() - возвращает текущее время в секундах (с дробной частью)
 local time = require("time")
 
 -- Методы работы с аудио
@@ -35,15 +47,6 @@ local audio = require("audio")
 -- Константы цветов (0 - 7): NONE, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 -- Константы яркости (0 - 7): BRIGHT0, BRIGHT15, BRIGHT30, BRIGHT45, BRIGHT60, BRIGHT70, BRIGHT85, BRIGHT100
 local colors = require("colors")
-
--- Библиотека help позволяющая вызывать методы глубокого и неглубокого копирования
---      .ShallowCopy(table) - неглубокое копирование таблицы
---      .DeepCopy(table) - глубокое копирования таблицы
-local help = require("help")
-
--- Библиотека log, позволяющая выводить строку в консоль разработчика
---      .print(string)
-local log = require("log")
 
 -- Полезные стандартные функции
 --      math.ceil() – округление вверх
