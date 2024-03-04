@@ -2,7 +2,7 @@
 -- Автор: @AnatoliyB (телеграм)
 -- Описание механики: соревновательная механика, кто быстрее добежит до своего пикселя
 --      пиксели других игроков при этом могут тоже перемещаться (hard режим, настраивается)
---      Внимание: Для старта игры требуется "встать" минимум на два цвета и нажать любую кнопку на стене!
+--      Внимание: Для старта игры требуется "встать" минимум на два цвета и нажать светящуюся кнопку на стене!
 -- Идеи по доработке:
 --		1. Перерывы 5..10 сек на передышку, т.к бегать реально тяжело, тем более если поставить больше очков;
 --		2. Вести счёт для серии коротких игр условно до 3х побед;
@@ -236,11 +236,9 @@ function NextTick()
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
-            switchStage(Stage+1)
+            -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
+            return GameResults
         end
-    else
-        -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
-        return GameResults
     end
 end
 
@@ -297,7 +295,7 @@ function PixelClick(click)
 
     -- игрок набрал нужное количесто очков для победы
     if player.Score >= GameConfigObj.PointsToWin then
-        audio.PlaySync(audio.GAME_SUCCESS)
+        audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
         audio.PlaySyncColorSound(player.Color)
         audio.PlaySync(audio.VICTORY)
 

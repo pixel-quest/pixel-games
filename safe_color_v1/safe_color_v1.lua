@@ -4,7 +4,7 @@
 --      другие сегменты загораются красным, обжигая тех, кто не успел.
 --      Базово количество безопасных сегментов = количеству игроков.
 --      Можно играть "Режим обнимашек" – когда на старте не все игроки занимают стартовую позицию или становятся по два.
---      Внимание: Для старта игры требуется нажать любую светящуюся кнопку на стене!
+--      Внимание: Для старта игры требуется занять позиции и нажать любую светящуюся кнопку на стене!
 -- Идеи по доработке:
 --		1. Можно сделать вариант на выбывание с уменьшением количества безопасных сегментов
 
@@ -247,7 +247,7 @@ function NextTick()
 
             -- если это был последний этап
             if GameStats.StageNum == GameConfigObj.StagesQty then
-                audio.PlaySync(audio.GAME_SUCCESS)
+                audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
                 audio.PlaySync(audio.VICTORY)
                 setGlobalColorBrightExceptColor(colors.GREEN, GameConfigObj.Bright, colors.NONE)
                 switchStage(GameStats.StageNum+1)
@@ -394,7 +394,6 @@ function switchStage(newStage)
     GameStats.StageTotalDuration = GameConfigObj.StageDurationSec
 
     GameStats.TargetColor = targetColor(GameStats.StageNum)
-    audio.PlaySyncColorSound(GameStats.TargetColor)
 
     if GameStats.StageNum > GameConfigObj.StagesQty then
         audio.StopBackground()
@@ -407,6 +406,9 @@ function switchStage(newStage)
         setGlobalColorBrightExceptColor(colors.NONE, colors.BRIGHT0, colors.NONE)
         StageDonePlayed = false
         resetCountdown()
+
+        audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
+        audio.PlaySyncColorSound(GameStats.TargetColor)
     end
 
     -- заполним все цветными, пропуская нужный цвет
@@ -558,9 +560,8 @@ function setGlobalColorBrightExceptColor(color, bright, exceptColor)
         for y=1,GameObj.Rows do
             if FloorMatrix[x][y].Color ~= exceptColor then
                 FloorMatrix[x][y].Color = color
+                FloorMatrix[x][y].Bright = bright
             end
-            -- яркость отдельно, иначе на финише после эффекта пиксель отличается, т.к там NONE и он пропускается
-            FloorMatrix[x][y].Bright = bright
         end
     end
 end
@@ -593,7 +594,7 @@ function processClicksAndEffects()
                 else
                     pixel.Color = colors.NONE
                 end
-            elseif not pixel.Defect and pixel.Click  and -- есть нажатие
+            elseif not pixel.Defect and pixel.Click and -- есть нажатие
                 pixel.Bright < GameConfigObj.Bright and -- яркость заливки меньше, чем таргет цвета
                     GameStats.StageNum <= GameConfigObj.StagesQty then -- это еще не финиш
                 -- минус жизнь, старт эффект
@@ -613,7 +614,7 @@ function minusLive()
         if GameStats.CurrentLives == 0 then -- game over
             audio.PlaySync(audio.GAME_OVER)
             audio.PlaySync(audio.DEFEAT)
-            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright, colors.NONE)
+            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, colors.NONE)
             switchStage(GameConfigObj.StagesQty+1)
         end
     end

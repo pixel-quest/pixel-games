@@ -22,9 +22,10 @@
     73,
     77
   ],
-  "Durations": {
-    "DurationOn": 120,
-    "DurationOff": 200
+  "BurnEffect": {
+    "DurationOnMs": 200,
+    "DurationOffMs": 120,
+    "TotalDurationMs": 1500
   },
   "StartPositions": [
     {

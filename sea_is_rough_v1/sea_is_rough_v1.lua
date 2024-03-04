@@ -1,9 +1,9 @@
 -- Название: Море волнуется
 -- Автор: @GhostVeek (телеграм)
--- Описание механики: соревновательная механика, кто быстрее соберет необходимое количество очков, наступая на пиксели своего цвета
---      пиксели могут перемещаться после нажатия, могут не воявляться до обновления пола(настраиваемо).
---      После окончания этапа пол становится "заморожен", за исключением пикселей на которых стоит игрок. Наступать на другие пиксели нельзя
---      Внимание: Для старта игры требуется "встать" минимум на два цвета и нажать любую кнопку на стене!
+-- Описание механики: соревновательная механика, кто быстрее соберет необходимое количество пикселей своего цвета.
+--      Пиксели могут перемещаться после нажатия, а могут пропадать до обновления пола (настраиваемо).
+--      После окончания этапа пол становится "заморожен", за исключением пикселей на которых стоит игрок.
+--      Внимание: Для старта игры требуется "встать" минимум на два цвета и нажать светящуюся кнопку на стене!
 -- Идеи по доработке:
 --      1. Кооперативное прохождение
 
@@ -68,28 +68,30 @@ local GameObj = {
         { X = 18, Y = 2, Color = colors.BLUE },
         { X = 22, Y = 2, Color = colors.MAGENTA },
     },
+    BurnEffect = { -- тайминги эффекта моргания
+        DurationOnMs = 200,
+        DurationOffMs = 120,
+        TotalDurationMs = 1500,
+    },
 }
 
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
 local GameConfigObj = {
     Bright = colors.Bright70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
-    PointsToWin = 10, -- очки, необходимые для победы
-    FillingPercentage = 10, -- процент заполнения пола цветными пикселями
-    MovePixels = false, -- переменная, отвечающая за движение пикселя после нажатия
-    StageDuration = 10, -- продолжительность этапа
+    PointsToWin = 50, -- очки, необходимые для победы
+    FillingPercentage = 50, -- процент заполнения пола цветными пикселями
+    MovePixels = true, -- переменная, отвечающая за движение пикселя после нажатия
+    StageDuration = 8, -- продолжительность этапа
     WinDurationSec = 10, -- продолжительность этапа победы перед завершением игры
     StopDurationSec = 3, -- продолжительность "заморозки"
-    WrongEffectDuration = 1, -- длятельность моргания
-    StopColor = colors.RED, -- цвет пола, во время эфекта "заморозки"
-    WrongColor = colors.MAGENTA, -- цвет моргания пикселя, при нажатии на замороженный пиксель
 }
 
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
 -- Переодически запрашивается через метод GetStats()
 local GameStats = {
-    StageLeftDuration = 3, -- seconds
+    StageLeftDuration = 0, -- seconds
     StageTotalDuration = 0, -- seconds
     CurrentStars = 0,
     CurrentLives = 0,
@@ -117,8 +119,6 @@ local GameResults = {
 -- Локальные переменные для внутриигровой логики
 local FloorMatrix = {} -- матрица пола
 local ButtonsList = {} -- список кнопок
-
-
 local Pixel = { -- пиксель тип
     Color = colors.NONE,
     Bright = colors.BRIGHT0,
@@ -127,13 +127,12 @@ local Pixel = { -- пиксель тип
     EffectActivatedAt = nil,
 }
 
-
-local freezed = false -- переменная, отвечающая за этап заморозки
 local CONST_STAGE_CHOOSE_COLOR = 0 -- выбор цвета
 local CONST_STAGE_GAME = 1 -- игра
-local CONST_STAGE_WIN = 3 -- победа
-local Stage = CONST_STAGE_CHOOSE_COLOR -- текущий этап
+local CONST_STAGE_WIN = -1 -- победа
 local StageStartTime = 0 -- время начала текущего этапа
+local Freezing = false -- переменная, отвечающая за начало заморозки
+local Freezed = false -- переменная, отвечающая за этап заморозки
 
 local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
     [5] = false,
@@ -157,14 +156,14 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y] = help.DeepCopy(Pixel) -- заполняем нулевыми пикселями
+            FloorMatrix[x][y] = help.ShallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
 
 
 
     for i, num in pairs(GameObj.Buttons) do
-        ButtonsList[num] = help.DeepCopy(Pixel) -- тип аналогичен пикселю
+        ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
         ButtonsList[num].Color = colors.BLUE
         ButtonsList[num].Bright = colors.BRIGHT70
@@ -172,7 +171,7 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+    audio.PlaySyncFromScratch("games/statues-game.mp3") -- Игра "Море волнуется"
     audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
     audio.PlaySync("voices/get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
     audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
@@ -192,7 +191,7 @@ end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
 function SwitchStage()
-    switchStage(Stage+1)
+    switchStage(GameStats.StageNum+1)
 end
 
 -- NextTick (служебный): метод игрового тика
@@ -201,7 +200,7 @@ end
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
-    if Stage == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
+    if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
@@ -234,43 +233,39 @@ function NextTick()
             end
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
-                Stage = Stage + 1
-                switchStage(Stage)
+                switchStage(GameStats.StageNum + 1)
             end
         end
-    elseif Stage == CONST_STAGE_GAME then -- этап игры
+    elseif GameStats.StageNum >= CONST_STAGE_GAME then -- этап игры
         -- часть логики производится в обработке клика
         -- происходит проверка длительности этапа и вызов эфекта заморозки
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageLeftDuration = GameConfigObj.StageDuration - timeSinceStageStart + 1
         if timeSinceStageStart > GameConfigObj.StageDuration+GameConfigObj.StopDurationSec then
-            switchStage(Stage+1)
-            freezed = false
+            switchStage(GameStats.StageNum+1)
         elseif timeSinceStageStart > GameConfigObj.StageDuration then
-            stageFreeze()
-            freezed = true
+            audio.StopBackground()
             GameStats.StageLeftDuration = 0
+            stageFreeze()
             processEffects()
 
         elseif timeSinceStageStart > GameConfigObj.StageDuration-2.5 then
-            if not freezed then
+            if not Freezing then
                 audio.PlaySync(audio.ONE_TWO_FREE_FREEZE)
-                freezed = true
+                Freezing = true
             end
         end
-    elseif Stage == CONST_STAGE_WIN then -- этап
+    elseif GameStats.StageNum == CONST_STAGE_WIN then -- этап победы
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
-            switchStage(Stage+1)
+            -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
+            return GameResults
         end
-        return GameResults
     end
 end
-
-
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
 -- Вызывается в тот же игровой тик следом за методом NextTick()
@@ -296,8 +291,6 @@ function GetStats()
     return GameStats
 end
 
-local flag = true
-
 -- PixelClick (служебный): метод нажатия/отпускания пикселя
 --
 -- Параметры:
@@ -308,66 +301,44 @@ local flag = true
 --      Weight: int,
 --  }
 function PixelClick(click)
-    if not flag then
-        Stage = CONST_STAGE_WIN
-    end
     FloorMatrix[click.X][click.Y].Click = click.Click
-    if Stage ~= CONST_STAGE_GAME then
+    if GameStats.StageNum < CONST_STAGE_GAME then
         return -- игнорируем клики вне этапа игры
     end
+
     -- Если есть игрок с таким цветом, засчитываем очки
-    local pixel = help.DeepCopy(FloorMatrix[click.X][click.Y])
-    if flag and not freezed then
-        FloorMatrix[click.X][click.Y].Color = colors.NONE
-    end
-    local clickedColor = help.DeepCopy(pixel.Color)
-
-    local player = getPlayerByColor(clickedColor)
-    if player == nil and not freezed then
-        return
-    end
-
-    audio.PlayAsync(audio.CLICK)
-    if not freezed and flag then
-        player.Score = player.Score + 1
-    end
-
-
+    local pixel = FloorMatrix[click.X][click.Y]
+    local clickedColor = pixel.Color
 
     if click.Click and pixel.EffectActivatedAt == nil and clickedColor > colors.NONE then
-        if freezed == false then
-            local playerIdx = playerIdxByColor(clickedColor)
-            if playerIdx >= 0 then
+        if not Freezed then
+            local player = getPlayerByColor(clickedColor)
+            if player ~= nil then
                 audio.PlayAsync(audio.CLICK)
+                player.Score = player.Score + 1
                 -- игрок набрал нужное количесто очков для победы
-                if GameStats.Players[playerIdx].Score >= GameConfigObj.PointsToWin then
+                if player.Score >= GameConfigObj.PointsToWin then
+                    audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
                     audio.PlaySync(audio.VICTORY)
                     switchStage(CONST_STAGE_WIN)
                     setGlobalColorBright(clickedColor, GameConfigObj.Bright)
-                    flag = false
                     return
+                else -- еще не победил
+                    local leftScores = GameConfigObj.PointsToWin - player.Score
+                    local alreadyPlayed = LeftAudioPlayed[leftScores]
+                    if alreadyPlayed ~= nil and not alreadyPlayed then
+                        audio.PlayLeftAudio(leftScores)
+                        LeftAudioPlayed[leftScores] = true
+                    end
                 end
             end
-        elseif clickedColor == GameConfigObj.StopColor then
+        elseif clickedColor == colors.RED then
             audio.PlayAsync(audio.MISCLICK)
-            if freezed then
-                FloorMatrix[click.X][click.Y].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = help.ShallowCopy(GameObj.Durations),
-                }
-            end
+            FloorMatrix[click.X][click.Y].EffectActivatedAt = time.unix()
         end
         -- и переместим пиксель в другое пустое место
         if GameConfigObj.MovePixels then
-            for randomAttempt = 0, 50 do
-                local x = math.random(1, GameObj.Cols)
-                local y = math.random(1, GameObj.Rows)
-                if FloorMatrix[x][y].Color == colors.NONE and not FloorMatrix[x][y].Defect then
-                    FloorMatrix[x][y].Color = clickedColor
-                    FloorMatrix[x][y].Bright = GameConfigObj.Bright
-                    break
-                end
-            end
+            placePixel(clickedColor)
         end
 
         -- стираем его на текущем месте
@@ -384,8 +355,11 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
-    if Stage ~= CONST_STAGE_CHOOSE_COLOR then
+    if GameStats.StageNum ~= CONST_STAGE_CHOOSE_COLOR then
         return -- не интересуют клики кнопок вне этапа выбора цвета
+    end
+    if ButtonsList[click.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
     end
     ButtonsList[click.Button].Click = click.Click
 
@@ -406,11 +380,9 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
-    FloorMatrix[defect.X][defect.Y].Click = false
-    FloorMatrix[defect.X][defect.Y].Defect = true
-
+    FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
     if defect.Defect then
-        FloorMatrix[defect.X][defect.Y].Click = false  --  переместим пиксель
+        FloorMatrix[defect.X][defect.Y].Click = false
         FloorMatrix[defect.X][defect.Y].Color = colors.NONE
     end
 end
@@ -424,6 +396,9 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    if ButtonsList[defect.Button] == nil then
+        return -- не интересуют кнопки не из списка, иначе будет ошибка
+    end
     ButtonsList[defect.Button].defect = defect.Defect
     -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
     if defect.Defect then
@@ -435,25 +410,25 @@ function DefectButton(defect)
     end
 end
 
+-- ======== Ниже вспомогательные методы внутриигровой логики =======
 
 -- processEffects: отвечает за эфект моргания во время этапа заморозки пола
 function processEffects()
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
             local pixel = FloorMatrix[x][y]
-            if pixel.EffectActivatedAt ~= nil then
-                -- воспроизведем эффект
-                local timeSinceEffectActivated = (time.unix() - pixel.EffectActivatedAt.ActivatedAt) * 1000
-                if timeSinceEffectActivated > GameConfigObj.WrongEffectDuration then
+            if pixel.EffectActivatedAt ~= nil then -- воспроизведем эффект
+                local timeSinceEffectActivated = (time.unix() - pixel.EffectActivatedAt) * 1000
+                if timeSinceEffectActivated > GameObj.BurnEffect.TotalDurationMs then
                     pixel.EffectActivatedAt = nil
                     goto continue
                 end
 
-                while timeSinceEffectActivated > pixel.EffectActivatedAt.Durations.DurationOn+pixel.EffectActivatedAt.Durations.DurationOff do
-                    timeSinceEffectActivated = timeSinceEffectActivated - (pixel.EffectActivatedAt.Durations.DurationOn + pixel.EffectActivatedAt.Durations.DurationOff)
+                while timeSinceEffectActivated > GameObj.BurnEffect.DurationOnMs+GameObj.BurnEffect.DurationOffMs do
+                    timeSinceEffectActivated = timeSinceEffectActivated - (GameObj.BurnEffect.DurationOnMs+GameObj.BurnEffect.DurationOffMs)
                 end
-                if timeSinceEffectActivated < pixel.EffectActivatedAt.Durations.DurationOn then
-                    pixel.Color = GameConfigObj.WrongColor
+                if timeSinceEffectActivated < GameObj.BurnEffect.DurationOnMs then
+                    pixel.Color = colors.MAGENTA
                 else
                     pixel.Color = colors.NONE
                 end
@@ -467,10 +442,9 @@ end
 function setGlobalColorBright(color, bright)
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            if not FloorMatrix[x][y].Defect then
-                FloorMatrix[x][y].Color = color
-                FloorMatrix[x][y].Bright = bright
-            end
+            FloorMatrix[x][y].Color = color
+            FloorMatrix[x][y].Bright = bright
+            FloorMatrix[x][y].EffectActivatedAt = nil
         end
     end
 
@@ -488,28 +462,26 @@ function resetCountdown()
 end
 
 -- Переключение этапа игры
-
 function switchStage(newStage)
     GameStats.StageNum = newStage
     StageStartTime = time.unix()
     GameStats.StageTotalDuration = GameConfigObj.StageDuration
-    freezing = false
+    Freezing = false
+    Freezed = false
+    resetCountdown()
 
-    if newStage == CONST_STAGE_CHOOSE_COLOR or newStage == CONST_STAGE_WIN then
+    if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR or
+            GameStats.StageNum == CONST_STAGE_WIN then
         audio.StopBackground()
         return
     else
+        audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
         audio.PlayRandomBackground()
     end
 
     -- очистим поле
-    for x=1,GameObj.Cols do
-        for y=1,GameObj.Rows do
-            FloorMatrix[x][y].EffectActivatedAt = nil
-            FloorMatrix[x][y].Color = colors.NONE
-            FloorMatrix[x][y].Bright = colors.BRIGHT0
-        end
-    end
+    setGlobalColorBright(colors.NONE, colors.BRIGHT0)
+
     -- заполнить все цветными на рандомных местах, пока не достигнем нужного процента
     local color = colors.RED -- будем поочередно расставлять цвета
     for filled = 1,GameObj.Cols*GameObj.Rows*GameConfigObj.FillingPercentage/100 do
@@ -517,22 +489,11 @@ function switchStage(newStage)
         if color == colors.NONE or color >= colors.WHITE then
             color = colors.RED
         end
-        for randomAttempt = 1, math.ceil(GameObj.Cols*GameObj.Rows*GameConfigObj.FillingPercentage/(100*6)) do
-            local x  = math.random(1, GameObj.Cols)
-            local y  = math.random(1, GameObj.Rows)
-            if FloorMatrix[x][y].Color == colors.NONE and
-                    not FloorMatrix[x][y].Click and -- под ноги не размещаем
-                    not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
-                FloorMatrix[x][y].Bright = GameConfigObj.Bright
-                FloorMatrix[x][y].Color = color
-                break
-            end
-
-        end
+        placePixel(color)
     end
 
     -- пропустим занятые старт позиции
-    if newStage == CONST_STAGE_GAME then
+    if GameStats.StageNum == CONST_STAGE_GAME then
         for _, startPosition in ipairs(GameObj.StartPositions) do
             if checkPositionClick(startPosition, GameObj.StartPositionSize) then
                 setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, colors.NONE, colors.BRIGHT0)
@@ -541,25 +502,16 @@ function switchStage(newStage)
     end
 end
 
--- Расставить пиксели всех игроков
-function placeAllPlayerPixels()
-    for playerIdx, player in ipairs(GameStats.Players) do
-        placePixel(player.Color)
-    end
-end
-
-
-
---размещение пикселей
+-- Размещение пикселя
 function placePixel(color)
     if color == colors.NONE then
         return
     end
-    for randomAttempt=1,100 do
+    for randomAttempt=1,50 do
         local x = math.random(1, GameObj.Cols)
         local y = math.random(1, GameObj.Rows)
         if FloorMatrix[x][y].Color == colors.NONE and
-                not FloorMatrix[x][y].Click and
+                not FloorMatrix[x][y].Click and -- под ноги не размещаем
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
             FloorMatrix[x][y].Bright = GameConfigObj.Bright
             FloorMatrix[x][y].Color = color
@@ -568,7 +520,7 @@ function placePixel(color)
     end
 end
 
--- проверка позиции
+-- Проверка стартовой позиции
 function checkPositionClick(startPosition, positionSize)
     for i=0, positionSize*positionSize-1 do
         local x = startPosition.X + i%positionSize
@@ -576,7 +528,7 @@ function checkPositionClick(startPosition, positionSize)
 
         if x < 1 or x > GameObj.Cols or
                 y < 1 or y > GameObj.Rows then
-            goto continue -- ignore outside the game field
+            goto continue -- игнорируем координаты за пределами поля
         end
 
         if FloorMatrix[x][y].Click then
@@ -595,7 +547,7 @@ function setColorBrightForStartPosition(startPosition, positionSize, color, brig
 
         if x < 1 or x > GameObj.Cols or
                 y < 1 or y > GameObj.Rows then
-            goto continue -- ignore outside the game field
+            goto continue -- игнорируем координаты за пределами поля
         end
 
         FloorMatrix[x][y].Color = color
@@ -627,31 +579,17 @@ function countActivePlayers()
     return activePlayers
 end
 
--- заморозить пол
+-- Заморозить пол
 function stageFreeze()
+    Freezed = true
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            if not FloorMatrix[x][y].Defect then
-                FloorMatrix[x][y].Bright = GameConfigObj.Bright
-                if FloorMatrix[x][y].Click then
-                    FloorMatrix[x][y].Color = colors.GREEN
-                else
-                    FloorMatrix[x][y].Color = GameConfigObj.StopColor
-                end
+            FloorMatrix[x][y].Bright = GameConfigObj.Bright
+            if FloorMatrix[x][y].Click then
+                FloorMatrix[x][y].Color = colors.GREEN
+            else
+                FloorMatrix[x][y].Color = colors.RED
             end
         end
     end
-end
-
--- проверка цвета игрока
-function playerIdxByColor(color)
-    if color == colors.NONE then
-        return -1
-    end
-    for playerIdx, player in pairs(GameStats.Players) do
-        if player.Color == color then
-            return playerIdx
-        end
-    end
-    return -1
 end
