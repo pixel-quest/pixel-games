@@ -5,7 +5,6 @@
   "WrongColor": 5,
   "PointsToWin": 10,
   "StageDuration": 10,
-  "StartDuration": 5,
   "WinDurationSec": 3,
   "StopDurationSec": 3,
   "FillingPercentage": 95,
