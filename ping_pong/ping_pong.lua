@@ -4,15 +4,13 @@
 
 Описание механики: 
 платформой отбиваешь мяч в сторону опонента, если опонент не успевает отбить мяч то засчитывается гол
-3 раунда до двух побед 
-Чтобы выиграть раунд надо забить 5 голов(по стандартным настройкам)
+Чтобы выиграть надо забить 5 голов(по стандартным настройкам)
 В игре участвуют только 2 игрока
 Для старта нужно обоим игрокам нужно встать на свой цвет
 После каждого отбития мяча игра ускоряется
 
 Настройки:
 "Bright": 5, -- яркость всех пикселей
-"PodSize": 1, -- размер пода игроков, либо 0 либо 1
 "PointsToWinRound": 5, -- очков чтобы выиграть раунд
 -- настройки задержки мяча, чем меньше задержка тем быстрее мяч двигается
 "MinBallDelayMS": 50, -- минимальная задержка, ниже этой опустится не может
@@ -20,7 +18,6 @@
 "BallDelayHitDecreaseMS": 10 -- изменение задержки после каждого удара игрока по мячу(вычитание)
 
 Идеи по доработке: 
-настройка размера пода, если будет нужно, сейчас выбор только между 0 и 1 (что означает 1 и 3 клетки соответственно)
 
 ]]
 
@@ -232,7 +229,6 @@ CGameMode.LaunchBall = function()
     end)
 end
 
--- вызывается после 3 раунда
 CGameMode.EndGame = function(iWinnerID)
     CGameMode.GameWinner = iWinnerID
 
@@ -380,11 +376,11 @@ end
 CPod.PositionPodsFromClick = function(click)
     if iGameState == GAMESTATE_GAME then
         if click.X < math.floor(tGame.Cols/2) then
-            if CPod.tPods[1].iWeight <= click.Weight then
+            if tFloor[CPod.tPods[1].iPosX][CPod.tPods[1].iPosY].iWeight <= click.Weight  then
                 CPod.tPods[1].iPosY = click.Y
                 CPod.tPods[1].iWeight = click.Weight 
             end 
-        elseif CPod.tPods[2].iWeight <= click.Weight then 
+        elseif tFloor[CPod.tPods[2].iPosX][CPod.tPods[2].iPosY].iWeight <= click.Weight then 
             CPod.tPods[2].iPosY = click.Y
             CPod.tPods[2].iWeight = click.Weight
         end
@@ -500,7 +496,7 @@ end
 
 function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    tFloor[click.X][click.Y].iWeight = math.abs(click.Weight)
 
     CPod.PositionPodsFromClick(click)
 end
