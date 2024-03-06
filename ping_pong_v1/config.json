@@ -1,0 +1,9 @@
+{
+  "Bright": 5,
+  "PodSize": 2,
+  "MinBallDelayMS": 50,
+  "PointsToWinRound": 5,
+  "InitialBallDelayMS": 250,
+  "BallDelayHitDecreaseMS": 10,
+  "WinDurationSec": 10
+}
