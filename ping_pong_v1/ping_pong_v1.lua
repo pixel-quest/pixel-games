@@ -1,8 +1,8 @@
---[[ 
-Название: Пинг Понг
+--[[
+Название: Пинг-понг
 Автор: Avondale, discord: avonda
 
-Описание механики: 
+Описание механики:
     Платформой отбиваешь мяч в сторону опонента, если опонент не успевает отбить мяч то засчитывается гол.
     В игре участвуют только 2 игрока.
     Для старта нужно обоим игрокам встать на свой цвет.
@@ -86,7 +86,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    bIsPod = false,
+    iX = 0,
+    iY = 0,
 }
 
 local tButtonStruct = {
@@ -106,6 +107,8 @@ function StartGame(gameJson, gameConfigJson)
         tFloor[iX] = {}
         for iY = 1, tGame.Rows do
             tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct)
+            tFloor[iX][iY].iX = iX
+            tFloor[iX][iY].iY = iY
         end
     end
 
@@ -346,7 +349,6 @@ CPod.tPods = {}
 CPod.tStruct = {
     iPosX = 0,
     iPosY = 0,
-    tPrevPixel = nil,
 }
 
 -- для самой игры поидее эта функция вообще не нужна, только для веб версии
@@ -376,17 +378,54 @@ CPod.PaintPods = function()
     end
 end
 
--- Ставит позицию игроков по нажатию, выбирает по весу, где больше веса туда и ставит
-CPod.PositionPodsFromClick = function(click, tNewPixel)
+-- Ставит позицию пода между двух максимальных нажатий
+CPod.UpdatePodPositions = function(clickX)
     if iGameState == GAMESTATE_GAME then
-        if click.X < math.floor(tGame.Cols/2) then
-            if CPod.tPods[1].tPrevPixel == nil or CPod.tPods[1].tPrevPixel.iWeight * 0.5 <= click.Weight then
-                CPod.tPods[1].tPrevPixel = tNewPixel
-                CPod.tPods[1].iPosY = click.Y
+        local tPod
+        if clickX < math.floor(tGame.Cols/2) then
+            tPod = CPod.tPods[1]
+        else
+            tPod = CPod.tPods[2]
+        end
+
+        local maxPoints = {}
+
+        for iY = 1,tGame.Rows do
+            local bClick = tFloor[tPod.iPosX-1][iY].bClick or tFloor[tPod.iPosX][iY].bClick or tFloor[tPod.iPosX+1][iY].bClick
+            if not bClick then
+                goto continue;
             end
-        elseif CPod.tPods[2].tPrevPixel == nil or CPod.tPods[2].tPrevPixel.iWeight * 0.5 <= click.Weight then
-            CPod.tPods[2].tPrevPixel = tNewPixel
-            CPod.tPods[2].iPosY = click.Y
+
+            local iWeight = tFloor[tPod.iPosX-1][iY].iWeight+tFloor[tPod.iPosX][iY].iWeight+tFloor[tPod.iPosX+1][iY].iWeight
+
+            if #maxPoints == 0 then
+                maxPoints[1] = {
+                    iY = iY,
+                    iWeight = iWeight,
+                }
+            else -- #maxPoints == 1 or 2
+                if iWeight >= maxPoints[1].iWeight then
+                    maxPoints[2] = CHelp.ShallowCopy(maxPoints[1])
+                    maxPoints[1] = {
+                        iY = iY,
+                        iWeight = iWeight,
+                    }
+                elseif maxPoints[2] == nil or iWeight >= maxPoints[2].iWeight then
+                    maxPoints[2] = {
+                        iY = iY,
+                        iWeight = iWeight,
+                    }
+                end
+            end
+            ::continue::
+        end
+
+        if #maxPoints == 0 then
+            tPod.iPosY = math.floor(tGame.Rows/2)
+        elseif #maxPoints == 1 then
+            tPod.iPosY = maxPoints[1].iY
+        else
+            tPod.iPosY = math.floor((maxPoints[1].iY + maxPoints[2].iY) / 2 )
         end
     end
 end
@@ -497,7 +536,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    CPod.PositionPodsFromClick(click, tFloor[click.X][click.Y])
+    CPod.UpdatePodPositions(click.X)
 end
 
 function DefectPixel(defect)
