@@ -189,24 +189,24 @@ end
 
 CSongSync.Count = function(iTimePassed)
     if (not CSongSync.bOn) or iGameState ~= GAMESTATE_GAME then return; end
+    for i = 1, #CSongSync.tSong do
+        if CSongSync.tSong[i] ~= nil then
+            CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - iTimePassed
+            if CSongSync.tSong[i][1] <= 0 then
+                local iBatchID = math.random(1,999)
+                for j = 2, #CSongSync.tSong[i] do
+                    CGameMode.SpawnPixelForPlayers(CSongSync.tSong[i][j], iBatchID)
+                end
 
-    CSongSync.iTime = CSongSync.iTime + iTimePassed
+                if i == #CSongSync.tSong then
+                    CTimer.New(5000, function()
+                        CGameMode.EndGame()
+                    end)
+                end
 
-    if CSongSync.iTime < tConfig.SongStartDelayMS then return; end
-
-    if CSongSync.tSong[CSongSync.iSongPoint] ~= nil
-            and CSongSync.tSong[CSongSync.iSongPoint][1] > CSongSync.iTime - 50
-            and CSongSync.tSong[CSongSync.iSongPoint][1] < CSongSync.iTime + 50 then
-        CGameMode.SpawnPixelForPlayers(CSongSync.tSong[CSongSync.iSongPoint][2])
-        CSongSync.iSongPoint = CSongSync.iSongPoint + 1
-    end
-
-    if CSongSync.iSongPoint >= #CSongSync.tSong then
-        CGameMode.EndGame()
-    end
-
-    if CSongSync.tSong[CSongSync.iSongPoint] == nil then
-        CSongSync.iSongPoint = CSongSync.iSongPoint + 1
+                CSongSync.tSong[i] = nil
+            end
+        end
     end
 end
 --//
@@ -223,7 +223,9 @@ CGameMode.tPixelStruct = {
     iBright = CColors.BRIGHT50,
     iPlayerID = 0,
     bClickable = false,
+    iBatchID = 0,
 }
+CGameMode.tPlayerPixelBatches = {}
 
 CGameMode.CountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
@@ -267,7 +269,9 @@ CGameMode.MovePixel = function(iPixelID)
 
     CGameMode.tPixels[iPixelID].iPointY = CGameMode.tPixels[iPixelID].iPointY - 1
 
-    tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = iPixelID
+    if CGameMode.tPixels[iPixelID].iPointY > 0 then
+        tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = iPixelID
+    end
 end
 
 CGameMode.CalculatePixel = function(iPixelID)
@@ -279,36 +283,42 @@ CGameMode.CalculatePixel = function(iPixelID)
         CGameMode.tPixels[iPixelID].iBright = CColors.BRIGHT100
         CGameMode.tPixels[iPixelID].bClickable = true
 
-        if tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].bClick == true then
-            CGameMode.ScorePixel(iPixelID)
-        elseif CGameMode.tPixels[iPixelID].iPointY <= 1 then
-            CGameMode.tPixels[iPixelID] = nil
+        if CGameMode.tPixels[iPixelID].iPointY < 1 then
+            if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
+                CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] = false
+                CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.RED)
+                CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.RED)
+            end
 
-            CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.RED)
-            CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.RED)
+            CGameMode.tPixels[iPixelID] = nil
+        elseif tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].bClick == true then
+            CGameMode.ScorePixel(iPixelID)
         end
     end
 end
 
 CGameMode.ScorePixel = function(iPixelID)
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
-    CGameMode.tPixels[iPixelID] = nil
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
-    CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.GREEN)
-    CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.GREEN)
+    if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
+        CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.GREEN)
+        CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.GREEN)
+    end
+
+    CGameMode.tPixels[iPixelID] = nil
 end
 
-CGameMode.SpawnPixelForPlayers = function(iPointX)
+CGameMode.SpawnPixelForPlayers = function(iPointX, iBatchID)
     for i = 1, #tGame.StartPositions do
         if tPlayerInGame[i] then
-            CGameMode.SpawnPixelForPlayer(i, iPointX)
+            CGameMode.SpawnPixelForPlayer(i, iPointX, iBatchID)
         end
     end
 end
 
-CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX)
+CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID)
     --local iPointX = math.random(tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize-1)
     iPointX = tGame.StartPositions[iPlayerID].X + iPointX - 1
     local iPixelID = #CGameMode.tPixels+1
@@ -320,6 +330,10 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX)
     CGameMode.tPixels[iPixelID].iColor = tGameStats.Players[iPlayerID].Color
     CGameMode.tPixels[iPixelID].iBright = tConfig.Bright
     CGameMode.tPixels[iPixelID].bClickable = false
+    CGameMode.tPixels[iPixelID].iBatchID = iBatchID
+
+    if CGameMode.tPlayerPixelBatches[iPlayerID] == nil then CGameMode.tPlayerPixelBatches[iPlayerID] = {} end
+    CGameMode.tPlayerPixelBatches[iPlayerID][iBatchID] = true
 end
 
 CGameMode.EndGame = function()
@@ -457,6 +471,7 @@ CTimer.CountTimers = function(iTimePassed)
             if CTimer.tTimers[i].iTime <= 0 then
                 iNewTime = CTimer.tTimers[i].fCallback()
                 if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
+                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
                     CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
                 end
 
