@@ -1,0 +1,8 @@
+{
+  "Bright": 6,
+  "BlockSize": 2,
+  "StagesQty": 10,
+  "WinDurationSec": 10,
+  "CircleDrawDelayMs": 30,
+  "GameDurationSec": 60
+}

@@ -1,12 +1,7 @@
--- Название: Безопасный цвет
+-- Название: Найди цвет
 -- Автор: @AnatoliyB (телеграм)
--- Описание механики: кооперативная механика, в которой требуется быстро встать на сегменты озвученного цвета,
---      другие сегменты загораются красным, обжигая тех, кто не успел.
---      Базово количество безопасных сегментов = количеству игроков.
---      Можно играть "Режим обнимашек" – когда на старте не все игроки занимают стартовую позицию или становятся по два.
---      Внимание: Для старта игры требуется занять позиции и нажать любую светящуюся кнопку на стене!
--- Идеи по доработке:
---		1. Можно сделать вариант на выбывание с уменьшением количества безопасных сегментов
+-- Описание механики: Встать на определенный сегмент с нужным цветом для смены этапа
+--    Внимание: Для старта игры требуется занять позицю и нажать любую кнопку на стене!
 
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
@@ -27,7 +22,8 @@ local help = require("help")
 local json = require("json")
 
 -- Имплементация некоторых функций работы с временем
---      .unix() - возвращает текущее время в секундах (с дробной частью)
+--      .unix_nano() - возвращает текущее время в наносекундах
+--      .unix() - возвращает текущее время в секундах (с дробной частью), по сути это unix_nano() / 1 000 000 000
 local time = require("time")
 
 -- Методы работы с аудио
@@ -63,6 +59,7 @@ local GameObj = {
     Cols = 24, -- пикселей по горизонтали (X), обязательные параметр для всех игр
     Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
     Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
+    YOffset = 1, -- смещение по вертикали, костыль для московской комнаты
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
     StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
         { X = 2, Y = 2, Color = colors.GREEN },
@@ -72,22 +69,16 @@ local GameObj = {
         { X = 18, Y = 2, Color = colors.GREEN },
         { X = 22, Y = 2, Color = colors.GREEN },
     },
-    BurnEffect = { -- тайминги эффекта моргания
-        DurationOnMs = 200,
-        DurationOffMs = 120,
-        TotalDurationMs = 1500,
-    },
-    YOffset = 1, -- смещение по вертикали, костыль для московской комнаты
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
 local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
-    StartLives = 0, -- количество жизней, 0 - бесконечно
-    StagesQty = 10, -- сколько очков необходимо набрать для победы
-    StageDurationSec = 4,
-    StopDurationSec = 4,
+    StagesQty=10, -- сколько очков необходимо набрать для победы
     WinDurationSec = 10, -- длительность этапа победы перед завершением игры
+    BlockSize = 2,
+    CircleDrawDelayMs = 30,
+    GameDurationSec = 10
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -97,8 +88,6 @@ local GameStats = {
     StageTotalDuration = 0, -- seconds
     CurrentStars = 0,
     TotalStars = 0,
-    CurrentLives = 0,
-    TotalLives = 0,
     Players = { -- максимум 6 игроков
         { Score = 0, Lives = 0, Color = colors.RED },
         { Score = 0, Lives = 0, Color = colors.YELLOW },
@@ -107,7 +96,6 @@ local GameStats = {
         { Score = 0, Lives = 0, Color = colors.BLUE },
         { Score = 0, Lives = 0, Color = colors.MAGENTA },
     },
-    TargetScore = 0,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = colors.NONE,
@@ -115,7 +103,7 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false, -- победили или проиграли
+    Won = false, -- в этой игре не используется, победа ноунейма не имеет смысла
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -126,17 +114,25 @@ local Pixel = { -- пиксель тип
     Bright = colors.BRIGHT0,
     Click = false,
     Defect = false,
-    EffectActivatedAt = nil,
 }
 local StartPlayersCount = 0 -- количество игроков в момент нажатия кнопки старт
+local TargetPositions = {}
+local StageDoneAt = 0
 
 -- Этапы игры
-local CONST_STAGE_START = 0 -- выбор мест
-local CONST_STAGE_GAME = 1 -- игра
+local CONST_STAGE_FINISH = -1
+local CONST_STAGE_START = 0
+local CONST_STAGE_FIRST = 1
 local StageStartTime = 0 -- время начала текущего этапа
+local GameStartTime = 0 --время начала игровых этапов
+local Circle
+local STAGE_DONE_SEC = 1
 
--- Звуки обратного отсчета и прохождения этапа, проигрываются один раз
+--Звуки оставшихся очков, проигрываются только один раз
 local LeftAudioPlayed = { -- 3... 2... 1...
+    [12] = false,
+    [5] = false,
+    [4] = false,
     [3] = false,
     [2] = false,
     [1] = false,
@@ -154,6 +150,13 @@ function StartGame(gameJson, gameConfigJson)
         GameObj.StartPositionSize = 2
     end
 
+    if GameConfigObj.BlockSize < 1 then
+        GameConfigObj.BlockSize = 1
+        GameObj.YOffset = 0
+    elseif GameConfigObj.BlockSize > 2 then
+        GameConfigObj.BlockSize = 2
+    end
+
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
@@ -165,16 +168,14 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
         ButtonsList[num].Color = colors.BLUE
-        ButtonsList[num].Bright = GameConfigObj.Bright
+        ButtonsList[num].Bright = colors.BRIGHT70
     end
 
     GameStats.TotalStars = GameConfigObj.StagesQty
-    GameStats.TotalLives = GameConfigObj.StartLives
-    GameStats.CurrentLives = GameConfigObj.StartLives
+    GameStats.TotalStages=GameConfigObj.StagesQty
 
-    audio.PlaySyncFromScratch("games/safe-color-game.mp3") -- Игра "Безопасный цвет"
+    audio.PlaySyncFromScratch("games/find-color-game.mp3") -- Игра "Найди цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
-    audio.PlaySync("voices/listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
     audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
@@ -199,9 +200,10 @@ end
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
-    if GameStats.StageNum == CONST_STAGE_START then -- этап старта
+    if GameStats.StageNum == CONST_STAGE_START then -- этап выбора цвета
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
+
             local bright = colors.BRIGHT15
             if checkPositionClick(startPosition, GameObj.StartPositionSize) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
@@ -220,6 +222,7 @@ function NextTick()
             resetCountdown()
         end
 
+
         if StartPlayersCount > 0 then
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
@@ -236,39 +239,7 @@ function NextTick()
                 switchStage(GameStats.StageNum+1)
             end
         end
-    elseif GameStats.StageNum <= GameConfigObj.StagesQty then -- этап игры
-        local timeSinceStageStart = time.unix() - StageStartTime
-        if timeSinceStageStart > GameConfigObj.StageDurationSec + GameConfigObj.StopDurationSec then -- время переключить этап
-            switchStage(GameStats.StageNum+1)
-        elseif timeSinceStageStart > GameConfigObj.StageDurationSec then -- время поджигать пол
-            GameStats.StageLeftDuration = 0
-            -- (яркость - 1) это чтобы видеть отличие красных зон от заливки
-            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, targetColor(GameStats.StageNum))
-            processClicksAndEffects()
-
-            -- если это был последний этап
-            if GameStats.StageNum == GameConfigObj.StagesQty then
-                audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
-                audio.PlaySync(audio.VICTORY)
-                setGlobalColorBrightExceptColor(colors.GREEN, GameConfigObj.Bright, colors.NONE)
-                switchStage(GameStats.StageNum+1)
-            elseif not StageDonePlayed then
-                audio.PlayAsync(audio.STAGE_DONE)
-                StageDonePlayed = true
-            end
-        else
-            local timeSinceStageStart = time.unix() - StageStartTime
-            GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceStageStart)
-
-            local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
-            if alreadyPlayed ~= nil and not alreadyPlayed then
-                audio.PlayLeftAudio(GameStats.StageLeftDuration)
-                LeftAudioPlayed[GameStats.StageLeftDuration] = true
-            end
-        end
-    else -- этап финиша
-        processClicksAndEffects()
-
+    elseif GameStats.StageNum == CONST_STAGE_FINISH then
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
@@ -276,7 +247,93 @@ function NextTick()
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
             return GameResults
         end
+
+    elseif GameStats.StageNum <= GameConfigObj.StagesQty then -- этап игры
+        local timeSinceGameStart = time.unix() - GameStartTime
+        GameStats.StageTotalDuration = GameConfigObj.GameDurationSec
+        GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceGameStart)
+
+        local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
+        if alreadyPlayed ~= nil and not alreadyPlayed then
+            audio.PlayLeftAudio(GameStats.StageLeftDuration)
+            LeftAudioPlayed[GameStats.StageLeftDuration] = true
+        end
+
+        -- time to switch stage
+        local timeSinceStageDoneAt = time.unix() - StageDoneAt
+        if StageDoneAt ~= 0 and timeSinceStageDoneAt > STAGE_DONE_SEC then
+            Circle = nil
+            switchStage(GameStats.StageNum+1)
+        end
+
+        local LastClickedPos = 1
+        local AllPosClicked = true
+        for targetIndex, targetPosition in ipairs(TargetPositions) do
+            local PosClicked = checkPositionClick(TargetPositions[targetIndex], GameConfigObj.BlockSize)
+            AllPosClicked = AllPosClicked and PosClicked
+            if PosClicked then
+                if TargetPositions[targetIndex].ClickedAt == 0 then
+                    TargetPositions[targetIndex].ClickedAt = time.unix()
+                end
+                setColorBrightForStartPosition(TargetPositions[targetIndex], GameConfigObj.BlockSize, GameStats.TargetColor, colors.BRIGHT15)
+            else
+                TargetPositions[targetIndex].ClickedAt = 0
+                setColorBrightForStartPosition(TargetPositions[targetIndex], GameConfigObj.BlockSize, GameStats.TargetColor, GameConfigObj.Bright)
+            end
+
+
+            if TargetPositions[targetIndex].ClickedAt > TargetPositions[LastClickedPos].ClickedAt then
+                LastClickedPos = targetIndex
+            end
+
+        end
+
+        if AllPosClicked and StageDoneAt == 0 then
+            StageDoneAt = time.unix()
+            if not StageDonePlayed then
+                audio.PlayAsync(audio.STAGE_DONE)
+                StageDonePlayed = true
+            end
+            Circle = {
+                X0 = TargetPositions[LastClickedPos].X,
+                Y0 = TargetPositions[LastClickedPos].Y,
+                Radius = 1,
+                Color = targetColor(GameStats.StageNum),
+                LastDraw = 0
+            }
+        end
+
+
+        if Circle~=nil then
+            local timeSinceLastDrawMs = (time.unix() - Circle.LastDraw)*1000 --время с момента последней отрисовки круга в миллисекундах
+            if timeSinceLastDrawMs > GameConfigObj.CircleDrawDelayMs then
+                drawCircle(Circle.X0, Circle.Y0, Circle.Radius, Circle.Color, colors.BRIGHT85)
+                drawCircle(Circle.X0, Circle.Y0, Circle.Radius+1, Circle.Color, colors.BRIGHT45)
+                drawCircle(Circle.X0, Circle.Y0, Circle.Radius+1, Circle.Color, colors.BRIGHT15)
+
+                Circle.LastDraw = time.unix()
+                Circle.Radius = Circle.Radius + 1
+            end
+        end
+
+
+        timeSinceGameStart = time.unix() - GameStartTime
+        if timeSinceGameStart > GameConfigObj.GameDurationSec or GameStats.StageNum > GameConfigObj.StagesQty then
+            if GameStats.StageNum > GameConfigObj.StagesQty then
+                setGlobalColorBright(colors.GREEN, GameConfigObj.Bright)
+                audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
+                audio.PlaySync(audio.VICTORY)
+            else
+                setGlobalColorBright(colors.RED, GameConfigObj.Bright)
+                audio.PlaySync(audio.GAME_OVER)
+                audio.PlaySync(audio.DEFEAT)
+            end
+            switchStage(CONST_STAGE_FINISH)
+        end
+
     end
+
+
 end
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
@@ -314,6 +371,11 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
+    if click.X < 1 or click.X > GameObj.Cols or
+            click.Y < 1 + GameObj.YOffset or click.Y > GameObj.Rows then
+        return
+    end
+
     FloorMatrix[click.X][click.Y].Click = click.Click
 end
 
@@ -327,9 +389,6 @@ end
 function ButtonClick(click)
     if GameStats.StageNum ~= CONST_STAGE_START then
         return -- не интересуют клики кнопок вне этапа выбора цвета
-    end
-    if ButtonsList[click.Button] == nil then
-        return -- не интересуют кнопки не из списка, иначе будет ошибка
     end
     ButtonsList[click.Button].Click = click.Click
 
@@ -351,8 +410,14 @@ end
 --  }
 function DefectPixel(defect)
     FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
+
     if defect.Defect then
         FloorMatrix[defect.X][defect.Y].Click = false
+    end
+
+    if FloorMatrix[defect.X][defect.Y].Color > colors.NONE then --  переместим пиксель
+        placePixel(FloorMatrix[defect.X][defect.Y].Color)
+        FloorMatrix[defect.X][defect.Y].Color = colors.NONE
     end
 end
 
@@ -365,9 +430,6 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
-    if ButtonsList[defect.Button] == nil then
-        return -- не интересуют кнопки не из списка, иначе будет ошибка
-    end
     ButtonsList[defect.Button].Defect = defect.Defect
     -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
     if defect.Defect then
@@ -375,11 +437,28 @@ function DefectButton(defect)
         ButtonsList[defect.Button].Bright = colors.BRIGHT0
     else
         ButtonsList[defect.Button].Color = colors.BLUE
-        ButtonsList[defect.Button].Bright = GameConfigObj.Bright
+        Bd = d + 4*(x-y) + 10
+        y = y - 1uttonsList[defect.Button].Bright = colors.BRIGHT70
     end
 end
 
--- ======== Ниже вспомогательные методы внутриигровой логики =======
+-- ======== Ниже вспомогательные методы внутренней логики =======
+
+
+-- Установка глобального цвета
+function setGlobalColorBright(color, bright)
+    for x=1,GameObj.Cols do
+        for y=1,GameObj.Rows do
+            FloorMatrix[x][y].Color = color
+            FloorMatrix[x][y].Bright = bright
+        end
+    end
+
+    for num, button in pairs(ButtonsList) do
+        ButtonsList[num].Color = color
+        ButtonsList[num].Bright = bright
+    end
+end
 
 -- Сбросить звук обратного отсчета
 function resetCountdown()
@@ -390,70 +469,69 @@ end
 
 -- Переключение этапа игры
 function switchStage(newStage)
-    GameStats.StageNum = newStage
-    StageStartTime = time.unix()
-    GameStats.StageTotalDuration = GameConfigObj.StageDurationSec
-
-    GameStats.TargetColor = targetColor(GameStats.StageNum)
-
-    if GameStats.StageNum > GameConfigObj.StagesQty then
-        audio.StopBackground()
-        return
-    else
-        if GameStats.StageNum > CONST_STAGE_START then
-            audio.PlayRandomBackground()
-        end
-        GameStats.CurrentStars = GameStats.StageNum
-        setGlobalColorBrightExceptColor(colors.NONE, colors.BRIGHT0, colors.NONE)
-        StageDonePlayed = false
+    if newStage == CONST_STAGE_FIRST and newStage ~= GameStats.StageNum then
+        audio.PlayRandomBackground()
         resetCountdown()
-
-        audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
-        audio.PlaySyncColorSound(GameStats.TargetColor)
+        GameStartTime = time.unix()
     end
 
-    -- заполним все цветными, пропуская нужный цвет
-    local newColor = colors.NONE
-    for x = 1, GameObj.Cols, 2 do
-        for y = 1+GameObj.YOffset, GameObj.Rows, 2 do
+    GameStats.StageNum = newStage
+    StageStartTime = time.unix()
+    StageDoneAt = 0
+    StageDonePlayed = false
+
+    if newStage < CONST_STAGE_FIRST or newStage > GameConfigObj.StagesQty  then
+        audio.StopBackground()
+        return
+    end
+
+    GameStats.CurrentStars = newStage
+
+    local TargetColor=targetColor(newStage)
+    GameStats.TargetColor=TargetColor
+
+    audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
+    audio.PlaySyncColorSound(GameStats.TargetColor)
+
+    local NewColor
+
+    for y = GameObj.YOffset+1, GameObj.Rows, GameConfigObj.BlockSize do
+        for x = 1, GameObj.Cols, GameConfigObj.BlockSize do
             for randomAttempt = 0, 50 do
-                newColor = math.random(1, 6)
-                if newColor == GameStats.TargetColor then
+                NewColor = math.random(1, colors.WHITE)
+                if NewColor==TargetColor then
                     goto continue
                 end
-                if x > 1 and FloorMatrix[x-1][y].Color == newColor then
+                if x>1 and FloorMatrix[x-1][y].Color == NewColor then
                     goto continue
                 end
-                if y > 1 and FloorMatrix[x][y-1].Color == newColor then
+                if y>1 and FloorMatrix[x][y-1].Color == NewColor then
                     goto continue
                 end
-                do break end
+                do
+                    break
+                end
                 ::continue::
             end
 
-            FloorMatrix[x][y].Color = newColor
-            FloorMatrix[x][y].Bright = GameConfigObj.Bright
+            for nx = x, math.min(x + GameConfigObj.BlockSize, GameObj.Cols) do
+                for ny = y, math.min(y + GameConfigObj.BlockSize, GameObj.Rows) do
+                    FloorMatrix[nx][ny].Color = NewColor
+                    FloorMatrix[nx][ny].Bright = GameConfigObj.Bright
+                end
+            end
 
-            if x + 1 <= GameObj.Cols then
-                FloorMatrix[x+1][y].Color = newColor
-                FloorMatrix[x+1][y].Bright = GameConfigObj.Bright
-            end
-            if y + 1 <= GameObj.Rows then
-                FloorMatrix[x][y+1].Color = newColor
-                FloorMatrix[x][y+1].Bright = GameConfigObj.Bright
-            end
-            if x + 1 <= GameObj.Cols and y + 1 <= GameObj.Rows then
-                FloorMatrix[x+1][y+1].Color = newColor
-                FloorMatrix[x+1][y+1].Bright = GameConfigObj.Bright
-            end
         end
     end
+
+    local NewTargetPositions = {}
+    local currentPlayersCount = countActivePlayers()
 
     -- дозаполним нужный цвет по количеству игроков
     for p = 1, countActivePlayers() do
         for randomAttempt = 0, 50 do
-            x = math.random(GameObj.Cols/2)*2-1
-            y = math.random(GameObj.Rows/2)*2-1 + GameObj.YOffset
+            x = (math.random(GameObj.Cols/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1
+            y = (math.random(GameObj.Rows/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1 + GameObj.YOffset
 
             if FloorMatrix[x][y].Color == GameStats.TargetColor then
                 goto continue
@@ -474,19 +552,26 @@ function switchStage(newStage)
             FloorMatrix[x][y].Color = GameStats.TargetColor
             FloorMatrix[x][y].Bright = GameConfigObj.Bright
 
-            FloorMatrix[x][y+1].Color = GameStats.TargetColor
-            FloorMatrix[x][y+1].Bright = GameConfigObj.Bright
+            if GameConfigObj.BlockSize > 1 then
+                FloorMatrix[x][y+1].Color = GameStats.TargetColor
+                FloorMatrix[x][y+1].Bright = GameConfigObj.Bright
 
-            FloorMatrix[x+1][y].Color = GameStats.TargetColor
-            FloorMatrix[x+1][y].Bright = GameConfigObj.Bright
+                FloorMatrix[x+1][y].Color = GameStats.TargetColor
+                FloorMatrix[x+1][y].Bright = GameConfigObj.Bright
 
-            FloorMatrix[x+1][y+1].Color = GameStats.TargetColor
-            FloorMatrix[x+1][y+1].Bright = GameConfigObj.Bright
+                FloorMatrix[x+1][y+1].Color = GameStats.TargetColor
+                FloorMatrix[x+1][y+1].Bright = GameConfigObj.Bright
+            end
             do break end
             ::continue::
         end
+        table.insert(NewTargetPositions, p, {X = x, Y = y, ClickedAt = 0})
     end
+    TargetPositions = NewTargetPositions
+
 end
+
+
 
 -- Проверить стартовую позицию на ниличие человека на ней
 function checkPositionClick(startPosition, positionSize)
@@ -496,7 +581,7 @@ function checkPositionClick(startPosition, positionSize)
 
         if x < 1 or x > GameObj.Cols or
                 y < 1 or y > GameObj.Rows then
-            goto continue -- игнорируем координаты за пределами поля
+            goto continue -- ignore outside the game field
         end
 
         if FloorMatrix[x][y].Click then
@@ -515,7 +600,7 @@ function setColorBrightForStartPosition(startPosition, positionSize, color, brig
 
         if x < 1 or x > GameObj.Cols or
                 y < 1 or y > GameObj.Rows then
-            goto continue -- игнорируем координаты за пределами поля
+            goto continue -- ignore outside the game field
         end
 
         FloorMatrix[x][y].Color = color
@@ -544,79 +629,64 @@ function countActivePlayers()
             activePlayers = activePlayers + 1
         end
     end
+
     return activePlayers
 end
 
--- Целевой цвет этапа
-function targetColor(stageNum)
-    if stageNum < CONST_STAGE_GAME or stageNum > GameConfigObj.StagesQty then
-        return colors.NONE
+function targetColor(stage)
+    if stage < CONST_STAGE_FIRST then
+        return 0
     end
-    return stageNum%colors.WHITE + 1
+    return stage%colors.WHITE+1
 end
 
--- Залить всё поле цветом, пропуская exceptColor
-function setGlobalColorBrightExceptColor(color, bright, exceptColor)
-    for x=1,GameObj.Cols do
-        for y=1,GameObj.Rows do
-            if FloorMatrix[x][y].Color ~= exceptColor then
-                FloorMatrix[x][y].Color = color
-                FloorMatrix[x][y].Bright = bright
-            end
-        end
+function drawCircle(x0, y0, radius, color, bright)
+    if radius < 0 then
+        return
     end
-end
 
--- Обработка кликов и эффектов
-function processClicksAndEffects()
-    for x=1,GameObj.Cols do
-        for y=1,GameObj.Rows do
-            local pixel = FloorMatrix[x][y]
-            -- есть эффект горения
-            if pixel.EffectActivatedAt ~= nil then
-                -- воспроизведем эффект
-                local timeSinceEffectActivated = (time.unix() - pixel.EffectActivatedAt) * 1000
-                if timeSinceEffectActivated > GameObj.BurnEffect.TotalDurationMs then
-                    if pixel.Click then -- продлим эффект, если еще нажат
-                        -- g.minusLive() -- но жизнь больше не вычитаем
-                        pixel.EffectActivatedAt = time.unix()
-                    else -- сбросим эффект
-                        pixel.EffectActivatedAt = nil
-                        pixel.Color = colors.RED
-                        goto continue
-                    end
-                end
+    local x = 0
+    local y = radius
+    local d = 3-2*radius
 
-                while timeSinceEffectActivated > GameObj.BurnEffect.DurationOnMs+GameObj.BurnEffect.DurationOffMs do
-                    timeSinceEffectActivated = timeSinceEffectActivated - (GameObj.BurnEffect.DurationOnMs+GameObj.BurnEffect.DurationOffMs)
-                end
-                if timeSinceEffectActivated < GameObj.BurnEffect.DurationOnMs then
-                    pixel.Color = colors.MAGENTA
-                else
-                    pixel.Color = colors.NONE
-                end
-            elseif not pixel.Defect and pixel.Click and -- есть нажатие
-                    pixel.Bright < GameConfigObj.Bright and -- яркость заливки меньше, чем таргет цвета
-                    GameStats.StageNum <= GameConfigObj.StagesQty then -- это еще не финиш
-                -- минус жизнь, старт эффект
-                audio.PlayAsync(audio.MISCLICK)
-                minusLive()
-                pixel.EffectActivatedAt = time.unix()
-            end
-            ::continue::
+    while x <= y do
+        drawPixel(x0+x, y0+y, color, bright)
+        drawPixel(x0+x, y0+y-1, color, bright)
+        drawPixel(x0+x, y0-y, color, bright)
+        drawPixel(x0+x, y0-y-1, color, bright)
+
+        drawPixel(x0-x, y0+y, color, bright)
+        drawPixel(x0-x, y0+y+1, color, bright)
+        drawPixel(x0-x, y0-y, color, bright)
+        drawPixel(x0-x, y0-y+1, color, bright)
+
+        drawPixel(x0+y, y0+x, color, bright)
+        drawPixel(x0+y-1, y0+x, color, bright)
+        drawPixel(x0+y, y0-x, color, bright)
+        drawPixel(x0+y-1, y0-x, color, bright)
+
+        drawPixel(x0-y, y0+x, color, bright)
+        drawPixel(x0-y+1, y0+x, color, bright)
+        drawPixel(x0-y, y0-x, color, bright)
+        drawPixel(x0-y+1, y0-x, color, bright)
+
+        if d < 0 then
+            d = d + 4*x + 6
+        else
+            d = d + 4*(x-y) + 10
+            y = y - 1
         end
+
+        x = x + 1
+
     end
 end
 
--- Минус жизнь
-function minusLive()
-    if GameConfigObj.StartLives > 0 then
-        GameStats.CurrentLives = GameStats.CurrentLives - 1
-        if GameStats.CurrentLives == 0 then -- game over
-            audio.PlaySync(audio.GAME_OVER)
-            audio.PlaySync(audio.DEFEAT)
-            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, colors.NONE)
-            switchStage(GameConfigObj.StagesQty+1)
-        end
+function drawPixel(x, y, color, bright)
+    if x < 1 or x > GameObj.Cols or
+            y < 1 + GameObj.YOffset or y > GameObj.Rows then
+        return
     end
+    FloorMatrix[x][y].Color = color
+    FloorMatrix[x][y].Bright = bright
 end
