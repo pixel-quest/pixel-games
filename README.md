@@ -8,7 +8,7 @@
 **Шаблон скрипта с подробными комментариями – [template.lua](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua)**
 
 Скрипты обслуживаются виртуальной машиной [GopherLua](https://github.com/yuin/gopher-lua), написанной на языке Go.  
-На момент февраля 2024 г. используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
+На данный момент используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
 
 ### Отладочная платформа
 Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить, вступив в группу телеграм [@pixel_quest_games](https://t.me/pixel_quest_games)
