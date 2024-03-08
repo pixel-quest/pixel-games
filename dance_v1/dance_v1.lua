@@ -182,7 +182,18 @@ CSongSync.tSong = {}
 CSongSync.Start = function()
     CSongSync.bOn = true
     CSongSync.tSong = tGame["Song"]
-    tGameStats.TargetScore = #tGame["Song"]
+    tGameStats.TargetScore = 0
+    for i = 1, #CSongSync.tSong do
+        if CSongSync.tSong[i] then
+            CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - (tConfig.PixelMoveDelayMS * (tGame.Rows - 3))
+
+            for j = 2, #CSongSync.tSong[i] do
+                if CSongSync.tSong[i][j] then
+                    tGameStats.TargetScore = tGameStats.TargetScore + 1
+                end
+            end
+        end
+    end
 
     CAudio.PlayAsync(tGame["SongName"])
 end
@@ -404,43 +415,6 @@ CPaint.AnimateRow = function(iX, iColor)
     CTimer.New(tConfig.PixelMoveDelayMS, function()
         for iY = 1, tGame.Rows do
             tFloor[iX][iY].bAnimated = false
-        end
-    end)
-end
-
-CPaint.AnimateEnd = function(iColor)
-    local iCurrX = 1
-    CTimer.New(tConfig.PixelMoveDelayMS, function()
-        local iCurrY = 1
-
-        CTimer.New(CPaint.ANIMATE_DELAY, function()
-            tFloor[iCurrX][iCurrY].iColor = iColor
-            tFloor[iCurrX][iCurrY].iBright = CColors.BRIGHT100
-            tFloor[iCurrX][iCurrY].bAnimated = true
-
-            if iCurrY-1 > 0 then
-                tFloor[iCurrX][iCurrY-1].iBright = tConfig.Bright
-            end
-
-            if iCurrY-4 > 0 then
-                tFloor[iCurrX][iCurrY-4].bAnimated = false
-            end
-
-            iCurrY = iCurrY + 1
-
-            if iCurrY <= tGame.Rows then
-                return CPaint.ANIMATE_DELAY
-            else
-                return nil
-            end
-        end)
-
-        iCurrX = iCurrX + 1
-
-        if iCurrX < tGame.Cols then
-            return tConfig.PixelMoveDelayMS
-        else
-            return nil
         end
     end)
 end
