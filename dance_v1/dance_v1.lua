@@ -331,7 +331,7 @@ end
 
 CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID)
     --local iPointX = math.random(tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize-1)
-    iPointX = tGame.StartPositions[iPlayerID].X + iPointX - 1
+    iPointX = tGame.StartPositions[iPlayerID].X + 4 - iPointX
     local iPixelID = #CGameMode.tPixels+1
 
     CGameMode.tPixels[iPixelID] = CHelp.ShallowCopy(CGameMode.tPixelStruct)
