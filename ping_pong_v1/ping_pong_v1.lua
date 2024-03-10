@@ -344,11 +344,18 @@ end
 
 --POD класс отвечает за позиции игроков
 CPod = {}
+CPod.WEIGHT_POINTS_COUNT_LIMIT = 8
 
 CPod.tPods = {}
 CPod.tStruct = {
     iPosX = 0,
     iPosY = 0,
+    tWeights = {},
+}
+CPod.tWeightStruct =
+{
+    iX = 0,
+    iY = 0,
 }
 
 -- для самой игры поидее эта функция вообще не нужна, только для веб версии
@@ -360,6 +367,9 @@ CPod.ResetPods = function()
     CPod.tPods[2] = CHelp.ShallowCopy(CPod.tStruct)
     CPod.tPods[2].iPosX = tGame.StartPositions[2].X+1
     CPod.tPods[2].iPosY = tGame.StartPositions[2].Y
+
+    CPod.CalculateWeightPoints(CPod.tPods[1], 1)
+    CPod.CalculateWeightPoints(CPod.tPods[2], 2)
 end
 
 CPod.PaintPods = function()
@@ -378,55 +388,75 @@ CPod.PaintPods = function()
     end
 end
 
--- Ставит позицию пода между двух максимальных нажатий
-CPod.UpdatePodPositions = function(clickX)
+-- узнаём в какой части поля чтото изменилось и просчитываем там
+CPod.UpdatePodPositions = function(iX) 
     if iGameState == GAMESTATE_GAME then
-        local tPod
-        if clickX < math.floor(tGame.Cols/2) then
-            tPod = CPod.tPods[1]
+        if iX < math.floor(tGame.Cols / 2) then
+            CPod.CalculateWeightPoints(CPod.tPods[1], 1)
         else
-            tPod = CPod.tPods[2]
+            CPod.CalculateWeightPoints(CPod.tPods[2], 2)
         end
+    end
+end
 
-        local maxPoints = {}
+-- проходимся по всем кнопкам и находим все точки веса от большего к меньшему
+CPod.CalculateWeightPoints = function(tPod, iPodID)
+    local iMinX = 1
+    local iMaxX = math.floor(tGame.Cols / 2)
+    if iPodID == 2 then
+        iMinX = math.ceil(tGame.Cols / 2)
+        iMaxX = tGame.Cols
+    end
 
-        for iY = 1,tGame.Rows do
-            local bClick = tFloor[tPod.iPosX-1][iY].bClick or tFloor[tPod.iPosX][iY].bClick or tFloor[tPod.iPosX+1][iY].bClick
-            if not bClick then
-                goto continue;
-            end
+    tPod.tWeights = {}
+    for iX = iMinX, iMaxX do
+        for iY = 1, tGame.Rows do
+            if not tFloor[iX][iY].bDefect and tFloor[iX][iY].iWeight > 0 then
+                for w = 1, CPod.WEIGHT_POINTS_COUNT_LIMIT do
+                    if tPod.tWeights[w] == nil or tFloor[tPod.tWeights[w].iX][tPod.tWeights[w].iY].iWeight < tFloor[iX][iY].iWeight then
+                       tPod.tWeights[w] = CHelp.ShallowCopy(CPod.tWeightStruct)
+                       tPod.tWeights[w].iX = iX 
+                       tPod.tWeights[w].iY = iY 
 
-            local iWeight = tFloor[tPod.iPosX-1][iY].iWeight+tFloor[tPod.iPosX][iY].iWeight+tFloor[tPod.iPosX+1][iY].iWeight
-
-            if #maxPoints == 0 then
-                maxPoints[1] = {
-                    iY = iY,
-                    iWeight = iWeight,
-                }
-            else -- #maxPoints == 1 or 2
-                if iWeight >= maxPoints[1].iWeight then
-                    maxPoints[2] = CHelp.ShallowCopy(maxPoints[1])
-                    maxPoints[1] = {
-                        iY = iY,
-                        iWeight = iWeight,
-                    }
-                elseif maxPoints[2] == nil or iWeight >= maxPoints[2].iWeight then
-                    maxPoints[2] = {
-                        iY = iY,
-                        iWeight = iWeight,
-                    }
+                       break;
+                    end
                 end
             end
-            ::continue::
-        end
+        end 
+    end
 
-        if #maxPoints == 0 then
-            tPod.iPosY = math.floor(tGame.Rows/2)
-        elseif #maxPoints == 1 then
-            tPod.iPosY = maxPoints[1].iY
-        else
-            tPod.iPosY = math.floor((maxPoints[1].iY + maxPoints[2].iY) / 2 )
+    CPod.CalculateCenter(tPod)
+end
+
+-- просчитываем центр между этими точками веса
+CPod.CalculateCenter = function(tPod)
+    local iMX = 0
+    local iMY = 0
+    local iWeightsCount = 0
+    local iMaxWeight = -1
+
+    if tPod.tWeights[1] and tFloor[tPod.tWeights[1].iX][tPod.tWeights[1].iY] then
+        iMaxWeight = tFloor[tPod.tWeights[1].iX][tPod.tWeights[1].iY].iWeight
+    end 
+
+    for i = 1, CPod.WEIGHT_POINTS_COUNT_LIMIT do
+        if tPod.tWeights[i] and tPod.tWeights[i].iY and tFloor[tPod.tWeights[i].iX][tPod.tWeights[i].iY].iWeight > 0 then 
+            iMY = iMY + tPod.tWeights[i].iY
+
+            local iWeightValue = 1
+            if i > 1 and iMaxWeight > 0 then
+                --Я НЕМОГУ ЭТО ПРОТЕСТИРОВАТЬ по идее чем меньше веса на точке тем меньше она значит в уравнении расчёта центра да? 
+                --или нет я понятия не имею
+                iWeightValue = tFloor[tPod.tWeights[i].iX][tPod.tWeights[i].iY].iWeight / iMaxWeight
+            end 
+            iWeightsCount = iWeightsCount + iWeightValue
         end
+    end
+
+    iMY = math.floor(iMY / iWeightsCount)
+
+    if iMY and iMY > 0 and iMY <= tGame.Rows then
+        tPod.iPosY = iMY
     end
 end
 
@@ -468,6 +498,7 @@ CTimer.CountTimers = function(iTimePassed)
             if CTimer.tTimers[i].iTime <= 0 then
                 iNewTime = CTimer.tTimers[i].fCallback()
                 if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
+                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
                     CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
                 end
 
