@@ -525,6 +525,7 @@ function PauseGame()
 end
 
 function ResumeGame()
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
