@@ -153,7 +153,10 @@ function GameSetupTick()
 
     if iPlayersReady == 2 then
         iGameState = GAMESTATE_GAME
-        CGameMode.ResetPlayers()
+        CPod.ResetPods()
+        CBall.NewBall()
+        CGameMode.RoundStartedAt = CTime.unix()
+        tGameStats.StageLeftDuration = 0
         CGameMode.NextRoundCountDown(5, true)
     end
 end
@@ -261,18 +264,11 @@ CGameMode.ScoreGoalPlayer = function(iPlayerID)
         return
     end
 
-    CGameMode.ResetPlayers()
-    CGameMode.NextRoundCountDown(3, false)
-end
-
--- Сброс мяча и игроков
-CGameMode.ResetPlayers = function()
-    CPod.ResetPods()
     CBall.NewBall()
     CGameMode.RoundStartedAt = CTime.unix()
     tGameStats.StageLeftDuration = 0
+    CGameMode.NextRoundCountDown(3, false)
 end
---//
 
 --BALL класс отвечает за позицию мяча и просчёт траектории
 CBall = {}
@@ -421,7 +417,8 @@ CPod.UpdatePodPositions = function(clickX)
         end
 
         if #maxPoints == 0 then
-            tPod.iPosY = math.floor(tGame.Rows/2)
+            -- не менять позицию
+            -- tPod.iPosY = math.floor(tGame.Rows/2)
         elseif #maxPoints == 1 then
             tPod.iPosY = maxPoints[1].iY
         else
@@ -468,6 +465,7 @@ CTimer.CountTimers = function(iTimePassed)
             if CTimer.tTimers[i].iTime <= 0 then
                 iNewTime = CTimer.tTimers[i].fCallback()
                 if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
+                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
                     CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
                 end
 
