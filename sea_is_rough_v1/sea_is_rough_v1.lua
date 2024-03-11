@@ -38,6 +38,7 @@ local time = require("time")
 --      .PlaySyncColorSound(color) - проигрывает название цвета по его номеру
 --      .PlayLeftAudio(num) - проигрывает голос "остатка" по числу (22, 12, 5 ... 0)
 --      .PlayAsync(name) - проигрывает звук асинхронно
+--      .PreloadFile(name) - зарянее подгрузить тяжелый файл в память
 -- Станданртные звуки: CLICK, MISCLICK, GAME_OVER, GAME_SUCCESS, STAGE_DONE
 -- Стандартные голоса: START_GAME, PAUSE, DEFEAT, VICTORY, CHOOSE_COLOR, LEFT_10SEC, LEFT_20SEC, BUTTONS
 --              числа: ZERO, ONE, TWO, THREE, FOUR, FIVE

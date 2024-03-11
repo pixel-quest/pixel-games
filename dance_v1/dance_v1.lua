@@ -106,7 +106,7 @@ function NextTick()
     end
 
     if iGameState == GAMESTATE_GAME then
-        CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000)
+        CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000 - tConfig.SongStartDelayMS)
         GameTick()
     end
 
@@ -245,14 +245,13 @@ CGameMode.tPlayerPixelBatches = {}
 CGameMode.CountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
+    CAudio.PlaySyncFromScratch("")
     CTimer.New(1000, function()
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
 
         CGameMode.iCountdown = CGameMode.iCountdown - 1
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
-
-            CAudio.PlaySync(CAudio.START_GAME)
 
             CGameMode.PixelMovement()
             CSongSync.Start()
@@ -364,6 +363,7 @@ CGameMode.EndGame = function()
     CPaint.ClearAnimations()
     --CPaint.AnimateEnd(tGameStats.Players[CGameMode.iWinnerID].Color)
     iGameState = GAMESTATE_POSTGAME
+    CAudio.PlaySyncFromScratch("")
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 
