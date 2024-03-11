@@ -30,6 +30,7 @@ local iGameState = GAMESTATE_SETUP
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 local tPlayerInGame = {}
+local iSongStartedTime = 0
 
 local tGameStats = {
     StageLeftDuration = 0,
@@ -92,6 +93,9 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
+    local err = CAudio.PreloadFile(tGame["SongName"])
+    if err ~= nil then error(err); end
+
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
@@ -102,7 +106,7 @@ function NextTick()
     end
 
     if iGameState == GAMESTATE_GAME then
-        CSongSync.Count((CTime.unix() - iPrevTickTime) * 1000)
+        CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000)
         GameTick()
     end
 
@@ -195,15 +199,15 @@ CSongSync.Start = function()
         end
     end
 
-    CAudio.PlayAsync(tGame["SongName"])
+    CAudio.PlaySync(tGame["SongName"])
+    iSongStartedTime = CTime.unix()
 end
 
 CSongSync.Count = function(iTimePassed)
     if (not CSongSync.bOn) or iGameState ~= GAMESTATE_GAME then return; end
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] ~= nil then
-            CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - iTimePassed
-            if CSongSync.tSong[i][1] <= 0 then
+            if CSongSync.tSong[i][1] - iTimePassed <= 0 then
                 local iBatchID = math.random(1,999)
                 for j = 2, #CSongSync.tSong[i] do
                     CGameMode.SpawnPixelForPlayers(CSongSync.tSong[i][j], iBatchID)
@@ -248,10 +252,10 @@ CGameMode.CountDown = function(iCountDownTime)
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
 
+            CAudio.PlaySync(CAudio.START_GAME)
+
             CGameMode.PixelMovement()
             CSongSync.Start()
-
-            CAudio.PlaySync(CAudio.START_GAME)
 
             return nil
         else
