@@ -136,6 +136,7 @@ function GameSetupTick()
                 iPlayersReady = iPlayersReady + 1
                 tPlayerInGame[iPos] = true
             else
+                tGameStats.Players[iPos].Color = CColors.NONE
                 tPlayerInGame[iPos] = false
             end
 
