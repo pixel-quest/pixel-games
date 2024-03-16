@@ -1,0 +1,10 @@
+{
+  "Bright": 5,
+  "StepBright": 7,
+  "PointsToWin": 15,
+  "GameCountdown": 5,
+  "WinDurationMS": 10000,
+  "CoinScoreBonus": 1,
+  "RoundCountdown": 3,
+  "LavaScorePenalty": -0.5
+}
