@@ -6,5 +6,7 @@
   "WinDurationMS": 10000,
   "CoinScoreBonus": 1,
   "RoundCountdown": 3,
-  "LavaScorePenalty": -0.5
+  "LavaScorePenalty": -0.5,
+  "RoundCount": 5,
+  "BlockMoveAnimationTimeMS": 400
 }
