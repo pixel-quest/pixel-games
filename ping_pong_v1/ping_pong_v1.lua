@@ -201,6 +201,7 @@ CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
             CGameMode.LaunchBall()
+            CAudio.PlayRandomBackground()
 
             if bFirstRound then
                 CAudio.PlaySync(CAudio.START_GAME)
@@ -252,6 +253,7 @@ end
 
 -- Расчёт гола
 CGameMode.ScoreGoalPlayer = function(iPlayerID)
+    CAudio.StopBackground()
     CAudio.PlaySync(CAudio.MISCLICK)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
