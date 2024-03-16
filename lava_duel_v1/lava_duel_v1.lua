@@ -1,8 +1,16 @@
--- Название: Лава Битва
--- Автор: Avondale, дискорд - avonda
--- Описание механики: в общих словах, что происходит в механике
--- Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+--[[
+    Название: Лава Битва
+    Автор: Avondale, дискорд - avonda
 
+    Описание механики: От 2 до 6 игроков соревнуются кто быстрее соберёт все монетки, не наступив на лаву
+          Чтобы начать игру нужно встать на свои цвета и нажать на кнопку
+          Стоять на краю поля в начале безопасно
+
+    Идеи по доработке: 
+    - Больше уровней
+    - Улучшенная генерация уровней
+    - Редактор уровней
+]]
 math.randomseed(os.time())
 
 local CLog = require("log")
@@ -306,6 +314,8 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 
     if CGameMode.tPlayersCoinCollected[iPlayerID] == nil then CGameMode.tPlayersCoinCollected[iPlayerID] = 0 end
     CGameMode.tPlayersCoinCollected[iPlayerID] = CGameMode.tPlayersCoinCollected[iPlayerID] + 1
+
+    CAudio.PlayAsync(CAudio.CLICK);
 
     if CGameMode.tPlayersCoinCollected[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinished(iPlayerID)
