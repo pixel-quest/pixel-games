@@ -190,7 +190,7 @@ CSongSync.Start = function()
     tGameStats.TargetScore = 0
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] then
-            CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - (tConfig.PixelMoveDelayMS * (tGame.Rows - 3))
+            CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - (tConfig.PixelMoveDelayMS * (tGame.Rows - tGame.StartPositions[1].Y))
 
             for j = 2, #CSongSync.tSong[i] do
                 if CSongSync.tSong[i][j] then
@@ -210,8 +210,10 @@ CSongSync.Count = function(iTimePassed)
         if CSongSync.tSong[i] ~= nil then
             if CSongSync.tSong[i][1] - iTimePassed <= 0 then
                 local iBatchID = math.random(1,999)
+                local iPos = 0
                 for j = 2, #CSongSync.tSong[i] do
-                    CGameMode.SpawnPixelForPlayers(CSongSync.tSong[i][j], iBatchID)
+                    iPos = iPos + 1
+                    CGameMode.SpawnPixelForPlayers(iPos, iBatchID, CSongSync.tSong[i][j])
                 end
 
                 if i == #CSongSync.tSong then
@@ -238,10 +240,13 @@ CGameMode.tPixelStruct = {
     iColor = CColors.RED,
     iBright = CColors.BRIGHT50,
     iPlayerID = 0,
-    bClickable = false,
+    bClickable = true,
+    bProlong = false,
+    bVisual = false,
     iBatchID = 0,
 }
 CGameMode.tPlayerPixelBatches = {}
+CGameMode.tPlayerRowClick = {}
 
 CGameMode.CountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
@@ -280,7 +285,11 @@ CGameMode.PixelMovement = function()
 end
 
 CGameMode.MovePixel = function(iPixelID)
-    tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = 0
+    if CGameMode.tPixels[iPixelID].iPointY < 1 then return; end
+
+    if not CGameMode.tPixels[iPixelID].bProlong then
+        tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = 0
+    end
 
     CGameMode.tPixels[iPixelID].iPointY = CGameMode.tPixels[iPixelID].iPointY - 1
 
@@ -296,25 +305,52 @@ CGameMode.CalculatePixel = function(iPixelID)
 
     if CGameMode.tPixels[iPixelID].iPointY <= tGame.StartPositions[iPlayerID].Y then
         CGameMode.tPixels[iPixelID].iBright = CColors.BRIGHT100
-        CGameMode.tPixels[iPixelID].bClickable = true
 
-        if CGameMode.tPixels[iPixelID].iPointY < 1 then
+        if CGameMode.tPixels[iPixelID].iPointY == 0 then
+            if CGameMode.tPixels[iPixelID].bVisual then CGameMode.tPixels[iPixelID] = nil return; end
+
             if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
                 CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] = false
                 CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.RED)
                 CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.RED)
             end
 
-            CGameMode.tPixels[iPixelID] = nil
-        elseif tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].bClick == true then
-            CGameMode.ScorePixel(iPixelID)
+            if CGameMode.tPixels[iPixelID].bProlong then
+                CGameMode.tPixels[iPixelID].iPointY = -1
+            else
+                CGameMode.tPixels[iPixelID] = nil
+            end
+        else
+            CGameMode.PlayerHitRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iPointY)
+        end
+    end
+end
+
+CGameMode.PlayerHitRow = function(iX, iY)
+    if iY <= tGame.StartPositions[1].Y and iY > 0 then
+        local bClickAny = false
+        for iY1 = 1, tGame.StartPositions[1].Y do
+            if tFloor[iX][iY1].bClick then
+                bClickAny = true
+            end
+        end
+
+        if bClickAny then
+            for iY2 = 1, tGame.StartPositions[1].Y do
+                if tFloor[iX][iY2].iPixelID and CGameMode.tPixels[tFloor[iX][iY2].iPixelID] and CGameMode.tPixels[tFloor[iX][iY2].iPixelID].bClickable then
+                    CGameMode.ScorePixel(tFloor[iX][iY2].iPixelID)
+                end
+            end
         end
     end
 end
 
 CGameMode.ScorePixel = function(iPixelID)
-    local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
+    if CGameMode.tPixels[iPixelID].bVisual then return; end
+    if not CGameMode.tPixels[iPixelID].bClickable then return; end
+    CGameMode.tPixels[iPixelID].bClickable = false
 
+    local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
     if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
@@ -322,19 +358,26 @@ CGameMode.ScorePixel = function(iPixelID)
         CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.GREEN)
     end
 
-    CGameMode.tPixels[iPixelID] = nil
+    if not CGameMode.tPixels[iPixelID].bProlong then
+        for iY = 1, tGame.StartPositions[iPlayerID].Y do
+            tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+        end
+
+        CGameMode.tPixels[iPixelID] = nil
+    end
 end
 
-CGameMode.SpawnPixelForPlayers = function(iPointX, iBatchID)
+CGameMode.SpawnPixelForPlayers = function(iPointX, iBatchID, iPixelType)
     for i = 1, #tGame.StartPositions do
         if tPlayerInGame[i] then
-            CGameMode.SpawnPixelForPlayer(i, iPointX, iBatchID)
+            CGameMode.SpawnPixelForPlayer(i, iPointX, iBatchID, iPixelType)
         end
     end
 end
 
-CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID)
-    --local iPointX = math.random(tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize-1)
+CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelType)
+    if iPixelType == "N" then return; end
+
     iPointX = tGame.StartPositions[iPlayerID].X + 4 - iPointX
     local iPixelID = #CGameMode.tPixels+1
 
@@ -342,10 +385,20 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID)
     CGameMode.tPixels[iPixelID].iPointX = iPointX
     CGameMode.tPixels[iPixelID].iPointY = tGame.Rows
     CGameMode.tPixels[iPixelID].iPlayerID = iPlayerID
-    CGameMode.tPixels[iPixelID].iColor = tGameStats.Players[iPlayerID].Color
     CGameMode.tPixels[iPixelID].iBright = tConfig.Bright
-    CGameMode.tPixels[iPixelID].bClickable = false
+    CGameMode.tPixels[iPixelID].bClickable = true
     CGameMode.tPixels[iPixelID].iBatchID = iBatchID
+
+    if string.match(iPixelType, "L") then
+        CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
+    elseif string.match(iPixelType, "R") then
+        CGameMode.tPixels[iPixelID].iColor = CColors.RED
+    elseif string.match(iPixelType, "H") then
+        CGameMode.tPixels[iPixelID].iColor = CColors.BLUE
+    end
+
+    CGameMode.tPixels[iPixelID].bProlong = string.match(iPixelType, "P")
+    CGameMode.tPixels[iPixelID].bVisual = string.match(iPixelType, "H")
 
     if CGameMode.tPlayerPixelBatches[iPlayerID] == nil then CGameMode.tPlayerPixelBatches[iPlayerID] = {} end
     CGameMode.tPlayerPixelBatches[iPlayerID][iBatchID] = true
@@ -389,12 +442,23 @@ CPaint.Borders = function()
 end
 
 CPaint.Pixels = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tFloor[iX][iY] and tFloor[iX][iY].iPixelID and CGameMode.tPixels[tFloor[iX][iY].iPixelID] ~= nil then
+                tFloor[iX][iY].iColor = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iColor
+                tFloor[iX][iY].iBright = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iBright
+            end
+        end
+    end
+
+    --[[
     for i = 1, #CGameMode.tPixels do
         if CGameMode.tPixels[i] then
             tFloor[CGameMode.tPixels[i].iPointX][CGameMode.tPixels[i].iPointY].iColor = CGameMode.tPixels[i].iColor
             tFloor[CGameMode.tPixels[i].iPointX][CGameMode.tPixels[i].iPointY].iBright = CGameMode.tPixels[i].iBright
         end
     end
+    ]]
 end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
@@ -548,9 +612,8 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    local iPixelID = tFloor[click.X][click.Y].iPixelID
-    if click.Click and iPixelID and iPixelID ~= 0 and CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].bClickable then
-        CGameMode.ScorePixel(iPixelID)
+    if click.Click then
+        CGameMode.PlayerHitRow(click.X, click.Y)
     end
 end
 
