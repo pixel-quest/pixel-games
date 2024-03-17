@@ -332,14 +332,30 @@ end
 
 --MAPS
 CMaps = {}
+CMaps.iRandomMapID = 0
+CMaps.iRandomMapIDIncrement = math.random(-2,2)
 
 CMaps.GetRandomMap = function()
     if tConfig.GenerateRandomLevels == 1 then
         return CMaps.GenerateRandomMap()
     else
-        --local iMapID = 1
-        local iMapID = math.random(1, #tGame.Maps)
-        return tGame.Maps[iMapID], tGame.MapLavaFrames[iMapID]
+        if CMaps.iRandomMapID == 0 then 
+            CMaps.iRandomMapID = math.random(1, #tGame.Maps)
+        end
+        if CMaps.iRandomMapIDIncrement == 0 then
+            CMaps.iRandomMapIDIncrement = 1
+        end
+
+        CMaps.iRandomMapID = CMaps.iRandomMapID + CMaps.iRandomMapIDIncrement
+        if CMaps.iRandomMapID > #tGame.Maps then
+            CMaps.iRandomMapID = (CMaps.iRandomMapID-#tGame.Maps)
+        elseif CMaps.iRandomMapID < 1 then
+            CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
+        end
+
+        CLog.print("random map #"..CMaps.iRandomMapID)
+
+        return tGame.Maps[CMaps.iRandomMapID], tGame.MapLavaFrames[CMaps.iRandomMapID]
     end
 end
 
