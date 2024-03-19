@@ -55,60 +55,59 @@ local CPixel = {
     bChanged = true, -- нужен, чтобы не перебивать команду глобального цвета
 }
 
-CPixel.SetBright = function(iBright)
-    if CPixel.iBright ~= iBright then
-        CPixel.iBright = iBright
-        CPixel.bChanged = true
-        CLog.print(inspect(CPixel))
+function CPixel:SetBright(iBright)
+    if self.iBright ~= iBright then
+        self.iBright = iBright
+        self.bChanged = true
     end
 end
 
-CPixel.ProcessTick = function()
-    local iTimeSinceMs = (CTime.unix() - CPixel.iTimestamp) * 1000
-    if CPixel.bRising then
+function CPixel:ProcessTick()
+    local iTimeSinceMs = (CTime.unix() - self.iTimestamp) * 1000
+    if self.bRising then
         if iTimeSinceMs < 1*tGame.RisingStepMs then
-            CPixel.SetBright(CColors.BRIGHT15)
+            self:SetBright(CColors.BRIGHT15)
         elseif iTimeSinceMs < 2*tGame.RisingStepMs then
-            CPixel.SetBright(CColors.BRIGHT30)
+            self:SetBright(CColors.BRIGHT30)
         elseif iTimeSinceMs < 3*tGame.RisingStepMs then
-            CPixel.SetBright(CColors.BRIGHT45)
+            self:SetBright(CColors.BRIGHT45)
         elseif iTimeSinceMs < 4*tGame.RisingStepMs then
-            CPixel.SetBright(CColors.BRIGHT60)
+            self:SetBright(CColors.BRIGHT60)
         else
-            CPixel.SetBright(CColors.BRIGHT70)
+            self:SetBright(CColors.BRIGHT70)
         end
     else
         if iTimeSinceMs < 1*tGame.FadingStepMs then
-            CPixel.SetBright(CColors.BRIGHT60)
+            self:SetBright(CColors.BRIGHT60)
         elseif iTimeSinceMs < 2*tGame.FadingStepMs then
-            CPixel.SetBright(CColors.BRIGHT45)
+            self:SetBright(CColors.BRIGHT45)
         elseif iTimeSinceMs < 3*tGame.FadingStepMs then
-            CPixel.SetBright(CColors.BRIGHT30)
+            self:SetBright(CColors.BRIGHT30)
         elseif iTimeSinceMs < 4*tGame.FadingStepMs then
-            CPixel.SetBright(CColors.BRIGHT15)
+            self:SetBright(CColors.BRIGHT15)
         else
-            CPixel.SetBright(CColors.BRIGHT0)
+            self:SetBright(CColors.BRIGHT0)
         end
     end
 end
 
-CPixel.ProcessClick = function(bClick)
+function CPixel:ProcessClick(bClick)
     if bClick then
-        if not CPixel.bRising then
+        if not self.bRising then
             CAudio.PlayAsync(CAudio.CLICK)
-            CPixel.iColor = CColors.GREEN
-            CPixel.iBright = CColors.BRIGHT0
-            CPixel.bRising = true
-            CPixel.iTimestamp = CTime.unix()
-            CPixel.bChanged = true
+            self.iColor = CColors.GREEN
+            self.iBright = CColors.BRIGHT0
+            self.bRising = true
+            self.iTimestamp = CTime.unix()
+            self.bChanged = true
         end
     else
-        if CPixel.bRising then
-            CPixel.iColor = CColors.GREEN
-            CPixel.iBright = CColors.BRIGHT70
-            CPixel.bRising = false
-            CPixel.iTimestamp = CTime.unix()
-            CPixel.bChanged = true
+        if self.bRising then
+            self.iColor = CColors.GREEN
+            self.iBright = CColors.BRIGHT70
+            self.bRising = false
+            self.iTimestamp = CTime.unix()
+            self.bChanged = true
         end
     end
 end
@@ -124,8 +123,6 @@ function StartGame(gameJson, gameConfigJson)
         tFloor[x] = {}    -- новый столбец
         for y=1,tGame.Rows do
             tFloor[x][y] = CHelp.DeepCopy(CPixel) -- заполняем нулевыми пикселями
-            tFloor[x][y].iX = x
-            tFloor[x][y].iY = y
         end
     end
 
@@ -137,19 +134,16 @@ end
 
 -- NextTick (служебный): метод игрового тика
 function NextTick()
-    tZeroPixel.ProcessTick()
+    tZeroPixel:ProcessTick()
 
     for x=1,tGame.Cols do
         for y=1,tGame.Rows do
-            tFloor[x][y].ProcessTick()
-            if tFloor[x][y].iBright > 0 then
-                CLog.print(inspect(tFloor[x][y]))
-            end
+            tFloor[x][y]:ProcessTick()
         end
     end
 
     for iNum, tButton in pairs(tButtons) do
-        tButton.ProcessTick()
+        tButton:ProcessTick()
     end
 end
 
@@ -208,9 +202,9 @@ function PixelClick(tClick)
     if tClick.X < 1 then -- ZeroPixel
         tZeroPixel.iX = tClick.X
         tZeroPixel.iY = tClick.Y
-        tZeroPixel.ProcessClick(tClick.Click)
+        tZeroPixel:ProcessClick(tClick.Click)
     else
-        tFloor[tClick.X][tClick.Y].ProcessClick(tClick.Click)
+        tFloor[tClick.X][tClick.Y]:ProcessClick(tClick.Click)
     end
 end
 
@@ -222,7 +216,7 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(tClick)
-    tButtons[tClick.Button].bClick = tClick.Click
+    tButtons[tClick.Button]:ProcessClick(tClick.Click)
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
