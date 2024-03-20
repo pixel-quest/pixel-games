@@ -126,7 +126,7 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    -- в этом режиме кнопка может быть людая
+    -- в этом режиме кнопка может быть любая
     for iNum=0, 2*(tGame.Rows+tGame.Cols)+1 do
         tButtons[iNum] = CHelp.DeepCopy(CPixel) -- тип аналогичен пикселю
     end
