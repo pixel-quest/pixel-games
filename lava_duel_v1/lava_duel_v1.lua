@@ -138,7 +138,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeY) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -256,6 +256,8 @@ CGameMode.LoadNewMap = function()
 end
 
 CGameMode.StartRound = function()
+    CAudio.PlayRandomBackground()
+
     CGameMode.bRoundStarted = true
     CBlock.AnimateVisibility()
 end
@@ -271,12 +273,16 @@ CGameMode.PlayerFinished = function(iPlayerID)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iAddScore
 
+    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+
     if CGameMode.iPlayersFinished >= iPlayerCount then
         CGameMode.EndRound()
     end
 end
 
 CGameMode.EndRound = function()
+    CAudio.StopBackground()
+
     CGameMode.bRoundStarted = false
     local bEndGame = false
     local iMaxScore = -999 -- в случае если несколько игроков побили нужный для победы счёт, считаем у кого из них больше чтоб определить победителя
