@@ -192,11 +192,13 @@ CSongSync.Start = function()
         if CSongSync.tSong[i] then
             CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - (tConfig.PixelMoveDelayMS * (tGame.Rows - tGame.StartPositions[1].Y))
 
+            --[[
             for j = 2, #CSongSync.tSong[i] do
                 if CSongSync.tSong[i][j] then
                     tGameStats.TargetScore = tGameStats.TargetScore + 1
                 end
             end
+            ]]
         end
     end
 
@@ -237,7 +239,7 @@ CGameMode.tPixels = {}
 CGameMode.tPixelStruct = {
     iPointX = 0,
     iPointY = 0,
-    iColor = CColors.RED,
+    iColor = CColors.GREEN,
     iBright = CColors.BRIGHT50,
     iPlayerID = 0,
     bClickable = true,
@@ -353,6 +355,10 @@ CGameMode.ScorePixel = function(iPixelID)
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
+    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+    end
+
     if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
         CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.GREEN)
         CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.GREEN)
@@ -389,15 +395,15 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
     CGameMode.tPixels[iPixelID].bClickable = true
     CGameMode.tPixels[iPixelID].iBatchID = iBatchID
 
-    if string.match(iPixelType, "L") then
+    if string.match(iPixelType, "L") and not tConfig.EasyMode then
         CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
-    elseif string.match(iPixelType, "R") then
-        CGameMode.tPixels[iPixelID].iColor = CColors.RED
+    elseif string.match(iPixelType, "R")  and not tConfig.EasyMode then
+        CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW
     elseif string.match(iPixelType, "H") then
         CGameMode.tPixels[iPixelID].iColor = CColors.BLUE
     end
 
-    CGameMode.tPixels[iPixelID].bProlong = string.match(iPixelType, "P")
+    CGameMode.tPixels[iPixelID].bProlong = string.match(iPixelType, "P") --and not tConfig.EasyMode
     CGameMode.tPixels[iPixelID].bVisual = string.match(iPixelType, "H")
 
     if CGameMode.tPlayerPixelBatches[iPlayerID] == nil then CGameMode.tPlayerPixelBatches[iPlayerID] = {} end
@@ -588,8 +594,10 @@ function SetGlobalColorBright(iColor, iBright)
     end
 
     for i, tButton in pairs(tButtons) do
-        tButtons[i].iColor = iColor
-        tButtons[i].iBright = iBright
+        if not tButtons[i].bDefect then
+            tButtons[i].iColor = iColor
+            tButtons[i].iBright = iBright
+        end
     end
 end
 --//
@@ -633,4 +641,9 @@ end
 function DefectButton(defect)
     if tButtons[defect.Button] == nil then return end
     tButtons[defect.Button].bDefect = defect.Defect
+
+    if defect then
+        tButtons[defect.Button].iColor = CColors.NONE
+        tButtons[defect.Button].iBright = CColors.BRIGHT0
+    end
 end
