@@ -20,13 +20,14 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
-local GAMESTATE_SETUP = 1
-local GAMESTATE_GAME = 2
-local GAMESTATE_POSTGAME = 3
-local GAMESTATE_FINISH = 4
+local GAMESTATE_TUTORIAL = 1
+local GAMESTATE_SETUP = 2
+local GAMESTATE_GAME = 3
+local GAMESTATE_POSTGAME = 4
+local GAMESTATE_FINISH = 5
 
 local bGamePaused = false
-local iGameState = GAMESTATE_SETUP
+local iGameState = GAMESTATE_TUTORIAL
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 local tPlayerInGame = {}
@@ -96,17 +97,19 @@ function StartGame(gameJson, gameConfigJson)
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
 
-    CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_TUTORIAL then
+        TutorialTick()
+    end
+
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
 
     if iGameState == GAMESTATE_GAME then
-        CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000 - tConfig.SongStartDelayMS)
         GameTick()
     end
 
@@ -118,12 +121,35 @@ function NextTick()
         return tGameResults
     end
 
+    CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000 - tConfig.SongStartDelayMS)
+
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
 
     iPrevTickTime = CTime.unix()
 end
 
+function TutorialTick()
+    if bAnyButtonClick then
+        bAnyButtonClick = false
+
+        if not CTutorial.bStarted then
+            CTutorial.Start()
+        else
+            CTutorial.Skip()
+        end
+
+        return;
+    end
+
+    if CTutorial.bStarted and CSongSync.bOn then
+        GameTick()
+    end
+end
+
 function GameSetupTick()
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
+    SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
+
     local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
@@ -145,6 +171,8 @@ function GameSetupTick()
     end
 
     if iPlayersReady > 0 and bAnyButtonClick then
+        CTimer.tTimers = {}
+
         iGameState = GAMESTATE_GAME
         CGameMode.CountDown(5)
     end
@@ -177,6 +205,28 @@ function SwitchStage()
 
 end
 
+--TUTORIAL
+CTutorial = {}
+CTutorial.bStarted = false
+
+CTutorial.Start = function()
+    CTutorial.bStarted = true
+    CAudio.PlaySync("dance/how_to_play.mp3") 
+
+    CGameMode.PixelMovement()
+    CSongSync.Start(tTutorialSong)
+end
+
+CTutorial.Skip = function()
+    CSongSync.Clear()
+    CGameMode.Clear()
+    CAudio.PlaySyncFromScratch("") -- обрыв звука
+
+    CAudio.PlaySync("voices/choose-color.mp3")
+    iGameState = GAMESTATE_SETUP
+end
+--//
+
 --SONGSYNC
 CSongSync = {}
 CSongSync.iTime = 0
@@ -184,10 +234,13 @@ CSongSync.iSongPoint = 1
 CSongSync.bOn = false
 CSongSync.tSong = {}
 
-CSongSync.Start = function()
+CSongSync.Start = function(tSong)
     CSongSync.bOn = true
-    CSongSync.tSong = tGame["Song"]
+    CSongSync.tSong = tSong
+    CSongSync.iTime = 0
+    CSongSync.iSongPoint = 1
     tGameStats.TargetScore = 0
+
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] then
             CSongSync.tSong[i][1] = CSongSync.tSong[i][1] - (tConfig.PixelMoveDelayMS * (tGame.Rows - tGame.StartPositions[1].Y))
@@ -206,8 +259,15 @@ CSongSync.Start = function()
     iSongStartedTime = CTime.unix()
 end
 
+CSongSync.Clear = function()
+    CSongSync.bOn = false
+    CSongSync.tSong = {}
+    CSongSync.iTime = 0
+    CSongSync.iSongPoint = 0   
+end
+
 CSongSync.Count = function(iTimePassed)
-    if (not CSongSync.bOn) or iGameState ~= GAMESTATE_GAME then return; end
+    if (not CSongSync.bOn) or (iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL) then return; end
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] ~= nil then
             if CSongSync.tSong[i][1] - iTimePassed <= 0 then
@@ -219,9 +279,15 @@ CSongSync.Count = function(iTimePassed)
                 end
 
                 if i == #CSongSync.tSong then
-                    CTimer.New(5000, function()
-                        CGameMode.EndGame()
-                    end)
+                    if iGameState == GAMESTATE_TUTORIAL then
+                        CTimer.New(5000, function()
+                            CTutorial.Skip()
+                        end)
+                    else 
+                        CTimer.New(5000, function()
+                            CGameMode.EndGame()
+                        end)
+                    end
                 end
 
                 CSongSync.tSong[i] = nil
@@ -251,6 +317,9 @@ CGameMode.tPlayerPixelBatches = {}
 CGameMode.tPlayerRowClick = {}
 
 CGameMode.CountDown = function(iCountDownTime)
+    CSongSync.Clear()
+    CGameMode.Clear()
+
     CGameMode.iCountdown = iCountDownTime
 
     CAudio.PlaySyncFromScratch("")
@@ -262,7 +331,7 @@ CGameMode.CountDown = function(iCountDownTime)
             CGameMode.iCountdown = -1
 
             CGameMode.PixelMovement()
-            CSongSync.Start()
+            CSongSync.Start(tGame["Song"])
 
             return nil
         else
@@ -273,13 +342,17 @@ end
 
 CGameMode.PixelMovement = function()
     CTimer.New(tConfig.PixelMoveDelayMS, function()
-        if iGameState ~= GAMESTATE_GAME then return nil end
+        if iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL then return nil end
 
         for i = 1, #CGameMode.tPixels do
             if CGameMode.tPixels[i] ~= nil then
                 CGameMode.MovePixel(i)
                 CGameMode.CalculatePixel(i)
             end
+        end
+
+        if iGameState == GAMESTATE_TUTORIAL then -- в туториале пиксели падают медленее
+            return math.floor(tConfig.PixelMoveDelayMS * 1.5)
         end
 
         return tConfig.PixelMoveDelayMS
@@ -353,10 +426,13 @@ CGameMode.ScorePixel = function(iPixelID)
     CGameMode.tPixels[iPixelID].bClickable = false
 
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
-    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+    if iGameState == GAMESTATE_GAME then
+        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
+
+        if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+            tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+        end
     end
 
     if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
@@ -375,7 +451,7 @@ end
 
 CGameMode.SpawnPixelForPlayers = function(iPointX, iBatchID, iPixelType)
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] then
+        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
             CGameMode.SpawnPixelForPlayer(i, iPointX, iBatchID, iPixelType)
         end
     end
@@ -431,6 +507,12 @@ CGameMode.EndGame = function()
         iGameState = GAMESTATE_FINISH
     end)
 end
+
+CGameMode.Clear = function()
+    CGameMode.tPixels = {}
+    CGameMode.tPlayerPixelBatches = {}
+    CGameMode.tPlayerRowClick = {}    
+end
 --//
 
 --PAINT
@@ -439,7 +521,7 @@ CPaint.ANIMATE_DELAY = 50
 
 CPaint.Borders = function()
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] then
+        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
             local iColor = CColors.WHITE
             SetRowColorBright(tGame.StartPositions[i].X-1, tGame.Rows, iColor, CColors.BRIGHT70)
             SetRowColorBright(tGame.StartPositions[i].X+tGame.StartPositionSize, tGame.Rows, iColor, CColors.BRIGHT70)
@@ -571,6 +653,15 @@ function SetRowColorBright(tStart, iSize, iColor, iBright)
     end
 end
 
+function SetAllButtonsColorBright(iColor, iBright)
+    for i, tButton in pairs(tButtons) do
+        if not tButtons[i].bDefect then
+            tButtons[i].iColor = iColor
+            tButtons[i].iBright = iBright
+        end
+    end
+end
+
 function SetColColorBright(tStart, iSize, iColor, iBright)
     for i = 0, iSize do
         local iX = tStart.X + i
@@ -633,7 +724,7 @@ function ButtonClick(click)
     if tButtons[click.Button] == nil then return end
     tButtons[click.Button].bClick = click.Click
 
-    if iGameState == GAMESTATE_SETUP and click.Click == true then
+    if iGameState <= GAMESTATE_SETUP and click.Click == true then
         bAnyButtonClick = true
     end
 end
@@ -647,3 +738,14 @@ function DefectButton(defect)
         tButtons[defect.Button].iBright = CColors.BRIGHT0
     end
 end
+
+
+-----------------------------------------------------------
+
+tTutorialSong = 
+{
+    {2000, "L", "N", "N", "R"},
+    {3000, "N", "L", "R", "N"},
+    {5000, "LS", "N", "N", "N"},
+    {6000, "N", "N", "N", "RS"},
+}
