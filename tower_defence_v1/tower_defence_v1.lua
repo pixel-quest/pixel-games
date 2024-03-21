@@ -1,5 +1,6 @@
 --[[
 Название: Защита Базы
+Версия: 1.1
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -12,13 +13,22 @@
 
 Чтобы начать игру нужно нажать на любую кнопку
 
+Сложности:
+    Сложность выбирается в config.json, параметры сложностей настраиваются в game.json
+    
+    Уровни:
+    "Very Easy" - для одного игрока
+    "Easy" - легкий для новичков
+    "Medium" - средний для тех кто уже играл
+    "Hard" - испытание для самых быстрых
+
 -------------------------------------------------------------------
 Что нужно доделать:
-    Гибкая настройка сложности
     Искуственный интеллект получше
     Эффекты, анимации, звуки
 
 Идеи по доработке механники:
+    Хардкорная сложность?
     Постройка укреплений?
     Помогающие юниты?
 
@@ -161,8 +171,6 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGameStats.TotalStars = tConfig.UnitsToKill
-
     CGameMode.PrepareGame()
 end
 
@@ -191,6 +199,7 @@ end
 
 function GameSetupTick()
     CPaint.Objects()
+    SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
 
     if bAnyButtonClick then
         CGameMode.StartCountDown(5)
@@ -203,12 +212,6 @@ function GameTick()
 end
 
 function PostGameTick()
-    if CGameMode.bVictory then
-
-    else
-
-    end
-
     CPaint.Objects()
 end
 
@@ -230,6 +233,7 @@ end
 
 --GAMEMODE
 CGameMode = {}
+CGameMode.tSettings = {}
 CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 
@@ -242,13 +246,21 @@ CGameMode.tBase = {
 }
 
 CGameMode.PrepareGame = function()
+    CGameMode.tSettings = tGame["Settings"][tConfig.Difficulty]
+
+    tGameStats.TotalStars = CGameMode.tSettings.UnitsToKill
+
     CGameMode.tBase.iX = math.floor(tGame.Cols/2)
     CGameMode.tBase.iY = math.floor(tGame.Rows/2)
-    CGameMode.tBase.iHealth = tConfig.BaseHealth
+    CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
     CGameMode.tBase.iColor = tConfig.BaseColor
 
     tGameStats.TotalLives = CGameMode.tBase.iHealth
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
+
+    CUnits.UnitSettings()
+
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -323,7 +335,7 @@ CGameMode.Defeat = function()
 end
 
 CGameMode.SpawnUnits = function()
-    for i = 1, tConfig.UnitCountPerSpawn do
+    for i = 1, CGameMode.tSettings.UnitCountPerSpawn do
         --CGameMode.SpawnUnit(CUnits.UNIT_TYPE_DEFLT)
         CGameMode.SpawnUnit(CUnits.RandomUnitType())
     end
@@ -422,6 +434,15 @@ CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER = 1
 CUnits.UNIT_DEATH_REASON_REACHED_BASE = 2
 CUnits.UNIT_DEATH_REASON_FRIENDLY_FIRE = 3
 
+CUnits.UnitSettings = function()
+    CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_DEFLT] = CGameMode.tSettings.UnitHealthDefault
+    CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_SHOOT] = CGameMode.tSettings.UnitHealthShoot
+
+    CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_DEFLT] = CGameMode.tSettings.UnitSizeDefault
+    CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_BLINK] = CGameMode.tSettings.UnitSizeBlink
+    CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_SLIME] = CGameMode.tSettings.UnitSizeSlime
+end
+
 CUnits.NewUnit = function(iX, iY, iUnitType,  bScoreable, bXMain, iSize)
     iUnitID = #CUnits.tUnits+1
 
@@ -442,22 +463,25 @@ CUnits.NewUnit = function(iX, iY, iUnitType,  bScoreable, bXMain, iSize)
         CUnits.tUnits[iUnitID].iSize = iSize
     end
 
-    --[[
-    while RectHasUnitsOrBlocked(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize) do
-        CUnits.tUnits[iUnitID].iX = iX + math.random(-2,2)
-        CUnits.tUnits[iUnitID].iY = iY + math.random(-2,2)
+    if bScoreable then
+        while CUnits.RectHasUnitsOrBlocked(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize) do
+            if CUnits.tUnits[iUnitID].bXMain then
+                CUnits.tUnits[iUnitID].iY = math.random(1, tGame.Rows)
+            else
+                CUnits.tUnits[iUnitID].iX = math.random(1, tGame.Cols)
+            end
+        end
     end
-    ]]
 
     CUnits.tUnits[iUnitID].iStartX = CUnits.tUnits[iUnitID].iX
     CUnits.tUnits[iUnitID].iStartY = CUnits.tUnits[iUnitID].iY
 
     if iUnitType == CUnits.UNIT_TYPE_BLINK then
-        CUnits.tUnits[iUnitID].iSpecial = tConfig.SpecialBlink
+        CUnits.tUnits[iUnitID].iSpecial = CGameMode.tSettings.SpecialBlink
     end
 
     if iUnitType == CUnits.UNIT_TYPE_SHOOT then
-        CUnits.tUnits[iUnitID].iSpecial = tConfig.SpecialShootDelay
+        CUnits.tUnits[iUnitID].iSpecial = CGameMode.tSettings.SpecialShootDelay
 
         --local iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitID)
         --CUnits.tUnits[iUnitID].iX = iX + iXPlus
@@ -466,14 +490,15 @@ CUnits.NewUnit = function(iX, iY, iUnitType,  bScoreable, bXMain, iSize)
 end
 
 CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
-    if iX < 0 or iX > tGame.Cols or iY < 0 or iY > tGame.Rows then return true end
+    if iXStart < 0 or iXStart > tGame.Cols or iYStart < 0 or iYStart > tGame.Rows then return true end
 
     for iX = iXStart, iXStart + iSize do
         for iY = iYStart, iYStart + iSize do
-            if tFloor[iX][iY].iUnitID > 0 then return true end
-
-            if tFloor[iX][iY].bDefect then return true end
-            if tFloor[iX][iY].bBlocked then return true end
+            if tFloor[iX] and tFloor[iX][iY] then
+                if tFloor[iX][iY].iUnitID > 0 then return true end
+                if tFloor[iX][iY].bDefect then return true end
+                if tFloor[iX][iY].bBlocked then return true end
+            end
         end
     end
 
@@ -481,7 +506,7 @@ CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
 end
 
 CUnits.RandomUnitType = function()
-    if math.random(1, 100) > tConfig.SpecialUnitSpawnChance then
+    if math.random(1, 100) > CGameMode.tSettings.SpecialUnitSpawnChance then
         return 1
     else
         return math.random(2,CUnits.UNIT_TYPE_COUNT)
@@ -524,7 +549,7 @@ CUnits.UnitThinkShoot = function(iUnitID)
     local bFired = false
 
     if CUnits.tUnits[iUnitID].iSpecial == nil or CUnits.tUnits[iUnitID].iSpecial <= 0 then
-        CUnits.tUnits[iUnitID].iSpecial = tConfig.SpecialShootDelay
+        CUnits.tUnits[iUnitID].iSpecial = CGameMode.tSettings.SpecialShootDelay
         bCanShoot = true
     else
         CUnits.tUnits[iUnitID].iSpecial = CUnits.tUnits[iUnitID].iSpecial - tConfig.UnitThinkDelay
@@ -582,6 +607,8 @@ CUnits.Move = function(iUnitID, iXPlus, iYPlus)
         CUnits.UnitKill(iUnitID, CUnits.UNIT_DEATH_REASON_REACHED_BASE)
         return;
     end
+
+    CPaint.Unit(iUnitID) -- для просчёта коллизии
 
     if CUnits.tUnits[iUnitID].iUnitType ~= CUnits.UNIT_TYPE_HEAVY and
         CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.tUnits[iUnitID].iSize) then
@@ -721,7 +748,7 @@ CProjectile.New = function(iX, iY, iXVel, iYVel, iDamage)
     CProjectile.tProjectiles[iProjectileID].iYVel = iYVel
     CProjectile.tProjectiles[iProjectileID].iDamage = iDamage
 
-    CLog.print("New projectile fired! #"..iProjectileID)
+    --CLog.print("New projectile fired! #"..iProjectileID)
 end
 
 CProjectile.Destroy = function(iProjectileID)
@@ -747,7 +774,7 @@ CProjectile.CalculateProjectile = function(iProjectileID)
     end
 
     if Intersects(CProjectile.tProjectiles[iProjectileID].iX, CProjectile.tProjectiles[iProjectileID].iY, 1, CGameMode.tBase.iX, CGameMode.tBase.iY, CGameMode.tBase.iSize) then
-        CLog.print("Projectile hit target!")
+        --CLog.print("Projectile hit target!")
         CGameMode.DamageBase(CProjectile.tProjectiles[iProjectileID].iDamage)
         CProjectile.Destroy(iProjectileID)
         return;
@@ -759,7 +786,7 @@ CProjectile.CalculateProjectile = function(iProjectileID)
         local iFFID = tFloor[CProjectile.tProjectiles[iProjectileID].iX][CProjectile.tProjectiles[iProjectileID].iY].iUnitID
 
         if CUnits.tUnits[iFFID].iUnitType ~= CUnits.UNIT_TYPE_SHOOT then
-            CLog.print("Friendly Fire!")
+            --CLog.print("Friendly Fire!")
             CAudio.PlayAsync(CAudio.CLICK)
 
             CUnits.UnitKill(iFFID, CUnits.UNIT_DEATH_REASON_FRIENDLY_FIRE)
@@ -770,6 +797,18 @@ CProjectile.CalculateProjectile = function(iProjectileID)
 end
 --//
 
+--ANIMATION
+CAnimation = {}
+CAnimation.tAnimated = {}
+
+CAnimation.tAnimatedStruct = {
+    iX = 0,
+    iY = 0,
+    iColor = 0,
+    iBright = 0,
+}
+--//
+
 --Paint
 CPaint = {}
 
@@ -778,13 +817,14 @@ CPaint.Objects = function()
     CPaint.Base()
     CPaint.Units()
     CPaint.Projectiles()
+    CPaint.Animations()
 end
 
 CPaint.Base = function()
     for iX = CGameMode.tBase.iX, CGameMode.tBase.iX + CGameMode.tBase.iSize-1 do
         for iY = CGameMode.tBase.iY, CGameMode.tBase.iY + CGameMode.tBase.iSize-1 do
             tFloor[iX][iY].iColor = CGameMode.tBase.iColor
-            --tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iBright = tConfig.Bright
         end
     end
 end
@@ -854,6 +894,18 @@ CPaint.Projectiles = function()
             else
                 --CLog.print("Projectile #"..iProjectileID.." is out of bounds!")
             end
+        end
+    end
+end
+
+CPaint.Animations = function()
+    for iAnimationID = 1, #CAnimation.tAnimated do
+        local iX = CAnimation.tAnimated[iAnimationID].iX
+        local iY = CAnimation.tAnimated[iAnimationID].iY
+
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CAnimation.tAnimated[iAnimationID].iColor
+            tFloor[iX][iY].iBright = CAnimation.tAnimated[iAnimationID].iBright
         end
     end
 end
@@ -930,6 +982,15 @@ function SetGlobalColorBright(iColor, iBright)
     end
 end
 
+function SetAllButtonsColorBright(iColor, iBright)
+    for i, tButton in pairs(tButtons) do
+        if not tButtons[i].bDefect then
+            tButtons[i].iColor = iColor
+            tButtons[i].iBright = iBright
+        end
+    end
+end
+
 function Intersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
     if iSize1 == 0 or iSize2 == 0 then return false; end
 
@@ -941,7 +1002,7 @@ function Intersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
 end
 
 function RandomPosInRadius(iX, iY, iSize)
-    CLog.print("RandomPosInRadius "..iX.." "..iY.." "..iSize)
+    --CLog.print("RandomPosInRadius "..iX.." "..iY.." "..iSize)
     return math.random(iX, iSize-1), math.random(iY, iSize-1)
 end
 --//
@@ -986,4 +1047,9 @@ end
 function DefectButton(defect)
     if tButtons[defect.Button] == nil then return end
     tButtons[defect.Button].bDefect = defect.Defect
+
+    if defect then
+        tButtons[defect.Button].iColor = CColors.NONE
+        tButtons[defect.Button].iBright = CColors.BRIGHT0
+    end
 end

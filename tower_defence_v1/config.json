@@ -1,14 +1,9 @@
 {
   "Bright": 6,
   "BaseColor": 2,
-  "BaseHealth": 20,
-  "UnitsToKill": 50,
-  "SpecialBlink": 2,
   "WinDurationMS": 10000,
   "UnitSpawnDelay": 5000,
   "UnitThinkDelay": 500,
-  "ProjectileDelay": 90,
-  "SpecialShootDelay": 2500,
-  "UnitCountPerSpawn": 2,
-  "SpecialUnitSpawnChance": 25
+  "ProjectileDelay": 90,  
+  "Difficulty": "Easy"
 }
