@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.1
+Версия: 1.2
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -320,6 +320,8 @@ CGameMode.Victory = function()
         tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
     end)
+
+    CAnimation.EndGameFill(CColors.GREEN)
 end
 
 CGameMode.Defeat = function()
@@ -332,6 +334,8 @@ CGameMode.Defeat = function()
         tGameResults.Won = false
         iGameState = GAMESTATE_FINISH
     end)
+
+    CAnimation.EndGameFill(CColors.RED)
 end
 
 CGameMode.SpawnUnits = function()
@@ -799,14 +803,41 @@ end
 
 --ANIMATION
 CAnimation = {}
-CAnimation.tAnimated = {}
 
+CAnimation.iAnimationDelay = 150
+
+CAnimation.tAnimated = {}
 CAnimation.tAnimatedStruct = {
     iX = 0,
     iY = 0,
     iColor = 0,
     iBright = 0,
 }
+
+CAnimation.EndGameFill = function(iColor)
+    local iStartX = CGameMode.tBase.iX
+    local iStartY = CGameMode.tBase.iY
+    local iSize = CGameMode.tBase.iSize
+
+    CTimer.New(CAnimation.iAnimationDelay, function()
+        for iX = iStartX, iStartX + iSize-1 do
+            for iY = iStartY, iStartY + iSize-1 do
+                local iAnimationID = #CAnimation.tAnimated+1
+                CAnimation.tAnimated[iAnimationID] = CHelp.ShallowCopy(CAnimation.tAnimatedStruct)
+                CAnimation.tAnimated[iAnimationID].iX = iX
+                CAnimation.tAnimated[iAnimationID].iY = iY
+                CAnimation.tAnimated[iAnimationID].iColor = iColor
+                CAnimation.tAnimated[iAnimationID].iBright = tConfig.Bright
+            end
+        end
+
+        iStartX = iStartX -1
+        iStartY = iStartY -1
+        iSize = iSize + 2
+
+        return CAnimation.iAnimationDelay
+    end)
+end
 --//
 
 --Paint

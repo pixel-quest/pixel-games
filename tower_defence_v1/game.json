@@ -56,7 +56,8 @@
       "SpecialBlink": 2,
       "SpecialShootDelay": 2000
     },
-    "Hard": {
+    "Hard": 
+    {
       "BaseHealth": 10,
       "UnitsToKill": 80,
       "UnitCountPerSpawn": 4,
@@ -71,6 +72,23 @@
 
       "SpecialBlink": 3,
       "SpecialShootDelay": 1500
+    },
+    "test": 
+    {
+      "BaseHealth": 999,
+      "UnitsToKill": 1,
+      "UnitCountPerSpawn": 2,
+      "SpecialUnitSpawnChance": 50,
+
+      "UnitHealthDefault": 1,
+      "UnitHealthShoot": 1,
+
+      "UnitSizeDefault": 2,
+      "UnitSizeBlink": 2,
+      "UnitSizeSlime": 2,
+
+      "SpecialBlink": 3,
+      "SpecialShootDelay": 1500      
     }
   }
 }
