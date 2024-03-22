@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.2
+Версия: 1.3
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -260,6 +260,7 @@ CGameMode.PrepareGame = function()
 
     CUnits.UnitSettings()
 
+    CAudio.PlaySync("games/tower-defence-game.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -312,6 +313,8 @@ CGameMode.StartGame = function()
 end
 
 CGameMode.Victory = function()
+    CAudio.StopBackground()
+    CAudio.PlaySync(CAudio.GAME_SUCCESS)
     CAudio.PlaySync(CAudio.VICTORY)
     CGameMode.bVictory = true
     iGameState = GAMESTATE_POSTGAME
@@ -325,6 +328,8 @@ CGameMode.Victory = function()
 end
 
 CGameMode.Defeat = function()
+    CAudio.StopBackground()
+    CAudio.PlaySync(CAudio.GAME_OVER)    
     CAudio.PlaySync(CAudio.DEFEAT)
     CGameMode.bVictory = false
     CGameMode.tBase.iColor = CColors.RED
@@ -563,6 +568,8 @@ CUnits.UnitThinkShoot = function(iUnitID)
         local iXVel, iYVel = CUnits.GetDestinationXYPlus(iUnitID)
         CProjectile.New(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY+1, iXVel, 0, 1)
 
+        CAudio.PlayAsync("games/plasma.mp3")
+
         bFired = true
     end
 
@@ -693,7 +700,7 @@ end
 -- просчёт смертей особых юнитов
 CUnits.UnitSpecial = function(iUnitID)
     if CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_BLINK and CUnits.tUnits[iUnitID].iSpecial > 0 then
-        -- какойнить звук бы сюда
+        CAudio.PlayAsync("games/teleport.mp3")
 
         CUnits.tUnits[iUnitID].iSpecial = CUnits.tUnits[iUnitID].iSpecial - 1
 
