@@ -138,7 +138,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -308,6 +308,9 @@ end
 
 CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
+
+    CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
+    CAudio.PlaySync(CAudio.VICTORY)
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
@@ -745,15 +748,14 @@ end
 --//
 
 --UTIL прочие утилиты
-function CheckPositionClick(tStart, iSize)
-    for i = 0, iSize * iSize - 1 do
-        local iX = tStart.X + i % iSize
-        local iY = tStart.Y + math.floor(i/iSize)
-
-        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then
-            if tFloor[iX][iY].bClick then
-                return true
-            end 
+function CheckPositionClick(tStart, iSizeX, iSizeY)
+    for iX = tStart.X, tStart.X + iSizeX - 1 do
+        for iY = tStart.Y, tStart.Y + iSizeY - 1 do
+            if tFloor[iX] and tFloor[iX][iY] then
+                if tFloor[iX][iY].bClick then
+                    return true
+                end 
+            end
         end
     end
 
