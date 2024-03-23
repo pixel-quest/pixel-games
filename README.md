@@ -29,6 +29,7 @@
   - **Найди цвет** – *на разноцветном поле требуется найти нужный цвет* [find_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/find_color_v1/find_color_v1.lua)
   - **Защита Базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
   - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/lava_duel_v1/lava_duel_v1.lua)
+  - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
