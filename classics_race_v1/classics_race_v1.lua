@@ -235,7 +235,10 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
+    if tGameStats.Players[iPlayerID].Score > 0 then 
+        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
+    end
+
     CAudio.PlayAsync(CAudio.MISCLICK);
 end
 
@@ -299,14 +302,45 @@ end
 
 CMaps.GenerateRandomMapFromSeed = function(fSeed)
     local tMap = {}
+    local iPrevZoneCoinCount = 1
 
-    for iY = 1, tGame.StartPositionSizeY do
-        if tMap[iY] == nil then tMap[iY] = {} end
-        for iX = 1, tGame.StartPositionSizeX do
-            if iX < tGame.StartPositionSizeX then
-                tMap[iY][iX], fSeed = CRandom.IntFromSeed(1, 3, fSeed)
-            else
+    for iX = 1, tGame.StartPositionSizeX do
+        if iX == tGame.StartPositionSizeX then
+            for iY = 1, tGame.StartPositionSizeY do
                 tMap[iY][iX] = CBlock.BLOCK_TYPE_FINISH
+            end
+        else
+            local iCoinCount = 0
+            local iMaxCoinCount = 0
+
+            iMaxCoinCount, fSeed = CRandom.IntFromSeed(0, 3, fSeed)
+
+            if iPrevZoneCoinCount == 0 and iMaxCoinCount == 0 then
+                iMaxCoinCount = 2
+            end
+            iPrevZoneCoinCount = iMaxCoinCount
+
+            for iY = 1, tGame.StartPositionSizeY do
+                if tMap[iY] == nil then tMap[iY] = {} end
+
+                local iBlockType = CBlock.BLOCK_TYPE_GROUND
+                if iMaxCoinCount == 0 then
+                    iBlockType = CBlock.BLOCK_TYPE_REDGROUND
+                elseif iCoinCount < iMaxCoinCount then
+                    iBlockType, fSeed = CRandom.IntFromSeed(1, 3, fSeed)
+
+                    if iBlockType == CBlock.BLOCK_TYPE_GROUND then
+                        if (tGame.StartPositionSizeY - iY) - (iMaxCoinCount - iCoinCount) < 0 then
+                            iBlockType = CBlock.BLOCK_TYPE_COIN
+                        end
+                    end
+
+                    if iBlockType == CBlock.BLOCK_TYPE_COIN then
+                        iCoinCount = iCoinCount + 1
+                    end
+                end
+
+                tMap[iY][iX] = iBlockType
             end
         end
     end
@@ -329,11 +363,13 @@ CBlock.tBlockStructure = {
 CBlock.BLOCK_TYPE_GROUND = 1
 CBlock.BLOCK_TYPE_COIN = 2
 CBlock.BLOCK_TYPE_FINISH = 3
+CBlock.BLOCK_TYPE_REDGROUND = 4
 
 CBlock.tBLOCK_TYPE_TO_COLOR = {}
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_GROUND]                   = CColors.WHITE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]                     = CColors.BLUE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.GREEN
+CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_REDGROUND]                = CColors.RED
 
 CBlock.RandomBlockType = function()
     local iBlockType = math.random(1,2)
@@ -364,9 +400,10 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
         CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
-    elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
+    elseif (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND or CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_REDGROUND) and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
         CBlock.tBlocks[iX][iY].bCollected = true
         CGameMode.PlayerScorePenalty(iPlayerID, 1)
+        CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_FINISH then
         CGameMode.PlayerFinished(iPlayerID)
     end
@@ -464,6 +501,36 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
         tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
         tFloor[iX][iY].iBright = iBright
     end
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    CTimer.New(CPaint.ANIMATION_DELAY, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return CPaint.ANIMATION_DELAY*3
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 --//
 
