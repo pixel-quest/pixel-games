@@ -99,6 +99,9 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.StageLeftDuration = tConfig.GameLength
     tGameStats.TargetScore = 1
+
+    CAudio.PlaySync("games/classics-race.mp3")
+    CAudio.PlaySync("games/classics-race-guide.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -421,7 +424,7 @@ end
 
 --PAINT
 CPaint = {}
-CPaint.ANIMATION_DELAY = 50
+CPaint.ANIMATION_DELAY = 75
 
 CPaint.Blocks = function()
     for iX = 1, tGame.Cols do
@@ -561,7 +564,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
+    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
         if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
             CBlock.RegisterBlockClick(click.X, click.Y)
         end
