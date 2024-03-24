@@ -3,6 +3,11 @@
     Автор: Avondale, дискорд - avonda
 
     Описание механики:
+        Эстафета кто соберет больше монет
+        Чтобы начать нажмите кнопку
+
+    В game.json можно выбрать направление бега: "left" или "right" в "Direction"
+
 
     Идеи по доработке: 
 
@@ -97,6 +102,8 @@ function StartGame(gameJson, gameConfigJson)
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
     end
 
+    CGameMode.InitGameMode()
+
     tGameStats.StageLeftDuration = tConfig.GameLength
     tGameStats.TargetScore = 1
 
@@ -171,6 +178,16 @@ CGameMode.iWinnerID = -1
 CGameMode.bGameStarted = false
 CGameMode.tPlayerSeeds = {}
 CGameMode.iDefaultSeed = 1
+
+CGameMode.iFinishPosition = 1
+
+CGameMode.InitGameMode = function()
+    if tGame.Direction == "right" then
+        CGameMode.iFinishPosition = tGame.StartPositionSizeX
+    elseif tGame.Direction == "left" then
+        CGameMode.iFinishPosition = 1
+    end
+end
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bGameStarted = false
@@ -305,8 +322,9 @@ CMaps.GenerateRandomMapFromSeed = function(fSeed)
     local iPrevZoneCoinCount = 1
 
     for iX = 1, tGame.StartPositionSizeX do
-        if iX == tGame.StartPositionSizeX then
+        if iX == CGameMode.iFinishPosition then
             for iY = 1, tGame.StartPositionSizeY do
+                if tMap[iY] == nil then tMap[iY] = {} end
                 tMap[iY][iX] = CBlock.BLOCK_TYPE_FINISH
             end
         else
@@ -410,7 +428,12 @@ CBlock.RegisterBlockClick = function(iX, iY)
 end
 
 CBlock.AnimateVisibility = function(iPlayerID)
-    local iX = tGame.StartPositions[iPlayerID].X
+    local iX = 1
+    if tGame.Direction == "right" then
+        iX = tGame.StartPositions[iPlayerID].X
+    elseif tGame.Direction == "left" then
+        iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1
+    end
 
     CTimer.New(CPaint.ANIMATION_DELAY, function()
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY do
@@ -423,10 +446,18 @@ CBlock.AnimateVisibility = function(iPlayerID)
             end
         end
 
-        if iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
-            iX = iX + 1
-            return CPaint.ANIMATION_DELAY
+        if tGame.Direction == "right" then
+            if iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
+                iX = iX + 1
+                return CPaint.ANIMATION_DELAY
+            end
+        elseif tGame.Direction == "left" then
+            if iX > tGame.StartPositions[iPlayerID].X then
+                iX = iX - 1
+                return CPaint.ANIMATION_DELAY
+            end
         end
+
         return nil
     end)
 end
@@ -487,7 +518,7 @@ CPaint.Blocks = function()
 end
 
 CPaint.PlayerZones = function()
-    if CGameMode.bGameStarted then return; end
+    --if CGameMode.bGameStarted then return; end
 
     for i = 1, #tGame.StartPositions do
         CPaint.PlayerZone(i, tConfig.Bright)
@@ -495,7 +526,12 @@ CPaint.PlayerZones = function()
 end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
-    local iX = tGame.StartPositions[iPlayerID].X
+    local iX = 1
+    if tGame.Direction == "right" then
+        iX = tGame.StartPositions[iPlayerID].X-1
+    elseif tGame.Direction == "left" then
+        iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
+    end
 
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
         tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
