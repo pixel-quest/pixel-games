@@ -852,7 +852,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
+    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
         if CAnimate.tBlocks[click.X] and CAnimate.tBlocks[click.X][click.Y] and CAnimate.tBlocks[click.X][click.Y].iBlockType > 0 then
             CAnimate.RegisterBlockClick(click.X, click.Y)
         elseif CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
