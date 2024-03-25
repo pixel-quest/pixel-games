@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.3
+Версия: 1.4
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -550,6 +550,18 @@ CUnits.UnitThinkDefault = function(iUnitID)
 
     if CUnits.CanMove(iUnitID, iXPlus, iYPlus) then
         CUnits.Move(iUnitID, iXPlus, iYPlus)
+    elseif CUnits.CanMove(iUnitID, iXPlus, 0) then
+        CUnits.Move(iUnitID, iXPlus, 0)
+    elseif CUnits.CanMove(iUnitID, 0, iYPlus) then
+        CUnits.Move(iUnitID, 0, iYPlus)
+    elseif CUnits.CanMove(iUnitID, iXPlus, -1) then
+        CUnits.Move(iUnitID, iXPlus, -1)        
+    elseif CUnits.CanMove(iUnitID, -1, iYPlus) then
+        CUnits.Move(iUnitID, -1, iYPlus)        
+    elseif CUnits.CanMove(iUnitID, 1, iYPlus) then
+        CUnits.Move(iUnitID, 1, iYPlus)
+    elseif CUnits.CanMove(iUnitID, iXPlus, 1) then
+        CUnits.Move(iUnitID, iXPlus, 1)
     end
 end
 
@@ -601,6 +613,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
             if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             if tFloor[iXCheck][iYCheck].bDefect then return false end
+            if tFloor[iXCheck][iYCheck].bClick then return false end
         end
     end
 
@@ -690,7 +703,9 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
                 end
             end
 
-            --анимация смерти?
+            if CUnits.tUnits[iUnitID].iUnitType ~= CUnits.UNIT_TYPE_SLIME and CUnits.tUnits[iUnitID].iUnitType ~= CUnits.UNIT_TYPE_SHOOT then
+                CAnimation.Death(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize, CUnits.UNIT_TYPE_TO_COLOR[CUnits.tUnits[iUnitID].iUnitType])
+            end
         end
 
         CUnits.tUnits[iUnitID] = nil
@@ -812,6 +827,7 @@ end
 CAnimation = {}
 
 CAnimation.iAnimationDelay = 150
+CAnimation.iDeathAnimationIters = 3
 
 CAnimation.tAnimated = {}
 CAnimation.tAnimatedStruct = {
@@ -844,6 +860,52 @@ CAnimation.EndGameFill = function(iColor)
 
         return CAnimation.iAnimationDelay
     end)
+end
+
+CAnimation.Death = function(iStartX, iStartY, iSize, iColor)
+    if iStartX == nil or iStartY == nil or iSize == nil or iColor == nil then return; end
+
+    for iX = iStartX, iStartX + iSize-1 do
+        for iY = iStartY, iStartY + iSize-1 do
+            local iAnimationID = #CAnimation.tAnimated+1
+            CAnimation.tAnimated[iAnimationID] = CHelp.ShallowCopy(CAnimation.tAnimatedStruct)
+            CAnimation.tAnimated[iAnimationID].iX = iX
+            CAnimation.tAnimated[iAnimationID].iY = iY
+            CAnimation.tAnimated[iAnimationID].iColor = iColor
+            CAnimation.tAnimated[iAnimationID].iBright = tConfig.Bright-1
+
+            local iIters = 0
+            local iXVel = 0
+            local iYVel = 0
+
+            if iX < iStartX + math.ceil(iSize/2) then
+                iXVel = -1
+            else
+                iXVel = 1
+            end
+
+            if iY < iStartY + math.ceil(iSize/2) then
+                iYVel = -1
+            else
+                iYVel = 1
+            end
+
+            CTimer.New(CAnimation.iAnimationDelay, function()
+                iIters = iIters + 1
+
+                CAnimation.tAnimated[iAnimationID].iX = CAnimation.tAnimated[iAnimationID].iX + iXVel
+                CAnimation.tAnimated[iAnimationID].iY = CAnimation.tAnimated[iAnimationID].iY + iYVel
+                CAnimation.tAnimated[iAnimationID].iBright = CAnimation.tAnimated[iAnimationID].iBright - 2
+
+                if iIters < CAnimation.iDeathAnimationIters then
+                    return CAnimation.iAnimationDelay
+                end
+
+                CAnimation.tAnimated[iAnimationID] = nil
+                return nil
+            end)          
+        end
+    end
 end
 --//
 
