@@ -332,7 +332,9 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerTouchedLava = function(iPlayerID)
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + tConfig.LavaScorePenalty
+    if tGameStats.Players[iPlayerID].Score > 0 then
+        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + tConfig.LavaScorePenalty
+    end
 
     CAudio.PlayAsync(CAudio.MISCLICK);
 end
