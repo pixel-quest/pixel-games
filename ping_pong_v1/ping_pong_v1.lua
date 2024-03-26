@@ -195,6 +195,7 @@ CGameMode.GameWinner = -1
 CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
     CGameMode.iCountdown = iCountDownTime
     CTimer.New(1000, function()
+        CAudio.PlaySyncFromScratch("")
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
 
         CGameMode.iCountdown = CGameMode.iCountdown - 1

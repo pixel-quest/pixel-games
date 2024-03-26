@@ -226,6 +226,7 @@ function NextTick()
         end
 
         if StartPlayersCount > 0 then
+            audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
