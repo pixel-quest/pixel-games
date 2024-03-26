@@ -100,6 +100,7 @@ function StartGame(gameJson, gameConfigJson)
 
     for iPlayerID = 1, #tGame.StartPositions do
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+        CGameMode.tPlayerCanFinish[iPlayerID] = true
     end
 
     CGameMode.InitGameMode()
@@ -177,6 +178,7 @@ CGameMode.iCountdown = -1
 CGameMode.iWinnerID = -1
 CGameMode.bGameStarted = false
 CGameMode.tPlayerSeeds = {}
+CGameMode.tPlayerCanFinish = {}
 CGameMode.iDefaultSeed = 1
 
 CGameMode.iFinishPosition = 1
@@ -261,10 +263,17 @@ CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
 end
 
 CGameMode.PlayerFinished = function(iPlayerID)
+    if not CGameMode.tPlayerCanFinish[iPlayerID] then return; end
+    CGameMode.tPlayerCanFinish[iPlayerID] = false
+
     CAudio.PlayAsync(CAudio.STAGE_DONE)  
     CBlock.ClearPlayerZone(iPlayerID)
     CMaps.LoadMapForPlayer(iPlayerID)
     CBlock.AnimateVisibility(iPlayerID)
+
+    CTimer.New(3000, function()
+        CGameMode.tPlayerCanFinish[iPlayerID] = true
+    end)
 end
 
 CGameMode.EndGame = function()
