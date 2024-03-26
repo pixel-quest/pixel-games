@@ -107,8 +107,8 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.StageLeftDuration = tConfig.GameLength
     tGameStats.TargetScore = 1
 
-    CAudio.PlaySync("games/classics-race.mp3")
-    CAudio.PlaySync("games/classics-race-guide.mp3")
+    CAudio.PlaySyncFromScratch("games/classics-race-game.mp3")
+    CAudio.PlaySync("voices/classics-race-guide.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -196,6 +196,7 @@ CGameMode.CountDownNextRound = function()
     CGameMode.iCountdown = tConfig.GameCountdown
 
     CTimer.New(1000, function()
+        CAudio.PlaySyncFromScratch("")
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
         
         CGameMode.iCountdown = CGameMode.iCountdown - 1
