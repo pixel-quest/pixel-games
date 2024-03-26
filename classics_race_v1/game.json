@@ -25,16 +25,17 @@
   ],
   "StartPositions": [
     {
-      "X": 1,
+      "X": 3,
       "Y": 3,
-      "Color": 1
+      "Color": 3
     },
     {
-      "X": 1,
+      "X": 3,
       "Y": 11,
-      "Color": 4
+      "Color": 5
     }
   ],
-  "StartPositionSizeX": 24,
-  "StartPositionSizeY": 3
+  "StartPositionSizeX": 19,
+  "StartPositionSizeY": 3,
+  "Direction": "left"
 }

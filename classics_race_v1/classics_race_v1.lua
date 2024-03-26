@@ -3,6 +3,11 @@
     Автор: Avondale, дискорд - avonda
 
     Описание механики:
+        Эстафета кто соберет больше монет
+        Чтобы начать нажмите кнопку
+
+    В game.json можно выбрать направление бега: "left" или "right" в "Direction"
+
 
     Идеи по доработке: 
 
@@ -97,8 +102,13 @@ function StartGame(gameJson, gameConfigJson)
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
     end
 
+    CGameMode.InitGameMode()
+
     tGameStats.StageLeftDuration = tConfig.GameLength
     tGameStats.TargetScore = 1
+
+    CAudio.PlaySync("games/classics-race.mp3")
+    CAudio.PlaySync("games/classics-race-guide.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -169,6 +179,16 @@ CGameMode.bGameStarted = false
 CGameMode.tPlayerSeeds = {}
 CGameMode.iDefaultSeed = 1
 
+CGameMode.iFinishPosition = 1
+
+CGameMode.InitGameMode = function()
+    if tGame.Direction == "right" then
+        CGameMode.iFinishPosition = tGame.StartPositionSizeX
+    elseif tGame.Direction == "left" then
+        CGameMode.iFinishPosition = 1
+    end
+end
+
 CGameMode.CountDownNextRound = function()
     CGameMode.bGameStarted = false
     CGameMode.iDefaultSeed = math.random(1,99999)
@@ -232,7 +252,10 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
+    if tGameStats.Players[iPlayerID].Score > 0 then 
+        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
+    end
+
     CAudio.PlayAsync(CAudio.MISCLICK);
 end
 
@@ -296,14 +319,46 @@ end
 
 CMaps.GenerateRandomMapFromSeed = function(fSeed)
     local tMap = {}
+    local iPrevZoneCoinCount = 1
 
-    for iY = 1, tGame.StartPositionSizeY do
-        if tMap[iY] == nil then tMap[iY] = {} end
-        for iX = 1, tGame.StartPositionSizeX do
-            if iX < tGame.StartPositionSizeX then
-                tMap[iY][iX], fSeed = CRandom.IntFromSeed(1, 3, fSeed)
-            else
+    for iX = 1, tGame.StartPositionSizeX do
+        if iX == CGameMode.iFinishPosition then
+            for iY = 1, tGame.StartPositionSizeY do
+                if tMap[iY] == nil then tMap[iY] = {} end
                 tMap[iY][iX] = CBlock.BLOCK_TYPE_FINISH
+            end
+        else
+            local iCoinCount = 0
+            local iMaxCoinCount = 0
+
+            iMaxCoinCount, fSeed = CRandom.IntFromSeed(0, 3, fSeed)
+
+            if iPrevZoneCoinCount == 0 and iMaxCoinCount == 0 then
+                iMaxCoinCount = 2
+            end
+            iPrevZoneCoinCount = iMaxCoinCount
+
+            for iY = 1, tGame.StartPositionSizeY do
+                if tMap[iY] == nil then tMap[iY] = {} end
+
+                local iBlockType = CBlock.BLOCK_TYPE_GROUND
+                if iMaxCoinCount == 0 then
+                    iBlockType = CBlock.BLOCK_TYPE_REDGROUND
+                elseif iCoinCount < iMaxCoinCount then
+                    iBlockType, fSeed = CRandom.IntFromSeed(1, 3, fSeed)
+
+                    if iBlockType == CBlock.BLOCK_TYPE_GROUND then
+                        if (tGame.StartPositionSizeY - iY) - (iMaxCoinCount - iCoinCount) < 0 then
+                            iBlockType = CBlock.BLOCK_TYPE_COIN
+                        end
+                    end
+
+                    if iBlockType == CBlock.BLOCK_TYPE_COIN then
+                        iCoinCount = iCoinCount + 1
+                    end
+                end
+
+                tMap[iY][iX] = iBlockType
             end
         end
     end
@@ -326,11 +381,13 @@ CBlock.tBlockStructure = {
 CBlock.BLOCK_TYPE_GROUND = 1
 CBlock.BLOCK_TYPE_COIN = 2
 CBlock.BLOCK_TYPE_FINISH = 3
+CBlock.BLOCK_TYPE_REDGROUND = 4
 
 CBlock.tBLOCK_TYPE_TO_COLOR = {}
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_GROUND]                   = CColors.WHITE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]                     = CColors.BLUE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.GREEN
+CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_REDGROUND]                = CColors.RED
 
 CBlock.RandomBlockType = function()
     local iBlockType = math.random(1,2)
@@ -361,16 +418,22 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
         CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
-    elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
+    elseif (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND or CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_REDGROUND) and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
         CBlock.tBlocks[iX][iY].bCollected = true
         CGameMode.PlayerScorePenalty(iPlayerID, 1)
+        CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_FINISH then
         CGameMode.PlayerFinished(iPlayerID)
     end
 end
 
 CBlock.AnimateVisibility = function(iPlayerID)
-    local iX = tGame.StartPositions[iPlayerID].X
+    local iX = 1
+    if tGame.Direction == "right" then
+        iX = tGame.StartPositions[iPlayerID].X
+    elseif tGame.Direction == "left" then
+        iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1
+    end
 
     CTimer.New(CPaint.ANIMATION_DELAY, function()
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY do
@@ -383,10 +446,18 @@ CBlock.AnimateVisibility = function(iPlayerID)
             end
         end
 
-        if iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
-            iX = iX + 1
-            return CPaint.ANIMATION_DELAY
+        if tGame.Direction == "right" then
+            if iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
+                iX = iX + 1
+                return CPaint.ANIMATION_DELAY
+            end
+        elseif tGame.Direction == "left" then
+            if iX > tGame.StartPositions[iPlayerID].X then
+                iX = iX - 1
+                return CPaint.ANIMATION_DELAY
+            end
         end
+
         return nil
     end)
 end
@@ -421,7 +492,7 @@ end
 
 --PAINT
 CPaint = {}
-CPaint.ANIMATION_DELAY = 50
+CPaint.ANIMATION_DELAY = 75
 
 CPaint.Blocks = function()
     for iX = 1, tGame.Cols do
@@ -447,7 +518,7 @@ CPaint.Blocks = function()
 end
 
 CPaint.PlayerZones = function()
-    if CGameMode.bGameStarted then return; end
+    --if CGameMode.bGameStarted then return; end
 
     for i = 1, #tGame.StartPositions do
         CPaint.PlayerZone(i, tConfig.Bright)
@@ -455,12 +526,47 @@ CPaint.PlayerZones = function()
 end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
-    local iX = tGame.StartPositions[iPlayerID].X
+    local iX = 1
+    if tGame.Direction == "right" then
+        iX = tGame.StartPositions[iPlayerID].X-1
+    elseif tGame.Direction == "left" then
+        iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
+    end
 
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
         tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
         tFloor[iX][iY].iBright = iBright
     end
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    CTimer.New(CPaint.ANIMATION_DELAY, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return CPaint.ANIMATION_DELAY*3
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 --//
 
@@ -561,7 +667,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
+    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
         if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
             CBlock.RegisterBlockClick(click.X, click.Y)
         end
