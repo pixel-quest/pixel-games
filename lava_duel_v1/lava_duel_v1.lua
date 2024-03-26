@@ -224,6 +224,7 @@ CGameMode.CountDownNextRound = function()
     --tGameStats.TargetScore = iPlayerCount * tConfig.RoundCount
 
     CTimer.New(1000, function()
+        CAudio.PlaySyncFromScratch("")
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
         
         CGameMode.iCountdown = CGameMode.iCountdown - 1

@@ -580,7 +580,7 @@ CUnits.UnitThinkShoot = function(iUnitID)
         local iXVel, iYVel = CUnits.GetDestinationXYPlus(iUnitID)
         CProjectile.New(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY+1, iXVel, 0, 1)
 
-        CAudio.PlayAsync("games/plasma.mp3")
+        CAudio.PlayAsync("plasma.mp3")
 
         bFired = true
     end
@@ -715,7 +715,7 @@ end
 -- просчёт смертей особых юнитов
 CUnits.UnitSpecial = function(iUnitID)
     if CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_BLINK and CUnits.tUnits[iUnitID].iSpecial > 0 then
-        CAudio.PlayAsync("games/teleport.mp3")
+        CAudio.PlayAsync("teleport.mp3")
 
         CUnits.tUnits[iUnitID].iSpecial = CUnits.tUnits[iUnitID].iSpecial - 1
 
