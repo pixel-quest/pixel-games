@@ -176,7 +176,7 @@ function RandomZone()
     for i = 0, 1000 do
         local index = math.random(1, 20)
         --if ButtonsList[array[index]].Bright == colors.BRIGHT70 and ButtonsList[array[index]].Colors ~= colors.NONE and not GameObj.StartPositions[index].Clik then
-        if not ButtonsList[array[index]].Defect and --[[not --[[GameObj.StartPositions[index].Clik]] ButtonsList[GameObj.Buttons[index]].Color ~= colors.BLUE and ButtonsList[GameObj.Buttons[index]].Bright ~= colors.BRIGHT70 then
+        if not ButtonsList[array[index]].Defect --[[and not GameObj.StartPositions[index].Clik]] and ButtonsList[GameObj.Buttons[index]].Color ~= colors.BLUE then
             kol = kol + 1
             ButtonsList[GameObj.Buttons[index]].Color = colors.BLUE
             ButtonsList[GameObj.Buttons[index]].Bright = colors.BRIGHT70
