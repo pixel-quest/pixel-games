@@ -1001,12 +1001,14 @@ end
 
 CPaint.Animations = function()
     for iAnimationID = 1, #CAnimation.tAnimated do
-        local iX = CAnimation.tAnimated[iAnimationID].iX
-        local iY = CAnimation.tAnimated[iAnimationID].iY
+        if CAnimation.tAnimated[iAnimationID] and CAnimation.tAnimated[iAnimationID].iX and CAnimation.tAnimated[iAnimationID].iY then
+            local iX = CAnimation.tAnimated[iAnimationID].iX
+            local iY = CAnimation.tAnimated[iAnimationID].iY
 
-        if tFloor[iX] and tFloor[iX][iY] then
-            tFloor[iX][iY].iColor = CAnimation.tAnimated[iAnimationID].iColor
-            tFloor[iX][iY].iBright = CAnimation.tAnimated[iAnimationID].iBright
+            if tFloor[iX] and tFloor[iX][iY] then
+                tFloor[iX][iY].iColor = CAnimation.tAnimated[iAnimationID].iColor
+                tFloor[iX][iY].iBright = CAnimation.tAnimated[iAnimationID].iBright
+            end
         end
     end
 end
