@@ -32,6 +32,7 @@ local iPrevTickTime = 0
 local bAnyButtonClick = false
 local tPlayerInGame = {}
 local iSongStartedTime = 0
+local bCountDownStarted = false
 
 local tGameStats = {
     StageLeftDuration = 0,
@@ -156,7 +157,7 @@ function GameSetupTick()
         if iPos <= #tGame.StartPositions then
 
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick({X = tPos.X, Y = tPos.Y-1}, tGame.StartPositionSize) then
+            if CheckPositionClick({X = tPos.X, Y = tPos.Y-1}, tGame.StartPositionSize) or (bCountDownStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = tConfig.Bright
                 iPlayersReady = iPlayersReady + 1
@@ -170,10 +171,11 @@ function GameSetupTick()
         end
     end
 
-    if iPlayersReady > 0 and bAnyButtonClick then
+    if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
         CTimer.tTimers = {}
 
-        iGameState = GAMESTATE_GAME
+        --iGameState = GAMESTATE_GAME
+        bCountDownStarted = true
         CGameMode.CountDown(5)
     end
 end
@@ -329,6 +331,8 @@ CGameMode.CountDown = function(iCountDownTime)
         CGameMode.iCountdown = CGameMode.iCountdown - 1
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
+
+            iGameState = GAMESTATE_GAME
 
             CGameMode.PixelMovement()
             CSongSync.Start(tGame["Song"])

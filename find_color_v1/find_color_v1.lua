@@ -120,6 +120,9 @@ local StartPlayersCount = 0 -- количество игроков в момен
 local TargetPositions = {}
 local StageDoneAt = 0
 
+local CountDownStarted = false
+local PlayerInGame = {}
+
 -- Этапы игры
 local CONST_STAGE_FINISH = -1
 local CONST_STAGE_START = 0
@@ -206,15 +209,18 @@ function NextTick()
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
 
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
+                PlayerInGame[positionIndex] = true
             else
                 GameStats.Players[positionIndex].Color = colors.NONE
+                PlayerInGame[positionIndex] = false
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
+        --[[
         local currentPlayersCount = countActivePlayers()
         if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
                 or currentPlayersCount < 1 then -- если менее одного игрока
@@ -222,9 +228,11 @@ function NextTick()
             StartPlayersCount = 0
             resetCountdown()
         end
-
+        ]]
 
         if StartPlayersCount > 0 then
+            CountDownStarted = true
+
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
@@ -431,6 +439,8 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    if not ButtonsList[defect.Button] then return end
+
     ButtonsList[defect.Button].Defect = defect.Defect
     -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
     if defect.Defect then
@@ -438,8 +448,9 @@ function DefectButton(defect)
         ButtonsList[defect.Button].Bright = colors.BRIGHT0
     else
         ButtonsList[defect.Button].Color = colors.BLUE
-        Bd = d + 4*(x-y) + 10
-        y = y - 1uttonsList[defect.Button].Bright = colors.BRIGHT70
+        --Bd = d + 4*(x-y) + 10
+        --y = y - 1
+        ButtonsList[defect.Button].Bright = colors.BRIGHT70
     end
 end
 
