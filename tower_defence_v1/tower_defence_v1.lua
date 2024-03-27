@@ -268,15 +268,18 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CTimer.New(1000, function()
         CAudio.PlaySyncFromScratch("")
-        CAudio.PlayLeftAudio(CGameMode.iCountdown)
+        
+        tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-        CGameMode.iCountdown = CGameMode.iCountdown - 1
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
             CAudio.PlaySync(CAudio.START_GAME)
             CAudio.PlayRandomBackground()
             return nil
         else
+            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            CGameMode.iCountdown = CGameMode.iCountdown - 1
+
             return 1000
         end
     end)

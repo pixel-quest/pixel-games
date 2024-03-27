@@ -196,9 +196,9 @@ CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
     CGameMode.iCountdown = iCountDownTime
     CTimer.New(1000, function()
         CAudio.PlaySyncFromScratch("")
-        CAudio.PlayLeftAudio(CGameMode.iCountdown)
 
-        CGameMode.iCountdown = CGameMode.iCountdown - 1
+        tGameStats.StageLeftDuration = CGameMode.iCountdown
+
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
             CGameMode.LaunchBall()
@@ -210,6 +210,9 @@ CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
 
             return nil
         else
+            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            CGameMode.iCountdown = CGameMode.iCountdown - 1
+
             return 1000
         end
     end)
