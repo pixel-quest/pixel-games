@@ -267,7 +267,7 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CTimer.New(1000, function()
-        audio.PlaySyncFromScratch("")
+        CAudio.PlaySyncFromScratch("")
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
 
         CGameMode.iCountdown = CGameMode.iCountdown - 1
