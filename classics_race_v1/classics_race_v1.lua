@@ -105,7 +105,6 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
-    tGameStats.StageLeftDuration = tConfig.GameLength
     tGameStats.TargetScore = 1
 
     CAudio.PlaySyncFromScratch("games/classics-race-game.mp3")
@@ -196,12 +195,13 @@ CGameMode.CountDownNextRound = function()
     CGameMode.iDefaultSeed = math.random(1,99999)
 
     CGameMode.iCountdown = tConfig.GameCountdown
+    tGameStats.StageLeftDuration = CGameMode.iCountdown
 
     CTimer.New(1000, function()
         CAudio.PlaySyncFromScratch("")
         CAudio.PlayLeftAudio(CGameMode.iCountdown)
+        tGameStats.StageLeftDuration = CGameMode.iCountdown
         
-        CGameMode.iCountdown = CGameMode.iCountdown - 1
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
 
@@ -209,14 +209,17 @@ CGameMode.CountDownNextRound = function()
             CAudio.PlaySync(CAudio.START_GAME)
 
             return nil
-        else 
+        else
+            CGameMode.iCountdown = CGameMode.iCountdown - 1 
+         
             return 1000
-        end 
+        end
     end)
 end
 
 CGameMode.Start = function()
     CAudio.PlayRandomBackground()
+    tGameStats.StageLeftDuration = tConfig.GameLength
     CGameMode.bGameStarted = true
     CGameMode.LoadMapsForPlayers()
 
@@ -508,7 +511,7 @@ CPaint.Blocks = function()
     for iX = 1, tGame.Cols do
         if CBlock.tBlocks[iX] then
             for iY = 1, tGame.Rows do
-                if CBlock.tBlocks[iX][iY] and CBlock.tBlocks[iX][iY].bVisible then
+                if not tFloor[iX][iY].bAnimated and CBlock.tBlocks[iX][iY] and CBlock.tBlocks[iX][iY].bVisible then
                     if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                         tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType]
                         tFloor[iX][iY].iBright = CBlock.tBlocks[iX][iY].iBright
@@ -638,8 +641,10 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
         end
     end
 
