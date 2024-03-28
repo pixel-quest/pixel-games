@@ -144,6 +144,7 @@ function TutorialTick()
 
     if CTutorial.bStarted and CSongSync.bOn then
         GameTick()
+        SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
     end
 end
 
@@ -213,6 +214,7 @@ CTutorial.bStarted = false
 
 CTutorial.Start = function()
     CTutorial.bStarted = true
+    CAudio.PlaySyncFromScratch("") -- обрыв звука
     CAudio.PlaySync("dance/how_to_play.mp3") 
 
     CGameMode.PixelMovement()
@@ -326,9 +328,8 @@ CGameMode.CountDown = function(iCountDownTime)
 
     CAudio.PlaySyncFromScratch("")
     CTimer.New(1000, function()
-        CAudio.PlayLeftAudio(CGameMode.iCountdown)
+        tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-        CGameMode.iCountdown = CGameMode.iCountdown - 1
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
 
@@ -339,6 +340,9 @@ CGameMode.CountDown = function(iCountDownTime)
 
             return nil
         else
+            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            CGameMode.iCountdown = CGameMode.iCountdown - 1
+
             return 1000
         end
     end)
@@ -560,7 +564,7 @@ end
 
 CPaint.PlayerZones = function()
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] then
+        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
             CPaint.PlayerZone(i, CColors.BRIGHT15)
         end
     end
@@ -748,8 +752,102 @@ end
 
 tTutorialSong = 
 {
-    {2000, "L", "N", "N", "R"},
-    {3000, "N", "L", "R", "N"},
-    {5000, "LS", "N", "N", "N"},
-    {6000, "N", "N", "N", "RS"},
+    { 30000, "N", "N", "N", "N" },
+    { 30500, "N", "N", "N", "N" },
+    { 31000, "N", "N", "N", "N" },
+    { 31500, "N", "N", "N", "N" },
+    { 32000, "L", "N", "N", "N" },
+    { 32500, "N", "N", "N", "N" },
+    { 33000, "N", "N", "N", "N" },
+    { 33500, "N", "N", "N", "N" },
+    { 34000, "N", "R", "N", "N" },
+    { 34500, "N", "N", "N", "N" },
+    { 35000, "N", "N", "N", "N" },
+    { 35500, "N", "N", "N", "N" },
+    { 36000, "N", "N", "L", "N" },
+    { 36500, "N", "N", "N", "N" },
+    { 37000, "N", "N", "N", "N" },
+    { 37500, "N", "N", "N", "N" },
+    { 38000, "N", "N", "N", "R" },
+    { 38500, "N", "N", "N", "N" },
+    { 39000, "N", "N", "N", "N" },
+    { 39500, "N", "N", "N", "N" },
+    { 40000, "N", "N", "L", "N" },
+    { 40500, "N", "N", "N", "N" },
+    { 41000, "N", "N", "N", "N" },
+    { 41500, "N", "N", "N", "N" },
+    { 42000, "N", "R", "N", "N" },
+    { 42500, "N", "N", "N", "N" },
+    { 43000, "N", "N", "N", "N" },
+    { 43500, "N", "N", "N", "N" },
+    { 44000, "L", "N", "N", "N" },
+    { 44500, "N", "R", "N", "N" },
+    { 45000, "L", "N", "N", "N" },
+    { 45500, "N", "R", "N", "N" },
+    { 46000, "N", "N", "L", "N" },
+    { 46500, "N", "N", "N", "R" },
+    { 47000, "N", "N", "L", "N" },
+    { 47500, "N", "N", "N", "R" },
+    { 48000, "N", "N", "N", "N" },
+    { 48500, "N", "L", "R", "N" },
+    { 49000, "L", "R", "N", "N" },
+    { 49500, "N", "L", "R", "N" },
+    { 50000, "N", "N", "L", "R" },
+    { 50500, "N", "L", "R", "N" },
+    { 51000, "L", "R", "N", "N" },
+    { 51500, "N", "N", "N", "N" },
+    { 52000, "N", "N", "N", "N" },
+    { 52500, "N", "N", "N", "N" },
+    { 66000, "N", "N", "N", "N" },
+    { 66500, "LP", "N", "N", "N" },
+    { 67000, "LP", "N", "N", "N" },
+    { 67500, "LP", "N", "N", "N" },
+    { 68000, "LP", "N", "N", "N" },
+    { 68500, "LP", "N", "N", "N" },
+    { 69000, "L", "N", "N", "N" },
+    { 69500, "N", "N", "RP", "N" },
+    { 70000, "N", "N", "RP", "N" },
+    { 70500, "N", "N", "RP", "N" },
+    { 71000, "N", "N", "RP", "N" },
+    { 71500, "N", "N", "RP", "N" },
+    { 72000, "N", "N", "R", "N" },
+    { 72500, "N", "LP", "N", "N" },
+    { 73000, "N", "LP", "R", "N" },
+    { 73500, "N", "LP", "N", "N" },
+    { 74000, "N", "LP", "R", "N" },
+    { 74500, "N", "LP", "N", "N" },
+    { 75000, "N", "LP", "R", "N" },
+    { 75500, "N", "L", "N", "N" },
+    { 76000, "N", "N", "N", "N" },
+    { 76500, "N", "L", "RP", "N" },
+    { 77000, "N", "N", "RP", "N" },
+    { 77500, "N", "L", "RP", "N" },
+    { 78000, "N", "N", "RP", "N" },
+    { 78500, "N", "L", "RP", "N" },
+    { 79000, "N", "N", "R", "N" },
+    { 79500, "N", "N", "N", "N" },
+    { 86000, "N", "N", "N", "N" },
+    { 86500, "L", "N", "N", "N" },
+    { 87000, "N", "N", "N", "N" },
+    { 87500, "N", "R", "N", "N" },
+    { 88000, "N", "N", "N", "N" },
+    { 88500, "N", "N", "L", "N" },
+    { 89000, "N", "N", "N", "N" },
+    { 89500, "N", "N", "N", "R" },
+    { 90000, "N", "N", "N", "N" },
+    { 90500, "H", "H", "H", "H" },
+    { 91000, "N", "N", "N", "N" },
+    { 91500, "N", "N", "L", "N" },
+    { 92000, "N", "N", "N", "N" },
+    { 92500, "N", "R", "N", "N" },
+    { 93000, "N", "N", "N", "N" },
+    { 93500, "L", "N", "N", "N" },
+    { 94000, "N", "N", "N", "N" },
+    { 94500, "H", "H", "H", "H" },
+    { 95000, "N", "N", "N", "N" },
+    { 95500, "N", "N", "N", "N" },
+    { 96000, "N", "N", "N", "N" },
+    { 96500, "N", "N", "N", "N" },
+    { 97000, "N", "N", "N", "N" },
+    { 105500, "N", "N", "N", "N" }
 }

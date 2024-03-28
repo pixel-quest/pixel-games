@@ -1154,7 +1154,7 @@ function DefectButton(defect)
     if tButtons[defect.Button] == nil then return end
     tButtons[defect.Button].bDefect = defect.Defect
 
-    if defect then
+    if defect.Defect then
         tButtons[defect.Button].iColor = CColors.NONE
         tButtons[defect.Button].iBright = CColors.BRIGHT0
     end
