@@ -107,9 +107,11 @@ function NextTick()
         TutorialTick()
     end
 
+    --[[
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
+    ]]
 
     if iGameState == GAMESTATE_GAME then
         GameTick()
@@ -171,6 +173,7 @@ function TutorialTick()
     end
 end
 
+--[[
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
     SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
@@ -203,6 +206,7 @@ function GameSetupTick()
         CGameMode.CountDown(5)
     end
 end
+]]
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
@@ -251,7 +255,10 @@ CTutorial.Skip = function()
 
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
-    iGameState = GAMESTATE_SETUP
+
+    CTimer.tTimers = {}
+    bCountDownStarted = true
+    CGameMode.CountDown(5)
 end
 --//
 
@@ -310,9 +317,9 @@ CSongSync.Count = function(iTimePassed)
 
                 if i == #CSongSync.tSong then
                     if iGameState == GAMESTATE_TUTORIAL then
-                        CTimer.New(5000, function()
-                            CTutorial.Skip()
-                        end)
+                        --CTimer.New(5000, function()
+                        --    CTutorial.Skip()
+                        --end)
                     else 
                         CTimer.New(5000, function()
                             CGameMode.EndGame()
@@ -543,7 +550,7 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.Clear = function()
-    tPlayerInGame = {}
+    --tPlayerInGame = {}
 
     for iPlayerID = 1, #tGame.StartPositions do
         tGameStats.Players[iPlayerID].Score = 0
