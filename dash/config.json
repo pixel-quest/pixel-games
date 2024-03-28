@@ -1,0 +1,17 @@
+{
+  "Bright": 5,
+  "Direction": 1,
+  "StopColor": 1,
+  "WidthLine": 0,
+  "Complexity": 2,
+  "WrongColor": 5,
+  "PointsToWin": 3,
+  "StageDuration": 20,
+  "WinDurationSec": 10,
+  "NumberOfButtons": 3,
+  "StopDurationSec": 3,
+  "FillingPercentage": 95,
+  "OriginCoordinateX": 1,
+  "OriginCoordinateY": 1,
+  "WrongEffectDuration": 1200
+}
