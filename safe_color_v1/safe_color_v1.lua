@@ -131,6 +131,9 @@ local Pixel = { -- пиксель тип
 }
 local StartPlayersCount = 0 -- количество игроков в момент нажатия кнопки старт
 
+local CountDownStarted = false
+local PlayerInGame = {}
+
 -- Этапы игры
 local CONST_STAGE_START = 0 -- выбор мест
 local CONST_STAGE_GAME = 1 -- игра
@@ -204,15 +207,18 @@ function NextTick()
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
+                PlayerInGame[positionIndex] = true
             else
                 GameStats.Players[positionIndex].Color = colors.NONE
+                PlayerInGame[positionIndex] = false
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
+        --[[
         local currentPlayersCount = countActivePlayers()
         if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
                 or currentPlayersCount < 1 then -- если менее одного игрока
@@ -220,8 +226,11 @@ function NextTick()
             StartPlayersCount = 0
             resetCountdown()
         end
+        ]]
 
         if StartPlayersCount > 0 then
+            CountDownStarted = true
+
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет

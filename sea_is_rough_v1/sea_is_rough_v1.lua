@@ -146,6 +146,9 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
     [1] = false,
 }
 
+local CountDownStarted = false
+local PlayerInGame = {}
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson) -- старт игры
     GameObj = json.decode(gameJson)
@@ -208,24 +211,29 @@ function NextTick()
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
+                PlayerInGame[positionIndex] = true
             else
                 GameStats.Players[positionIndex].Color = colors.NONE
+                PlayerInGame[positionIndex] = false 
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
         local currentPlayersCount = countActivePlayers()
-        if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
-                or currentPlayersCount < 2 then -- если менее двух игроков
+        --if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
+        --        or currentPlayersCount < 2 then -- если менее двух игроков
+        if currentPlayersCount < 2 then
             -- нельзя стартовать
             StartPlayersCount = 0
             resetCountdown()
         end
 
-        if StartPlayersCount > 0 then
+        if StartPlayersCount > 1 then
+            CountDownStarted = true
+
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
