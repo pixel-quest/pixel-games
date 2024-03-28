@@ -98,6 +98,7 @@ function StartGame(gameJson, gameConfigJson)
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
 
+    CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -130,16 +131,38 @@ function NextTick()
 end
 
 function TutorialTick()
+    local iPlayersReady = 0
+
+    if not CTutorial.bStarted then
+        for iPos, tPos in ipairs(tGame.StartPositions) do
+            if iPos <= #tGame.StartPositions then
+
+                local iBright = CColors.BRIGHT15
+                if CheckPositionClick({X = tPos.X, Y = tPos.Y-1}, tGame.StartPositionSize) then
+                    tGameStats.Players[iPos].Color = tPos.Color
+                    iBright = tConfig.Bright
+                    iPlayersReady = iPlayersReady + 1
+                    tPlayerInGame[iPos] = true
+                else
+                    tGameStats.Players[iPos].Color = CColors.NONE
+                    tPlayerInGame[iPos] = false
+                end
+
+                CPaint.PlayerZone(iPos, iBright)
+            end
+        end
+    end
+
     if bAnyButtonClick then
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
-            CTutorial.Start()
+            if iPlayersReady > 0 then
+                CTutorial.Start()
+            end
         else
             CTutorial.Skip()
-        end
-
-        return;
+        end 
     end
 
     if CTutorial.bStarted and CSongSync.bOn then
@@ -227,6 +250,7 @@ CTutorial.Skip = function()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
 
     CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
     iGameState = GAMESTATE_SETUP
 end
 --//
@@ -259,7 +283,9 @@ CSongSync.Start = function(tSong)
         end
     end
 
-    CAudio.PlaySync(tGame["SongName"])
+    if iGameState == GAMESTATE_GAME then
+        CAudio.PlaySync(tGame["SongName"])
+    end
     iSongStartedTime = CTime.unix()
 end
 
@@ -392,7 +418,7 @@ CGameMode.CalculatePixel = function(iPixelID)
         if CGameMode.tPixels[iPixelID].iPointY == 0 then
             if CGameMode.tPixels[iPixelID].bVisual then CGameMode.tPixels[iPixelID] = nil return; end
 
-            if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
+            if not CGameMode.tPixels[iPixelID].bProlong and CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
                 CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] = false
                 CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.RED)
                 CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.RED)
@@ -435,13 +461,13 @@ CGameMode.ScorePixel = function(iPixelID)
 
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
 
-    if iGameState == GAMESTATE_GAME then
+    --if iGameState == GAMESTATE_GAME then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
         if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
             tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
         end
-    end
+    --end
 
     if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
         CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.GREEN)
@@ -459,7 +485,7 @@ end
 
 CGameMode.SpawnPixelForPlayers = function(iPointX, iBatchID, iPixelType)
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
+        if tPlayerInGame[i] then
             CGameMode.SpawnPixelForPlayer(i, iPointX, iBatchID, iPixelType)
         end
     end
@@ -517,6 +543,12 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.Clear = function()
+    tPlayerInGame = {}
+
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGameStats.Players[iPlayerID].Score = 0
+    end
+
     CGameMode.tPixels = {}
     CGameMode.tPlayerPixelBatches = {}
     CGameMode.tPlayerRowClick = {}    
@@ -529,7 +561,7 @@ CPaint.ANIMATE_DELAY = 50
 
 CPaint.Borders = function()
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
+        if tPlayerInGame[i] then
             local iColor = CColors.WHITE
             SetRowColorBright(tGame.StartPositions[i].X-1, tGame.Rows, iColor, CColors.BRIGHT70)
             SetRowColorBright(tGame.StartPositions[i].X+tGame.StartPositionSize, tGame.Rows, iColor, CColors.BRIGHT70)
@@ -564,7 +596,7 @@ end
 
 CPaint.PlayerZones = function()
     for i = 1, #tGame.StartPositions do
-        if tPlayerInGame[i] or iGameState == GAMESTATE_TUTORIAL then
+        if tPlayerInGame[i] then
             CPaint.PlayerZone(i, CColors.BRIGHT15)
         end
     end
