@@ -27,7 +27,7 @@
     "DurationOn": 120,
     "DurationOff": 200
   },
-  "StartGame":[
+  "StartGame": [
     {
       "X": 8,
       "Y": 1,
@@ -64,9 +64,7 @@
       "Clik": false,
       "Color": 2
     }
-
   ],
-
   "StartPositions": [
     {
       "X": 1,
