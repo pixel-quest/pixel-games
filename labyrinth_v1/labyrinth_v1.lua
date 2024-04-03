@@ -7,7 +7,6 @@
 
     Идеи по доработке: 
         Запретить перепрыгивать через стены?
-        Сделать чтобы враги могли нормально ходить сквозь друг друга
 
 ]]
 math.randomseed(os.time())
@@ -97,6 +96,7 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
+    CAudio.PlaySync("games/labyrinth.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -173,6 +173,8 @@ CGameMode.bVictory = false
 CGameMode.InitGameMode = function()
     tGameStats.CurrentLives = tConfig.Health
     tGameStats.TotalLives = tConfig.Health
+
+    CUnits.UNIT_SIZE = tGame.UnitSize
 
     CMaps.LoadMap(CMaps.GetRandomMapID())
 end
@@ -363,7 +365,7 @@ CBlock.AnimateVisibility = function()
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                 CBlock.tBlocks[iX][iY].bVisible = true
 
-                if tFloor[iX][iY].bClick then
+                if tFloor[iX][iY].bClick or (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and tFloor[iX][iY].bDefect) then
                     CBlock.RegisterBlockClick(iX, iY)
                 end
             end
@@ -502,7 +504,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
     for iXCheck = iX, iX + CUnits.UNIT_SIZE-1 do
         for iYCheck = iY, iY + CUnits.UNIT_SIZE-1 do
             if not tFloor[iXCheck] or not tFloor[iXCheck][iYCheck] then return true end
-            if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
+            --if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             --if tFloor[iXCheck][iYCheck].bDefect then return false end
         end
@@ -899,9 +901,11 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iUnitID = 0
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iUnitID = 0
+            end
         end
     end
 
