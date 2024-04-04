@@ -6,7 +6,8 @@
         Игроки пытаются собрать все монетки в лабиринте и не попасться врагам которые по нему бегают
 
     Идеи по доработке: 
-        Запретить перепрыгивать через стены?
+        Настройка чтоб враги бегали за игроками
+        Штрафовать за прыжки через стены?
 
 ]]
 math.randomseed(os.time())
@@ -176,7 +177,11 @@ CGameMode.InitGameMode = function()
 
     CUnits.UNIT_SIZE = tGame.UnitSize
 
-    CMaps.LoadMap(CMaps.GetRandomMapID())
+    if tConfig.GenerateRandomMap then
+        CMaps.LoadMap(CMaps.GenerateRandomMap())
+    else
+        CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -271,14 +276,14 @@ CMaps.GetRandomMapID = function()
     return math.random(1, #tGame.Maps)
 end
 
-CMaps.LoadMap = function(iMapID)
+CMaps.LoadMap = function(tMap)
     local iCoinCount = 0
 
     for iY = 1, tGame.Rows  do
         for iX = 1, tGame.Cols do
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
-            if tGame.Maps[iMapID][iY] ~= nil and tGame.Maps[iMapID][iY][iX] ~= nil then 
-                iBlockType = tGame.Maps[iMapID][iY][iX]
+            if tMap[iY] ~= nil and tMap[iY][iX] ~= nil then 
+                iBlockType = tMap[iY][iX]
             end
 
             if iBlockType == 9 then
@@ -300,6 +305,93 @@ CMaps.LoadMap = function(iMapID)
 
     tGameStats.TotalStars = iCoinCount
     CBlock.LoadBlockList()
+end
+
+CMaps.GenerateRandomMap = function()
+    local tMap = {}
+    local tMapTaken = {}
+    for iY = 1, tGame.Rows do
+        tMap[iY] = {}
+        tMapTaken[iY] = {}
+        for iX = 1, tGame.Cols do
+            tMap[iY][iX] = CBlock.BLOCK_TYPE_LAVA
+            tMapTaken[iY][iX] = false
+        end
+    end
+
+    local MAX_WALK_STEPS = 20
+    local MAX_WALK_ITERS = 8
+    local iWalkCount = 0
+    local iStartsCount = 0 
+
+    local function NextWalk(iY, iX)
+        local iPlus = math.random(-1,1)
+        if iPlus == 0 then iPlus = 1 end
+
+        if math.random(0,1) == 1 then
+            return iY + iPlus, iX 
+        end
+        return iY, iX + iPlus
+    end
+
+    local function OnEdge(iY, iX)
+        return iY == 1 or iY == tGame.Rows or iX == 1 or iX == tGame.Cols
+    end
+
+    local function CanWalk(iY, iX, iYChange, iXChange, iStepsCount)
+        if tMapTaken[iY][iX] == true then return false end
+        if tMapTaken[iY+iYChange] and tMapTaken[iY+iYChange][iX+iXChange] == true then return false end
+        if OnEdge(iY, iX) and (iStepsCount < MAX_WALK_STEPS/3 or iStartsCount >= tConfig.RandomMapStartCount) then return false end
+
+        return true
+    end
+
+    local function Walk()
+        local iWalkY = math.random(2, tGame.Rows-1)
+        local iWalkX = math.random(2, tGame.Cols-1)
+
+        for i = 1, MAX_WALK_STEPS do
+            local iTempY, iTempX = 0, 0 
+            local iWalkIters = 0 
+
+            repeat 
+                iTempY, iTempX = NextWalk(iWalkY, iWalkX)
+                iWalkIters = iWalkIters + 1
+
+                if iWalkIters >= MAX_WALK_ITERS then return; end
+            until CanWalk(iTempY, iTempX, iTempY-iWalkY, iTempX-iWalkX, i)
+
+            iWalkY, iWalkX = iTempY, iTempX
+
+            tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_GROUND
+            tMapTaken[iWalkY][iWalkX] = true
+            iWalkCount = iWalkCount + 1
+
+            if OnEdge(iWalkY, iWalkX) then
+                tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_START
+                iStartsCount = iStartsCount + 1
+
+                return; 
+            end
+
+            if math.random(1,10) == 5 then
+                tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_COIN
+            end
+        end
+    end
+
+
+    local LIMIT = tGame.Cols*tGame.Rows
+    --while iWalkCount < LIMIT or (iWalkCount < (LIMIT/1.8) and iStartsCount > tConfig.RandomMapStartCount) do
+    while iWalkCount < (LIMIT/1.8) do
+        Walk()
+    end
+
+    for i = 1, tConfig.RandomMapUnitCount do
+        tMap[math.random(2, tGame.Rows-1)][math.random(2, tGame.Cols-1)] = 9
+    end
+
+    return tMap
 end
 --//
 
