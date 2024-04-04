@@ -319,11 +319,14 @@ CMaps.GenerateRandomMap = function()
         end
     end
 
-    local MAX_WALK_STEPS = 20
+    local LIMIT = tGame.Cols*tGame.Rows
+    local MAX_WALK_STEPS = math.floor(LIMIT/5)
     local MAX_WALK_ITERS = 8
     local iWalkCount = 0
     local iStartsCount = 0 
+    local bWalkStartCreated = false
 
+    --Вложенные функции генерации
     local function NextWalk(iY, iX)
         local iPlus = math.random(-1,1)
         if iPlus == 0 then iPlus = 1 end
@@ -341,7 +344,19 @@ CMaps.GenerateRandomMap = function()
     local function CanWalk(iY, iX, iYChange, iXChange, iStepsCount)
         if tMapTaken[iY][iX] == true then return false end
         if tMapTaken[iY+iYChange] and tMapTaken[iY+iYChange][iX+iXChange] == true then return false end
-        if OnEdge(iY, iX) and (iStepsCount < MAX_WALK_STEPS/3 or iStartsCount >= tConfig.RandomMapStartCount) then return false end
+
+        if OnEdge(iY, iX) then 
+            -- ставим стартовые точки
+            if not bWalkStartCreated and iStartsCount < tConfig.RandomMapStartCount then
+                tMap[iY][iX] = CBlock.BLOCK_TYPE_START
+                tMapTaken[iY][iX] = true
+
+                bWalkStartCreated = true
+                iStartsCount = iStartsCount + 1
+            end
+
+            return false 
+        end
 
         return true
     end
@@ -349,6 +364,7 @@ CMaps.GenerateRandomMap = function()
     local function Walk()
         local iWalkY = math.random(2, tGame.Rows-1)
         local iWalkX = math.random(2, tGame.Cols-1)
+        bWalkStartCreated = false
 
         for i = 1, MAX_WALK_STEPS do
             local iTempY, iTempX = 0, 0 
@@ -367,29 +383,29 @@ CMaps.GenerateRandomMap = function()
             tMapTaken[iWalkY][iWalkX] = true
             iWalkCount = iWalkCount + 1
 
-            if OnEdge(iWalkY, iWalkX) then
-                tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_START
-                iStartsCount = iStartsCount + 1
-
-                return; 
-            end
-
             if math.random(1,10) == 5 then
                 tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_COIN
             end
         end
     end
+    --//
 
-
-    local LIMIT = tGame.Cols*tGame.Rows
+    --Генерация
     --while iWalkCount < LIMIT or (iWalkCount < (LIMIT/1.8) and iStartsCount > tConfig.RandomMapStartCount) do
     while iWalkCount < (LIMIT/1.8) do
         Walk()
     end
 
-    for i = 1, tConfig.RandomMapUnitCount do
-        tMap[math.random(2, tGame.Rows-1)][math.random(2, tGame.Cols-1)] = 9
+    local iUnitCount = 0
+    while iUnitCount < tConfig.RandomMapUnitCount do
+        local iY, iX = math.random(2, tGame.Rows-1), math.random(2, tGame.Cols-1)
+        
+        if tMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND then
+            tMap[iY][iX] = 9
+            iUnitCount = iUnitCount + 1
+        end
     end
+    --//
 
     return tMap
 end
