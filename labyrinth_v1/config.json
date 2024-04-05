@@ -3,7 +3,7 @@
   "WinDurationMS": 10000,
   "Health": 10,
   "UnitThinkDelay": 150,
-  "GenerateRandomMap": true,
+  "GenerateRandomMap": false,
   "RandomMapStartCount": 4,
   "RandomMapUnitCount": 2
 }
