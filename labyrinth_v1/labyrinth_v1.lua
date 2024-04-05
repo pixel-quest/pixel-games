@@ -6,8 +6,8 @@
         Игроки пытаются собрать все монетки в лабиринте и не попасться врагам которые по нему бегают
 
     Идеи по доработке: 
-        Запретить перепрыгивать через стены?
-        Сделать чтобы враги могли нормально ходить сквозь друг друга
+        Настройка чтоб враги бегали за игроками
+        Штрафовать за прыжки через стены?
 
 ]]
 math.randomseed(os.time())
@@ -97,6 +97,7 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
+    CAudio.PlaySync("games/labyrinth.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -174,7 +175,13 @@ CGameMode.InitGameMode = function()
     tGameStats.CurrentLives = tConfig.Health
     tGameStats.TotalLives = tConfig.Health
 
-    CMaps.LoadMap(CMaps.GetRandomMapID())
+    CUnits.UNIT_SIZE = tGame.UnitSize
+
+    if tConfig.GenerateRandomMap then
+        CMaps.LoadMap(CMaps.GenerateRandomMap())
+    else
+        CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -269,14 +276,14 @@ CMaps.GetRandomMapID = function()
     return math.random(1, #tGame.Maps)
 end
 
-CMaps.LoadMap = function(iMapID)
+CMaps.LoadMap = function(tMap)
     local iCoinCount = 0
 
     for iY = 1, tGame.Rows  do
         for iX = 1, tGame.Cols do
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
-            if tGame.Maps[iMapID][iY] ~= nil and tGame.Maps[iMapID][iY][iX] ~= nil then 
-                iBlockType = tGame.Maps[iMapID][iY][iX]
+            if tMap[iY] ~= nil and tMap[iY][iX] ~= nil then 
+                iBlockType = tMap[iY][iX]
             end
 
             if iBlockType == 9 then
@@ -298,6 +305,109 @@ CMaps.LoadMap = function(iMapID)
 
     tGameStats.TotalStars = iCoinCount
     CBlock.LoadBlockList()
+end
+
+CMaps.GenerateRandomMap = function()
+    local tMap = {}
+    local tMapTaken = {}
+    for iY = 1, tGame.Rows do
+        tMap[iY] = {}
+        tMapTaken[iY] = {}
+        for iX = 1, tGame.Cols do
+            tMap[iY][iX] = CBlock.BLOCK_TYPE_LAVA
+            tMapTaken[iY][iX] = false
+        end
+    end
+
+    local LIMIT = tGame.Cols*tGame.Rows
+    local MAX_WALK_STEPS = math.floor(LIMIT/5)
+    local MAX_WALK_ITERS = 8
+    local iWalkCount = 0
+    local iStartsCount = 0 
+    local bWalkStartCreated = false
+
+    --Вложенные функции генерации
+    local function NextWalk(iY, iX)
+        local iPlus = math.random(-1,1)
+        if iPlus == 0 then iPlus = 1 end
+
+        if math.random(0,1) == 1 then
+            return iY + iPlus, iX 
+        end
+        return iY, iX + iPlus
+    end
+
+    local function OnEdge(iY, iX)
+        return iY == 1 or iY == tGame.Rows or iX == 1 or iX == tGame.Cols
+    end
+
+    local function CanWalk(iY, iX, iYChange, iXChange, iStepsCount)
+        if tMapTaken[iY][iX] == true then return false end
+        if tMapTaken[iY+iYChange] and tMapTaken[iY+iYChange][iX+iXChange] == true then return false end
+
+        if OnEdge(iY, iX) then 
+            -- ставим стартовые точки
+            if not bWalkStartCreated and iStartsCount < tConfig.RandomMapStartCount then
+                tMap[iY][iX] = CBlock.BLOCK_TYPE_START
+                tMapTaken[iY][iX] = true
+
+                bWalkStartCreated = true
+                iStartsCount = iStartsCount + 1
+            end
+
+            return false 
+        end
+
+        return true
+    end
+
+    local function Walk()
+        local iWalkY = math.random(2, tGame.Rows-1)
+        local iWalkX = math.random(2, tGame.Cols-1)
+        bWalkStartCreated = false
+
+        for i = 1, MAX_WALK_STEPS do
+            local iTempY, iTempX = 0, 0 
+            local iWalkIters = 0 
+
+            repeat 
+                iTempY, iTempX = NextWalk(iWalkY, iWalkX)
+                iWalkIters = iWalkIters + 1
+
+                if iWalkIters >= MAX_WALK_ITERS then return; end
+            until CanWalk(iTempY, iTempX, iTempY-iWalkY, iTempX-iWalkX, i)
+
+            iWalkY, iWalkX = iTempY, iTempX
+
+            tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_GROUND
+            tMapTaken[iWalkY][iWalkX] = true
+            iWalkCount = iWalkCount + 1
+
+            if math.random(1,10) == 5 then
+                tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_COIN
+            end
+        end
+    end
+    --//
+
+    --Генерация
+    --while iWalkCount < LIMIT or (iWalkCount < (LIMIT/1.8) and iStartsCount > tConfig.RandomMapStartCount) do
+    while iWalkCount < (LIMIT/1.8) do
+        Walk()
+    end
+
+    local iUnitCount = 0
+    while iUnitCount < tConfig.RandomMapUnitCount do
+        local iY, iX = math.random(2, tGame.Rows-1), math.random(2, tGame.Cols-1)
+        
+        if tMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND then
+            tMap[iY][iX] = 9
+            iUnitCount = iUnitCount + 1
+        end
+    end
+    --//
+
+    return tMap
 end
 --//
 
@@ -363,7 +473,7 @@ CBlock.AnimateVisibility = function()
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                 CBlock.tBlocks[iX][iY].bVisible = true
 
-                if tFloor[iX][iY].bClick then
+                if tFloor[iX][iY].bClick or (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and tFloor[iX][iY].bDefect) then
                     CBlock.RegisterBlockClick(iX, iY)
                 end
             end
@@ -502,7 +612,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
     for iXCheck = iX, iX + CUnits.UNIT_SIZE-1 do
         for iYCheck = iY, iY + CUnits.UNIT_SIZE-1 do
             if not tFloor[iXCheck] or not tFloor[iXCheck][iYCheck] then return true end
-            if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
+            --if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             --if tFloor[iXCheck][iYCheck].bDefect then return false end
         end
@@ -899,9 +1009,11 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iUnitID = 0
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iUnitID = 0
+            end
         end
     end
 
