@@ -54,7 +54,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
     TargetScore = 0,
-    StageNum = 0,
+    StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
 }
@@ -170,18 +170,17 @@ end
 CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bVictory = false
+CGameMode.bRoundOn = false
+CGameMode.iRound = 1
 
 CGameMode.InitGameMode = function()
     tGameStats.CurrentLives = tConfig.Health
     tGameStats.TotalLives = tConfig.Health
+    tGameStats.TotalStages = tConfig.RoundCount
 
     CUnits.UNIT_SIZE = tGame.UnitSize
 
-    if tConfig.GenerateRandomMap then
-        CMaps.LoadMap(CMaps.GenerateRandomMap())
-    else
-        CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
-    end
+    CGameMode.PreloadMap()
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -192,8 +191,12 @@ CGameMode.StartCountDown = function(iCountDownTime)
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
-            CGameMode.StartGame()
-            
+
+            if iGameState == GAMESTATE_SETUP then
+                CGameMode.StartGame()
+            else
+                CGameMode.StartRound()
+            end
             return nil
         else
             CAudio.PlayLeftAudio(CGameMode.iCountdown)
@@ -208,22 +211,59 @@ CGameMode.StartGame = function()
     iGameState = GAMESTATE_GAME
 
     CAudio.PlaySync(CAudio.START_GAME)
-    CAudio.PlayRandomBackground()
 
     CTimer.New(1000, function()
         if iGameState == GAMESTATE_GAME then
-            CUnits.ProcessUnits()
+            if not bGamePaused and CGameMode.bRoundOn then
+                CUnits.ProcessUnits()
+            end
+            
             return tConfig.UnitThinkDelay
         end
 
         return nil
     end)
 
-    CBlock.AnimateVisibility()
+    CGameMode.StartRound()
+end
+
+CGameMode.StartRound = function()
+    CAudio.PlayRandomBackground()
+
+    CBlock.AnimateVisibility(true, function()
+        CGameMode.bRoundOn = true
+    end)
+end
+
+CGameMode.EndRound = function()
+    CAudio.StopBackground()
+    CGameMode.bRoundOn = false
+
+    tGameStats.CurrentStars = 0
+    --tGameStats.CurrentLives = tGameStats.TotalLives
+
+    if CGameMode.iRound == tGameStats.TotalStages then
+        CGameMode.Victory()
+    else
+        CGameMode.iRound = CGameMode.iRound + 1
+        tGameStats.StageNum = CGameMode.iRound
+
+        CBlock.AnimateVisibility(false, function()
+            CGameMode.PreloadMap()
+            CGameMode.StartCountDown(5)
+        end)
+    end
+end
+
+CGameMode.PreloadMap = function()
+    if tConfig.GenerateRandomMap then
+        CMaps.LoadMap(CMaps.GenerateRandomMap())
+    else
+        CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
+    end
 end
 
 CGameMode.Victory = function()
-    CAudio.StopBackground()
     CAudio.PlaySync(CAudio.GAME_SUCCESS)
     CAudio.PlaySync(CAudio.VICTORY)
     CGameMode.bVictory = true
@@ -236,7 +276,6 @@ CGameMode.Victory = function()
 end
 
 CGameMode.Defeat = function()
-    CAudio.StopBackground()
     CAudio.PlaySync(CAudio.GAME_OVER)    
     CAudio.PlaySync(CAudio.DEFEAT)
     CGameMode.bVictory = false
@@ -252,7 +291,7 @@ CGameMode.RoundScoreAdd = function(iScore)
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
 
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
-        CGameMode.Victory()
+        CGameMode.EndRound()
     end
 
     CAudio.PlayAsync(CAudio.CLICK);
@@ -271,12 +310,34 @@ end
 
 --MAPS
 CMaps = {}
+CMaps.iRandomMapID = 0
+CMaps.iRandomMapIDIncrement = math.random(-2,2)
 
 CMaps.GetRandomMapID = function()
-    return math.random(1, #tGame.Maps)
+    if CMaps.iRandomMapID == 0 then 
+        CMaps.iRandomMapID = math.random(1, #tGame.Maps)
+    end
+    if CMaps.iRandomMapIDIncrement == 0 then
+        CMaps.iRandomMapIDIncrement = 1
+    end
+
+    CMaps.iRandomMapID = CMaps.iRandomMapID + CMaps.iRandomMapIDIncrement
+    if CMaps.iRandomMapID > #tGame.Maps then
+        CMaps.iRandomMapID = (CMaps.iRandomMapID-#tGame.Maps)
+    elseif CMaps.iRandomMapID < 1 then
+        CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
+    end
+
+    CLog.print("random map #"..CMaps.iRandomMapID)
+
+    return CMaps.iRandomMapID
 end
 
 CMaps.LoadMap = function(tMap)
+    CBlock.Clear()
+    CUnits.Clear()
+    CPath.Clear()
+
     local iCoinCount = 0
 
     for iY = 1, tGame.Rows  do
@@ -465,13 +526,13 @@ CBlock.RegisterBlockClick = function(iX, iY)
     end
 end
 
-CBlock.AnimateVisibility = function()
+CBlock.AnimateVisibility = function(bVisible, fCallback)
     local iY = 1
 
     CTimer.New(CPaint.ANIMATION_DELAY, function()
         for iX = 1, tGame.Cols do
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
-                CBlock.tBlocks[iX][iY].bVisible = true
+                CBlock.tBlocks[iX][iY].bVisible = bVisible
 
                 if tFloor[iX][iY].bClick or (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and tFloor[iX][iY].bDefect) then
                     CBlock.RegisterBlockClick(iX, iY)
@@ -484,6 +545,7 @@ CBlock.AnimateVisibility = function()
             return CPaint.ANIMATION_DELAY
         end
 
+        if fCallback then fCallback() end
         return nil
     end)
 end
@@ -496,6 +558,17 @@ CBlock.LoadBlockList = function()
             CBlock.tBlockList[iBlockID] = {}
             CBlock.tBlockList[iBlockID].iX = iX
             CBlock.tBlockList[iBlockID].iY = iY
+        end
+    end
+end
+
+CBlock.Clear = function()
+    CBlock.tBlocks = {}
+    CBlock.tBlockList = {}
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].bBlocked = false
         end
     end
 end
@@ -526,6 +599,10 @@ CUnits.NewUnit = function(iX, iY)
     CUnits.tUnits[iUnitID].iY = iY
     CUnits.tUnits[iUnitID].iColor = CColors.YELLOW
     CUnits.tUnits[iUnitID].bCanDamage = true
+end
+
+CUnits.Clear = function()
+    CUnits.tUnits = {}
 end
 
 CUnits.RandomDestinationForUnit = function(iUnitID)
@@ -668,6 +745,10 @@ CPath = {}
 CPath.INF = 1/0
 CPath.MAX_ITER = 5000
 CPath.tCached = {}
+
+CPath.Clear = function()
+    CPath.tCached = {}
+end
 
 CPath.Dist = function(iX1, iY1, iX2, iY2)
     return math.sqrt(math.pow(iX2 - iX1, 2) + math.pow(iY2 - iY1, 2))
@@ -1050,7 +1131,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if click.Click and iGameState == GAMESTATE_GAME then
+    if not bGamePaused and click.Click and iGameState == GAMESTATE_GAME then
         if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
             CBlock.RegisterBlockClick(click.X, click.Y)
         end

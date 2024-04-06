@@ -1,6 +1,7 @@
 {
   "Bright": 6,
   "WinDurationMS": 10000,
+  "RoundCount": 3,
   "Health": 10,
   "UnitThinkDelay": 150,
   "GenerateRandomMap": false,
