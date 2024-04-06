@@ -223,7 +223,9 @@ CGameMode.CountDownNextRound = function()
 
     --tGameStats.TargetScore = iPlayerCount * tConfig.RoundCount
 
-    CTimer.New(1000, function()
+    CAudio.PlaySync("voices/zone-edge.mp3")
+
+    CTimer.New(6000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
