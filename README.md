@@ -48,3 +48,5 @@
 - **Классики-эстафета** – *игроки делятся на команды и проходят классики на скорость в виде эстафеты*
 
 ### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
+
+### Pixel Quest Games is licensed under [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE.md)
