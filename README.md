@@ -5,6 +5,8 @@
 Репозиторий содержит исходный код игр проекта [Pixel Quest](https://pixelquest.ru), написанных на языке Lua.
 Здесь представлены исходники не всех игр проекта, часть игр по-прежнему написана на Go и со временем будет также перенесена на Lua.
 
+### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
+
 Скрипты обслуживаются виртуальной машиной [GopherLua](https://github.com/yuin/gopher-lua), написанной на языке Go.
 На данный момент используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
 
@@ -47,6 +49,6 @@
 - **Арканоид** – *платформой отбиваем мячик, выбивая блоки на противоположной стороне*
 - **Классики-эстафета** – *игроки делятся на команды и проходят классики на скорость в виде эстафеты*
 
-### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
-
-### Pixel Quest Games is licensed under [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE.md)
+## Лицензия
+Игры Pixel Quest распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)
+Все права защищены (c) Pixel Quest
