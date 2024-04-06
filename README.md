@@ -50,5 +50,5 @@
 - **Классики-эстафета** – *игроки делятся на команды и проходят классики на скорость в виде эстафеты*
 
 ## Лицензия
-Игры Pixel Quest распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)
+Игры Pixel Quest распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
 Все права защищены (c) Pixel Quest
