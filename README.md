@@ -51,6 +51,7 @@
 
 ## Лицензия
 Игры Pixel Quest распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
+Коммерческое использование запрещено. Обязательное указание первоисточника.  
 Pixel Quest © 2023−2024  
   
 ООО "Пиксель Квест"  
