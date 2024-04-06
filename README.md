@@ -5,6 +5,8 @@
 Репозиторий содержит исходный код игр проекта [Pixel Quest](https://pixelquest.ru), написанных на языке Lua.
 Здесь представлены исходники не всех игр проекта, часть игр по-прежнему написана на Go и со временем будет также перенесена на Lua.
 
+### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
+
 Скрипты обслуживаются виртуальной машиной [GopherLua](https://github.com/yuin/gopher-lua), написанной на языке Go.
 На данный момент используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
 
@@ -30,6 +32,7 @@
   - **Защита Базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
   - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/lava_duel_v1/lava_duel_v1.lua)
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
+  - **Лабиринт** – *аналогия Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
@@ -47,4 +50,12 @@
 - **Арканоид** – *платформой отбиваем мячик, выбивая блоки на противоположной стороне*
 - **Классики-эстафета** – *игроки делятся на команды и проходят классики на скорость в виде эстафеты*
 
-### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
+## Лицензия
+Игры Pixel Quest распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
+Коммерческое использование запрещено. Обязательное указание первоисточника.  
+Pixel Quest © 2023−2024  
+  
+ООО "Пиксель Квест"  
+ОГРН: 1235000071371  
+ИНН: 5050159532  
+КПП: 505001001  
