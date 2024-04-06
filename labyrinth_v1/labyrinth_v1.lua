@@ -24,8 +24,8 @@ local CColors = require("colors")
 
 local tGame = {
     Cols = 24,
-    Rows = 15, 
-    Buttons = {}, 
+    Rows = 15,
+    Buttons = {},
 }
 local tConfig = {}
 
@@ -41,8 +41,8 @@ local iPrevTickTime = 0
 local bAnyButtonClick = false
 
 local tGameStats = {
-    StageLeftDuration = 0, 
-    StageTotalDuration = 0, 
+    StageLeftDuration = 0,
+    StageTotalDuration = 0,
     CurrentStars = 0,
     TotalStars = 0,
     CurrentLives = 0,
@@ -65,10 +65,10 @@ local tGameResults = {
     Won = false,
 }
 
-local tFloor = {} 
+local tFloor = {}
 local tButtons = {}
 
-local tFloorStruct = { 
+local tFloorStruct = {
     iColor = CColors.NONE,
     iBright = CColors.BRIGHT0,
     bClick = false,
@@ -77,7 +77,7 @@ local tFloorStruct = {
     bBlocked = false,
     iUnitID = 0,
 }
-local tButtonStruct = { 
+local tButtonStruct = {
     bClick = false,
     bDefect = false,
 }
@@ -87,9 +87,9 @@ function StartGame(gameJson, gameConfigJson)
     tConfig = CJson.decode(gameConfigJson)
 
     for iX = 1, tGame.Cols do
-        tFloor[iX] = {}    
+        tFloor[iX] = {}
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct) 
+            tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct)
         end
     end
 
@@ -118,7 +118,7 @@ function NextTick()
 
     if iGameState == GAMESTATE_FINISH then
         return tGameResults
-    end    
+    end
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -165,7 +165,7 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+
 end
 
 --GAMEMODE
@@ -219,7 +219,7 @@ CGameMode.StartGame = function()
             if not bGamePaused and CGameMode.bRoundOn then
                 CUnits.ProcessUnits()
             end
-            
+
             return tConfig.UnitThinkDelay
         end
 
@@ -247,6 +247,7 @@ CGameMode.EndRound = function()
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.Victory()
     else
+        CAudio.PlaySync(CAudio.STAGE_DONE)
         CGameMode.iRound = CGameMode.iRound + 1
         tGameStats.StageNum = CGameMode.iRound
 
@@ -278,7 +279,7 @@ CGameMode.Victory = function()
 end
 
 CGameMode.Defeat = function()
-    CAudio.PlaySync(CAudio.GAME_OVER)    
+    CAudio.PlaySync(CAudio.GAME_OVER)
     CAudio.PlaySync(CAudio.DEFEAT)
     CGameMode.bVictory = false
     iGameState = GAMESTATE_POSTGAME
@@ -316,7 +317,7 @@ CMaps.iRandomMapID = 0
 CMaps.iRandomMapIDIncrement = math.random(-2,2)
 
 CMaps.GetRandomMapID = function()
-    if CMaps.iRandomMapID == 0 then 
+    if CMaps.iRandomMapID == 0 then
         CMaps.iRandomMapID = math.random(1, #tGame.Maps)
     end
     if CMaps.iRandomMapIDIncrement == 0 then
@@ -345,7 +346,7 @@ CMaps.LoadMap = function(tMap)
     for iY = 1, tGame.Rows  do
         for iX = 1, tGame.Cols do
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
-            if tMap[iY] ~= nil and tMap[iY][iX] ~= nil then 
+            if tMap[iY] ~= nil and tMap[iY][iX] ~= nil then
                 iBlockType = tMap[iY][iX]
             end
 
@@ -386,7 +387,7 @@ CMaps.GenerateRandomMap = function()
     local MAX_WALK_STEPS = math.floor(LIMIT/5)
     local MAX_WALK_ITERS = 8
     local iWalkCount = 0
-    local iStartsCount = 0 
+    local iStartsCount = 0
     local bWalkStartCreated = false
 
     --Вложенные функции генерации
@@ -395,7 +396,7 @@ CMaps.GenerateRandomMap = function()
         if iPlus == 0 then iPlus = 1 end
 
         if math.random(0,1) == 1 then
-            return iY + iPlus, iX 
+            return iY + iPlus, iX
         end
         return iY, iX + iPlus
     end
@@ -408,7 +409,7 @@ CMaps.GenerateRandomMap = function()
         if tMapTaken[iY][iX] == true then return false end
         if tMapTaken[iY+iYChange] and tMapTaken[iY+iYChange][iX+iXChange] == true then return false end
 
-        if OnEdge(iY, iX) then 
+        if OnEdge(iY, iX) then
             -- ставим стартовые точки
             if not bWalkStartCreated and iStartsCount < tConfig.RandomMapStartCount then
                 tMap[iY][iX] = CBlock.BLOCK_TYPE_START
@@ -418,7 +419,7 @@ CMaps.GenerateRandomMap = function()
                 iStartsCount = iStartsCount + 1
             end
 
-            return false 
+            return false
         end
 
         return true
@@ -430,10 +431,10 @@ CMaps.GenerateRandomMap = function()
         bWalkStartCreated = false
 
         for i = 1, MAX_WALK_STEPS do
-            local iTempY, iTempX = 0, 0 
-            local iWalkIters = 0 
+            local iTempY, iTempX = 0, 0
+            local iWalkIters = 0
 
-            repeat 
+            repeat
                 iTempY, iTempX = NextWalk(iWalkY, iWalkX)
                 iWalkIters = iWalkIters + 1
 
@@ -462,7 +463,7 @@ CMaps.GenerateRandomMap = function()
     local iUnitCount = 0
     while iUnitCount < tConfig.RandomMapUnitCount do
         local iY, iX = math.random(2, tGame.Rows-1), math.random(2, tGame.Cols-1)
-        
+
         if tMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND then
             tMap[iY][iX] = 9
             iUnitCount = iUnitCount + 1
@@ -665,8 +666,8 @@ CUnits.UnitThinkDefault = function(iUnitID)
     local iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitID)
 
     if CUnits.CanMove(iUnitID, iXPlus, iYPlus) then
-        CUnits.Move(iUnitID, iXPlus, iYPlus) 
-        CUnits.tUnits[iUnitID].iStep = CUnits.tUnits[iUnitID].iStep + 1        
+        CUnits.Move(iUnitID, iXPlus, iYPlus)
+        CUnits.tUnits[iUnitID].iStep = CUnits.tUnits[iUnitID].iStep + 1
     else
         CUnits.tUnits[iUnitID].iCantMove = CUnits.tUnits[iUnitID].iCantMove + 1
 
@@ -712,9 +713,9 @@ CUnits.Move = function(iUnitID, iXPlus, iYPlus)
 end
 
 CUnits.GetDestinationXYPlus = function(iUnitID)
-    if CUnits.tUnits[iUnitID].tPath == nil or CUnits.tUnits[iUnitID].tPath[CUnits.tUnits[iUnitID].iStep] == nil then 
+    if CUnits.tUnits[iUnitID].tPath == nil or CUnits.tUnits[iUnitID].tPath[CUnits.tUnits[iUnitID].iStep] == nil then
         CUnits.RandomDestinationForUnit(iUnitID)
-        return 0, 0 
+        return 0, 0
     end
 
     local tStep = CUnits.tUnits[iUnitID].tPath[CUnits.tUnits[iUnitID].iStep]
@@ -725,7 +726,7 @@ end
 
 --UNIT EVENTS
 CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
-    if not CUnits.tUnits[iUnitID].bCanDamage then return; end 
+    if not CUnits.tUnits[iUnitID].bCanDamage then return; end
 
     CAudio.PlayAsync(CAudio.MISCLICK)
 
@@ -818,11 +819,11 @@ CPath.ValidNeighbor = function(tBlock, tNeighbor)
     if not tFloor[tNeighbor.iX] or not tFloor[tNeighbor.iX][tNeighbor.iY] then return false end
     if not CBlock.tBlocks[tNeighbor.iX] or not CBlock.tBlocks[tNeighbor.iX][tNeighbor.iY] then return false end
     if tFloor[tNeighbor.iX][tNeighbor.iY].bBlocked then return false end
-    if CPath.DistBetween(tBlock, tNeighbor) > 1 then return false end 
+    if CPath.DistBetween(tBlock, tNeighbor) > 1 then return false end
 
     for iX = tNeighbor.iX, tNeighbor.iX + CUnits.UNIT_SIZE-1 do
         if not tFloor[iX] or not CBlock.tBlocks[iX] then return false end
-        for iY = tNeighbor.iY, tNeighbor.iY + CUnits.UNIT_SIZE-1 do  
+        for iY = tNeighbor.iY, tNeighbor.iY + CUnits.UNIT_SIZE-1 do
             if not tFloor[iX][iY] or not CBlock.tBlocks[iX][iY] then return false end
             if tFloor[iX][iY].bBlocked then return false end
         end
@@ -999,7 +1000,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
             tFloor[iX][iY].iColor = iColor
             iCount = iCount + 1
         end
-        
+
         if iCount <= iFlickerCount then
             return CPaint.ANIMATION_DELAY*3
         end
@@ -1048,7 +1049,7 @@ function CheckPositionClick(tStart, iSizeX, iSizeY)
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].bClick then
                     return true
-                end 
+                end
             end
         end
     end
@@ -1061,9 +1062,9 @@ function SetPositionColorBright(tStart, iSize, iColor, iBright)
         local iX = tStart.X + i % iSize
         local iY = tStart.Y + math.floor(i / iSize)
 
-        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then     
+        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then
             tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright            
+            tFloor[iX][iY].iBright = iBright
         end
     end
 end
@@ -1071,10 +1072,10 @@ end
 function SetRectColorBright(iX, iY, iSizeX, iSizeY, iColor, iBright)
     for i = iX, iX + iSizeX do
         for j = iY, iY + iSizeY do
-            if not (i < 1 or j > tGame.Cols or j < 1 or j > tGame.Rows) and not tFloor[i][j].bAnimated then     
+            if not (i < 1 or j > tGame.Cols or j < 1 or j > tGame.Rows) and not tFloor[i][j].bAnimated then
                 tFloor[i][j].iColor = iColor
-                tFloor[i][j].iBright = iBright            
-            end            
+                tFloor[i][j].iBright = iBright
+            end
         end
     end
 end
@@ -1141,7 +1142,7 @@ function PixelClick(click)
         if tFloor[click.X][click.Y].iUnitID > 0 then
             CUnits.UnitDamagePlayer(tFloor[click.X][click.Y].iUnitID, 1)
         end
-    end    
+    end
 end
 
 function DefectPixel(defect)
@@ -1154,7 +1155,7 @@ function ButtonClick(click)
 
     if click.Click then
         bAnyButtonClick = true
-    end    
+    end
 end
 
 function DefectButton(defect)
@@ -1164,5 +1165,5 @@ function DefectButton(defect)
     if defect.Defect then
         tButtons[defect.Button].iColor = CColors.NONE
         tButtons[defect.Button].iBright = CColors.BRIGHT0
-    end    
+    end
 end
