@@ -1,8 +1,19 @@
 --[[
     Название: Сапёр
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+
+    Чтобы начать игру нужно нажать на любую синюю кнопку
+
+    Описание механики:
+        Игрокам на несколько секунд показывается минное поле, затем оно покрывается туманом
+        Нужно собрать все монеты как можно быстрее, стараясь не попадать на мины
+        
+        За монету даётся +1 очко, за мину -1 очко. 
+        Очки за каждый раунд умножаются, в зависимости от позиции игрока, чем быстрее собрал все монеты - тем больше очков
+        У кого больше очков тот и победил
+
+    Идеи по доработке:
+        Больше карт
 ]]
 math.randomseed(os.time())
 
@@ -88,6 +99,7 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
+    CGameMode.AnnounceGameStart()
 end
 
 function NextTick()
@@ -173,6 +185,10 @@ CGameMode.InitPlayers = function()
     end
 end
 
+CGameMode.AnnounceGameStart = function()
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
+end
+
 CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     CGameMode.PrepareNextRound()
 
@@ -243,19 +259,27 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.EndGame = function()
-    local iMaxScore = -999
-
-    for iPlayerID = 1, CGameMode.iPlayerCount do
-        if tGameStats.Players[iPlayerID].Score > iMaxScore then
-            iMaxScore = tGameStats.Players[iPlayerID].Score
-            CGameMode.iWinnerID = iPlayerID
+    if CGameMode.iPlayerCount == 1 then
+        if tGameStats.Players[1].Score > 0 then
+            CAudio.PlaySync(CAudio.VICTORY)
+        else
+            CAudio.PlaySync(CAudio.DEFEAT)
         end
+    else
+        local iMaxScore = -999
+
+        for iPlayerID = 1, CGameMode.iPlayerCount do
+            if tGameStats.Players[iPlayerID].Score > iMaxScore then
+                iMaxScore = tGameStats.Players[iPlayerID].Score
+                CGameMode.iWinnerID = iPlayerID
+            end
+        end
+
+        iGameState = GAMESTATE_POSTGAME
+
+        CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
+        CAudio.PlaySync(CAudio.VICTORY)
     end
-
-    iGameState = GAMESTATE_POSTGAME
-
-    CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
@@ -268,26 +292,30 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] == nil then CGameMode.tPlayerCoinsThisRound[iPlayerID] = 0 end
     CGameMode.tPlayerCoinsThisRound[iPlayerID] = CGameMode.tPlayerCoinsThisRound[iPlayerID] + 1
 
-    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
-    end
-
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] >= CGameMode.iMapCoinCount then
         CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
         CGameMode.tPlayerFinished[iPlayerID] = true
+
+        local iFinishBonusMultiplier = #tGame.StartPositions - CGameMode.iFinishedCount
+
+        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + (CGameMode.tPlayerCoinsThisRound[iPlayerID] * iFinishBonusMultiplier)
 
         if CGameMode.iFinishedCount == CGameMode.iPlayerCount then
             CGameMode.EndRound()
         end
     end
 
+    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+    end
+
     CAudio.PlayAsync(CAudio.CLICK)
 end
 
 CGameMode.PlayerTouchedMine = function(iPlayerID)
-    if tGameStats.Players[iPlayerID].Score > 0 then
+    --if tGameStats.Players[iPlayerID].Score > 0 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - 1
-    end
+    --end
 
     CAudio.PlayAsync(CAudio.MISCLICK)
 end
