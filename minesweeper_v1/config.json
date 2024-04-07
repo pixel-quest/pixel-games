@@ -1,0 +1,7 @@
+{
+  "Bright": 5,
+  "GameCountdown": 10,
+  "WinDurationMS": 10000,
+  "RoundCountdown": 10,
+  "RoundCount": 3
+}
