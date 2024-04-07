@@ -142,6 +142,9 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
     [1] = false,
 }
 
+local CountDownStarted = false
+local PlayerInGame = {}
+
 -- константы отвечающие за направление движения
 local Move_right = 1
 local Move_left = -1
@@ -409,24 +412,27 @@ function NextTick()
         y = GameConfigObj.OriginCoordinateY
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartGame) do
-            local bright = colors.BRIGHT70
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
+            local bright = colors.BRIGHT30
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 bright = GameConfigObj.Bright
+                PlayerInGame[positionIndex] = true
             else
                 GameStats.Players[1].Color = colors.NONE
+                PlayerInGame[positionIndex] = false
+                --bright = colors.BRIGHT10
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
         local currentPlayersCount = countActivePlayers()
-        if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
-                or currentPlayersCount < 1 then -- если менее двух игроков
+        if currentPlayersCount < 2 then
             -- нельзя стартовать
             StartPlayersCount = 0
             resetCountdown()
         end
 
-        if StartPlayersCount > 0 then
+        if StartPlayersCount > 1 then
+            CountDownStarted = true
             GameStats.Players[1].Color = colors.GREEN
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
@@ -840,7 +846,6 @@ function checkPositionClick(startPosition, positionSize)
         end
 
         if FloorMatrix[x][y].Click then
-            log.print("+1")
             startPosition.Clik = true
             return true
         end
