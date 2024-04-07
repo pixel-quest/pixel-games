@@ -279,6 +279,7 @@ CGameMode.Victory = function()
 end
 
 CGameMode.Defeat = function()
+    CAudio.StopBackground()
     CAudio.PlaySync(CAudio.GAME_OVER)
     CAudio.PlaySync(CAudio.DEFEAT)
     CGameMode.bVictory = false
@@ -732,6 +733,10 @@ CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
 
     tGameStats.CurrentLives = tGameStats.CurrentLives - iHealthPenalty
 
+    if tGameStats.CurrentLives <= 0 then
+        CGameMode.Defeat()
+    end
+
     CUnits.tUnits[iUnitID].bCanDamage = false
     CUnits.tUnits[iUnitID].iColor = CColors.MAGENTA
     CTimer.New(2000, function()
@@ -1147,6 +1152,10 @@ end
 
 function DefectPixel(defect)
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
+
+    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
+        CBlock.RegisterBlockClick(defect.X, defect.Y)
+    end
 end
 
 function ButtonClick(click)
