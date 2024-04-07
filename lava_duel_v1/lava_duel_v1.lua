@@ -871,7 +871,7 @@ end
 function DefectPixel(defect)
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
+    if defect.Defect and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
         if CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
             CBlock.RegisterBlockClick(defect.X, defect.Y)
         end

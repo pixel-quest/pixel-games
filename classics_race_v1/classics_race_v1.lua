@@ -417,10 +417,6 @@ CBlock.NewBlock = function(iX, iY, iBlockType, iPlayerID)
     CBlock.tBlocks[iX][iY].iPlayerID = iPlayerID
     CBlock.tBlocks[iX][iY].iBright = tConfig.Bright
     CBlock.tBlocks[iX][iY].bVisible = false
-
-    if tFloor[iX][iY].bDefect and iBlockType == CBlock.BLOCK_TYPE_COIN then
-        CBlock.RegisterBlockClick(iX,iY)
-    end
 end
 
 CBlock.RegisterBlockClick = function(iX, iY)
@@ -453,7 +449,7 @@ CBlock.AnimateVisibility = function(iPlayerID)
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                 CBlock.tBlocks[iX][iY].bVisible = true
 
-                if tFloor[iX][iY].bClick then
+                if tFloor[iX][iY].bClick or (tFloor[iX][iY].bDefect and CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN) then
                     CBlock.RegisterBlockClick(iX,iY)
                 end
             end
@@ -691,6 +687,10 @@ end
 
 function DefectPixel(defect)
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
+
+    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
+        CBlock.RegisterBlockClick(defect.X, defect.Y)
+    end
 end
 
 function ButtonClick(click)
