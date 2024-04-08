@@ -175,7 +175,10 @@ function GameSetupTickMultiPlayer()
         bAnyButtonClick = false
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
+
+        CAudio.PlaySyncFromScratch("")
         CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
 end
