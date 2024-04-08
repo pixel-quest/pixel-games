@@ -2,7 +2,9 @@
     Название: Сапёр
     Автор: Avondale, дискорд - avonda
 
-    Чтобы начать игру нужно нажать на любую синюю кнопку
+    Чтобы начать игру нужно:
+        1 игрок - нажать на любую синюю кнопку
+        Несколько игроков - встать на 2 или более зон и нажать любую синюю кнопку
 
     Описание механики:
         Игрокам на несколько секунд показывается минное поле, затем оно покрывается туманом
@@ -82,6 +84,8 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tPlayerInGame = {}
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -127,13 +131,52 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
+    if #tGame.StartPositions == 1 then
+        GameSetupTickSinglePlayer()
+    else
+        GameSetupTickMultiPlayer()
+    end
+end
+
+function GameSetupTickSinglePlayer()
     if bAnyButtonClick then
         bAnyButtonClick = false
 
-        if CGameMode.iCountdown == 0 then
-            iGameState = GAMESTATE_GAME
-            CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+        tPlayerInGame[1] = true
+        CGameMode.iAlivePlayerCount = 1
+
+        iGameState = GAMESTATE_GAME
+        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+    end
+end
+
+function GameSetupTickMultiPlayer()
+    local iPlayersReady = 0
+
+    for iPos, tPos in ipairs(tGame.StartPositions) do
+        if iPos <= #tGame.StartPositions then
+            local iBright = CColors.BRIGHT15
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+                tGameStats.Players[iPos].Color = tPos.Color
+                iBright = CColors.BRIGHT30
+                iPlayersReady = iPlayersReady + 1
+                tPlayerInGame[iPos] = true
+            else
+                tGameStats.Players[iPos].Color = CColors.NONE
+                tPlayerInGame[iPos] = false
+            end
+
+            CPaint.PlayerZone(iPos, iBright)
         end
+    end
+
+    if iPlayersReady > 1 and bAnyButtonClick then
+        bAnyButtonClick = false
+        CGameMode.iAlivePlayerCount = iPlayersReady
+        iGameState = GAMESTATE_GAME
+        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
 end
 
@@ -170,6 +213,7 @@ CGameMode.iWinnerID = -1
 CGameMode.iRound = 1
 CGameMode.bRoundStarted = false
 CGameMode.iPlayerCount = 1
+CGameMode.iAlivePlayerCount = 0
 CGameMode.tPlayerCoinsThisRound = {}
 CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
@@ -186,6 +230,12 @@ CGameMode.InitPlayers = function()
 end
 
 CGameMode.AnnounceGameStart = function()
+    CAudio.PlaySync("games/minesweeper.mp3")
+
+    if #tGame.StartPositions > 1 then
+        CAudio.PlaySync("voices/choose-color.mp3")
+    end
+
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -195,7 +245,6 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     CTimer.New(1000, function()
-        CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -208,7 +257,10 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.PlaySyncFromScratch("")
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -231,7 +283,9 @@ CGameMode.PrepareNextRound = function()
     CGameMode.tMap = CMaps.GetRandomMap()
 
     for iPlayerID = 1, CGameMode.iPlayerCount do
-        CMaps.LoadMapForPlayer(CGameMode.tMap, iPlayerID)
+        if tPlayerInGame[iPlayerID] then 
+            CMaps.LoadMapForPlayer(CGameMode.tMap, iPlayerID)
+        end
     end
 
     CBlock.AnimateVisibility(true)
@@ -269,7 +323,7 @@ CGameMode.EndGame = function()
         local iMaxScore = -999
 
         for iPlayerID = 1, CGameMode.iPlayerCount do
-            if tGameStats.Players[iPlayerID].Score > iMaxScore then
+            if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
                 iMaxScore = tGameStats.Players[iPlayerID].Score
                 CGameMode.iWinnerID = iPlayerID
             end
@@ -293,23 +347,29 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
     CGameMode.tPlayerCoinsThisRound[iPlayerID] = CGameMode.tPlayerCoinsThisRound[iPlayerID] + 1
 
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] >= CGameMode.iMapCoinCount then
-        CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
-        CGameMode.tPlayerFinished[iPlayerID] = true
-
-        local iFinishBonusMultiplier = #tGame.StartPositions - CGameMode.iFinishedCount
-
-        tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + (CGameMode.tPlayerCoinsThisRound[iPlayerID] * iFinishBonusMultiplier)
-
-        if CGameMode.iFinishedCount == CGameMode.iPlayerCount then
-            CGameMode.EndRound()
-        end
+        CGameMode.PlayerFinish(iPlayerID)
+    else
+        CAudio.PlayAsync(CAudio.CLICK)
     end
 
     if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
+end
 
-    CAudio.PlayAsync(CAudio.CLICK)
+CGameMode.PlayerFinish = function(iPlayerID)
+    CAudio.PlayAsync(CAudio.STAGE_DONE)
+
+    CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
+    CGameMode.tPlayerFinished[iPlayerID] = true
+
+    local iFinishBonusMultiplier = #tGame.StartPositions - CGameMode.iFinishedCount
+
+    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + (CGameMode.tPlayerCoinsThisRound[iPlayerID] * iFinishBonusMultiplier)
+
+    if CGameMode.iFinishedCount == CGameMode.iAlivePlayerCount then
+        CGameMode.EndRound()
+    end    
 end
 
 CGameMode.PlayerTouchedMine = function(iPlayerID)
@@ -406,7 +466,7 @@ CBlock.NewBlock = function(iX, iY, iBlockType, iPlayerID)
 end
 
 CBlock.RegisterBlockClick = function(iX, iY)
-    if not CGameMode.bRoundStarted then return; end
+    if not CGameMode.bRoundStarted or CBlock.tBlocks[iX][iY].bVisible then return; end
 
     local iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
 
@@ -479,15 +539,19 @@ end
 
 CPaint.FinishedPlayerZones = function()
     for iPlayerID = 1, CGameMode.iPlayerCount do
-        if CGameMode.tPlayerFinished[iPlayerID] then
-            for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-                for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
-                    tFloor[iX][iY].iBright = tConfig.Bright
-                    tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
-                end
-            end
+        if tPlayerInGame[iPlayerID] and CGameMode.tPlayerFinished[iPlayerID] then
+            CPaint.PlayerZone(iPlayerID, tConfig.Bright)
         end
     end
+end
+
+CPaint.PlayerZone = function(iPlayerID, iBright)
+     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
+        for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
+            tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+        end
+    end   
 end
 
 CPaint.ResetAnimation = function()
