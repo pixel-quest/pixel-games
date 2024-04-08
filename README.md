@@ -34,10 +34,10 @@
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
   - **Лабиринт** – *аналогия Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/minesweeper_v1/minesweeper_v1.lua)
+  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы*  [dash_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v1/dash_v1.lua)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
-  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы (в процессе переписывания на Lua)*
   - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
   - **Классики** – *классики 3х6*
 
