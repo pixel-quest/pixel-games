@@ -1,8 +1,21 @@
 --[[
     Название: Змейка
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    
+    Чтобы начать игру надо встать на цвета своей команды(если 1 команда то куда угодно на поле) и нажать любую синюю кнопку
+
+    Описание механики: 
+        Игроки пытаются собрать яблоки быстрее змейки
+        Наступая на змейку игроки теряют здоровье
+        Собирая яблоки змейка отбирает у игроков здоровье
+        0 здоровья = поражение
+
+        Можно играть либо все в одной команде против змейки, либо до 6 команд по сколько угодно человек
+        Если несколько команд то побеждает та у которой больше всего собрано яблок
+        Команде нужно собирать яблоки своего цвета
+
+    Идеи по доработке: 
+
 ]]
 math.randomseed(os.time())
 
@@ -75,6 +88,7 @@ local tButtonStruct = {
 
 local tPlayerInGame = {}
 local bAnyButtonClick = false
+local bCountDownStarted = false
 
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
@@ -125,7 +139,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (bCountDownStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -139,7 +153,8 @@ function GameSetupTick()
         end
     end
 
-    if iPlayersReady > 0 and bAnyButtonClick then
+    if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
+        bCountDownStarted = true
         bAnyButtonClick = false
         iGameState = GAMESTATE_GAME
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -194,11 +209,13 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
+    CAudio.PlaySync("games/snake.mp3")
+    CAudio.PlaySync("voices/snake-guide.mp3")
+
     if #tGame.StartPositions > 1 then
         CAudio.PlaySync("voices/choose-color.mp3")
-    else
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
     end
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -242,7 +259,7 @@ CGameMode.StartGame = function()
         else
 
             if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
             end
 
             return 1000
@@ -300,6 +317,7 @@ end
 
 CGameMode.EndGame = function(bVictory)
     CGameMode.bVictory = bVictory
+    CAudio.StopBackground()
 
     if bVictory then
         if #tGame.StartPositions == 1 then
@@ -313,7 +331,13 @@ CGameMode.EndGame = function(bVictory)
                     iMaxScore = tGameStats.Players[iPlayerID].Score
                 end
             end
+
+            CAudio.PlaySync(tGame.StartPositions[CGameMode.iWinnerID].Color)
         end
+ 
+        CAudio.PlaySync(CAudio.VICTORY)
+    else
+        CAudio.PlaySync(CAudio.DEFEAT)
     end
 
     iGameState = GAMESTATE_POSTGAME
