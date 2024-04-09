@@ -32,9 +32,10 @@
   - **Защита Базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
   - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/lava_duel_v1/lava_duel_v1.lua)
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
-  - **Лабиринт** – *аналогия Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
+  - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/minesweeper_v1/minesweeper_v1.lua)
-  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы*  [dash_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v1/dash_v1.lua)
+  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v1/dash_v1.lua)
+  - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/snake_v1/snake_v1.lua)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
@@ -44,7 +45,6 @@
 ### Приоритетная очередь механик на разработку
 - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону (уже в процессе разработки на Lua)* 
 - **Черепашьи бега** – *игроки быстро попеременно нажимают на пиксели, а на экране бегут черепашки*
-- **Змейка** – *аналог Пиксель дуэли против компьютерной змейки*
 - **Вирус** – *игроки захватывают поле своим цветом*
 - **Арканоид** – *платформой отбиваем мячик, выбивая блоки на противоположной стороне*
 
