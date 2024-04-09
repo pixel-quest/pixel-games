@@ -4,7 +4,7 @@
   "WinDurationMS": 10000,
   "GameTime": 120,
   "Health": 25,
-  "SnakeThinkTime": 150,
+  "SnakeThinkTime": 100,
   "SnakeLength": 3,
   "SnakeDamagePlayerOnStep": true
 }

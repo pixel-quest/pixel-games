@@ -346,6 +346,8 @@ CSnake.iDestPixelID = 0
 CSnake.tTail = {}
 CSnake.iColor = CColors.RED
 CSnake.bStepedOn = false
+CSnake.tPath = nil
+CSnake.iStep = 2
 
 CSnake.Create = function()
     CSnake.iHeadX = math.random(1, tGame.Cols - CSnake.iLength)
@@ -376,23 +378,42 @@ CSnake.Think = function()
         CSnake.NewDestination()
     end
 
+    if CSnake.iDestPixelID ~= 0 then
+        if CSnake.tPath == nil or CSnake.tPath == {} then
+            CSnake.tPath = CSnake.GetPath(false)
+        end
+
+        local bStuck = false
+        if CSnake.tPath == nil then
+            CLog.print("snake is stuck! noclip on")
+            CSnake.tPath = CSnake.GetPath(true)
+            bStuck = true
+        end
+
+        local iXPlus, iYPlus = CSnake.tPath[CSnake.iStep].iX - CSnake.iHeadX, CSnake.tPath[CSnake.iStep].iY - CSnake.iHeadY
+
+        if bStuck or CSnake.CanMove(iXPlus, iYPlus) then
+            CSnake.Move(iXPlus, iYPlus)
+            CSnake.iStep = CSnake.iStep + 1
+        else
+            CSnake.tPath = nil
+        end
+    end
+
     if CSnake.iDestPixelID ~= 0 and CSnake.iHeadX == CGameMode.tPixels[CSnake.iDestPixelID].iX and CSnake.iHeadY == CGameMode.tPixels[CSnake.iDestPixelID].iY then
         CSnake.SnakeCollectPixel(CSnake.iDestPixelID)
         CSnake.NewDestination()
-    end
+    end    
+end
 
-    if CSnake.iDestPixelID ~= 0 then
-        local tPath = CSnake.GetPath(false)
+CSnake.CanMove = function(iXPlus, iYPlus)
+    local iX, iY = CSnake.iHeadX+iXPlus, CSnake.iHeadY+iYPlus
 
-        if tPath == nil then
-            CLog.print("snake is stuck! noclip on")
-            local tPath = CSnake.GetPath(true)
-        end
+    if not tFloor[iX] or not tFloor[iX][iY] then return false end
+    if tFloor[iX][iY].bBlocked then return false end
+    if tFloor[iX][iY].iPixelID ~= 0 and tFloor[iX][iY].iPixelID ~= CSnake.iDestPixelID then return false end
 
-        local iXPlus, iYPlus = tPath[2].iX - CSnake.iHeadX, tPath[2].iY - CSnake.iHeadY
-
-        CSnake.Move(iXPlus, iYPlus)
-    end
+    return true
 end
 
 CSnake.Move = function(iXPlus, iYPlus)
@@ -419,8 +440,10 @@ CSnake.Move = function(iXPlus, iYPlus)
 end
 
 CSnake.NewDestination = function()
-    local iMaxDist = -1
+    CSnake.tPath = nil
     CSnake.iDestPixelID = 0
+
+    local iMaxDist = -1
 
     for iPixelID = 1, #CGameMode.tPixels do
         if CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iX then
@@ -435,7 +458,13 @@ CSnake.NewDestination = function()
 end
 
 CSnake.GetPath = function(bStuck)
-    return CPath.Path({iX = CSnake.iHeadX, iY = CSnake.iHeadY}, {iX = CGameMode.tPixels[CSnake.iDestPixelID].iX, iY = CGameMode.tPixels[CSnake.iDestPixelID].iY}, CGameMode.tBlockList, bStuck)
+    CSnake.iStep = 2
+
+    return CPath.Path(
+        {iX = CSnake.iHeadX, iY = CSnake.iHeadY}, 
+        {iX = CGameMode.tPixels[CSnake.iDestPixelID].iX, iY = CGameMode.tPixels[CSnake.iDestPixelID].iY}, 
+        CGameMode.tBlockList,
+        bStuck)    
 end
 
 CSnake.SnakeCollectPixel = function(iPixelID)
