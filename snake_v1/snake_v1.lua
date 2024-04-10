@@ -209,7 +209,7 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("games/snake.mp3")
+    CAudio.PlaySync("games/snake-game.mp3")
     CAudio.PlaySync("voices/snake-guide.mp3")
 
     if #tGame.StartPositions > 1 then
