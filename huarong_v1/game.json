@@ -1,0 +1,119 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+  "Maps": [
+    [
+      {
+        "Id": 1,
+        "X": 1,
+        "Y": 1,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 6
+      },
+      {
+        "Id": 2,
+        "X": 1,
+        "Y": 2,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 5
+      },   
+      {
+        "Id": 3,
+        "X": 2,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1
+      },  
+      {
+        "Id": 4,
+        "X": 1,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 3
+      },      
+      {
+        "Id": 5,
+        "X": 3,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 6
+      },
+      {
+        "Id": 6,
+        "X": 4,
+        "Y": 2,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 7
+      },      
+      {
+        "Id": 7,
+        "X": 4,
+        "Y": 5,
+        "SizeX": 3,
+        "SizeY": 1,
+        "Color": 2
+      }
+    ]
+  ],
+  "Buttons": [
+    2,
+    6,
+    10,
+    14,
+    18,
+    22,
+    26,
+    30,
+    34,
+    42,
+    46,
+    50,
+    54,
+    58,
+    62,
+    65,
+    69,
+    73,
+    77
+  ],
+  "StartPositions": [
+    {
+      "X": 2,
+      "Y": 3,
+      "Color": 2
+    },
+    {
+      "X": 10,
+      "Y": 3,
+      "Color": 3
+    },
+    {
+      "X": 18,
+      "Y": 3,
+      "Color": 4
+    },
+    {
+      "X": 2,
+      "Y": 10,
+      "Color": 5
+    },
+    {
+      "X": 10,
+      "Y": 10,
+      "Color": 6
+    },
+    {
+      "X": 18,
+      "Y": 10,
+      "Color": 7
+    }
+  ],
+  "StartPositionSizeX": 6,
+  "StartPositionSizeY": 5
+}
