@@ -1,8 +1,18 @@
 --[[
-    Название: Название механики
+    Название: Час Пик
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+
+    Чтобы начать игру надо встать на цвета и нажать кнопку
+
+    Описание механики: 
+        Передвигать машинки чтобы выбратся с парковки
+    
+        Два типа карт: на одних можно двигать машинки в любую сторону, на других только вперед назад
+
+        Кто быстрее передвинул все нужные машинки тот и победил
+
+    Идеи по доработке:
+
 ]]
 math.randomseed(os.time())
 
@@ -94,6 +104,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    CAudio.PlaySync("games/huarong.mp3")
+    CAudio.PlaySync("voices/huarong-guide.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")    
 end
@@ -188,6 +200,9 @@ CGameMode.iWinnerID = -1
 CGameMode.tFinishPosPlayerX = {}
 CGameMode.tFinishPosPlayerY = {}
 
+CGameMode.bOneAxisMoveMode = false
+CGameMode.iOneAxisMoveModeScorableCount = 0
+
 CGameMode.StartCountDown = function(iCountDownTime)
     bCountDownStarted = true
     CGameMode.iCountdown = iCountDownTime
@@ -216,20 +231,28 @@ CGameMode.StartGame = function()
     CAudio.PlayRandomBackground()
     
     CPieces.Init()
-    CGameMode.LoadPiecesForPlayers(1)
+    CGameMode.LoadPiecesForPlayers(math.random(1, #tGame.Maps))
 end
 
 CGameMode.LoadPiecesForPlayers = function(iMapID)
-    tGameStats.TargetScore = #tGame.Maps[iMapID]
+    CGameMode.bOneAxisMoveMode = false
+    CGameMode.iOneAxisMoveModeScorableCount = 0
 
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
             CGameMode.LoadPiecesForPlayer(iPlayerID, iMapID)
         end
     end
+
+    tGameStats.TargetScore = #tGame.Maps[iMapID]
+    if CGameMode.bOneAxisMoveMode then
+        tGameStats.TargetScore = CGameMode.iOneAxisMoveModeScorableCount 
+    end
 end
 
 CGameMode.LoadPiecesForPlayer = function(iPlayerID, iMapID)
+    CGameMode.iOneAxisMoveModeScorableCount = 0 -- костыль :)
+
     CGameMode.tFinishPosPlayerX[iPlayerID] = {}
     CGameMode.tFinishPosPlayerX[iPlayerID].iX = tGame.StartPositions[iPlayerID].X+math.floor(tGame.StartPositionSizeX/2)
     CGameMode.tFinishPosPlayerX[iPlayerID].iY = tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY
@@ -246,6 +269,11 @@ CGameMode.LoadPiecesForPlayer = function(iPlayerID, iMapID)
             tGame.Maps[iMapID][i].SizeX, 
             tGame.Maps[iMapID][i].SizeY,
             tGame.Maps[iMapID][i].Color)
+
+        if tGame.Maps[iMapID][i].Scorable then
+            CGameMode.bOneAxisMoveMode = true
+            CGameMode.iOneAxisMoveModeScorableCount = CGameMode.iOneAxisMoveModeScorableCount + 1 
+        end
     end
 end
 
@@ -341,14 +369,31 @@ end
 
 CPieces.SelectValidMovesForPiece = function(iPieceID, bSelect)
     local iMovesCount = 0
+    local tXYi = {}
 
-    local tXYi = 
-    {
-        {1,0},
-        {-1,0},
-        {0,1},
-        {0,-1},
-    }
+    if CGameMode.bOneAxisMoveMode then
+        if CPieces.tPieces[iPieceID].iSizeX >= CPieces.tPieces[iPieceID].iSizeY then
+            tXYi = 
+            {
+                {1,0},
+                {-1,0},
+            }
+        else
+            tXYi = 
+            {
+                {0,1},
+                {0,-1},
+            }
+        end 
+    else
+        tXYi = 
+            {
+                {1,0},
+                {-1,0},
+                {0,1},
+                {0,-1},
+            }
+    end
     
     for i = 1, #tXYi do
         local iMoveX = CPieces.tPieces[iPieceID].iX+tXYi[i][1]
@@ -481,12 +526,12 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
 
     if CGameMode.tFinishPosPlayerX[iPlayerID] and CGameMode.tFinishPosPlayerX[iPlayerID].iX then
-        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.GREEN
-        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright+3
+        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.NONE
+        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright
     end
     if CGameMode.tFinishPosPlayerY[iPlayerID] and CGameMode.tFinishPosPlayerY[iPlayerID].iX then
-        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iColor = CColors.GREEN
-        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iBright = iBright+3
+        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iColor = CColors.NONE
+        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iBright = iBright
     end    
 end
 
