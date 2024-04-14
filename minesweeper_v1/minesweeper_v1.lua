@@ -59,7 +59,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 1,
+    TargetScore = 0,
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
@@ -187,6 +187,10 @@ function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     CPaint.Blocks()
     CPaint.FinishedPlayerZones()
+
+    --if CGameMode.iPlayerCount > 1 then
+        --CPaint.PlayersFrames()
+    --end
 end
 
 function PostGameTick()
@@ -355,7 +359,7 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
         CAudio.PlayAsync(CAudio.CLICK)
     end
 
-    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+    if (CGameMode.iPlayerCount > 1) and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
 end
@@ -376,9 +380,9 @@ CGameMode.PlayerFinish = function(iPlayerID)
 end
 
 CGameMode.PlayerTouchedMine = function(iPlayerID)
-    --if tGameStats.Players[iPlayerID].Score > 0 then
+    if CGameMode.iPlayerCount > 1 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - 1
-    --end
+    end
 
     CAudio.PlayAsync(CAudio.MISCLICK)
 end
@@ -438,6 +442,9 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
     end
 
     CGameMode.iMapCoinCount = iCoinCount
+    if CGameMode.iPlayerCount == 1 then
+        tGameStats.TargetScore = tGameStats.TargetScore + iCoinCount
+    end
 end
 --//
 
@@ -524,8 +531,13 @@ CPaint.Blocks = function()
             for iY = 1, tGame.Rows do
                 if not tFloor[iX][iY].bAnimated and CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                     if not CBlock.tBlocks[iX][iY].bVisible then
-                        tFloor[iX][iY].iColor = CColors.WHITE
-                        tFloor[iX][iY].iBright = 2
+
+                        if CGameMode.iPlayerCount > 1 then
+                            tFloor[iX][iY].iColor = tGame.StartPositions[CBlock.tBlocks[iX][iY].iPlayerID].Color
+                        else
+                            tFloor[iX][iY].iColor = CColors.NONE
+                        end
+                        tFloor[iX][iY].iBright = CColors.BRIGHT15
                     else
                         if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
                             tFloor[iX][iY].iColor = tGameStats.Players[CBlock.tBlocks[iX][iY].iPlayerID].Color
@@ -555,6 +567,22 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
             tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
         end
     end   
+end
+
+CPaint.PlayersFrames = function()
+    for iPlayerID = 1, CGameMode.iPlayerCount do
+        if tPlayerInGame[iPlayerID] then
+            CPaint.PlayerFrame(iPlayerID, tConfig.Bright)
+        end
+    end    
+end
+
+CPaint.PlayerFrame = function(iPlayerID, iBright)
+    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y-1}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
+    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
+
+    SetRowColorBright(tGame.StartPositions[iPlayerID].X-1, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
+    SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
 end
 
 CPaint.ResetAnimation = function()
@@ -691,6 +719,30 @@ function SetAllButtonColorBright(iColor, iBright)
         if not tButtons[i].bDefect then
             tButtons[i].iColor = iColor
             tButtons[i].iBright = iBright
+        end
+    end
+end
+
+function SetRowColorBright(tStart, iY, iSize, iColor, iBright)
+    for i = 0, iSize do
+        local iX = tStart
+        iY = iY + 1
+
+        if not (iY < 1 or iY > tGame.Rows) then     
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright            
+        end
+    end
+end
+
+function SetColColorBright(tStart, iSize, iColor, iBright)
+    for i = 0, iSize do
+        local iX = tStart.X + i
+        local iY = tStart.Y
+
+        if not (iX < 1 or iX > tGame.Cols) then     
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright            
         end
     end
 end
