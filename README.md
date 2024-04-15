@@ -29,7 +29,7 @@
   - **Пинг-понг** – *платформами отбиваем мячик друг другу* [ping_pong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/ping_pong_v1/ping_pong_v1.lua)
   - **Танцы** – *ловим пиксели под веселую корейскую музыку* [dance_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dance_v1/dance_v1.lua)
   - **Найди цвет** – *на разноцветном поле требуется найти нужный цвет* [find_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/find_color_v1/find_color_v1.lua)
-  - **Защита Базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
+  - **Защита базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
   - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/lava_duel_v1/lava_duel_v1.lua)
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
   - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
