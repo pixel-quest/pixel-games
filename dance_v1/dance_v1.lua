@@ -162,7 +162,7 @@ function TutorialTick()
             if iPlayersReady > 0 then
                 CTutorial.Start()
             end
-        else
+        elseif not bCountDownStarted then
             CTutorial.Skip()
         end 
     end
