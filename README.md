@@ -36,6 +36,7 @@
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/minesweeper_v1/minesweeper_v1.lua)
   - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v1/dash_v1.lua)
   - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/snake_v1/snake_v1.lua)
+  - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/huarong_v1/huarong_v1.lua)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
