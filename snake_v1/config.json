@@ -2,8 +2,7 @@
   "Bright": 5,
   "GameCountdown": 5,
   "WinDurationMS": 10000,
-  "GameTime": 100,
-  "Health": 50,
+  "TargetScore": 20,
   "SnakeThinkTime": 170,
   "SnakeLength": 3,
   "SnakeDamagePlayerOnStep": true
