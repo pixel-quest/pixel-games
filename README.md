@@ -11,7 +11,7 @@
 На данный момент используется **GopherLua v1.1.1** (Lua5.1 + оператор goto из Lua5.2).
 
 См. базовое описание структуры скрипта и понятийный аппарат в [Wiki](https://github.com/pixel-quest/pixel-games/wiki)  
-Шаблон скрипта с подробными комментариями – [template.lua](https://github.com/pixel-quest/pixel-games/blob/main/template/template.lua)
+Шаблон скрипта с подробными комментариями – [template_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/template_v1/template_v1.lua)
 
 ### Отладочная платформа
 Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить, вступив в группу телеграм [@pixel_quest_games](https://t.me/pixel_quest_games)
