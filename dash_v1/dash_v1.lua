@@ -1,4 +1,4 @@
--- Название: Перебежка
+-- Название: Перебежка(вроде так)
 -- Автор: @GhostVeek (телеграм)
 -- Описание механики: командная механика, игроки встают на пиксели, обозначающие безопасную зону
 -- по полу двигается "лава", наступать на нее нельзя. Игроки должны собирать светящиеся кнопки,
@@ -163,7 +163,7 @@ function RandomZone()
     for i, num in pairs(GameObj.Buttons) do
         array[i] = num
     end
-    for i = 0, 1000 do
+    for i = 0, 100 do
         local index = math.random(1, 20)
 
         if not ButtonsList[array[index]].Defect and ButtonsList[GameObj.Buttons[index]].Color ~= colors.BLUE then
@@ -174,8 +174,10 @@ function RandomZone()
                 local x = GameObj.StartPositions[index].X + i%GameObj.StartPositionSize
                 local y = GameObj.StartPositions[index].Y + math.floor(i/GameObj.StartPositionSize)
 
-                FloorMatrix[x][y].Color = colors.GREEN
-                FloorMatrix[x][y].Bright = colors.BRIGHT70
+                if not FloorMatrix[x][y].Defect then
+                    FloorMatrix[x][y].Color = colors.GREEN
+                    FloorMatrix[x][y].Bright = colors.BRIGHT70
+                end
             end
         end
         if kol >= active then
@@ -188,14 +190,21 @@ end
 -- Вункция для рисования по колоннам, задаются координаты начала
 function DrawnColumns(X)
 
-    if GameConfigObj.WidthLine > 1 and X > 23 then
+    --[[if GameConfigObj.WidthLine > 1 and X > 23 then
         X = X - GameConfigObj.WidthLine
-    end
-    for i = 0, GameConfigObj.WidthLine do
+    end]]
+    for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
-            if FloorMatrix[X+i][j].Color ~= colors.GREEN then
+            if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
                 FloorMatrix[X+i][j].Color = colors.RED
                 FloorMatrix[X+i][j].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[X+i][j].Click then
+                FloorMatrix[X+i][j].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
         end
     end
@@ -204,14 +213,21 @@ end
 -- Вункция для рисования по колоннам, задаются координаты начала
 function DrawnRows(Y)
 
-    if GameConfigObj.WidthLine > 1 and Y > 14 then
+    --[[if GameConfigObj.WidthLine > 1 and Y > 14 then
         Y = Y - GameConfigObj.WidthLine
-    end
-    for i = 0, GameConfigObj.WidthLine do
+    end]]
+    for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Cols do
-            if FloorMatrix[j][Y+i].Color ~= colors.GREEN then
+            if FloorMatrix[j][Y+i].Color ~= colors.GREEN and not FloorMatrix[j][Y+i].Defect then
                 FloorMatrix[j][Y+i].Color = colors.RED
                 FloorMatrix[j][Y+i].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[j][Y+i].Click then
+                FloorMatrix[j][Y+i].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
         end
     end
@@ -247,14 +263,21 @@ end
 
 -- нарисовать крест
 function DrawnCross(X, Y)
-    if GameConfigObj.WidthLine > 1 and X > 23 then
+    --[[if GameConfigObj.WidthLine > 1 and X > 23 then
         X = X - GameConfigObj.WidthLine
-    end
-    for i = 0, GameConfigObj.WidthLine do
+    end]]
+    for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
-            if FloorMatrix[X+i][j].Color ~= colors.GREEN then
+            if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
                 FloorMatrix[X+i][j].Color = colors.RED
                 FloorMatrix[X+i][j].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[X+i][j].Click then
+                FloorMatrix[X+i][j].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
         end
     end
@@ -262,11 +285,18 @@ function DrawnCross(X, Y)
     if GameConfigObj.WidthLine > 1 and Y > 14 then
         Y = Y - GameConfigObj.WidthLine
     end
-    for i = 0, GameConfigObj.WidthLine do
+    for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Cols do
-            if FloorMatrix[j][Y+i].Color ~= colors.GREEN then
+            if FloorMatrix[j][Y+i].Color ~= colors.GREEN and not FloorMatrix[j][Y+i].Defect then
                 FloorMatrix[j][Y+i].Color = colors.RED
                 FloorMatrix[j][Y+i].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[j][Y+i].Click then
+                FloorMatrix[j][Y+i].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
         end
     end
@@ -295,20 +325,27 @@ end
 
 --рисование диагонали
 function DrawnDiagonal(X, Y)
-    if GameConfigObj.WidthLine > 1 and Y > 14 then
-        Y = Y - GameConfigObj.WidthLine
+    --[[if GameConfigObj.WidthLine > 1 and Y > 14 then
+        Y = 14 - GameConfigObj.WidthLine
     end
-    if GameConfigObj.WidthLine > 1 and X > 14 then
-        X = X - GameConfigObj.WidthLine
-    end
-    for k = 0, GameConfigObj.WidthLine do
-        X = X + k
+    if GameConfigObj.WidthLine > 1 and X > 23 then
+        X = 23 - GameConfigObj.WidthLine
+    end]]
+    for k = 0, GameConfigObj.WidthLine-1 do
+        X = X + 1
         local i = X
         local j = Y
         while i <= 24 and j <= 15 do
-            if FloorMatrix[i][j].Color ~= colors.GREEN then
+            if FloorMatrix[i][j].Color ~= colors.GREEN and not FloorMatrix[i][j].Defect then
                 FloorMatrix[i][j].Color = colors.RED
                 FloorMatrix[i][j].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[i][j].Click then
+                FloorMatrix[i][j].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
             i = i + 1
             j = j + 1
@@ -317,9 +354,16 @@ function DrawnDiagonal(X, Y)
         i = X
         j = Y
         while i > 0 and j > 0 do
-            if FloorMatrix[i][j].Color ~= colors.GREEN then
+            if FloorMatrix[i][j].Color ~= colors.GREEN and not FloorMatrix[i][j].Defect then
                 FloorMatrix[i][j].Color = colors.RED
                 FloorMatrix[i][j].Bright = colors.BRIGHT70
+            end
+            if FloorMatrix[i][j].Click then
+                FloorMatrix[i][j].EffectActivatedAt = {
+                    ActivatedAt = time.unix(),
+                    Durations = GameObj.Durations,
+                }
+                GameStats.CurrentLives = GameStats.CurrentLives - 1
             end
             i = i - 1
             j = j - 1
@@ -330,7 +374,7 @@ end
 -- движение диагонал
 function MoveDiagonal(direction)
     if direction > 0 then
-        if x ~= 24 then
+        if x + GameConfigObj.WidthLine ~= 24 then
             x = x + 1
         else
             if y ~= 1 then
@@ -342,9 +386,9 @@ function MoveDiagonal(direction)
         if x ~= 1 then
             x = x - 1
         else
-            if y ~= 15 then
-                y = y + 1
-            end
+            --if y --[[+ GameConfigObj.WidthLine]] ~= 15 then
+            y = y + 1
+            --end
         end
         DrawnDiagonal(x, y)
     end
@@ -416,22 +460,32 @@ function NextTick()
             if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
+                --setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
             else
-                GameStats.Players[1].Color = colors.NONE
+                --GameStats.Players[1].Color = colors.NONE
                 PlayerInGame[positionIndex] = false
                 --bright = colors.BRIGHT10
+                bright = colors.BRIGHT30
+            end
+            if startPosition.Clik then
+                bright = colors.BRIGHT70
+            else
+                bright = colors.BRIGHT30
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
         local currentPlayersCount = countActivePlayers()
-        if currentPlayersCount < 2 then
+        if currentPlayersCount > 0 then
+            log.print("GG")
+        end
+        if currentPlayersCount < 1 then
             -- нельзя стартовать
             StartPlayersCount = 0
             resetCountdown()
         end
 
-        if StartPlayersCount > 1 then
+        if StartPlayersCount >= 1 then
             CountDownStarted = true
             GameStats.Players[1].Color = colors.GREEN
             local timeSinceCountdown = time.unix() - StageStartTime
@@ -471,7 +525,7 @@ function NextTick()
         end
         if timer >= GameConfigObj.Complexity/10 then
             switchStage(Stage)
-        elseif GameStats.StageLeftDuration <= 0 then
+        elseif GameStats.StageLeftDuration <= 0 or GameStats.CurrentLives <= 0 then
             Stage = CONST_STAGE_GAMEOVER
             GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
             switchStage(Stage)
@@ -576,32 +630,39 @@ end
 --  }
 -- если происходит клик на светящуюся кнопку - прибавлять очки
 function ButtonClick(click)
+    for i, num in pairs(GameObj.Buttons) do
+        if ButtonsList[num] == ButtonsList[click.Button] then
+            if Stage == CONST_STAGE_CHOOSE_COLOR then
+                ---if ButtonsList[click.Button].Bright ~= colors.BRIGHT0 and ButtonsList[click.Button].Color ~= colors.NONE then
 
-
-    if Stage == CONST_STAGE_CHOOSE_COLOR then
-        ButtonsList[click.Button].Click = click.Click
-        if StartPlayersCount == 0 and click.Click then
-            StartPlayersCount = countActivePlayers()
-            StageStartTime = time.unix()
-        end
-    end
-    -- если кнопка не дефектная
-    if Stage == CONST_STAGE_GAME then
-        ButtonsList[click.Button].Click = click.Click
-        if ButtonsList[click.Button].Color == colors.BLUE and ButtonsList[click.Button].Bright == colors.BRIGHT70 then
-            GameStats.Players[1].Score = GameStats.Players[1].Score + 1
-            ButtonsList[click.Button].Color = colors.NONE
-            ButtonsList[click.Button].Bright = colors.BRIGHT70
-        end
-        if GameStats.StageNum > GameStats.TotalStages then
-            Stage = Stage + 1
-            GameStats.Players[1].Score = GameConfigObj.PointsToWin
-            GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
-            switchStage(Stage)
-        end
-        if GameStats.Players[1].Score >= GameConfigObj.PointsToWin  then
-            GameStats.StageNum = GameStats.StageNum + 1
-            GameStats.Players[1].Score = 0
+                ButtonsList[click.Button].Click = click.Click
+                if StartPlayersCount == 0 and click.Click then
+                    StartPlayersCount = countActivePlayers()
+                    StageStartTime = time.unix()
+                end
+                ---end
+            end
+            -- если кнопка не дефектная
+            if Stage == CONST_STAGE_GAME then
+                ---if ButtonsList[click.Button].Bright ~= colors.BRIGHT0 and ButtonsList[click.Button].Color ~= colors.NONE then
+                ButtonsList[click.Button].Click = click.Click
+                if ButtonsList[click.Button].Color == colors.BLUE and ButtonsList[click.Button].Bright == colors.BRIGHT70 then
+                    GameStats.Players[1].Score = GameStats.Players[1].Score + 1
+                    ButtonsList[click.Button].Color = colors.NONE
+                    ButtonsList[click.Button].Bright = colors.BRIGHT70
+                end
+                if GameStats.StageNum > GameStats.TotalStages then
+                    Stage = Stage + 1
+                    GameStats.Players[1].Score = GameConfigObj.PointsToWin
+                    GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
+                    switchStage(Stage)
+                end
+                if GameStats.Players[1].Score >= GameConfigObj.PointsToWin  then
+                    GameStats.StageNum = GameStats.StageNum + 1
+                    GameStats.Players[1].Score = 0
+                end
+                ---end
+            end
         end
     end
 end
@@ -641,7 +702,7 @@ function DefectButton(defect)
         ButtonsList[defect.Button].Color = colors.NONE
         ButtonsList[defect.Button].Bright = colors.BRIGHT0
     else
-        ButtonsList[defect.Button].Color = colors.NONE
+        ButtonsList[defect.Button].Color = colors.BLUE
         ButtonsList[defect.Button].Bright = colors.BRIGHT70
     end
 end
@@ -767,13 +828,13 @@ function switchStage(newStage)
             RandomZone()
         end
         if GameStats.StageNum == 1 then
-            if x <= 1 or x >= 24 then
+            if x <= 1 or x + GameConfigObj.WidthLine > 24 then
                 Move_right = Move_right * (-1)
             end
             MoveColumns(Move_right)
         end
         if GameStats.StageNum == 2 then
-            if y <= 1 or y >= 15 then
+            if y <= 1 or y + GameConfigObj.WidthLine > 15 then
                 Move_up = Move_up * (-1)
             end
             MoveRows(Move_up)
@@ -784,10 +845,10 @@ function switchStage(newStage)
                 y = GameConfigObj.OriginCoordinateY
                 count = count + 1
             end
-            if y <= 1 or y >= 15 then
+            if y <= 1 or y + GameConfigObj.WidthLine > 15 then
                 Move_up = Move_up * (-1)
             end
-            if x <= 1 or x >= 24 then
+            if x <= 1 or x + GameConfigObj.WidthLine > 24 then
                 Move_right = Move_right * (-1)
             end
             MoveCross(Move_right, Move_up)
@@ -799,7 +860,7 @@ function switchStage(newStage)
                 y = GameConfigObj.OriginCoordinateY
                 count1 = count1 + 1
             end
-            if x <= 1 and y >=15 or x >= 24 and y <= 1 then
+            if x <= 1 and y --[[+ GameConfigObj.WidthLine]] >= 15 or x + GameConfigObj.WidthLine >= 24 and y <= 1 then
                 Move_main_diagonal = Move_main_diagonal * (-1)
             end
             MoveDiagonal(Move_main_diagonal)
@@ -851,7 +912,7 @@ function checkPositionClick(startPosition, positionSize)
         end
         ::continue::
     end
-    startPosition.Clik = false
+    --startPosition.Clik = false
     return false
 end
 
@@ -889,6 +950,17 @@ function countActivePlayers()
         end
     end
     return activePlayers
+end
+
+
+function CountForStart()
+    local count = 0
+    for _, Pl in pairs(PlayerInGame) do
+        if Pl then
+            count = count + 1
+        end
+    end
+    return count
 end
 
 
