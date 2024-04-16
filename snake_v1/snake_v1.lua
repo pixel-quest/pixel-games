@@ -7,15 +7,16 @@
     Описание механики: 
         Игроки пытаются собрать яблоки быстрее змейки
         Наступая на змейку игроки теряют здоровье
-        Собирая яблоки змейка отбирает у игроков здоровье
-        0 здоровья = поражение
+        
+        Нужно собрать 20 яблок(по стандартным настройкам)
+        Если змейка соберет 20 яблок быстрее игроков - поражение
 
-        Можно играть либо все в одной команде против змейки, либо до 6 команд по сколько угодно человек
-        Если несколько команд то побеждает та у которой больше всего собрано яблок
+        Можно играть либо все в одной команде против змейки, либо до 5 команд по сколько угодно человек
+        Побеждает команда которая быстрее всех соберет 20 яблок
         Команде нужно собирать яблоки своего цвета
 
     Идеи по доработке: 
-
+        Можно сделать настройку интеллекта змейки, например сейчас она бежит к самому дальнему яблоку, добавить настройку чтоб бежала к самому близкому и тд. уровни сложности мб
 ]]
 math.randomseed(os.time())
 
@@ -57,9 +58,9 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.RED },
     },
-    TargetScore = 1,
+    TargetScore = 0,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
@@ -200,8 +201,7 @@ CGameMode.tPixels = {}
 CGameMode.tBlockList = {}
 
 CGameMode.InitGameMode = function()
-    tGameStats.TotalLives = tConfig.Health
-    tGameStats.CurrentLives = tConfig.Health
+    tGameStats.TargetScore = tConfig.TargetScore
 
     CGameMode.LoadBlockList()
 
@@ -248,8 +248,9 @@ CGameMode.StartGame = function()
         end 
     end
 
-    tGameStats.StageLeftDuration = tConfig.GameTime
+    --tGameStats.StageLeftDuration = tConfig.GameTime
 
+    --[[
     CTimer.New(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
@@ -265,7 +266,8 @@ CGameMode.StartGame = function()
             return 1000
         end
     end)
-
+    ]]
+    
     CSnake.Start()
 end
 
@@ -287,8 +289,10 @@ CGameMode.PlayerClickPixel = function(iPixelID)
     CAudio.PlayAsync(CAudio.CLICK)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
-    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+    if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
+        CGameMode.iWinnerID = iPlayerID
+        CGameMode.EndGame(true)
+        return;
     end
 
     tFloor[CGameMode.tPixels[iPixelID].iX][CGameMode.tPixels[iPixelID].iY].iPixelID = 0
@@ -310,7 +314,7 @@ CGameMode.RandomPositionForPixel = function()
 end
 
 CGameMode.IsValidPixelPosition = function(iX, iY)
-    if tFloor[iX][iY].bBlocked or tFloor[iX][iY].bDefect then return false end
+    if tFloor[iX][iY].bBlocked or tFloor[iX][iY].bDefect or (iX == CSnake.iHeadX and iY == CSnake.iHeadY) then return false end
 
     return true
 end
@@ -323,18 +327,20 @@ CGameMode.EndGame = function(bVictory)
         if #tGame.StartPositions == 1 then
             CGameMode.iWinnerID = 1
         else
+            --[[
             local iMaxScore = -999
-
+            
             for iPlayerID = 1, #tGame.StartPositions do
                 if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
                     CGameMode.iWinnerID = iPlayerID
                     iMaxScore = tGameStats.Players[iPlayerID].Score
                 end
             end
+            ]]
 
             CAudio.PlaySync(tGame.StartPositions[CGameMode.iWinnerID].Color)
         end
- 
+
         CAudio.PlaySync(CAudio.VICTORY)
     else
         CAudio.PlaySync(CAudio.DEFEAT)
@@ -424,9 +430,12 @@ CSnake.Think = function()
         end
     end
 
-    if CSnake.iDestPixelID ~= 0 and CSnake.iHeadX == CGameMode.tPixels[CSnake.iDestPixelID].iX and CSnake.iHeadY == CGameMode.tPixels[CSnake.iDestPixelID].iY then
-        CSnake.SnakeCollectPixel(CSnake.iDestPixelID)
-        CSnake.NewDestination()
+    if tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID ~= 0 then
+        local iSnakePixelID = tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID
+        if CGameMode.tPixels[iSnakePixelID] and CGameMode.tPixels[iSnakePixelID].iX then 
+            CSnake.SnakeCollectPixel(iSnakePixelID)
+            CSnake.NewDestination()
+        end
     end    
 end
 
@@ -520,8 +529,8 @@ CSnake.PlayerStepOnSnake = function()
 end
 
 CSnake.DamagePlayer = function()
-    tGameStats.CurrentLives = tGameStats.CurrentLives - 1
-    if tGameStats.CurrentLives == 0 then
+    tGameStats.Players[6].Score = tGameStats.Players[6].Score + 1
+    if tGameStats.Players[6].Score >= tGameStats.TargetScore then
         CGameMode.EndGame(false)
     end 
 end
@@ -571,15 +580,15 @@ CPaint.Pixels = function()
 end
 
 CPaint.Snake = function()
-    tFloor[CSnake.iHeadX][CSnake.iHeadY].iColor = CSnake.iColor
-    tFloor[CSnake.iHeadX][CSnake.iHeadY].iBright = tConfig.Bright+1
-
     for i = 1, #CSnake.tTail do
         if CSnake.tTail[i] and CSnake.tTail[i].iX > 0 then
             tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iColor = CSnake.iColor
             tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iBright = tConfig.Bright-1
         end    
     end
+
+    tFloor[CSnake.iHeadX][CSnake.iHeadY].iColor = CSnake.iColor
+    tFloor[CSnake.iHeadX][CSnake.iHeadY].iBright = tConfig.Bright+1
 end
 
 CPaint.ResetAnimation = function()
