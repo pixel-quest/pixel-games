@@ -132,7 +132,7 @@ local CONST_STAGE_WIN = 2 -- победа
 local CONST_STAGE_GAMEOVER = 3 -- проигрыш
 local Stage = CONST_STAGE_CHOOSE_COLOR -- текущий этап
 local StageStartTime = 0 -- время начала текущего этапа
-local StageStartTime2 = 0
+local TimeToDrawTheFloor = 0
 
 local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
     [5] = false,
@@ -189,10 +189,6 @@ end
 
 -- Вункция для рисования по колоннам, задаются координаты начала
 function DrawnColumns(X)
-
-    --[[if GameConfigObj.WidthLine > 1 and X > 23 then
-        X = X - GameConfigObj.WidthLine
-    end]]
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
             if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
@@ -213,9 +209,6 @@ end
 -- Вункция для рисования по колоннам, задаются координаты начала
 function DrawnRows(Y)
 
-    --[[if GameConfigObj.WidthLine > 1 and Y > 14 then
-        Y = Y - GameConfigObj.WidthLine
-    end]]
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Cols do
             if FloorMatrix[j][Y+i].Color ~= colors.GREEN and not FloorMatrix[j][Y+i].Defect then
@@ -263,9 +256,6 @@ end
 
 -- нарисовать крест
 function DrawnCross(X, Y)
-    --[[if GameConfigObj.WidthLine > 1 and X > 23 then
-        X = X - GameConfigObj.WidthLine
-    end]]
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
             if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
@@ -325,12 +315,6 @@ end
 
 --рисование диагонали
 function DrawnDiagonal(X, Y)
-    --[[if GameConfigObj.WidthLine > 1 and Y > 14 then
-        Y = 14 - GameConfigObj.WidthLine
-    end
-    if GameConfigObj.WidthLine > 1 and X > 23 then
-        X = 23 - GameConfigObj.WidthLine
-    end]]
     for k = 0, GameConfigObj.WidthLine-1 do
         X = X + 1
         local i = X
@@ -386,9 +370,7 @@ function MoveDiagonal(direction)
         if x ~= 1 then
             x = x - 1
         else
-            --if y --[[+ GameConfigObj.WidthLine]] ~= 15 then
             y = y + 1
-            --end
         end
         DrawnDiagonal(x, y)
     end
@@ -448,7 +430,7 @@ end
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 
-local flag = false
+local CountingDownTheSeconds = false
 function NextTick()
     if Stage == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
         GameStats.CurrentLives = GameStats.TotalLives
@@ -476,9 +458,6 @@ function NextTick()
         end
 
         local currentPlayersCount = countActivePlayers()
-        if currentPlayersCount > 0 then
-            log.print("GG")
-        end
         if currentPlayersCount < 1 then
             -- нельзя стартовать
             StartPlayersCount = 0
@@ -515,13 +494,13 @@ function NextTick()
     elseif Stage == CONST_STAGE_GAME then -- этап игры
         -- часть логики производится в обработке клика
         local timeSinceStageStart = time.unix() - StageStartTime
-        local timer = time.unix() - StageStartTime2
+        local timer = time.unix() - TimeToDrawTheFloor
 
         processEffects()
 
         if 1 <= math.ceil(timeSinceStageStart)-1 then
             GameStats.StageLeftDuration = GameStats.StageLeftDuration - 0.5
-            flag = false
+            CountingDownTheSeconds = false
         end
         if timer >= GameConfigObj.Complexity/10 then
             switchStage(Stage)
@@ -533,7 +512,7 @@ function NextTick()
 
     elseif Stage == CONST_STAGE_WIN or Stage == CONST_STAGE_GAMEOVER then -- этап длительности победы или поражения
         local timeSinceStageStart = time.unix() - StageStartTime
-        flag = false
+        CountingDownTheSeconds = false
         if 1 <= timeSinceStageStart then
             GameStats.StageLeftDuration = GameStats.StageLeftDuration - 1
             switchStage(Stage)
@@ -696,14 +675,18 @@ end
 -- }
 -- возможно следует подправить
 function DefectButton(defect)
-    ButtonsList[defect.Button].Defect = defect.Defect
-    -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
-    if defect.Defect then
-        ButtonsList[defect.Button].Color = colors.NONE
-        ButtonsList[defect.Button].Bright = colors.BRIGHT0
-    else
-        ButtonsList[defect.Button].Color = colors.BLUE
-        ButtonsList[defect.Button].Bright = colors.BRIGHT70
+    for i, num in pairs(GameObj.Buttons) do
+        if ButtonsList[num] == ButtonsList[defect.Button] then
+            ButtonsList[defect.Button].Defect = defect.Defect
+            -- потушим кнопку, если она дефектована и засветим, если дефектовку сняли
+            if defect.Defect then
+                ButtonsList[defect.Button].Color = colors.NONE
+                ButtonsList[defect.Button].Bright = colors.BRIGHT0
+            else
+                ButtonsList[defect.Button].Color = colors.BLUE
+                ButtonsList[defect.Button].Bright = colors.BRIGHT70
+            end
+        end
     end
 end
 
@@ -764,25 +747,21 @@ function resetCountdown()
 end
 
 
-
-
-local act = 0;
-local count = 0
-local count1 = 0
+local count = 0 -- количествоактивных безопасных зон
+local count1 = 0 -- тоже самое, создана чтобы не обнулять count
 -- переключение этапов, рисование пола
 function switchStage(newStage)
-    if not flag then
+    if not CountingDownTheSeconds then
         StageStartTime = time.unix()
-        flag = true
+        CountingDownTheSeconds = true
     end
-    StageStartTime2 = time.unix()
+    TimeToDrawTheFloor = time.unix()
     GameStats.StageTotalDuration = GameConfigObj.StageDuration
 
     if newStage == CONST_STAGE_CHOOSE_COLOR then
         audio.StopBackground()
         return
     else
-        audio.PlayRandomBackground()
     end
     local count = 0;
     for j=1, 19 do
