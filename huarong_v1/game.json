@@ -1,91 +1,427 @@
 {
   "Cols": 24,
   "Rows": 15,
-  "Maps": [
+  "OneAxisMoveMode": true,
+  "Maps": 
+  [
     [
       {
-        "X": 1,
-        "Y": 1,
-        "SizeX": 2,
-        "SizeY": 1,
-        "Color": 6
-      },
-      {
-        "X": 1,
-        "Y": 2,
-        "SizeX": 2,
-        "SizeY": 1,
-        "Color": 5
-      },   
-      {
-        "X": 2,
+        "X": 4,
         "Y": 3,
         "SizeX": 2,
         "SizeY": 1,
-        "Color": 1
-      },  
-      {
-        "X": 1,
-        "Y": 4,
-        "SizeX": 1,
-        "SizeY": 2,
-        "Color": 3
-      },      
-      {
-        "X": 3,
-        "Y": 4,
-        "SizeX": 1,
-        "SizeY": 2,
-        "Color": 6
-      },
-      {
-        "X": 4,
-        "Y": 2,
-        "SizeX": 1,
-        "SizeY": 3,
-        "Color": 7
-      },      
-      {
-        "X": 4,
-        "Y": 5,
-        "SizeX": 3,
-        "SizeY": 1,
-        "Color": 2
-      }
-    ],  
-    [
-      {
-        "X": 1,
-        "Y": 3,
-        "SizeX": 2,
-        "SizeY": 1,
-        "Color": 2,
+        "Color": 1,
         "Scorable": true
       },
       {
-        "X": 5,
+        "X": 6,
         "Y": 2,
         "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 1,
+        "Y": 4,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 3
+      },   
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
         "SizeY": 2,
-        "Color": 1
+        "Color": 4
+      },
+      {
+        "X": 4,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 5
+      },   
+      {
+        "X": 5,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 6
+      },   
+      {
+        "X": 5,
+        "Y": 6,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 7
+      }                       
+    ],
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 3
+      }, 
+      {
+        "X": 5,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 4
+      }, 
+      {
+        "X": 3,
+        "Y": 5,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 5
+      },   
+      {
+        "X": 1,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 6
+      },   
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 7
+      }                   
+    ],
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 5,
+        "Y": 3,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 3
+      }, 
+      {
+        "X": 1,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 4
+      }, 
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 5
+      },   
+      {
+        "X": 3,
+        "Y": 5,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 6
+      },   
+      {
+        "X": 3,
+        "Y": 6,
+        "SizeX": 3,
+        "SizeY": 1,
+        "Color": 7
+      }                   
+    ], 
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 3
+      }, 
+      {
+        "X": 5,
+        "Y": 3,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 4
+      }, 
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 5
+      },   
+      {
+        "X": 3,
+        "Y": 5,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 6
+      },   
+      {
+        "X": 5,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 7
+      }                   
+    ],    
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 4,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 3
+      }, 
+      {
+        "X": 5,
+        "Y": 2,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 4
+      }, 
+      {
+        "X": 6,
+        "Y": 3,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 5
       },   
       {
         "X": 3,
         "Y": 4,
         "SizeX": 3,
         "SizeY": 1,
+        "Color": 6
+      },   
+      {
+        "X": 4,
+        "Y": 6,
+        "SizeX": 3,
+        "SizeY": 1,
+        "Color": 7
+      }                   
+    ],
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 4,
+        "Y": 3,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 1,
+        "Y": 4,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 3
+      }, 
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
         "Color": 4
+      }, 
+      {
+        "X": 3,
+        "Y": 6,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 5
+      },   
+      {
+        "X": 5,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 6
+      },   
+      {
+        "X": 6,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 7
+      }                   
+    ], 
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
       },
       {
         "X": 1,
         "Y": 1,
-        "SizeX": 6,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 2
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 3
+      }, 
+      {
+        "X": 4,
+        "Y": 1,
+        "SizeX": 3,
+        "SizeY": 1,
+        "Color": 4
+      }, 
+      {
+        "X": 2,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 5
+      },   
+      {
+        "X": 3,
+        "Y": 5,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 6
+      },   
+      {
+        "X": 6,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 7
+      }                   
+    ],
+    [
+      {
+        "X": 1,
+        "Y": 3,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 1,
+        "Scorable": true
+      },
+      {
+        "X": 3,
+        "Y": 1,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 2
+      },
+      {
+        "X": 1,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 3
+      }, 
+      {
+        "X": 2,
+        "Y": 5,
+        "SizeX": 1,
+        "SizeY": 2,
+        "Color": 4
+      }, 
+      {
+        "X": 3,
+        "Y": 5,
+        "SizeX": 2,
         "SizeY": 1,
         "Color": 5
-      }
-    ]
-
+      },   
+      {
+        "X": 3,
+        "Y": 6,
+        "SizeX": 2,
+        "SizeY": 1,
+        "Color": 6
+      },   
+      {
+        "X": 5,
+        "Y": 4,
+        "SizeX": 1,
+        "SizeY": 3,
+        "Color": 7
+      }                   
+    ]       
   ],
+
 
   "Buttons": [
     2,
@@ -111,17 +447,17 @@
   "StartPositions": [
     {
       "X": 2,
-      "Y": 3,
+      "Y": 2,
       "Color": 2
     },
     {
       "X": 10,
-      "Y": 3,
+      "Y": 2,
       "Color": 3
     },
     {
       "X": 18,
-      "Y": 3,
+      "Y": 2,
       "Color": 4
     },
     {
@@ -141,5 +477,5 @@
     }
   ],
   "StartPositionSizeX": 6,
-  "StartPositionSizeY": 5
+  "StartPositionSizeY": 6
 }
