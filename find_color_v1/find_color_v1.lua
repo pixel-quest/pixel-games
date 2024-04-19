@@ -423,11 +423,6 @@ function DefectPixel(defect)
     if defect.Defect then
         FloorMatrix[defect.X][defect.Y].Click = false
     end
-
-    if FloorMatrix[defect.X][defect.Y].Color > colors.NONE then --  переместим пиксель
-        placePixel(FloorMatrix[defect.X][defect.Y].Color)
-        FloorMatrix[defect.X][defect.Y].Color = colors.NONE
-    end
 end
 
 -- DefectButton (служебный): метод дефектовки/раздефектовки кнопки
