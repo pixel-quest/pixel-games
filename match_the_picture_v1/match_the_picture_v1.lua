@@ -142,7 +142,7 @@ function GameSetupTickSinglePlayer()
         CGameMode.iAlivePlayerCount = 1
 
         iGameState = GAMESTATE_GAME
-        --CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CAudio.PlaySync("voices/match-the-picture-guide.mp3")
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
 end
@@ -173,7 +173,7 @@ function GameSetupTickMultiPlayer()
         iGameState = GAMESTATE_GAME
 
         CAudio.PlaySyncFromScratch("")
-        --CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CAudio.PlaySync("voices/match-the-picture-guide.mp3")
         
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
@@ -235,7 +235,7 @@ CGameMode.InitPlayers = function()
 end
 
 CGameMode.AnnounceGameStart = function()
-    --CAudio.PlaySync("games/minesweeper.mp3")
+    CAudio.PlaySync("games/match-the-picture.mp3")
 
     if #tGame.StartPositions > 1 then
         CAudio.PlaySync("voices/choose-color.mp3")
