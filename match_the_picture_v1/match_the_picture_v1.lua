@@ -560,6 +560,8 @@ end
 CPaint.Preview = function()
     if CGameMode.tMap == {} then return; end
 
+    CPaint.PreviewBorder()
+
     local iMapX = 0
     local iMapY = 0
 
@@ -579,6 +581,14 @@ CPaint.Preview = function()
 
         iMapX = 0
     end    
+end
+
+CPaint.PreviewBorder = function()
+    SetColColorBright({X = tGame.PreviewPosX, Y = tGame.PreviewPosY-1}, tGame.StartPositionSizeX-1, CBlock.iColor, 2)
+    SetColColorBright({X = tGame.PreviewPosX, Y = tGame.PreviewPosY + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, CBlock.iColor, 2)
+
+    SetRowColorBright(tGame.PreviewPosX-1, tGame.PreviewPosY-1, tGame.StartPositionSizeY-1, CBlock.iColor, 2)
+    SetRowColorBright(tGame.PreviewPosX+tGame.StartPositionSizeX, tGame.PreviewPosY-1, tGame.StartPositionSizeY-1, CBlock.iColor, 2)
 end
 
 CPaint.FinishedPlayerZones = function()
