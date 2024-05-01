@@ -178,15 +178,15 @@
 
   "StartPositions": [
     {
-      "X": 1,
+      "X": 2,
       "Y": 2,
-      "Color": 3
+      "Color": 4
     }
   ],
   "StartPositionSizeX": 10,
   "StartPositionSizeY": 13,
 
-  "PreviewPosX": 13,
+  "PreviewPosX": 14,
   "PreviewPosY": 2,
   "PreviewColor": 2
 }

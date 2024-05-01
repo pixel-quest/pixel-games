@@ -53,7 +53,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
@@ -184,10 +184,7 @@ function GameTick()
     CPaint.Blocks()
     CPaint.FinishedPlayerZones()
     CPaint.Preview()
-
-    if CGameMode.iPlayerCount > 1 then
-        CPaint.PlayersFrames()
-    end
+    CPaint.PlayersFrames()
 end
 
 function PostGameTick()
@@ -275,6 +272,10 @@ end
 
 CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
+
+    if CGameMode.iPlayerCount == 1 then
+        tGameStats.TargetScore = tConfig.RoundCount
+    end
 end
 
 CGameMode.PrepareNextRound = function()
@@ -459,9 +460,6 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
     end
 
     CGameMode.iMapCoinCount = iCoinCount
-    if CGameMode.iPlayerCount == 1 then
-        tGameStats.TargetScore = tGameStats.TargetScore + iCoinCount
-    end
 end
 --//
 
@@ -546,7 +544,7 @@ CPaint.Blocks = function()
                 if not tFloor[iX][iY].bAnimated and CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                     if not CBlock.tBlocks[iX][iY].bVisible then
                         tFloor[iX][iY].iColor = CBlock.iColor
-                        tFloor[iX][iY].iBright = CColors.BRIGHT15
+                        tFloor[iX][iY].iBright = CColors.BRIGHT0
                     else
                         tFloor[iX][iY].iColor = CBlock.iColor
                         tFloor[iX][iY].iBright = CBlock.tBlocks[iX][iY].iBright
