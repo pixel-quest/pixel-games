@@ -5,13 +5,12 @@
     Чтобы начать игру надо встать на цвета и нажать кнопку
 
     Описание механики: 
-        Передвигать машинки чтобы выбратся с парковки
-    
-        Два типа карт: на одних можно двигать машинки в любую сторону, на других только вперед назад
-
-        Кто быстрее передвинул все нужные машинки тот и победил
+        Помочь красной машинке выбратся с парковки
 
     Идеи по доработке:
+        больше уровней
+        уровни сложности уровней
+        возможность передвигать сразу на несколько блоков?
 
 ]]
 math.randomseed(os.time())
@@ -103,6 +102,8 @@ function StartGame(gameJson, gameConfigJson)
     for _, iId in pairs(tGame.Buttons) do
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
+
+    CGameMode.bOneAxisMoveMode = tGame.OneAxisMoveMode
 
     CAudio.PlaySync("games/huarong.mp3")
     CAudio.PlaySync("voices/huarong-guide.mp3")
@@ -235,7 +236,6 @@ CGameMode.StartGame = function()
 end
 
 CGameMode.LoadPiecesForPlayers = function(iMapID)
-    CGameMode.bOneAxisMoveMode = false
     CGameMode.iOneAxisMoveModeScorableCount = 0
 
     for iPlayerID = 1, #tGame.StartPositions do
@@ -254,12 +254,14 @@ CGameMode.LoadPiecesForPlayer = function(iPlayerID, iMapID)
     CGameMode.iOneAxisMoveModeScorableCount = 0 -- костыль :)
 
     CGameMode.tFinishPosPlayerX[iPlayerID] = {}
-    CGameMode.tFinishPosPlayerX[iPlayerID].iX = tGame.StartPositions[iPlayerID].X+math.floor(tGame.StartPositionSizeX/2)
-    CGameMode.tFinishPosPlayerX[iPlayerID].iY = tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY
+    if not CGameMode.bOneAxisMoveMode then
+        CGameMode.tFinishPosPlayerX[iPlayerID].iX = tGame.StartPositions[iPlayerID].X+math.floor(tGame.StartPositionSizeX/2)
+        CGameMode.tFinishPosPlayerX[iPlayerID].iY = tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY
+    end
 
     CGameMode.tFinishPosPlayerY[iPlayerID] = {}
     CGameMode.tFinishPosPlayerY[iPlayerID].iX = tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX
-    CGameMode.tFinishPosPlayerY[iPlayerID].iY = tGame.StartPositions[iPlayerID].Y+math.floor(tGame.StartPositionSizeY/2)  
+    CGameMode.tFinishPosPlayerY[iPlayerID].iY = tGame.StartPositions[iPlayerID].Y+math.floor(tGame.StartPositionSizeY/2)-1
 
     for i = 1, #tGame.Maps[iMapID] do
         CPieces.NewPiece(
@@ -268,7 +270,8 @@ CGameMode.LoadPiecesForPlayer = function(iPlayerID, iMapID)
             tGame.StartPositions[iPlayerID].Y-1+tGame.Maps[iMapID][i].Y, 
             tGame.Maps[iMapID][i].SizeX, 
             tGame.Maps[iMapID][i].SizeY,
-            tGame.Maps[iMapID][i].Color)
+            tGame.Maps[iMapID][i].Color,
+            tGame.Maps[iMapID][i].Scorable)
 
         if tGame.Maps[iMapID][i].Scorable then
             CGameMode.bOneAxisMoveMode = true
@@ -315,7 +318,7 @@ CPieces.Init = function()
     end
 end
 
-CPieces.NewPiece = function(iPlayerID, iX, iY, iSizeX, iSizeY, iColor)
+CPieces.NewPiece = function(iPlayerID, iX, iY, iSizeX, iSizeY, iColor, bScoreable)
     local iPieceID = #CPieces.tPieces+1
     CPieces.tPieces[iPieceID] = {}
     CPieces.tPieces[iPieceID].iPlayerID = iPlayerID
@@ -325,6 +328,7 @@ CPieces.NewPiece = function(iPlayerID, iX, iY, iSizeX, iSizeY, iColor)
     CPieces.tPieces[iPieceID].iSizeY = iSizeY
     CPieces.tPieces[iPieceID].iColor = iColor --CPieces.RandomColor()
     CPieces.tPieces[iPieceID].bSelected = false
+    CPieces.tPieces[iPieceID].bScoreable = bScoreable
 
     CPieces.PieceBlock(iPieceID, true)
 end
@@ -405,7 +409,7 @@ CPieces.SelectValidMovesForPiece = function(iPieceID, bSelect)
         end
     end
 
-    CLog.print(iMovesCount.." valid moves!")
+    --CLog.print(iMovesCount.." valid moves!")
 
     return iMovesCount
 end
@@ -462,6 +466,8 @@ CPieces.PieceMove = function(iPieceID, iX, iY)
 end
 
 CPieces.PieceFinsh = function(iPieceID)
+    if CGameMode.bOneAxisMoveMode and not CPieces.tPieces[iPieceID].bScoreable then return; end
+
     local iPlayerID = CPieces.tPieces[iPieceID].iPlayerID
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
@@ -520,19 +526,24 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     end
     
     SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y-1}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
-    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
-
+    if tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY < tGame.Rows then 
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
+    end
+    
     SetRowColorBright(tGame.StartPositions[iPlayerID].X-1, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
     SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
 
-    if CGameMode.tFinishPosPlayerX[iPlayerID] and CGameMode.tFinishPosPlayerX[iPlayerID].iX then
-        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.NONE
-        tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright
-    end
+
+    if not CGameMode.bOneAxisMoveMode then
+        if CGameMode.tFinishPosPlayerX[iPlayerID] and CGameMode.tFinishPosPlayerX[iPlayerID].iX then
+            tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.NONE
+            tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright
+        end
+    end  
     if CGameMode.tFinishPosPlayerY[iPlayerID] and CGameMode.tFinishPosPlayerY[iPlayerID].iX then
         tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iColor = CColors.NONE
         tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iBright = iBright
-    end    
+    end  
 end
 
 CPaint.PlayerZones = function()
