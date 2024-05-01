@@ -29,38 +29,38 @@
   },
   "StartGame": [
     {
-      "X": 8,
-      "Y": 1,
+      "X": 2,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     },
     {
-      "X": 12,
-      "Y": 1,
+      "X": 6,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     },
     {
-      "X": 16,
-      "Y": 1,
+      "X": 10,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     },
     {
-      "X": 16,
-      "Y": 14,
+      "X": 14,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     },
     {
-      "X": 12,
-      "Y": 14,
+      "X": 18,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     },
     {
-      "X": 8,
-      "Y": 14,
+      "X": 22,
+      "Y": 2,
       "Clik": false,
       "Color": 2
     }
