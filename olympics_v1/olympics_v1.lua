@@ -191,6 +191,7 @@ CGameMode.bRoundOn = false
 CGameMode.PlayerData = {}
 CGameMode.iRealPlayerCount = 0
 CGameMode.iFinishedCount = 0
+CGameMode.tPlayerFinished = {}
 
 CGameMode.GAMEMODE_LONGJUMP = 1
 CGameMode.GAMEMODE_SHUTTLE_RACE = 2
@@ -251,6 +252,7 @@ end
 CGameMode.PrepareNextRound = function()
     CGameMode.iFinishedCount = 0
     CGameMode.PlayerData = {}
+    CGameMode.tPlayerFinished = {}
 
     CGameMode.NextGameModeType()
 
@@ -314,7 +316,7 @@ end
 
 CGameMode.PlayerOnStart = function(iPlayerID)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-        if tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].bClick then
+        if tFloor[iX][CGameMode.GetStartY(iPlayerID)].bClick then
             return true
         end
     end  
@@ -344,10 +346,16 @@ end
 CGameMode.PlayerFinished = function(iPlayerID)
     CAudio.PlaySync(CAudio.STAGE_DONE)
 
+    CGameMode.tPlayerFinished[iPlayerID] = true
+
     CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
     if CGameMode.iFinishedCount == CGameMode.iRealPlayerCount then
         CGameMode.EndRound()
     end
+end
+
+CGameMode.GetStartY = function(iPlayerID)
+    return tGame.StartPositions[iPlayerID].Y
 end
 
 --LONGJUMP GAMEMODE
@@ -365,13 +373,14 @@ CGameMode.LongJumpInitPlayers = function()
         if tPlayerInGame[iPlayerID] then
             CGameMode.PlayerData[iPlayerID] = {}
             CGameMode.PlayerData[iPlayerID].iLandingSpotY = 0
+            CGameMode.PlayerData[iPlayerID].iLandCount = 0
         end
     end
 end
 
 CGameMode.tGameModeTick[CGameMode.GAMEMODE_LONGJUMP] = function()
     for iPlayerID = 1, #tGame.StartPositions do
-        if tPlayerInGame[iPlayerID] then
+        if tPlayerInGame[iPlayerID] and not CGameMode.tPlayerFinished[iPlayerID] then
             CGameMode.LongJumpPaintPlayerZone(iPlayerID)
         end
     end
@@ -399,20 +408,27 @@ end
 
 CGameMode.tGameModeClick[CGameMode.GAMEMODE_LONGJUMP] = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
-    if iPlayerID == 0 then return; end
+    if iPlayerID == 0 or CGameMode.tPlayerFinished[iPlayerID] then return; end
 
-    if iY < tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY-2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY == 0 then
+    if iY > CGameMode.GetStartY(iPlayerID)+2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY == 0 then
         CGameMode.LongJumpPlayerLanded(iPlayerID, iY)
+    elseif iY == CGameMode.GetStartY(iPlayerID) and CGameMode.PlayerData[iPlayerID].iLandingSpotY ~= 0 then
+        CGameMode.PlayerData[iPlayerID].iLandingSpotY = 0
     end
 end
 
 CGameMode.LongJumpPlayerLanded = function(iPlayerID, iY)
-    --CLog.print(iPlayerID.." landed at "..iY)
+    CLog.print(iPlayerID.." landed at "..iY)
 
     CGameMode.PlayerData[iPlayerID].iLandingSpotY = iY
-    local iDistance = tGame.StartPositionSizeY - iY
+    local iDistance = iY
     CGameMode.AddScoreToPlayer(iPlayerID, iDistance)
-    CGameMode.PlayerFinished(iPlayerID)
+
+    CGameMode.PlayerData[iPlayerID].iLandCount = CGameMode.PlayerData[iPlayerID].iLandCount + 1
+
+    if CGameMode.PlayerData[iPlayerID].iLandCount == tConfig.LongJumpCount then
+        CGameMode.PlayerFinished(iPlayerID)
+    end
 end
 --//
 
@@ -430,7 +446,7 @@ CGameMode.ShuttleInitPlayers = function()
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
             CGameMode.PlayerData[iPlayerID] = {}
-            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y
+            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
             CGameMode.PlayerData[iPlayerID].iFinishCount = 0
             CGameMode.PlayerData[iPlayerID].bFinished = false
         end
@@ -478,7 +494,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
     if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
         CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
         if CGameMode.PlayerData[iPlayerID].iFinishCount > tConfig.ShuttleRaceCount then
-            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*2)
+            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*20)
             CGameMode.PlayerData[iPlayerID].bFinished = true
             CGameMode.PlayerFinished(iPlayerID)
         else
@@ -489,11 +505,11 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
 end
 
 CGameMode.ShuttleGetNewFinishForPlayer = function(iPlayerID, iFinishY)
-    if iFinishY == tGame.StartPositions[iPlayerID].Y then
-        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-2
+    if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
+        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
     end
 
-    return tGame.StartPositions[iPlayerID].Y
+    return tGame.StartPositions[iPlayerID].Y+1
 end
 --//
 
@@ -535,9 +551,18 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     end
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-        tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].iBright = iBright
-        tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].iColor = tGame.StartPositions[iPlayerID].Color
+        tFloor[iX][tGame.StartPositions[iPlayerID].Y].iBright = iBright
+        tFloor[iX][tGame.StartPositions[iPlayerID].Y].iColor = tGame.StartPositions[iPlayerID].Color
     end   
+
+    if CGameMode.tPlayerFinished[iPlayerID] then
+        for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
+            for iY = tGame.StartPositions[iPlayerID].Y+1, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
+                tFloor[iX][iY].iBright = tConfig.Bright
+                tFloor[iX][iY].iColor = CColors.GREEN
+            end
+        end
+    end
 end
 --//
 

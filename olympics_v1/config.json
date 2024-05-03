@@ -4,5 +4,6 @@
   "RoundCountdown": 6,
   "WinDurationMS": 10000,
 
+  "LongJumpCount": 5,
   "ShuttleRaceCount": 5
 }
