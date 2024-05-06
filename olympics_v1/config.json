@@ -5,5 +5,7 @@
   "WinDurationMS": 10000,
 
   "LongJumpCount": 5,
-  "ShuttleRaceCount": 5
+  "ShuttleRaceCount": 5,
+  "LavaCount": 5,
+  "ClassicsCount": 5
 }
