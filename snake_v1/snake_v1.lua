@@ -900,7 +900,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].iWeight = click.Weight
 
 
-    if click.Click then
+    if click.Click and iGameState == GAMESTATE_GAME then
         if tFloor[click.X][click.Y].bBlocked or (click.X == CSnake.iHeadX and click.Y == CSnake.iHeadY) then
             CSnake.PlayerStepOnSnake()
         elseif tFloor[click.X][click.Y].iPixelID ~= 0 then

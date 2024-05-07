@@ -10,6 +10,8 @@
 
         Прыжки в длину с места: прыгнуть как можно дальше, чем дальше тем больше очков
         Челночный бег: бег по одному отрезку с несколькими разворотами, кто первее добежал тому больше очков
+        Прыжки через лаву: челночный бег но с перерыгиванием лавы
+        Классики: челночный бег но с классиками
 
         Кто набрал больше очков со всех мини игр тот и победил
 
@@ -191,10 +193,13 @@ CGameMode.bRoundOn = false
 CGameMode.PlayerData = {}
 CGameMode.iRealPlayerCount = 0
 CGameMode.iFinishedCount = 0
+CGameMode.tPlayerFinished = {}
 
 CGameMode.GAMEMODE_LONGJUMP = 1
 CGameMode.GAMEMODE_SHUTTLE_RACE = 2
-CGameMode.GAMEMODE_COUNT = 2
+CGameMode.GAMEMODE_LAVA_STRIPES = 3
+CGameMode.GAMEMODE_CLASSICS = 4
+CGameMode.GAMEMODE_COUNT = 4
 
 CGameMode.iGameMode = 0
 CGameMode.tGameModeAnnouncer = {}
@@ -251,6 +256,7 @@ end
 CGameMode.PrepareNextRound = function()
     CGameMode.iFinishedCount = 0
     CGameMode.PlayerData = {}
+    CGameMode.tPlayerFinished = {}
 
     CGameMode.NextGameModeType()
 
@@ -314,7 +320,7 @@ end
 
 CGameMode.PlayerOnStart = function(iPlayerID)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-        if tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].bClick then
+        if tFloor[iX][CGameMode.GetStartY(iPlayerID)].bClick then
             return true
         end
     end  
@@ -344,15 +350,21 @@ end
 CGameMode.PlayerFinished = function(iPlayerID)
     CAudio.PlaySync(CAudio.STAGE_DONE)
 
+    CGameMode.tPlayerFinished[iPlayerID] = true
+
     CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
     if CGameMode.iFinishedCount == CGameMode.iRealPlayerCount then
         CGameMode.EndRound()
     end
 end
 
+CGameMode.GetStartY = function(iPlayerID)
+    return tGame.StartPositions[iPlayerID].Y
+end
+
 --LONGJUMP GAMEMODE
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LONGJUMP] = function()
-    CGameMode.iCountdown = CGameMode.iCountdown + 3
+    CGameMode.iCountdown = CGameMode.iCountdown + 7
     CAudio.PlaySync("voices/longjump-guide.mp3")
 end
 
@@ -365,13 +377,14 @@ CGameMode.LongJumpInitPlayers = function()
         if tPlayerInGame[iPlayerID] then
             CGameMode.PlayerData[iPlayerID] = {}
             CGameMode.PlayerData[iPlayerID].iLandingSpotY = 0
+            CGameMode.PlayerData[iPlayerID].iLandCount = 0
         end
     end
 end
 
 CGameMode.tGameModeTick[CGameMode.GAMEMODE_LONGJUMP] = function()
     for iPlayerID = 1, #tGame.StartPositions do
-        if tPlayerInGame[iPlayerID] then
+        if tPlayerInGame[iPlayerID] and not CGameMode.tPlayerFinished[iPlayerID] then
             CGameMode.LongJumpPaintPlayerZone(iPlayerID)
         end
     end
@@ -399,20 +412,27 @@ end
 
 CGameMode.tGameModeClick[CGameMode.GAMEMODE_LONGJUMP] = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
-    if iPlayerID == 0 then return; end
+    if iPlayerID == 0 or CGameMode.tPlayerFinished[iPlayerID] then return; end
 
-    if iY < tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY-2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY == 0 then
+    if iY > CGameMode.GetStartY(iPlayerID)+2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY == 0 then
         CGameMode.LongJumpPlayerLanded(iPlayerID, iY)
+    elseif iY == CGameMode.GetStartY(iPlayerID) and CGameMode.PlayerData[iPlayerID].iLandingSpotY ~= 0 then
+        CGameMode.PlayerData[iPlayerID].iLandingSpotY = 0
     end
 end
 
 CGameMode.LongJumpPlayerLanded = function(iPlayerID, iY)
-    --CLog.print(iPlayerID.." landed at "..iY)
+    CLog.print(iPlayerID.." landed at "..iY)
 
     CGameMode.PlayerData[iPlayerID].iLandingSpotY = iY
-    local iDistance = tGame.StartPositionSizeY - iY
+    local iDistance = iY
     CGameMode.AddScoreToPlayer(iPlayerID, iDistance)
-    CGameMode.PlayerFinished(iPlayerID)
+
+    CGameMode.PlayerData[iPlayerID].iLandCount = CGameMode.PlayerData[iPlayerID].iLandCount + 1
+
+    if CGameMode.PlayerData[iPlayerID].iLandCount == tConfig.LongJumpCount then
+        CGameMode.PlayerFinished(iPlayerID)
+    end
 end
 --//
 
@@ -430,7 +450,7 @@ CGameMode.ShuttleInitPlayers = function()
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
             CGameMode.PlayerData[iPlayerID] = {}
-            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y
+            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
             CGameMode.PlayerData[iPlayerID].iFinishCount = 0
             CGameMode.PlayerData[iPlayerID].bFinished = false
         end
@@ -478,7 +498,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
     if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
         CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
         if CGameMode.PlayerData[iPlayerID].iFinishCount > tConfig.ShuttleRaceCount then
-            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*2)
+            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*20)
             CGameMode.PlayerData[iPlayerID].bFinished = true
             CGameMode.PlayerFinished(iPlayerID)
         else
@@ -489,11 +509,220 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
 end
 
 CGameMode.ShuttleGetNewFinishForPlayer = function(iPlayerID, iFinishY)
-    if iFinishY == tGame.StartPositions[iPlayerID].Y then
-        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-2
+    if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
+        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
     end
 
-    return tGame.StartPositions[iPlayerID].Y
+    return tGame.StartPositions[iPlayerID].Y+1
+end
+--//
+
+--LAVA STRIPES
+CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
+    CGameMode.iCountdown = CGameMode.iCountdown + 6
+    CAudio.PlaySync("voices/olympics-lava-guide.mp3")
+end
+
+CGameMode.tGameModeStart[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
+    CGameMode.LavaInitPlayers()
+end
+
+CGameMode.LavaInitPlayers = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] then
+            CGameMode.PlayerData[iPlayerID] = {}
+            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
+            CGameMode.PlayerData[iPlayerID].iFinishCount = 0
+            CGameMode.PlayerData[iPlayerID].bFinished = false
+            CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
+        end
+    end
+end
+
+CGameMode.tGameModeTick[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] and CGameMode.PlayerData[iPlayerID] then
+            CGameMode.LavaPaintPlayerZone(iPlayerID)
+        end
+    end
+end
+
+CGameMode.LavaPaintPlayerZone = function(iPlayerID)
+    if CGameMode.PlayerData[iPlayerID] == nil then return; end
+
+    for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
+        for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
+            local iColor = CGameMode.LavaGetColorFromY(iY, iPlayerID)
+
+            local iBright = tConfig.Bright
+            if not CGameMode.bRoundOn then
+                iBright = iBright - 2
+            end
+
+            if CGameMode.PlayerData[iPlayerID].bFinished then
+                iColor = tGame.StartPositions[iPlayerID].Color
+            end
+
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].iPlayerID = iPlayerID
+        end
+    end    
+end
+
+CGameMode.LavaGetColorFromY = function(iY, iPlayerID)
+    if iY == CGameMode.PlayerData[iPlayerID].iFinishY then    
+        return CColors.GREEN
+    end
+
+    if CGameMode.LavaIsLavaY(iY) then
+        return CColors.RED
+    end
+
+    return CColors.WHITE
+end
+
+CGameMode.LavaIsLavaY = function(iY)
+    return iY % 3 ~= 0
+end
+
+CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
+    local iPlayerID = tFloor[iX][iY].iPlayerID
+    if iPlayerID == 0 then return; end
+
+    if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
+        CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
+        if CGameMode.PlayerData[iPlayerID].iFinishCount > tConfig.LavaCount then
+            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*20)
+            CGameMode.PlayerData[iPlayerID].bFinished = true
+            CGameMode.PlayerFinished(iPlayerID)
+        else
+            CAudio.PlayAsync(CAudio.CLICK)
+            CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
+        end
+    elseif CGameMode.LavaIsLavaY(iY) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
+        CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] = true
+        CGameMode.AddScoreToPlayer(iPlayerID, -5)
+        CAudio.PlayAsync(CAudio.MISCLICK)
+    end
+end
+
+CGameMode.LavaGetNewFinishForPlayer = function(iPlayerID, iFinishY)
+    CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
+
+    if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
+        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
+    end
+
+    return tGame.StartPositions[iPlayerID].Y+1
+end
+--//
+
+--CLASSICS
+CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_CLASSICS] = function()
+    CGameMode.iCountdown = CGameMode.iCountdown + 5
+    CAudio.PlaySync("voices/olympics-classics-guide.mp3")
+end
+
+CGameMode.tGameModeStart[CGameMode.GAMEMODE_CLASSICS] = function()
+    CGameMode.ClassicsInitPlayers()
+end
+
+CGameMode.ClassicsInitPlayers = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] then
+            CGameMode.PlayerData[iPlayerID] = {}
+            CGameMode.PlayerData[iPlayerID].iFinishY = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
+            CGameMode.PlayerData[iPlayerID].iFinishCount = 0
+            CGameMode.PlayerData[iPlayerID].bFinished = false
+        end
+    end
+end
+
+CGameMode.tGameModeTick[CGameMode.GAMEMODE_CLASSICS] = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] and CGameMode.PlayerData[iPlayerID] then
+            CGameMode.ClassicsPaintPlayerZone(iPlayerID)
+        end
+    end
+end
+
+CGameMode.ClassicsPaintPlayerZone = function(iPlayerID)
+    if CGameMode.PlayerData[iPlayerID] == nil then return; end
+
+    for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
+        for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
+            local iColor = CGameMode.ClassicsGetColorFromXY(iX, iY, iPlayerID)
+
+            local iBright = tConfig.Bright
+            if not CGameMode.bRoundOn then
+                iBright = iBright - 2
+            end
+
+            if CGameMode.PlayerData[iPlayerID].bFinished then
+                iColor = tGame.StartPositions[iPlayerID].Color
+            end
+
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].iPlayerID = iPlayerID
+        end
+    end    
+end
+
+CGameMode.ClassicsGetColorFromXY = function(iX, iY, iPlayerID)
+    if iY == CGameMode.PlayerData[iPlayerID].iFinishY then    
+        return CColors.GREEN
+    end
+
+    if CGameMode.ClassicsIsLavaXY(iX, iY) then
+        return CColors.RED
+    end
+
+    return CColors.WHITE
+end
+
+CGameMode.ClassicsIsLavaXY = function(iX, iY)
+    local iPlayerID = tFloor[iX][iY].iPlayerID
+    if iPlayerID == 0 then return; end
+
+    iX = iX - tGame.StartPositions[iPlayerID].X
+
+    if iY % 2 == 0 then
+        if iX == 1 or iX == 2 then return true end
+    else
+        if iX ~= 1 and iX ~= 2 then return true end
+    end
+
+    return false
+end
+
+CGameMode.tGameModeClick[CGameMode.GAMEMODE_CLASSICS] = function(iX, iY)
+    local iPlayerID = tFloor[iX][iY].iPlayerID
+    if iPlayerID == 0 then return; end
+
+    if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
+        CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
+        if CGameMode.PlayerData[iPlayerID].iFinishCount > tConfig.ClassicsCount then
+            CGameMode.AddScoreToPlayer(iPlayerID, (#tGame.StartPositions-CGameMode.iFinishedCount)*20)
+            CGameMode.PlayerData[iPlayerID].bFinished = true
+            CGameMode.PlayerFinished(iPlayerID)
+        else
+            CAudio.PlayAsync(CAudio.CLICK)
+            CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.ClassicsGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
+        end
+    elseif CGameMode.ClassicsIsLavaXY(iX, iY) then
+        CGameMode.AddScoreToPlayer(iPlayerID, -5)
+        CAudio.PlayAsync(CAudio.MISCLICK)
+    end
+end
+
+CGameMode.ClassicsGetNewFinishForPlayer = function(iPlayerID, iFinishY)
+    if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
+        return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
+    end
+
+    return tGame.StartPositions[iPlayerID].Y+1
 end
 --//
 
@@ -535,9 +764,18 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     end
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-        tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].iBright = iBright
-        tFloor[iX][tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y].iColor = tGame.StartPositions[iPlayerID].Color
+        tFloor[iX][tGame.StartPositions[iPlayerID].Y].iBright = iBright
+        tFloor[iX][tGame.StartPositions[iPlayerID].Y].iColor = tGame.StartPositions[iPlayerID].Color
     end   
+
+    if CGameMode.tPlayerFinished[iPlayerID] then
+        for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
+            for iY = tGame.StartPositions[iPlayerID].Y+1, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
+                tFloor[iX][iY].iBright = tConfig.Bright
+                tFloor[iX][iY].iColor = CColors.GREEN
+            end
+        end
+    end
 end
 --//
 

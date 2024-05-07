@@ -5,5 +5,5 @@
   "UnitSpawnDelay": 5000,
   "UnitThinkDelay": 500,
   "ProjectileDelay": 90,  
-  "Difficulty": "Easy"
+  "Difficulty": 2
 }

@@ -26,24 +26,29 @@
     {
       "X": 1,
       "Y": 2,
+      "Color": 1
+    },
+    {
+      "X": 6,
+      "Y": 2,
       "Color": 3
     },
     {
-      "X": 7,
+      "X": 11,
       "Y": 2,
       "Color": 4
     },
     {
-      "X": 13,
+      "X": 16,
       "Y": 2,
       "Color": 5
     },
     {
-      "X": 19,
+      "X": 21,
       "Y": 2,
       "Color": 6
     }
   ],
-  "StartPositionSizeX": 5,
+  "StartPositionSizeX": 4,
   "StartPositionSizeY": 14
 }
