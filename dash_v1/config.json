@@ -13,5 +13,6 @@
   "FillingPercentage": 95,
   "OriginCoordinateX": 1,
   "OriginCoordinateY": 1,
-  "WrongEffectDuration": 1200
+  "WrongEffectDuration": 1200,
+  "LavaCooldown": 2500
 }
