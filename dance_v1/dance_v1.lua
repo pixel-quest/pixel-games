@@ -328,6 +328,7 @@ CSongSync.Count = function(iTimePassed)
                 end
 
                 CSongSync.tSong[i] = nil
+                CSongSync.iSongPoint = i
             end
         end
     end
@@ -352,6 +353,7 @@ CGameMode.tPixelStruct = {
 }
 CGameMode.tPlayerPixelBatches = {}
 CGameMode.tPlayerRowClick = {}
+CGameMode.iMaxPlayerScore = -999
 
 CGameMode.CountDown = function(iCountDownTime)
     CSongSync.Clear()
@@ -471,8 +473,9 @@ CGameMode.ScorePixel = function(iPixelID)
     --if iGameState == GAMESTATE_GAME then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
-        if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-            tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+        if tGameStats.Players[iPlayerID].Score > CGameMode.iMaxPlayerScore then
+            CGameMode.iMaxPlayerScore = tGameStats.Players[iPlayerID].Score
+            tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score + #CSongSync.tSong - CSongSync.iSongPoint
         end
     --end
 
