@@ -645,11 +645,13 @@ CPaint.AnimateRow = function(iX, iColor)
         tFloor[iX][iY].bAnimated = true
     end
 
-    CTimer.New(tConfig.PixelMoveDelayMS, function()
-        for iY = 1, tGame.Rows do
-            tFloor[iX][iY].bAnimated = false
-        end
-    end)
+    if tConfig.RowColorSwitch then
+        CTimer.New(tConfig.PixelMoveDelayMS, function()
+            for iY = 1, tGame.Rows do
+                tFloor[iX][iY].bAnimated = false
+            end
+        end)
+    end
 end
 
 CPaint.ClearAnimations = function()
