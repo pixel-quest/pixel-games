@@ -329,6 +329,7 @@ CSongSync.Count = function(iTimePassed)
 
                 CSongSync.tSong[i] = nil
                 CSongSync.iSongPoint = i
+                CGameMode.CountTargetScore()
             end
         end
     end
@@ -354,6 +355,7 @@ CGameMode.tPixelStruct = {
 CGameMode.tPlayerPixelBatches = {}
 CGameMode.tPlayerRowClick = {}
 CGameMode.iMaxPlayerScore = -999
+CGameMode.iMaxPlayerScorePlayerID = -1
 
 CGameMode.CountDown = function(iCountDownTime)
     CSongSync.Clear()
@@ -372,6 +374,8 @@ CGameMode.CountDown = function(iCountDownTime)
 
             CGameMode.PixelMovement()
             CSongSync.Start(tGame["Song"])
+
+            CGameMode.SongTimer()
 
             return nil
         else
@@ -475,7 +479,8 @@ CGameMode.ScorePixel = function(iPixelID)
 
         if tGameStats.Players[iPlayerID].Score > CGameMode.iMaxPlayerScore then
             CGameMode.iMaxPlayerScore = tGameStats.Players[iPlayerID].Score
-            tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score + #CSongSync.tSong - CSongSync.iSongPoint
+            CGameMode.iMaxPlayerScorePlayerID = iPlayerID
+            CGameMode.CountTargetScore()
         end
     --end
 
@@ -562,6 +567,27 @@ CGameMode.Clear = function()
     CGameMode.tPixels = {}
     CGameMode.tPlayerPixelBatches = {}
     CGameMode.tPlayerRowClick = {}    
+end
+
+CGameMode.SongTimer = function()
+    tGameStats.StageLeftDuration = CSongSync.tSong[#CSongSync.tSong][1]/1000
+    tGameStats.StageTotalDuration = CSongSync.tSong[#CSongSync.tSong][1]/1000
+
+    CTimer.New(1000, function()
+        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+
+        if tGameStats.StageLeftDuration > 0 then
+            return 1000
+        end
+
+        return nil;
+    end)
+end
+
+CGameMode.CountTargetScore = function()
+    if CGameMode.iMaxPlayerScorePlayerID == -1 then return end
+
+    tGameStats.TargetScore = tGameStats.Players[CGameMode.iMaxPlayerScorePlayerID].Score + #CSongSync.tSong - CSongSync.iSongPoint
 end
 --//
 
