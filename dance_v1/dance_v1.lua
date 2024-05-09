@@ -49,7 +49,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
@@ -274,7 +274,7 @@ CSongSync.Start = function(tSong)
     CSongSync.tSong = tSong
     CSongSync.iTime = 0
     CSongSync.iSongPoint = 1
-    tGameStats.TargetScore = 0
+    tGameStats.TargetScore = 1
 
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] then
