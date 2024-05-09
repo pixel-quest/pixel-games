@@ -155,6 +155,8 @@ local Move_side_diagonal = -3
 
 local StartPlayersCount = 0
 
+local iPrevTickTime = 0
+
 -- расположение зон и кнопок. Рандом
 function RandomZone()
     local active = countActivePlayers()
@@ -192,15 +194,11 @@ function DrawnColumns(X)
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
             if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
-                FloorMatrix[X+i][j].Color = colors.RED
+                FloorMatrix[X+i][j].Color = iLavaColor
                 FloorMatrix[X+i][j].Bright = colors.BRIGHT70
             end
             if FloorMatrix[X+i][j].Click then
-                FloorMatrix[X+i][j].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
         end
     end
@@ -212,15 +210,11 @@ function DrawnRows(Y)
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Cols do
             if FloorMatrix[j][Y+i].Color ~= colors.GREEN and not FloorMatrix[j][Y+i].Defect then
-                FloorMatrix[j][Y+i].Color = colors.RED
+                FloorMatrix[j][Y+i].Color = iLavaColor
                 FloorMatrix[j][Y+i].Bright = colors.BRIGHT70
             end
             if FloorMatrix[j][Y+i].Click then
-                FloorMatrix[j][Y+i].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
         end
     end
@@ -259,15 +253,11 @@ function DrawnCross(X, Y)
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Rows do
             if FloorMatrix[X+i][j].Color ~= colors.GREEN and not FloorMatrix[X+i][j].Defect then
-                FloorMatrix[X+i][j].Color = colors.RED
+                FloorMatrix[X+i][j].Color = iLavaColor
                 FloorMatrix[X+i][j].Bright = colors.BRIGHT70
             end
             if FloorMatrix[X+i][j].Click then
-                FloorMatrix[X+i][j].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
         end
     end
@@ -278,15 +268,11 @@ function DrawnCross(X, Y)
     for i = 0, GameConfigObj.WidthLine-1 do
         for j = 1, GameObj.Cols do
             if FloorMatrix[j][Y+i].Color ~= colors.GREEN and not FloorMatrix[j][Y+i].Defect then
-                FloorMatrix[j][Y+i].Color = colors.RED
+                FloorMatrix[j][Y+i].Color = iLavaColor
                 FloorMatrix[j][Y+i].Bright = colors.BRIGHT70
             end
             if FloorMatrix[j][Y+i].Click then
-                FloorMatrix[j][Y+i].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
         end
     end
@@ -321,15 +307,11 @@ function DrawnDiagonal(X, Y)
         local j = Y
         while i <= 24 and j <= 15 do
             if FloorMatrix[i][j].Color ~= colors.GREEN and not FloorMatrix[i][j].Defect then
-                FloorMatrix[i][j].Color = colors.RED
+                FloorMatrix[i][j].Color = iLavaColor
                 FloorMatrix[i][j].Bright = colors.BRIGHT70
             end
             if FloorMatrix[i][j].Click then
-                FloorMatrix[i][j].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
             i = i + 1
             j = j + 1
@@ -339,15 +321,11 @@ function DrawnDiagonal(X, Y)
         j = Y
         while i > 0 and j > 0 do
             if FloorMatrix[i][j].Color ~= colors.GREEN and not FloorMatrix[i][j].Defect then
-                FloorMatrix[i][j].Color = colors.RED
+                FloorMatrix[i][j].Color = iLavaColor
                 FloorMatrix[i][j].Bright = colors.BRIGHT70
             end
             if FloorMatrix[i][j].Click then
-                FloorMatrix[i][j].EffectActivatedAt = {
-                    ActivatedAt = time.unix(),
-                    Durations = GameObj.Durations,
-                }
-                GameStats.CurrentLives = GameStats.CurrentLives - 1
+                DamagePlayer()
             end
             i = i - 1
             j = j - 1
@@ -402,9 +380,9 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
         ButtonsList[num].Bright = colors.BRIGHT70
     end
 
-    audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
-    audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
-    audio.PlaySync("voices/get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    audio.PlaySyncFromScratch("games/perebejka-game.mp3") 
+    audio.PlaySync("tutorial/click_blues_avoiding_lava.mp3")
+    audio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
     audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
@@ -432,6 +410,9 @@ end
 
 local CountingDownTheSeconds = false
 function NextTick()
+    CTimer.CountTimers((time.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = time.unix()
+
     if Stage == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
         GameStats.CurrentLives = GameStats.TotalLives
         x = GameConfigObj.OriginCoordinateX
@@ -473,6 +454,7 @@ function NextTick()
 
             local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
             if alreadyPlayed ~= nil and not alreadyPlayed then
+                audio.PlaySyncFromScratch("")
                 audio.PlayLeftAudio(GameStats.StageLeftDuration)
                 LeftAudioPlayed[GameStats.StageLeftDuration] = true
             end
@@ -504,10 +486,8 @@ function NextTick()
         end
         if timer >= GameConfigObj.Complexity/10 then
             switchStage(Stage)
-        elseif GameStats.StageLeftDuration <= 0 or GameStats.CurrentLives <= 0 then
-            Stage = CONST_STAGE_GAMEOVER
-            GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
-            switchStage(Stage)
+        elseif GameStats.StageLeftDuration <= 0 then
+            Defeat()
         end
 
     elseif Stage == CONST_STAGE_WIN or Stage == CONST_STAGE_GAMEOVER then -- этап длительности победы или поражения
@@ -573,16 +553,7 @@ function PixelClick(click)
     end
     -- Если игрок наступил на враждебный цвет - снимаем жизнь
     if FloorMatrix[click.X][click.Y].Color == colors.RED then
-        FloorMatrix[click.X][click.Y].EffectActivatedAt = {
-            ActivatedAt = time.unix(),
-            Durations = GameObj.Durations,
-        }
-        GameStats.CurrentLives = GameStats.CurrentLives - 1
-        if GameStats.CurrentLives <= 0 then
-            GameStats.CurrentLives = 0
-            Stage = CONST_STAGE_GAMEOVER
-            GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
-        end
+        DamagePlayer()
     else
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             for i=0, GameObj.StartPositionSize*GameObj.StartPositionSize-1 do
@@ -595,8 +566,6 @@ function PixelClick(click)
             end
         end
     end
-
-    audio.PlayAsync(audio.CLICK)
     return nil
 end
 
@@ -629,16 +598,22 @@ function ButtonClick(click)
                     GameStats.Players[1].Score = GameStats.Players[1].Score + 1
                     ButtonsList[click.Button].Color = colors.NONE
                     ButtonsList[click.Button].Bright = colors.BRIGHT70
+                    audio.PlayAsync(audio.CLICK)
                 end
                 if GameStats.StageNum > GameStats.TotalStages then
                     Stage = Stage + 1
                     GameStats.Players[1].Score = GameConfigObj.PointsToWin
                     GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
                     switchStage(Stage)
+
+                    audio.PlaySync(audio.GAME_SUCCESS)
+                    audio.PlaySync(audio.VICTORY)
                 end
                 if GameStats.Players[1].Score >= GameConfigObj.PointsToWin  then
                     GameStats.StageNum = GameStats.StageNum + 1
                     GameStats.Players[1].Score = 0
+
+                    audio.PlaySync(audio.STAGE_DONE)
                 end
                 ---end
             end
@@ -942,6 +917,66 @@ function CountForStart()
     return count
 end
 
+---------------------------------------------------------------------------------------------------------------------------
+bLavaCooldown = false
+iLavaColor = colors.RED
 
+function StartLavaCooldown()
+    if bLavaCooldown then return; end
 
+    bLavaCooldown = true
+    iLavaColor = colors.MAGENTA
 
+    CTimer.New(GameConfigObj.LavaCooldown, function()
+        bLavaCooldown = false
+        iLavaColor = colors.RED
+    end)
+end
+
+function DamagePlayer()
+    if bLavaCooldown then return; end
+
+    GameStats.CurrentLives = GameStats.CurrentLives - 1
+    if GameStats.CurrentLives <= 0 then
+        Defeat()
+    else
+        audio.PlayAsync(audio.MISCLICK)
+        StartLavaCooldown()
+    end
+end
+
+function Defeat()
+    Stage = CONST_STAGE_GAMEOVER
+    GameStats.StageLeftDuration = GameConfigObj.WinDurationSec
+
+    audio.PlaySync(audio.GAME_OVER)
+    audio.PlaySync(audio.DEFEAT)
+end
+
+--TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
+CTimer = {}
+CTimer.tTimers = {}
+
+CTimer.New = function(iSetTime, fCallback)
+    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
+end
+
+-- просчёт таймеров каждый тик
+CTimer.CountTimers = function(iTimePassed)
+    for i = 1, #CTimer.tTimers do
+        if CTimer.tTimers[i] ~= nil then
+            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
+
+            if CTimer.tTimers[i].iTime <= 0 then
+                iNewTime = CTimer.tTimers[i].fCallback()
+                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
+                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
+                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
+                end
+
+                CTimer.tTimers[i] = nil
+            end
+        end
+    end
+end
+--//
