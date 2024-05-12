@@ -1,0 +1,9 @@
+{
+  "Bright": 6,
+  "GameCountdown": 5,
+  "WinDurationMS": 10000,
+  "SafeZoneResetTimer": 4,
+  "HealthMultiplier": 0.5,
+  "LavaFrameDelay": 100,
+  "LavaCooldown": 1500
+}
