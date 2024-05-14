@@ -22,24 +22,24 @@
 
 ### Список текущих механик Pixel Quest
 - **Lua**
-  - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/rainbow_v1/rainbow_v1.lua)
-  - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/pixel_duel_v1/pixel_duel_v1.lua)
-  - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/sea_is_rough_v1/sea_is_rough_v1.lua)
-  - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/safe_color_v1/safe_color_v1.lua)
-  - **Пинг-понг** – *платформами отбиваем мячик друг другу* [ping_pong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/ping_pong_v1/ping_pong_v1.lua)
-  - **Танцы** – *ловим пиксели под веселую корейскую музыку* [dance_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dance_v1/dance_v1.lua)
-  - **Найди цвет** – *на разноцветном поле требуется найти нужный цвет* [find_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/find_color_v1/find_color_v1.lua)
-  - **Защита базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/tower_defence_v1/tower_defence_v1.lua)
-  - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/lava_duel_v1/lava_duel_v1.lua)
-  - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
-  - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
-  - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/minesweeper_v1/minesweeper_v1.lua)
-  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v2/dash_v2.lua)
-  - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/snake_v1/snake_v1.lua)
-  - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/huarong_v1/huarong_v1.lua)
-  - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/olympics_v1/olympics_v1.lua)
-  - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/match_the_picture_v1/match_the_picture_v1.lua)
-  - **Вирус** – *игроки захватывают поле своим цветом* (в процессе разработки)
+  - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/rainbow_v1/rainbow_v1.lua)
+  - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pixel_duel_v1/pixel_duel_v1.lua)
+  - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/sea_is_rough_v1/sea_is_rough_v1.lua)
+  - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/safe_color_v1/safe_color_v1.lua)
+  - **Пинг-понг** – *платформами отбиваем мячик друг другу* [ping_pong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/ping_pong_v1/ping_pong_v1.lua)
+  - **Танцы** – *ловим пиксели под веселую корейскую музыку* [dance_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dance_v1/dance_v1.lua)
+  - **Найди цвет** – *на разноцветном поле требуется найти нужный цвет* [find_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/find_color_v1/find_color_v1.lua)
+  - **Защита базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/tower_defence_v1/tower_defence_v1.lua)
+  - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/lava_duel_v1/lava_duel_v1.lua)
+  - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_race_v1/classics_race_v1.lua)
+  - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/labyrinth_v1/labyrinth_v1.lua)
+  - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v1/minesweeper_v1.lua)
+  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dash_v2/dash_v2.lua)
+  - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/snake_v1/snake_v1.lua)
+  - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/huarong_v1/huarong_v1.lua)
+  - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/olympics_v1/olympics_v1.lua)
+  - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/match_the_picture_v1/match_the_picture_v1.lua)
+  - **Вирус** – *игроки захватывают поле своим цветом (в процессе разработки)*
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
