@@ -34,20 +34,17 @@
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/classics_race_v1/classics_race_v1.lua)
   - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/labyrinth_v1/labyrinth_v1.lua)
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/minesweeper_v1/minesweeper_v1.lua)
-  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v1/dash_v1.lua)
+  - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/dash_v2/dash_v2.lua)
   - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/snake_v1/snake_v1.lua)
   - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/huarong_v1/huarong_v1.lua)
+  - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/olympics_v1/olympics_v1.lua)
+  - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/match_the_picture_v1/match_the_picture_v1.lua)
+  - **Вирус** – *игроки захватывают поле своим цветом* (в процессе разработки)
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
   - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
   - **Классики** – *классики 3х6*
-
-### Приоритетная очередь механик на разработку
-- **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону (уже в процессе разработки на Lua)* 
-- **Черепашьи бега** – *игроки быстро попеременно нажимают на пиксели, а на экране бегут черепашки*
-- **Вирус** – *игроки захватывают поле своим цветом*
-- **Арканоид** – *платформой отбиваем мячик, выбивая блоки на противоположной стороне*
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
