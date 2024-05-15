@@ -488,6 +488,10 @@ CPaint.LavaObject = function(iObjectId)
                     tFloor[iX+iXPlus][iY].iColor = CLava.iColor
                     tFloor[iX+iXPlus][iY].iBright = tConfig.Bright
                     tFloor[iX+iXPlus][iY].iObjectId = iObjectId
+
+                    if tFloor[iX+iXPlus][iY].bClick then
+                        CLava.PlayerStep()
+                    end
                 end
 
                 if CLava.tMapObjects[iObjectId].bDiagonal then
