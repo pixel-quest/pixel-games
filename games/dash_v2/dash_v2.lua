@@ -65,6 +65,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    iObjectId = 0
 }
 local tButtonStruct = { 
     bClick = false,
@@ -190,7 +191,7 @@ CGameMode.bVictory = false
 CGameMode.iRealPlayerCount = 0
 
 CGameMode.InitGameMode = function()
-    tGameStats.TotalStages = #tGame.LavaKeyFrames
+    tGameStats.TotalStages = #tGame.LavaObjects
 end
 
 CGameMode.Announcer = function()
@@ -234,9 +235,9 @@ CGameMode.StartGame = function()
         end
     end
 
-    tGameStats.TotalStars = #tGame.LavaKeyFrames*CGameMode.iRealPlayerCount
-    tGameStats.TotalLives = math.ceil(#tGame.LavaKeyFrames*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
-    tGameStats.CurrentLives = math.ceil(#tGame.LavaKeyFrames*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
+    tGameStats.TotalStars = #tGame.LavaObjects*CGameMode.iRealPlayerCount
+    tGameStats.TotalLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
+    tGameStats.CurrentLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
 
     for i = 1, CGameMode.iRealPlayerCount do
         CGameMode.AssignRandomGoal()
@@ -245,7 +246,7 @@ CGameMode.StartGame = function()
     CLava.LoadMap()
     CTimer.New(tConfig.LavaFrameDelay, function()
         if iGameState == GAMESTATE_GAME then
-            CLava.DrawNextFrame()
+            CLava.UpdateObjects()
             return tConfig.LavaFrameDelay
         end
 
@@ -299,9 +300,8 @@ CGameMode.ResetSafeZoneTimer = function(tButton)
     local iTime = tConfig.SafeZoneResetTimer
 
     CTimer.New(1000, function()
-        iTime = iTime - 1
-
-        if not tButton.bGoal then
+        if tConfig.HardZoneDespawn or not CGameMode.SafeZoneClicked(tButton) then
+            iTime = iTime - 1
             if tButton.iSafeZoneBright > 1 then
                 tButton.iSafeZoneBright = tButton.iSafeZoneBright - 1
             end
@@ -310,10 +310,11 @@ CGameMode.ResetSafeZoneTimer = function(tButton)
                 return 1000
             else
                 tButton.bSafeZoneOn = false
+                return nil
             end
+        else
+            return 1000
         end
-
-        return nil
     end)
 end
 
@@ -350,100 +351,96 @@ end
 --LAVA
 CLava = {}
 CLava.iMapId = 1
-CLava.iFrame = 0
-CLava.tField = {}
-CLava.iFieldCount = 0
-CLava.tNextKeyFrame = {}
+CLava.tMapObjects = {}
 CLava.iColor = CColors.RED
 CLava.bCooldown = false
 
+CLava.tMapObjectStruct = 
+{
+    iX = 0,
+    iY = 0,
+    iSizeX = 0,
+    iSizeY = 0,
+    iVelX = 0,
+    iVelY = 0,
+    bIgnoreBoundsX = false,
+    bIgnoreBoundsY = false,
+    bCollision = false,
+    bDiagonal = false,
+    iDiagonalDirection = 0
+}
+
 CLava.LoadMap = function()
-    CLava.LoadNextKeyFrame(true)
-    CLava.LoadNextKeyFrame(false)   
+    CLava.tMapObjects = {}
+
+    for iObjectId = 1, #tGame.LavaObjects[CLava.iMapId] do
+        CLava.tMapObjects[iObjectId] = CHelp.ShallowCopy(CLava.tMapObjectStruct)
+        CLava.tMapObjects[iObjectId].iX = tGame.LavaObjects[CLava.iMapId][iObjectId].PosX
+        CLava.tMapObjects[iObjectId].iY = tGame.LavaObjects[CLava.iMapId][iObjectId].PosY
+        CLava.tMapObjects[iObjectId].iSizeX = tGame.LavaObjects[CLava.iMapId][iObjectId].SizeX
+        CLava.tMapObjects[iObjectId].iSizeY = tGame.LavaObjects[CLava.iMapId][iObjectId].SizeY
+        CLava.tMapObjects[iObjectId].iVelX = tGame.LavaObjects[CLava.iMapId][iObjectId].VelX
+        CLava.tMapObjects[iObjectId].iVelY = tGame.LavaObjects[CLava.iMapId][iObjectId].VelY
+        CLava.tMapObjects[iObjectId].bIgnoreBoundsX = tGame.LavaObjects[CLava.iMapId][iObjectId].IgnoreBoundsX
+        CLava.tMapObjects[iObjectId].bIgnoreBoundsY = tGame.LavaObjects[CLava.iMapId][iObjectId].IgnoreBoundsY
+        CLava.tMapObjects[iObjectId].bCollision = tGame.LavaObjects[CLava.iMapId][iObjectId].Collision
+        CLava.tMapObjects[iObjectId].bDiagonal = tGame.LavaObjects[CLava.iMapId][iObjectId].Diagonal
+        CLava.tMapObjects[iObjectId].iDiagonalDirection = tGame.LavaObjects[CLava.iMapId][iObjectId].DiagonalDirection
+    end
 end
 
-CLava.LoadNextKeyFrame = function(bFirstFrame)
-    if bFirstFrame then
-        CLava.iFrame = 0
-        CLava.tField = {}
-        CLava.iFieldCount = 0
-        CLava.tNextKeyFrame = {}
+CLava.UpdateObjects = function()
+    for iObjectId = 1, #CLava.tMapObjects do
+        if CLava.tMapObjects[iObjectId] then
+            CLava.ObjectMovement(iObjectId)
+        end
     end
+end
 
-    CLava.iFrame = CLava.iFrame + 1
-    if CLava.iFrame > #tGame.LavaKeyFrames[CLava.iMapId] then
-        CLava.iFrame = 1
-    end
+CLava.ObjectMovement = function(iObjectId)
+    local tObject = CLava.tMapObjects[iObjectId]
 
-    local tMap = tGame.LavaKeyFrames[CLava.iMapId][CLava.iFrame]
+    local iX = tObject.iX + tObject.iVelX
+    local iY = tObject.iY + tObject.iVelY
 
-    for iY = 1, tGame.Rows  do
-        for iX = 1, tGame.Cols do
-            local bLava = false
-            local sPixelId = "00"
-            if tMap[iY] ~= nil and tMap[iY][iX] ~= nil and tMap[iY][iX] ~= "00" then
-                bLava = true
-                sPixelId = tMap[iY][iX]
+    local bCantMoveX = false
+    local bCantMoveY = false
+    for iXCheck = iX, iX + tObject.iSizeX-1 do
+        for iYCheck = iY, iY + tObject.iSizeY-1 do
+            if not tFloor[iXCheck] and not tObject.bIgnoreBoundsX then 
+                bCantMoveX = true
+            end
+            if tFloor[iXCheck] and not tFloor[iXCheck][iYCheck] and not tObject.bIgnoreBoundsY then
+                bCantMoveY = true
             end
 
-            if bLava then
-                CLava.tNextKeyFrame = CLava.AddPixelToFrame(CLava.tNextKeyFrame, iX, iY, sPixelId)
+            if tObject.bCollision and (tFloor[iXCheck] and tFloor[iXCheck][iYCheck]) and tFloor[iXCheck][iYCheck].iObjectId > 0 and tFloor[iXCheck][iYCheck].iObjectId ~= iObjectId then
+                --collision
+            end
 
-                if bFirstFrame then
-                    CLava.tField = CLava.AddPixelToFrame(CLava.tField, iX, iY, sPixelId)
-                    CLava.iFieldCount = CLava.iFieldCount + 1
+            if tObject.bDiagonal then
+                if 
+                (tObject.iDiagonalDirection == 1 and (iX < -tObject.iSizeX*2.5 or iY < -tObject.iSizeY/2)) 
+                or
+                (tObject.iDiagonalDirection == -1 and (iY < -tObject.iSizeY/2 or iX > tGame.Cols + tObject.iSizeX*2.5)) 
+                then
+                    bCantMoveX = true
+                    bCantMoveY = true
                 end
             end
+
+            if bCantMoveX and bCantMoveY then break end
         end
     end
-end
-
-CLava.AddPixelToFrame = function(tFrame, iX, iY, sPixelId)
-    tFrame[sPixelId] = {}
-    tFrame[sPixelId].iX = iX
-    tFrame[sPixelId].iY = iY
-
-    return tFrame
-end
-
-CLava.DrawNextFrame = function()
-    local iEndInterpCount = 0
-
-    for sPixelId, tPixel in pairs(CLava.tField) do
-        if CLava.InterpolatePixel(sPixelId) then
-            iEndInterpCount = iEndInterpCount + 1
-        end
+    if bCantMoveX then
+        tObject.iVelX = -tObject.iVelX
+    end
+    if bCantMoveY then
+        tObject.iVelY = -tObject.iVelY
     end
 
-    if iEndInterpCount == CLava.iFieldCount then
-        CLava.LoadNextKeyFrame(false)
-    end
-end
-
-CLava.InterpolatePixel = function(sPixelId)
-    local iTargetX = CLava.tNextKeyFrame[sPixelId].iX
-    local iTargetY = CLava.tNextKeyFrame[sPixelId].iY
-
-    if CLava.tField[sPixelId].iX < iTargetX then
-        CLava.tField[sPixelId].iX  = CLava.tField[sPixelId].iX + 1
-    elseif CLava.tField[sPixelId].iX > iTargetX then
-        CLava.tField[sPixelId].iX  = CLava.tField[sPixelId].iX - 1
-    end
-    if CLava.tField[sPixelId].iY < iTargetY then
-        CLava.tField[sPixelId].iY  = CLava.tField[sPixelId].iY + 1
-    elseif CLava.tField[sPixelId].iY > iTargetY then
-        CLava.tField[sPixelId].iY  = CLava.tField[sPixelId].iY - 1
-    end
-
-    --осторожно, костыль
-    if tFloor[CLava.tField[sPixelId].iX][CLava.tField[sPixelId].iY].iColor ~= CColors.GREEN and tFloor[CLava.tField[sPixelId].iX][CLava.tField[sPixelId].iY].bClick then
-        CLava.PlayerStep()
-    end
-
-    if CLava.tField[sPixelId].iX == iTargetX and CLava.tField[sPixelId].iY == iTargetY then
-        return true
-    end
-    return false
+    tObject.iX = tObject.iX + tObject.iVelX
+    tObject.iY = tObject.iY + tObject.iVelY
 end
 
 CLava.PlayerStep = function()
@@ -470,10 +467,35 @@ CPaint = {}
 CPaint.ANIMATION_DELAY = 100
 
 CPaint.Lava = function()
-    for sPixelId, tPixel in pairs(CLava.tField) do
-        tFloor[tPixel.iX][tPixel.iY].iColor = CLava.iColor
-        tFloor[tPixel.iX][tPixel.iY].iBright = tConfig.Bright
+    for iObjectId = 1, #CLava.tMapObjects do
+        if CLava.tMapObjects[iObjectId] then
+            CPaint.LavaObject(iObjectId)
+        end
     end
+end
+
+CPaint.LavaObject = function(iObjectId)
+    for iX = CLava.tMapObjects[iObjectId].iX, CLava.tMapObjects[iObjectId].iSizeX + CLava.tMapObjects[iObjectId].iX -1 do
+
+        local iXPlus = 0
+        if CLava.tMapObjects[iObjectId].bDiagonal then
+            iXPlus = CLava.tMapObjects[iObjectId].iDiagonalDirection
+        end
+
+        if tFloor[iX] or CLava.tMapObjects[iObjectId].bDiagonal then
+            for iY = CLava.tMapObjects[iObjectId].iY, CLava.tMapObjects[iObjectId].iSizeY + CLava.tMapObjects[iObjectId].iY -1 do
+                if tFloor[iX+iXPlus] and tFloor[iX+iXPlus][iY] then
+                    tFloor[iX+iXPlus][iY].iColor = CLava.iColor
+                    tFloor[iX+iXPlus][iY].iBright = tConfig.Bright
+                    tFloor[iX+iXPlus][iY].iObjectId = iObjectId
+                end
+
+                if CLava.tMapObjects[iObjectId].bDiagonal then
+                    iXPlus = iXPlus + CLava.tMapObjects[iObjectId].iDiagonalDirection
+                end
+            end
+        end
+    end  
 end
 
 CPaint.Buttons = function()
@@ -590,6 +612,7 @@ function SetGlobalColorBright(iColor, iBright)
         for iY = 1, tGame.Rows do
             tFloor[iX][iY].iColor = iColor
             tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].iObjectId = 0
         end
     end
 
