@@ -65,7 +65,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    iObjectId = 0
+    iObjectId = 0,
+    tSafeZoneButton = nil
 }
 local tButtonStruct = { 
     bClick = false,
@@ -143,7 +144,11 @@ function GameSetupTick()
 
     local iPlayersReady = 0
 
+    local iButton = 0
     for iPos, tPos in pairs(tButtons) do
+        iButton = iButton + 1
+        if iButton > 6 then break; end
+
         local iBright = CColors.BRIGHT15
         if CGameMode.SafeZoneClicked(tPos) or (bCountDownStarted and tPlayerInGame[iPos]) then
             iBright = tConfig.Bright
@@ -503,7 +508,7 @@ CPaint.LavaObject = function(iObjectId)
                 tFloor[iX][iY].iBright = tConfig.Bright
                 tFloor[iX][iY].iObjectId = iObjectId
 
-                if tFloor[iX][iY].bClick then
+                if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
                     CLava.PlayerStep()
                 end
             end
@@ -539,6 +544,7 @@ CPaint.SafeZone = function(tButton, iBright)
         for iY = tButton.iSafeZoneY, tButton.iSafeZoneY + tGame.SafeZoneSizeY-1 do
             tFloor[iX][iY].iColor = CColors.GREEN
             tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].tSafeZoneButton = tButton
         end
     end
 end
