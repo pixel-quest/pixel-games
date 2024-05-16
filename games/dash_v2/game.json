@@ -51,7 +51,7 @@
         "PosX": 1,
         "PosY": 1,
         "SizeX": 24,
-        "SizeY": 3,
+        "SizeY": 2,
         "VelX": 0,
         "VelY": 1,
         "IgnoreBoundsX": false,
@@ -63,7 +63,7 @@
       {
         "PosX": 1,
         "PosY": 1,
-        "SizeX": 3,
+        "SizeX": 2,
         "SizeY": 15,
         "VelX": 1,
         "VelY": 0,
@@ -79,7 +79,7 @@
         "SizeX": 3,
         "SizeY": 20,
         "VelX": -1,
-        "VelY": 1,
+        "VelY": 0,
         "IgnoreBoundsX": true,
         "IgnoreBoundsY": true,
         "Collision": false,
@@ -89,12 +89,12 @@
     ],
     [
       {
-        "PosX": 24,
+        "PosX": 3,
         "PosY": -1,
         "SizeX": 3,
         "SizeY": 20,
         "VelX": -1,
-        "VelY": -1,
+        "VelY": 0,
         "IgnoreBoundsX": true,
         "IgnoreBoundsY": true,
         "Collision": false,
@@ -125,35 +125,7 @@
         "IgnoreBoundsY": false,
         "Collision": false
       }     
-    ],
-    [
-      {
-        "PosX": 1,
-        "PosY": -1,
-        "SizeX": 3,
-        "SizeY": 20,
-        "VelX": -1,
-        "VelY": 1,
-        "IgnoreBoundsX": true,
-        "IgnoreBoundsY": true,
-        "Collision": false,
-        "Diagonal": true,
-        "DiagonalDirection": 1
-      },
-      {
-        "PosX": 24,
-        "PosY": -1,
-        "SizeX": 3,
-        "SizeY": 20,
-        "VelX": -1,
-        "VelY": -1,
-        "IgnoreBoundsX": true,
-        "IgnoreBoundsY": true,
-        "Collision": false,
-        "Diagonal": true,
-        "DiagonalDirection": -1
-      }
-    ]   
+    ]  
   ],
 
   "SafeZoneSizeX": 2,

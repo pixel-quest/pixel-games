@@ -420,12 +420,12 @@ CLava.ObjectMovement = function(iObjectId)
 
             if tObject.bDiagonal then
                 if 
-                (tObject.iDiagonalDirection == 1 and (iX < -tObject.iSizeX*2.5 or iY < -tObject.iSizeY/2)) 
-                or
-                (tObject.iDiagonalDirection == -1 and (iY < -tObject.iSizeY/2 or iX > tGame.Cols + tObject.iSizeX*2.5)) 
+                    tObject.iDiagonalDirection == 1 and (iX < -tObject.iSizeY + tObject.iSizeX or iX > tGame.Cols - tObject.iSizeX)
+                or 
+                    tObject.iDiagonalDirection == -1 and (iX < tObject.iSizeX+1 or iX > tGame.Cols + tObject.iSizeY - tObject.iSizeX)
                 then
                     bCantMoveX = true
-                    bCantMoveY = true
+                    break
                 end
             end
 
@@ -475,31 +475,25 @@ CPaint.Lava = function()
 end
 
 CPaint.LavaObject = function(iObjectId)
-    for iX = CLava.tMapObjects[iObjectId].iX, CLava.tMapObjects[iObjectId].iSizeX + CLava.tMapObjects[iObjectId].iX -1 do
+    local iXStart = CLava.tMapObjects[iObjectId].iX
 
-        local iXPlus = 0
+    for iY = CLava.tMapObjects[iObjectId].iY, CLava.tMapObjects[iObjectId].iSizeY + CLava.tMapObjects[iObjectId].iY -1 do
         if CLava.tMapObjects[iObjectId].bDiagonal then
-            iXPlus = CLava.tMapObjects[iObjectId].iDiagonalDirection
+            iXStart = iXStart + CLava.tMapObjects[iObjectId].iDiagonalDirection
         end
 
-        if tFloor[iX] or CLava.tMapObjects[iObjectId].bDiagonal then
-            for iY = CLava.tMapObjects[iObjectId].iY, CLava.tMapObjects[iObjectId].iSizeY + CLava.tMapObjects[iObjectId].iY -1 do
-                if tFloor[iX+iXPlus] and tFloor[iX+iXPlus][iY] then
-                    tFloor[iX+iXPlus][iY].iColor = CLava.iColor
-                    tFloor[iX+iXPlus][iY].iBright = tConfig.Bright
-                    tFloor[iX+iXPlus][iY].iObjectId = iObjectId
+        for iX = iXStart, CLava.tMapObjects[iObjectId].iSizeX + iXStart -1 do
+            if tFloor[iX] and tFloor[iX][iY] then
+                tFloor[iX][iY].iColor = CLava.iColor
+                tFloor[iX][iY].iBright = tConfig.Bright
+                tFloor[iX][iY].iObjectId = iObjectId
 
-                    if tFloor[iX+iXPlus][iY].bClick then
-                        CLava.PlayerStep()
-                    end
-                end
-
-                if CLava.tMapObjects[iObjectId].bDiagonal then
-                    iXPlus = iXPlus + CLava.tMapObjects[iObjectId].iDiagonalDirection
+                if tFloor[iX][iY].bClick then
+                    CLava.PlayerStep()
                 end
             end
         end
-    end  
+    end
 end
 
 CPaint.Buttons = function()
@@ -648,6 +642,7 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)

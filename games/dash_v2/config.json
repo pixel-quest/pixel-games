@@ -4,7 +4,7 @@
   "WinDurationMS": 10000,
   "SafeZoneResetTimer": 4,
   "HealthMultiplier": 0.5,
-  "LavaFrameDelay": 100,
+  "LavaFrameDelay": 200,
   "LavaCooldown": 1500,
   "HardZoneDespawn": false
 }
