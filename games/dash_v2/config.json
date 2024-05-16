@@ -5,5 +5,6 @@
   "SafeZoneResetTimer": 4,
   "HealthMultiplier": 0.5,
   "LavaFrameDelay": 100,
-  "LavaCooldown": 1500
+  "LavaCooldown": 1500,
+  "HardZoneDespawn": false
 }
