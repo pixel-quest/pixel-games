@@ -91,10 +91,25 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    for _, tButton in pairs(tGame.ButtonsCustom) do
-        tButtons[tButton.id] = CHelp.ShallowCopy(tButtonStruct)
-        tButtons[tButton.id].iSafeZoneX = tButton.X
-        tButtons[tButton.id].iSafeZoneY = tButton.Y
+    for _, iButton in pairs(tGame.Buttons) do
+        tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
+
+        local iX = iButton+1
+        local iY = 1
+
+        if iX > tGame.Cols*2 + tGame.Rows then
+            iX = 1
+            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows))
+        elseif iX > tGame.Cols + tGame.Rows then
+            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 2
+            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
+        elseif iX > tGame.Cols then
+            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
+            iY = iButton - tGame.Cols + 1
+        end
+
+        tButtons[iButton].iSafeZoneX = iX
+        tButtons[iButton].iSafeZoneY = iY
     end
 
     CGameMode.InitGameMode()
@@ -286,7 +301,7 @@ CGameMode.ReachGoal = function(tButton)
 end
 
 CGameMode.AssignRandomGoal = function()
-    local iButtonId = tGame.ButtonsCustom[math.random(1, #tGame.ButtonsCustom)].id
+    local iButtonId = tGame.Buttons[math.random(1, #tGame.Buttons)]
     if tButtons[iButtonId] and not tButtons[iButtonId].bDefect and not tButtons[iButtonId].bGoal and not tButtons[iButtonId].bSafeZoneOn then
         tButtons[iButtonId].bGoal = true
         tButtons[iButtonId].bSafeZoneOn = true
