@@ -94,18 +94,18 @@ function StartGame(gameJson, gameConfigJson)
     for _, iButton in pairs(tGame.Buttons) do
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
-        local iX = iButton+1
+        local iX = iButton
         local iY = 1
 
         if iX > tGame.Cols*2 + tGame.Rows then
             iX = 1
-            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows))
+            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
         elseif iX > tGame.Cols + tGame.Rows then
-            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 2
+            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
             iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
         elseif iX > tGame.Cols then
             iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
-            iY = iButton - tGame.Cols + 1
+            iY = iButton - tGame.Cols 
         end
 
         tButtons[iButton].iSafeZoneX = iX
