@@ -22,28 +22,6 @@
     73,
     77
   ],
-  "ButtonsCustom": 
-  [
-    {"id": 2,   "X": 3, "Y": 1},
-    {"id": 6,   "X": 6, "Y": 1},
-    {"id": 10,  "X": 10, "Y": 1},
-    {"id": 14,  "X": 14, "Y": 1},
-    {"id": 18,  "X": 18, "Y": 1},
-    {"id": 22,  "X": 21, "Y": 1},
-    {"id": 26,  "X": 23, "Y": 3},
-    {"id": 30,  "X": 23, "Y": 6},
-    {"id": 34,  "X": 23, "Y": 10},
-    {"id": 42,  "X": 22, "Y": 14},
-    {"id": 46,  "X": 18, "Y": 14},
-    {"id": 50,  "X": 14, "Y": 14},
-    {"id": 54,  "X": 10, "Y": 14},
-    {"id": 58,  "X": 6, "Y": 14},
-    {"id": 62,  "X": 3, "Y": 14},
-    {"id": 65,  "X": 1, "Y": 13},
-    {"id": 69,  "X": 1, "Y": 9},
-    {"id": 73,  "X": 1, "Y": 5},
-    {"id": 77,  "X": 1, "Y": 2}
-  ],
   "LavaObjects":
   [
     [
@@ -51,7 +29,7 @@
         "PosX": 1,
         "PosY": 1,
         "SizeX": 24,
-        "SizeY": 3,
+        "SizeY": 2,
         "VelX": 0,
         "VelY": 1,
         "IgnoreBoundsX": false,
@@ -63,7 +41,7 @@
       {
         "PosX": 1,
         "PosY": 1,
-        "SizeX": 3,
+        "SizeX": 2,
         "SizeY": 15,
         "VelX": 1,
         "VelY": 0,
@@ -79,7 +57,7 @@
         "SizeX": 3,
         "SizeY": 20,
         "VelX": -1,
-        "VelY": 1,
+        "VelY": 0,
         "IgnoreBoundsX": true,
         "IgnoreBoundsY": true,
         "Collision": false,
@@ -89,12 +67,12 @@
     ],
     [
       {
-        "PosX": 24,
+        "PosX": 3,
         "PosY": -1,
         "SizeX": 3,
         "SizeY": 20,
         "VelX": -1,
-        "VelY": -1,
+        "VelY": 0,
         "IgnoreBoundsX": true,
         "IgnoreBoundsY": true,
         "Collision": false,
@@ -125,35 +103,7 @@
         "IgnoreBoundsY": false,
         "Collision": false
       }     
-    ],
-    [
-      {
-        "PosX": 1,
-        "PosY": -1,
-        "SizeX": 3,
-        "SizeY": 20,
-        "VelX": -1,
-        "VelY": 1,
-        "IgnoreBoundsX": true,
-        "IgnoreBoundsY": true,
-        "Collision": false,
-        "Diagonal": true,
-        "DiagonalDirection": 1
-      },
-      {
-        "PosX": 24,
-        "PosY": -1,
-        "SizeX": 3,
-        "SizeY": 20,
-        "VelX": -1,
-        "VelY": -1,
-        "IgnoreBoundsX": true,
-        "IgnoreBoundsY": true,
-        "Collision": false,
-        "Diagonal": true,
-        "DiagonalDirection": -1
-      }
-    ]   
+    ]  
   ],
 
   "SafeZoneSizeX": 2,

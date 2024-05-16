@@ -65,7 +65,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    iObjectId = 0
+    iObjectId = 0,
+    tSafeZoneButton = nil
 }
 local tButtonStruct = { 
     bClick = false,
@@ -91,10 +92,25 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    for _, tButton in pairs(tGame.ButtonsCustom) do
-        tButtons[tButton.id] = CHelp.ShallowCopy(tButtonStruct)
-        tButtons[tButton.id].iSafeZoneX = tButton.X
-        tButtons[tButton.id].iSafeZoneY = tButton.Y
+    for _, iButton in pairs(tGame.Buttons) do
+        tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
+
+        local iX = iButton
+        local iY = 1
+
+        if iX > tGame.Cols*2 + tGame.Rows then
+            iX = 1
+            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
+        elseif iX > tGame.Cols + tGame.Rows then
+            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
+            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
+        elseif iX > tGame.Cols then
+            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
+            iY = iButton - tGame.Cols 
+        end
+
+        tButtons[iButton].iSafeZoneX = iX
+        tButtons[iButton].iSafeZoneY = iY
     end
 
     CGameMode.InitGameMode()
@@ -128,7 +144,11 @@ function GameSetupTick()
 
     local iPlayersReady = 0
 
+    local iButton = 0
     for iPos, tPos in pairs(tButtons) do
+        iButton = iButton + 1
+        if iButton > 6 then break; end
+
         local iBright = CColors.BRIGHT15
         if CGameMode.SafeZoneClicked(tPos) or (bCountDownStarted and tPlayerInGame[iPos]) then
             iBright = tConfig.Bright
@@ -286,7 +306,7 @@ CGameMode.ReachGoal = function(tButton)
 end
 
 CGameMode.AssignRandomGoal = function()
-    local iButtonId = tGame.ButtonsCustom[math.random(1, #tGame.ButtonsCustom)].id
+    local iButtonId = tGame.Buttons[math.random(1, #tGame.Buttons)]
     if tButtons[iButtonId] and not tButtons[iButtonId].bDefect and not tButtons[iButtonId].bGoal and not tButtons[iButtonId].bSafeZoneOn then
         tButtons[iButtonId].bGoal = true
         tButtons[iButtonId].bSafeZoneOn = true
@@ -420,12 +440,12 @@ CLava.ObjectMovement = function(iObjectId)
 
             if tObject.bDiagonal then
                 if 
-                (tObject.iDiagonalDirection == 1 and (iX < -tObject.iSizeX*2.5 or iY < -tObject.iSizeY/2)) 
-                or
-                (tObject.iDiagonalDirection == -1 and (iY < -tObject.iSizeY/2 or iX > tGame.Cols + tObject.iSizeX*2.5)) 
+                    tObject.iDiagonalDirection == 1 and (iX < -tObject.iSizeY + tObject.iSizeX or iX > tGame.Cols - tObject.iSizeX)
+                or 
+                    tObject.iDiagonalDirection == -1 and (iX < tObject.iSizeX+1 or iX > tGame.Cols + tObject.iSizeY - tObject.iSizeX)
                 then
                     bCantMoveX = true
-                    bCantMoveY = true
+                    break
                 end
             end
 
@@ -475,31 +495,25 @@ CPaint.Lava = function()
 end
 
 CPaint.LavaObject = function(iObjectId)
-    for iX = CLava.tMapObjects[iObjectId].iX, CLava.tMapObjects[iObjectId].iSizeX + CLava.tMapObjects[iObjectId].iX -1 do
+    local iXStart = CLava.tMapObjects[iObjectId].iX
 
-        local iXPlus = 0
+    for iY = CLava.tMapObjects[iObjectId].iY, CLava.tMapObjects[iObjectId].iSizeY + CLava.tMapObjects[iObjectId].iY -1 do
         if CLava.tMapObjects[iObjectId].bDiagonal then
-            iXPlus = CLava.tMapObjects[iObjectId].iDiagonalDirection
+            iXStart = iXStart + CLava.tMapObjects[iObjectId].iDiagonalDirection
         end
 
-        if tFloor[iX] or CLava.tMapObjects[iObjectId].bDiagonal then
-            for iY = CLava.tMapObjects[iObjectId].iY, CLava.tMapObjects[iObjectId].iSizeY + CLava.tMapObjects[iObjectId].iY -1 do
-                if tFloor[iX+iXPlus] and tFloor[iX+iXPlus][iY] then
-                    tFloor[iX+iXPlus][iY].iColor = CLava.iColor
-                    tFloor[iX+iXPlus][iY].iBright = tConfig.Bright
-                    tFloor[iX+iXPlus][iY].iObjectId = iObjectId
+        for iX = iXStart, CLava.tMapObjects[iObjectId].iSizeX + iXStart -1 do
+            if tFloor[iX] and tFloor[iX][iY] then
+                tFloor[iX][iY].iColor = CLava.iColor
+                tFloor[iX][iY].iBright = tConfig.Bright
+                tFloor[iX][iY].iObjectId = iObjectId
 
-                    if tFloor[iX+iXPlus][iY].bClick then
-                        CLava.PlayerStep()
-                    end
-                end
-
-                if CLava.tMapObjects[iObjectId].bDiagonal then
-                    iXPlus = iXPlus + CLava.tMapObjects[iObjectId].iDiagonalDirection
+                if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
+                    CLava.PlayerStep()
                 end
             end
         end
-    end  
+    end
 end
 
 CPaint.Buttons = function()
@@ -530,6 +544,7 @@ CPaint.SafeZone = function(tButton, iBright)
         for iY = tButton.iSafeZoneY, tButton.iSafeZoneY + tGame.SafeZoneSizeY-1 do
             tFloor[iX][iY].iColor = CColors.GREEN
             tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].tSafeZoneButton = tButton
         end
     end
 end
@@ -648,6 +663,7 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
