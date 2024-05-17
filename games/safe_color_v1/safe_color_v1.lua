@@ -138,6 +138,7 @@ local PlayerInGame = {}
 local CONST_STAGE_START = 0 -- выбор мест
 local CONST_STAGE_GAME = 1 -- игра
 local StageStartTime = 0 -- время начала текущего этапа
+local LavaSpawnTime = 0
 
 -- Звуки обратного отсчета и прохождения этапа, проигрываются один раз
 local LeftAudioPlayed = { -- 3... 2... 1...
@@ -250,11 +251,16 @@ function NextTick()
         local timeSinceStageStart = time.unix() - StageStartTime
         if timeSinceStageStart > GameConfigObj.StageDurationSec + GameConfigObj.StopDurationSec then -- время переключить этап
             switchStage(GameStats.StageNum+1)
+            LavaSpawnTime = 0
         elseif timeSinceStageStart > GameConfigObj.StageDurationSec then -- время поджигать пол
             GameStats.StageLeftDuration = 0
             -- (яркость - 1) это чтобы видеть отличие красных зон от заливки
             setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, targetColor(GameStats.StageNum))
             processClicksAndEffects()
+            
+            if LavaSpawnTime == 0 then
+                LavaSpawnTime = time.unix()
+            end
 
             -- если это был последний этап
             if GameStats.StageNum == GameConfigObj.StagesQty then
@@ -607,7 +613,8 @@ function processClicksAndEffects()
                 end
             elseif not pixel.Defect and pixel.Click and -- есть нажатие
                     pixel.Bright < GameConfigObj.Bright and -- яркость заливки меньше, чем таргет цвета
-                    GameStats.StageNum <= GameConfigObj.StagesQty then -- это еще не финиш
+                    GameStats.StageNum <= GameConfigObj.StagesQty and -- это еще не финиш
+                    LavaSpawnTime > 0 and (time.unix() - LavaSpawnTime)*1000 > GameConfigObj.LavaDelay then
                 -- минус жизнь, старт эффект
                 audio.PlayAsync(audio.MISCLICK)
                 minusLive()
