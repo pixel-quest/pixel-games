@@ -6,5 +6,6 @@
   "HealthMultiplier": 0.5,
   "LavaFrameDelay": 200,
   "LavaCooldown": 1500,
-  "HardZoneDespawn": false
+  "HardZoneDespawn": false,
+  "StageSwitchHitRegDelay": 1500
 }

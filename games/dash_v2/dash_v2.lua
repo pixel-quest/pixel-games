@@ -345,6 +345,11 @@ CGameMode.NextStage = function()
         tGameStats.StageNum = tGameStats.StageNum + 1
         CLava.iMapId = tGameStats.StageNum
         CLava.LoadMap()
+
+        CLava.bCooldown = true
+        CTimer.New(tConfig.StageSwitchHitRegDelay, function()
+            CLava.bCooldown = false
+        end)
     end
 end
 
