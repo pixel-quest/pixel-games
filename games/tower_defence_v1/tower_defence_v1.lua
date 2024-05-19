@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.4
+Версия: 1.5
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -10,6 +10,9 @@
     Большинство врагов наносит урон доходя до базы пешком, некоторые атакуют из далека
     У базы ограниченое колво здоровья, если здоровья нет - игра проиграна
     Для победы нужно раздавить определенное число врагов
+
+    После раздавливания врага, игроки могут получить бонус, чтобы его забрать нужно добежать до зеленой кнопки и нажать её
+    Бонусы могут быть разные, от повышения здоровья базы до появления союзного юнита, который сам будет давить врагов
 
 Чтобы начать игру нужно нажать на любую кнопку
 
@@ -29,8 +32,6 @@
 
 Идеи по доработке механники:
     Хардкорная сложность?
-    Постройка укреплений?
-    Помогающие юниты?
 
 Описание типов врагов:
     Обычный враг (UNIT_TYPE_DEFLT):
@@ -154,6 +155,7 @@ local tButtonStruct = {
     iBright = CColors.BRIGHT0,
     bClick = false,
     bDefect = false,
+    bHasBuff = false
 }
 
 function StartGame(gameJson, gameConfigJson)
@@ -394,6 +396,72 @@ CGameMode.DamageBase = function(iDamageAmount)
         CGameMode.Defeat()
     end
 end
+
+CGameMode.HealBase = function(iHealAmount)
+    CGameMode.tBase.iHealth = CGameMode.tBase.iHealth + CGameMode.tSettings.BuffHealAmount
+    if CGameMode.tBase.iHealth > CGameMode.tSettings.BaseHealth then
+        CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
+    end
+
+    tGameStats.CurrentLives = CGameMode.tBase.iHealth
+end
+--//
+
+--Buffs
+CBuffs = {}
+
+CBuffs.iBuffsDropped = 0
+CBuffs.iLastBuffType = 0
+
+CBuffs.BUFF_TYPE_HEAL = 1
+CBuffs.BUFF_TYPE_KILLALL = 2
+CBuffs.BUFF_TYPE_ALLY = 3
+CBuffs.BUFF_TYPE_COUNT = 3
+
+CBuffs.ApplyBuff = function(iBuffType)
+    CLog.print("ApplyBuff type #"..iBuffType)
+
+    if iBuffType == CBuffs.BUFF_TYPE_HEAL then
+        CGameMode.HealBase()
+        CAudio.PlaySync("voices/towerdefence-health-buff.mp3")
+    elseif iBuffType == CBuffs.BUFF_TYPE_KILLALL then
+        CUnits.KillAll()
+        CAudio.PlaySync("voices/towerdefence-killall-buff.mp3")
+    elseif iBuffType == CBuffs.BUFF_TYPE_ALLY then
+        CUnits.NewUnit(CGameMode.tBase.iX + math.random(-3,3), CGameMode.tBase.iY + math.random(-2,2), CUnits.UNIT_TYPE_ALLY, false, false)
+        CAudio.PlaySync("voices/towerdefence-ally-buff.mp3")
+    end 
+end
+
+CBuffs.RandomBuffType = function()
+    if CBuffs.iLastBuffType == 0 then 
+        CBuffs.iLastBuffType = math.random(1, CBuffs.BUFF_TYPE_COUNT)
+    else
+        CBuffs.iLastBuffType = CBuffs.iLastBuffType + 1
+        if CBuffs.iLastBuffType > CBuffs.BUFF_TYPE_COUNT then
+            CBuffs.iLastBuffType = 1
+        end
+    end
+
+    return CBuffs.iLastBuffType
+end
+
+CBuffs.DropBuffForPlayers = function()
+    local iButtonId = math.random(1, #tButtons)
+
+    if not tButtons[iButtonId] or tButtons[iButtonId].bDefect then 
+        CBuffs.DropBuffForPlayers()
+        return;
+    end
+
+    tButtons[iButtonId].bHasBuff = true
+    CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
+    CAudio.PlaySync("voices/towerdefence-new-buff.mp3")
+end
+
+CBuffs.PlayerCollectBuff = function()
+    CBuffs.ApplyBuff(CBuffs.RandomBuffType())
+end
 --//
 
 --UNITS
@@ -421,6 +489,7 @@ CUnits.UNIT_TYPE_SHOOT = 2
 CUnits.UNIT_TYPE_BLINK = 3
 CUnits.UNIT_TYPE_SLIME = 4
 CUnits.UNIT_TYPE_HEAVY = 5
+CUnits.UNIT_TYPE_ALLY = 9
 
 CUnits.UNIT_TYPE_TO_COLOR = {}
 CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_DEFLT] = CColors.WHITE
@@ -428,6 +497,7 @@ CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_SHOOT] = CColors.RED
 CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_BLINK] = CColors.MAGENTA
 CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_SLIME] = CColors.BLUE
 CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_HEAVY] = CColors.GREEN
+CUnits.UNIT_TYPE_TO_COLOR[CUnits.UNIT_TYPE_ALLY] = CColors.GREEN
 
 CUnits.UNIT_TYPE_HEALTH = {}
 CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_DEFLT] = 1
@@ -435,6 +505,7 @@ CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_SHOOT] = 1
 CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_BLINK] = 1
 CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_SLIME] = 1
 CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_HEAVY] = 4
+CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_ALLY] = 5
 
 CUnits.UNIT_TYPE_SIZE = {}
 CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_DEFLT] = 2
@@ -442,10 +513,12 @@ CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_SHOOT] = 3
 CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_BLINK] = 2
 CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_SLIME] = 2
 CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_HEAVY] = 3
+CUnits.UNIT_TYPE_SIZE[CUnits.UNIT_TYPE_ALLY] = 2
 
 CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER = 1
 CUnits.UNIT_DEATH_REASON_REACHED_BASE = 2
 CUnits.UNIT_DEATH_REASON_FRIENDLY_FIRE = 3
+CUnits.UNIT_DEATH_REASON_ALLY_NO_HEALTH = 4
 
 CUnits.UnitSettings = function()
     CUnits.UNIT_TYPE_HEALTH[CUnits.UNIT_TYPE_DEFLT] = CGameMode.tSettings.UnitHealthDefault
@@ -534,18 +607,30 @@ CUnits.ProcessUnits = function()
     end
 end
 
+CUnits.KillAll = function()
+    for iUnitID = 1, #CUnits.tUnits do
+        if CUnits.tUnits[iUnitID] then
+            CUnits.UnitTakeDamage(iUnitID, 999)
+        end
+    end 
+end
+
 --UNIT AI
 CUnits.UnitThink = function(iUnitID)
     if iGameState == GAMESTATE_GAME then
         if CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_SHOOT then
             CUnits.UnitThinkShoot(iUnitID)
+        elseif CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then
+            CUnits.UnitThinkAlly(iUnitID)
         else
             CUnits.UnitThinkDefault(iUnitID)
         end
     elseif iGameState == GAMESTATE_POSTGAME and CGameMode.bVictory then
-        -- если игра закончилась победой то враги отступают в страхе!
-        iXPlus, iYPlus = CUnits.GetReverseDestinationXYPlus(iUnitID)
-        CUnits.Move(iUnitID, iXPlus, iYPlus)
+        if CUnits.tUnits[iUnitID].iUnitType ~= CUnits.UNIT_TYPE_ALLY then
+            -- если игра закончилась победой то враги отступают в страхе!
+            iXPlus, iYPlus = CUnits.GetReverseDestinationXYPlus(iUnitID)
+            CUnits.Move(iUnitID, iXPlus, iYPlus)
+        end
     end
 end
 
@@ -602,6 +687,37 @@ CUnits.UnitThinkShoot = function(iUnitID)
         CUnits.Move(iUnitID, iXPlus, iYPlus)
     end
 end
+
+CUnits.UnitThinkAlly = function(iUnitID)
+    if CUnits.tUnits[iUnitID].iUnitTargetID == nil or CUnits.tUnits[CUnits.tUnits[iUnitID].iUnitTargetID] == nil then
+        CUnits.AllyNewTarget(iUnitID)
+        return;
+    end
+
+    local iUnitTargetID = CUnits.tUnits[iUnitID].iUnitTargetID
+    local iXPlus, iYPlus = CUnits.AllyGetDestinationXYPlus(iUnitID, iUnitTargetID)
+
+    for iX = CUnits.tUnits[iUnitID].iX + iXPlus, CUnits.tUnits[iUnitID].iX + iXPlus + CUnits.tUnits[iUnitID].iSize-1 do
+        for iY = CUnits.tUnits[iUnitID].iY + iYPlus, CUnits.tUnits[iUnitID].iY + iYPlus + CUnits.tUnits[iUnitID].iSize-1 do
+            if tFloor[iX][iY].iUnitID > 0 and tFloor[iX][iY].iUnitID ~= iUnitID then
+                CUnits.AllyUnitKillEnemy(iUnitID, tFloor[iX][iY].iUnitID)
+                return;
+            end
+        end
+    end
+
+    if CUnits.tUnits[iUnitID] ~= nil then
+        CUnits.Move(iUnitID, iXPlus, iYPlus)
+    end
+end
+
+CUnits.AllyNewTarget = function(iUnitID)
+    local iUnitTargetID = math.random(1, #CUnits.tUnits)
+
+    if iUnitTargetID ~= iUnitID and CUnits.tUnits[iUnitTargetID] then
+        CUnits.tUnits[iUnitID].iUnitTargetID = iUnitTargetID
+    end
+end
 --/
 
 --UNIT MOVEMENT
@@ -630,13 +746,15 @@ CUnits.Move = function(iUnitID, iXPlus, iYPlus)
     CUnits.tUnits[iUnitID].iX = CUnits.tUnits[iUnitID].iX + iXPlus
     CUnits.tUnits[iUnitID].iY = CUnits.tUnits[iUnitID].iY + iYPlus
 
+    CPaint.Unit(iUnitID) -- для просчёта коллизии
+
+    if CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
+
     if Intersects(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize, CGameMode.tBase.iX, CGameMode.tBase.iY, CGameMode.tBase.iSize) then
         CGameMode.DamageBase(CUnits.tUnits[iUnitID].iHealth)
         CUnits.UnitKill(iUnitID, CUnits.UNIT_DEATH_REASON_REACHED_BASE)
         return;
     end
-
-    CPaint.Unit(iUnitID) -- для просчёта коллизии
 
     if CUnits.tUnits[iUnitID].iUnitType ~= CUnits.UNIT_TYPE_HEAVY and
         CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.tUnits[iUnitID].iSize) then
@@ -682,14 +800,44 @@ CUnits.GetReverseDestinationXYPlus = function(iUnitID)
 
     return iX, iY
 end
+
+CUnits.AllyGetDestinationXYPlus = function(iUnitID, iUnitTargetID)
+    local iX = 0
+    local iY = 0
+
+    if CUnits.tUnits[iUnitID].iX < CUnits.tUnits[iUnitTargetID].iX then
+        iX = 1
+    elseif CUnits.tUnits[iUnitID].iX > CUnits.tUnits[iUnitTargetID].iX then
+        iX = -1
+    end
+
+    if CUnits.tUnits[iUnitID].iY < CUnits.tUnits[iUnitTargetID].iY then
+        iY = 1
+    elseif CUnits.tUnits[iUnitID].iY > CUnits.tUnits[iUnitTargetID].iY then
+        iY = -1
+    end
+
+    return iX, iY
+end
 --/
 
 --UNIT EVENTS
-CUnits.UnitTakeDamage = function(iUnitID, iDamageAmount)
+CUnits.UnitTakeDamage = function(iUnitID, iDamageAmount) -- игрок нанёс урон врагу
+    if CUnits.tUnits[iUnitID] == nil or CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
+
     CUnits.tUnits[iUnitID].iHealth = CUnits.tUnits[iUnitID].iHealth - iDamageAmount
 
     if CUnits.tUnits[iUnitID].iHealth <= 0 then
         CUnits.UnitKill(iUnitID, CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER)
+    end
+end
+
+CUnits.AllyUnitKillEnemy = function(iUnitID, iUnitTargetID)
+    CUnits.UnitTakeDamage(iUnitTargetID, 999)
+
+    CUnits.tUnits[iUnitID].iHealth = CUnits.tUnits[iUnitID].iHealth - 1
+    if CUnits.tUnits[iUnitID].iHealth == 0 then
+        CUnits.UnitKill(iUnitID, CUnits.UNIT_DEATH_REASON_ALLY_NO_HEALTH)
     end
 end
 
@@ -704,6 +852,10 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
                 tGameStats.CurrentStars = tGameStats.CurrentStars + 1
                 if tGameStats.CurrentStars >= tGameStats.TotalStars and CGameMode.tBase.iHealth > 0 then
                     CGameMode.Victory()
+                end
+
+                if CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
+                    CBuffs.DropBuffForPlayers()
                 end
             end
 
@@ -922,6 +1074,10 @@ CPaint.Objects = function()
     CPaint.Units()
     CPaint.Projectiles()
     CPaint.Animations()
+
+    if iGameState == GAMESTATE_GAME then
+        CPaint.Buffs()
+    end
 end
 
 CPaint.Base = function()
@@ -1012,6 +1168,15 @@ CPaint.Animations = function()
                 tFloor[iX][iY].iColor = CAnimation.tAnimated[iAnimationID].iColor
                 tFloor[iX][iY].iBright = CAnimation.tAnimated[iAnimationID].iBright
             end
+        end
+    end
+end
+
+CPaint.Buffs = function()
+    for i, tButton in pairs(tButtons) do
+        if tButton.bHasBuff then
+            tButton.iColor = CColors.GREEN
+            tButton.iBright = tConfig.Bright
         end
     end
 end
@@ -1147,6 +1312,11 @@ function ButtonClick(click)
 
     if click.Click then
         bAnyButtonClick = true
+
+        if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
+            tButtons[click.Button].bHasBuff = false
+            CBuffs.PlayerCollectBuff()
+        end
     end
 end
 
