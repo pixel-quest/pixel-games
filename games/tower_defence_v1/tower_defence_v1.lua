@@ -412,6 +412,7 @@ CBuffs = {}
 
 CBuffs.iBuffsDropped = 0
 CBuffs.iLastBuffType = 0
+CBuffs.bBuffDropped = false
 
 CBuffs.BUFF_TYPE_HEAL = 1
 CBuffs.BUFF_TYPE_KILLALL = 2
@@ -447,6 +448,7 @@ CBuffs.RandomBuffType = function()
 end
 
 CBuffs.DropBuffForPlayers = function()
+    --[[
     local iButtonId = math.random(1, #tButtons)
 
     if not tButtons[iButtonId] or tButtons[iButtonId].bDefect then 
@@ -457,6 +459,11 @@ CBuffs.DropBuffForPlayers = function()
     tButtons[iButtonId].bHasBuff = true
     CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
     CAudio.PlaySync("voices/towerdefence-new-buff.mp3")
+    ]]
+
+    CBuffs.bBuffDropped = true
+    CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
+    CAudio.PlaySync("voices/towerdefence-new-buff.mp3")    
 end
 
 CBuffs.PlayerCollectBuff = function()
@@ -699,7 +706,7 @@ CUnits.UnitThinkAlly = function(iUnitID)
 
     for iX = CUnits.tUnits[iUnitID].iX + iXPlus, CUnits.tUnits[iUnitID].iX + iXPlus + CUnits.tUnits[iUnitID].iSize-1 do
         for iY = CUnits.tUnits[iUnitID].iY + iYPlus, CUnits.tUnits[iUnitID].iY + iYPlus + CUnits.tUnits[iUnitID].iSize-1 do
-            if tFloor[iX][iY].iUnitID > 0 and tFloor[iX][iY].iUnitID ~= iUnitID then
+            if tFloor[iX] and tFloor[iX][iY] and tFloor[iX][iY].iUnitID > 0 and tFloor[iX][iY].iUnitID ~= iUnitID then
                 CUnits.AllyUnitKillEnemy(iUnitID, tFloor[iX][iY].iUnitID)
                 return;
             end
@@ -854,7 +861,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
                     CGameMode.Victory()
                 end
 
-                if CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
+                if not CBuffs.bBuffDropped and CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
                     CBuffs.DropBuffForPlayers()
                 end
             end
@@ -1173,12 +1180,18 @@ CPaint.Animations = function()
 end
 
 CPaint.Buffs = function()
+    if CBuffs.bBuffDropped then
+        SetAllButtonsColorBright(CColors.GREEN, tConfig.Bright)
+    end
+
+    --[[
     for i, tButton in pairs(tButtons) do
         if tButton.bHasBuff then
             tButton.iColor = CColors.GREEN
             tButton.iBright = tConfig.Bright
         end
     end
+    ]]
 end
 --//
 
@@ -1313,10 +1326,17 @@ function ButtonClick(click)
     if click.Click then
         bAnyButtonClick = true
 
+        if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
+            CBuffs.bBuffDropped = false
+            CBuffs.PlayerCollectBuff()
+        end
+
+        --[[
         if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
             tButtons[click.Button].bHasBuff = false
             CBuffs.PlayerCollectBuff()
         end
+        ]]
     end
 end
 
