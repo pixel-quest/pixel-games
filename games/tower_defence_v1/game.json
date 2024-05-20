@@ -19,7 +19,10 @@
       "UnitSizeSlime": 2,
 
       "SpecialBlink": 1,
-      "SpecialShootDelay": 3000
+      "SpecialShootDelay": 3000,
+
+      "BuffDropChance": 20,
+      "BuffHealAmount": 7
     },   
     {
       "BaseHealth": 20,
@@ -35,7 +38,10 @@
       "UnitSizeSlime": 2,      
 
       "SpecialBlink": 2,
-      "SpecialShootDelay": 2500
+      "SpecialShootDelay": 2500,
+
+      "BuffDropChance": 15,
+      "BuffHealAmount": 5
     },
     {
       "BaseHealth": 15,
@@ -51,7 +57,10 @@
       "UnitSizeSlime": 2,
 
       "SpecialBlink": 2,
-      "SpecialShootDelay": 2000
+      "SpecialShootDelay": 2000,
+
+      "BuffDropChance": 10,
+      "BuffHealAmount": 3
     },
     {
       "BaseHealth": 10,
@@ -67,7 +76,10 @@
       "UnitSizeSlime": 3,
 
       "SpecialBlink": 3,
-      "SpecialShootDelay": 1500
+      "SpecialShootDelay": 1500,
+
+      "BuffDropChance": 5,
+      "BuffHealAmount": 2
     }
   ]
 }

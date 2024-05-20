@@ -34,6 +34,7 @@ local GAMESTATE_SETUP = 1
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
+local GAMESTATE_TUTORIAL = 5
 
 local bGamePaused = false
 local iGameState = GAMESTATE_SETUP
@@ -117,6 +118,10 @@ function NextTick()
         GameSetupTick()
     end
 
+    if iGameState == GAMESTATE_TUTORIAL then
+        TutorialTick()
+    end
+
     if iGameState == GAMESTATE_GAME then
         GameTick()
     end
@@ -140,8 +145,20 @@ function GameSetupTick()
 
     if bAnyButtonClick then
         bAnyButtonClick = false
-        iGameState = GAMESTATE_GAME
-        CGameMode.CountDownNextRound()
+        iGameState = GAMESTATE_TUTORIAL
+        CTutorial.Start()
+    end
+end
+
+function TutorialTick()
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
+    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
+    CPaint.PlayerZones()
+    CPaint.Blocks()
+
+    if bAnyButtonClick then
+        bAnyButtonClick = false
+        CTutorial.End()
     end
 end
 
@@ -170,6 +187,52 @@ end
 function SwitchStage()
     
 end
+
+--TUTORIAL
+CTutorial = {}
+CTutorial.iFinishCount = 0
+
+CTutorial.MAX_FINISH = 4
+
+CTutorial.Start = function()
+    CAudio.PlaySyncFromScratch("voices/classics-race-tutorial.mp3")
+
+    CTimer.New(20000, function()
+        CTutorial.LoadMaps()
+        CAudio.PlayRandomBackground()
+    end)
+end
+
+CTutorial.LoadMaps = function()
+    CGameMode.bGameStarted = true
+    CGameMode.LoadMapsForPlayers()
+end
+
+CTutorial.PlayerFinished = function(iPlayerID)
+    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CBlock.ClearPlayerZone(iPlayerID)
+    CMaps.LoadMapForPlayer(iPlayerID)
+    CBlock.AnimateVisibility(iPlayerID)
+
+    CTutorial.iFinishCount = CTutorial.iFinishCount + 1
+    if CTutorial.iFinishCount == CTutorial.MAX_FINISH then
+        CAudio.StopBackground()
+        CAudio.PlaySyncFromScratch("voices/tutorial-end.mp3")
+
+        CTimer.New(3000, function()
+            CTutorial.End()
+        end)
+    end
+end
+
+CTutorial.End = function()
+    CAudio.StopBackground()
+    CBlock.tBlocks = {}
+    CGameMode.bGameStarted = false
+    iGameState = GAMESTATE_GAME
+    CGameMode.CountDownNextRound()
+end
+--//
 
 --GAMEMODE
 CGameMode = {}
@@ -426,13 +489,28 @@ CBlock.RegisterBlockClick = function(iX, iY)
 
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
-        CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
+
+        if iGameState == GAMESTATE_GAME then
+            CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
+        elseif iGameState == GAMESTATE_TUTORIAL then
+            CAudio.PlayAsync(CAudio.CLICK)
+        end
     elseif (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND or CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_REDGROUND) and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
         CBlock.tBlocks[iX][iY].bCollected = true
-        CGameMode.PlayerScorePenalty(iPlayerID, 1)
+
+        if iGameState == GAMESTATE_GAME then
+            CGameMode.PlayerScorePenalty(iPlayerID, 1)
+        elseif iGameState == GAMESTATE_TUTORIAL then
+            CAudio.PlayAsync(CAudio.MISCLICK)
+        end
+
         CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_FINISH then
-        CGameMode.PlayerFinished(iPlayerID)
+        if iGameState == GAMESTATE_GAME then
+            CGameMode.PlayerFinished(iPlayerID)
+        elseif iGameState == GAMESTATE_TUTORIAL then
+            CTutorial.PlayerFinished(iPlayerID)
+        end
     end
 end
 
@@ -678,7 +756,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
+    if click.Click and (iGameState == GAMESTATE_GAME or iGameState == GAMESTATE_TUTORIAL) and CGameMode.bGameStarted then
         if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
             CBlock.RegisterBlockClick(click.X, click.Y)
         end
@@ -697,7 +775,7 @@ function ButtonClick(click)
     if tButtons[click.Button] == nil then return end
     tButtons[click.Button].bClick = click.Click
 
-    if iGameState == GAMESTATE_SETUP and click.Click == true then
+    if (iGameState == GAMESTATE_SETUP or iGameState == GAMESTATE_TUTORIAL) and click.Click == true then
         bAnyButtonClick = true
     end       
 end
