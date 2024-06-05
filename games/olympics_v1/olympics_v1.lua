@@ -83,6 +83,7 @@ local tFloorStruct = {
     bDefect = false,
     iWeight = 0,
     iPlayerID = 0,
+    bAnimated = false,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -103,6 +104,8 @@ function StartGame(gameJson, gameConfigJson)
     for _, iId in pairs(tGame.Buttons) do
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
+
+    tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
     CAudio.PlaySync("games/olympics.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
@@ -268,6 +271,7 @@ CGameMode.StartNextRound = function()
     CAudio.PlayRandomBackground()
     CGameMode.bRoundOn = true
     CGameMode.iRound = CGameMode.iRound + 1
+    tGameStats.StageNum = CGameMode.iRound 
 
     CGameMode.tGameModeStart[CGameMode.iGameMode]()
 end
@@ -286,6 +290,7 @@ end
 CGameMode.EndRound = function()
     CAudio.StopBackground()
     CGameMode.bRoundOn = false
+    CPaint.ResetAnimation()
 
     if CGameMode.iRound == CGameMode.GAMEMODE_COUNT then
         CGameMode.EndGame()
@@ -394,6 +399,11 @@ CGameMode.LongJumpPaintPlayerZone = function(iPlayerID)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
             local iColor = CColors.WHITE
+
+            if iY <= CGameMode.GetStartY(iPlayerID)+2 then
+                iColor = tGameStats.Players[iPlayerID].Color
+            end
+
             if CGameMode.bRoundOn and iY == CGameMode.PlayerData[iPlayerID].iLandingSpotY then
                 iColor = CColors.GREEN
             end
@@ -416,7 +426,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LONGJUMP] = function(iX, iY)
 
     if iY > CGameMode.GetStartY(iPlayerID)+2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY == 0 then
         CGameMode.LongJumpPlayerLanded(iPlayerID, iY)
-    elseif iY == CGameMode.GetStartY(iPlayerID) and CGameMode.PlayerData[iPlayerID].iLandingSpotY ~= 0 then
+    elseif iY <= CGameMode.GetStartY(iPlayerID)+2 and CGameMode.PlayerData[iPlayerID].iLandingSpotY ~= 0 then
         CGameMode.PlayerData[iPlayerID].iLandingSpotY = 0
     end
 end
@@ -494,6 +504,7 @@ end
 CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
     if iPlayerID == 0 then return; end
+    if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
         CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
@@ -552,20 +563,22 @@ CGameMode.LavaPaintPlayerZone = function(iPlayerID)
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
-            local iColor = CGameMode.LavaGetColorFromY(iY, iPlayerID)
+            if not tFloor[iX][iY].bAnimated then
+                local iColor = CGameMode.LavaGetColorFromY(iY, iPlayerID)
 
-            local iBright = tConfig.Bright
-            if not CGameMode.bRoundOn then
-                iBright = iBright - 2
+                local iBright = tConfig.Bright
+                if not CGameMode.bRoundOn then
+                    iBright = iBright - 2
+                end
+
+                if CGameMode.PlayerData[iPlayerID].bFinished then
+                    iColor = tGame.StartPositions[iPlayerID].Color
+                end
+
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iPlayerID = iPlayerID
             end
-
-            if CGameMode.PlayerData[iPlayerID].bFinished then
-                iColor = tGame.StartPositions[iPlayerID].Color
-            end
-
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iPlayerID = iPlayerID
         end
     end    
 end
@@ -589,6 +602,7 @@ end
 CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
     if iPlayerID == 0 then return; end
+    if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
         CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
@@ -604,6 +618,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
         CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] = true
         CGameMode.AddScoreToPlayer(iPlayerID, -5)
         CAudio.PlayAsync(CAudio.MISCLICK)
+        CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
     end
 end
 
@@ -652,20 +667,22 @@ CGameMode.ClassicsPaintPlayerZone = function(iPlayerID)
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
-            local iColor = CGameMode.ClassicsGetColorFromXY(iX, iY, iPlayerID)
+            if not tFloor[iX][iY].bAnimated then
+                local iColor = CGameMode.ClassicsGetColorFromXY(iX, iY, iPlayerID)
 
-            local iBright = tConfig.Bright
-            if not CGameMode.bRoundOn then
-                iBright = iBright - 2
+                local iBright = tConfig.Bright
+                if not CGameMode.bRoundOn then
+                    iBright = iBright - 2
+                end
+
+                if CGameMode.PlayerData[iPlayerID].bFinished then
+                    iColor = tGame.StartPositions[iPlayerID].Color
+                end
+
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iPlayerID = iPlayerID
             end
-
-            if CGameMode.PlayerData[iPlayerID].bFinished then
-                iColor = tGame.StartPositions[iPlayerID].Color
-            end
-
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iPlayerID = iPlayerID
         end
     end    
 end
@@ -700,6 +717,7 @@ end
 CGameMode.tGameModeClick[CGameMode.GAMEMODE_CLASSICS] = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
     if iPlayerID == 0 then return; end
+    if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if iY == CGameMode.PlayerData[iPlayerID].iFinishY then
         CGameMode.PlayerData[iPlayerID].iFinishCount = CGameMode.PlayerData[iPlayerID].iFinishCount + 1
@@ -714,6 +732,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_CLASSICS] = function(iX, iY)
     elseif CGameMode.ClassicsIsLavaXY(iX, iY) then
         CGameMode.AddScoreToPlayer(iPlayerID, -5)
         CAudio.PlayAsync(CAudio.MISCLICK)
+        CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
     end
 end
 
@@ -749,6 +768,7 @@ end
 
 --PAINT
 CPaint = {}
+CPaint.ANIMATION_DELAY = 50
 
 CPaint.PlayersZones = function()
     for iPlayerID = 1, #tGame.StartPositions do
@@ -774,6 +794,44 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
                 tFloor[iX][iY].iBright = tConfig.Bright
                 tFloor[iX][iY].iColor = CColors.GREEN
             end
+        end
+    end
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return CPaint.ANIMATION_DELAY*3
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
+end
+
+CPaint.ResetAnimation = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].bAnimated = false
         end
     end
 end
@@ -858,8 +916,10 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
         end
     end
 
