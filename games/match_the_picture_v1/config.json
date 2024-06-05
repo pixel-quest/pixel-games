@@ -3,5 +3,6 @@
   "GameCountdown": 10,
   "WinDurationMS": 10000,
   "RoundCountdown": 5,
-  "RoundCount": 3
+  "RoundCount": 3,
+  "PixelClickCooldown": 2000
 }
