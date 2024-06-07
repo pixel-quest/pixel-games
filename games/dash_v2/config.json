@@ -7,5 +7,6 @@
   "LavaFrameDelay": 200,
   "LavaCooldown": 1500,
   "HardZoneDespawn": false,
-  "StageSwitchHitRegDelay": 1500
+  "StageSwitchHitRegDelay": 1500,
+  "LavaLag": 500
 }
