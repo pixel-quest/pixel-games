@@ -1,7 +1,24 @@
 {
   "Bright": 5,
-  "GameCountdown": 25,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
+  "GameCountdown": 25,
+  "GameCountdown_Min": 1,
+  "GameCountdown_Max": 30,
+  "GameCountdown_Step": 1,
+
   "RoundCountdown": 10,
-  "RoundCount": 3
+  "RoundCountdown_Min": 1,
+  "RoundCountdown_Max": 20,
+  "RoundCountdown_Step": 1,
+
+  "RoundCount": 3,
+  "RoundCount_Min": 1,
+  "RoundCount_Max": 25,
+  "RoundCount_Step": 1,
 }

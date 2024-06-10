@@ -1,7 +1,19 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
   "GameCountdown": 5,
+  "GameCountdown_Hidden": true,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
   "GameLength": 60,
+  "GameLength_Min": 30,
+  "GameLength_Max": 300,
+  "GameLength_Step": 5,
+
   "EnableMissPenalty": true
 }
