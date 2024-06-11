@@ -472,6 +472,7 @@ CBlock.tBlockStructure = {
     iPlayerID = 0,
     iBright = 0,
     bVisible = true,
+    bCooldown = false
 }
 
 CBlock.BLOCK_TYPE_GROUND = 1
@@ -490,6 +491,7 @@ end
 
 CBlock.RegisterBlockClick = function(iX, iY)
     if not CGameMode.bRoundStarted then return; end
+    if CBlock.tBlocks[iX][iY].bCooldown then return; end
 
     local iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
 
@@ -500,6 +502,11 @@ CBlock.RegisterBlockClick = function(iX, iY)
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
         CGameMode.PlayerTouchedGround(iPlayerID, iX, iY)
     end
+
+    CBlock.tBlocks[iX][iY].bCooldown = true
+    CTimer.New(tConfig.PixelClickCooldown, function()
+        CBlock.tBlocks[iX][iY].bCooldown = false 
+    end)
 end
 
 CBlock.AnimateVisibility = function(bVisible)

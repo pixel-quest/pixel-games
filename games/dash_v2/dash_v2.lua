@@ -485,6 +485,17 @@ CLava.PlayerStep = function()
     end
 end
 
+CLava.PlayerStepDelay = function(iX, iY)
+    if CLava.bCooldown or tFloor[iX][iY].bDelayed then return end
+    tFloor[iX][iY].bDelayed = true
+
+    CTimer.New(tConfig.LavaLag, function()
+        if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
+            CLava.PlayerStep()
+        end
+        tFloor[iX][iY].bDelayed = false
+    end)
+end
 --//
 
 --PAINT
@@ -514,7 +525,7 @@ CPaint.LavaObject = function(iObjectId)
                 tFloor[iX][iY].iObjectId = iObjectId
 
                 if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
-                    CLava.PlayerStep()
+                    CLava.PlayerStepDelay(iX, iY)
                 end
             end
         end
@@ -675,7 +686,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if iGameState == GAMESTATE_GAME and tFloor[click.X][click.Y].iColor == CColors.RED then
+    if click.Click and iGameState == GAMESTATE_GAME and tFloor[click.X][click.Y].iColor == CColors.RED then
         CLava.PlayerStep()
     end
 end

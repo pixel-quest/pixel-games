@@ -1,10 +1,31 @@
 {
   "Bright": 6,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
   "RoundCount": 3,
+  "RoundCount_Min": 1,
+  "RoundCount_Max": 10,
+  "RoundCount_Step": 1,
+
   "Health": 10,
+  "Health_Min": 1,
+  "Health_Max": 50,
+  "Health_Step": 1,
+
   "UnitThinkDelay": 150,
+  "UnitThinkDelay_Min": 0,
+  "UnitThinkDelay_Max": 2500,
+  "UnitThinkDelay_Step": 50,
+
   "GenerateRandomMap": false,
+  "GenerateRandomMap_Hidden": true,
   "RandomMapStartCount": 4,
-  "RandomMapUnitCount": 2
+  "RandomMapStartCount_Hidden": true,
+  "RandomMapUnitCount": 2,
+  "RandomMapUnitCount_Hidden": true
 }

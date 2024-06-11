@@ -1,9 +1,31 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
+  "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true,
+
   "GameCountdown": 5,
-  "WinDurationMS": 10000,
+  "GameCountdown_Min": 1,
+  "GameCountdown_Max": 30,
+  "GameCountdown_Step": 1,
+
   "TargetScore": 20,
+  "TargetScore_Min": 5,
+  "TargetScore_Max": 150,
+  "TargetScore_Step": 5,
+
   "SnakeThinkTime": 170,
+  "SnakeThinkTime_Min": 10,
+  "SnakeThinkTime_Max": 2000,
+  "SnakeThinkTime_Step": 10,
+  
   "SnakeLength": 3,
+  "SnakeLength_Min": 2,
+  "SnakeLength_Max": 10,
+  "SnakeLength_Step": 1,
+
   "SnakeDamagePlayerOnStep": true
 }

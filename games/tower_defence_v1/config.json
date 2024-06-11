@@ -1,9 +1,30 @@
 {
   "Bright": 6,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
   "BaseColor": 2,
+  "BaseColor_Hidden": true,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
+  "ProjectileDelay": 90,
+  "ProjectileDelay_Hidden": true,
+
   "UnitSpawnDelay": 5000,
+  "UnitSpawnDelay_Min": 1000,
+  "UnitSpawnDelay_Max": 10000,
+  "UnitSpawnDelay_Step": 1000,
+  
   "UnitThinkDelay": 500,
-  "ProjectileDelay": 90,  
-  "Difficulty": 2
+  "UnitThinkDelay_Min": 100,
+  "UnitThinkDelay_Max": 5000,
+  "UnitThinkDelay_Step": 100,
+
+  "Difficulty": 2,
+  "Difficulty_Min": 1,
+  "Difficulty_Max": 4,
+  "Difficulty_Step": 1
 }

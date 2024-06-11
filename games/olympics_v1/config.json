@@ -1,11 +1,39 @@
 {
   "Bright": 5,
-  "GameCountdown": 6,
-  "RoundCountdown": 6,
+  "Bright_Min": 1,
+  "Bright_Max": 10,
+  "Bright_Step": 1,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
+  "GameCountdown": 6,
+  "GameCountdown_Min": 1,
+  "GameCountdown_Max": 30,
+  "GameCountdown_Step": 1,
+
+  "RoundCountdown": 6,
+  "RoundCountdown_Min": 1,
+  "RoundCountdown_Max": 20,
+  "RoundCountdown_Step": 1,
 
   "LongJumpCount": 5,
+  "LongJumpCount_Min": 1,
+  "LongJumpCount_Max": 25,
+  "LongJumpCount_Step": 1,
+
   "ShuttleRaceCount": 5,
+  "ShuttleRaceCount_Min": 1,
+  "ShuttleRaceCount_Max": 25,
+  "ShuttleRaceCount_Step": 1,
+
   "LavaCount": 5,
-  "ClassicsCount": 5
+  "LavaCount_Min": 1,
+  "LavaCount_Max": 25,
+  "LavaCount_Step": 1,
+
+  "ClassicsCount": 5,
+  "ClassicsCount_Min": 1,
+  "ClassicsCount_Max": 25,
+  "ClassicsCount_Step": 1  
 }
