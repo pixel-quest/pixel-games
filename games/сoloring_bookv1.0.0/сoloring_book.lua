@@ -135,7 +135,7 @@ function StartGame(gameJson, gameConfigJson)
     ButtonsList[GameConfigObj.saveButton].Bright = colors.BRIGHT70
 
     GradientLength = table.getn(GameObj.Colors)
-    audio.PlaySyncFromScratch("") -- just reset audio player on start new game
+    audio.PlaySyncFromScratch("voices/coloring-book-tutorial.mp3") -- just reset audio player on start new game
     audio.PlayRandomBackground()
 end
 
@@ -265,6 +265,11 @@ end
 --      Weight: int,
 --  }
 function SetLeftColor()
+    if gameState.Color ~= colors.NONE then
+        audio.PlaySyncFromScratch("")
+        audio.PlaySyncColorSound(gameState.Color)
+    end
+
     for i=5,11 do
         FloorMatrix[1][i].Color = gameState.Color
         FloorMatrix[1][i].Bright = gameState.Bright
@@ -284,7 +289,7 @@ function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = time.unix()
 
     if FloorMatrix[click.X][click.Y].State == 1 or click.Y < 3 or click.Y > 13 or click.X < 3 or click.X > 22 or gameState == -1 then
-        if FloorMatrix[click.X][click.Y].Color ~= colors.NONE then
+        if FloorMatrix[click.X][click.Y].Color ~= colors.NONE and FloorMatrix[click.X][click.Y].Color ~= gameState.Color then
             gameState.Color = FloorMatrix[click.X][click.Y].Color
             gameState.Bright = FloorMatrix[click.X][click.Y].Bright
             SetLeftColor()
