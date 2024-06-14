@@ -1,7 +1,6 @@
 -- Название: Хомяк накопитель
 -- Автор: @ProAlgebra (телеграм)
--- Описание механики: Старт игры происходит после нажатия на кнопку красную
--- Дети кликают на пиксели, в зависимости от цвета начисляется разное количество очков. Красный даёт 3, зелёный 1
+-- Описание механики: Дети кликают на пиксели, в зависимости от цвета начисляется разное количество очков. Красный даёт 3, зелёный 1
 
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
@@ -71,9 +70,9 @@ local GameConfigObj = {
 -- Переодически запрашивается через метод GetStats()
 local GameStats = {
     StageLeftDuration = 0, -- seconds
-    StageTotalDuration = 100, -- seconds
+    StageTotalDuration = 0, -- seconds
     CurrentStars = 0,
-    TotalStars = 100,
+    TotalStars = 0,
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
@@ -121,6 +120,7 @@ function StartGame(gameJson, gameConfigJson)
     end
     ButtonsList[GameConfigObj.startButton].Color = colors.RED
     ButtonsList[GameConfigObj.startButton].Bright = GameConfigObj.bright
+    GameStats.StageTotalDuration = GameConfigObj.level1
 end
 
 -- PauseGame (служебный): пауза игры
@@ -139,13 +139,13 @@ gameState = {
 function SwitchStage()
     gameState.State = gameState.State + 1
     if gameState.State == 3 then
-        GameStats.TotalStars = 250
+        GameStats.TotalStars = GameConfigObj.level2
     end
     if gameState.State == 5 then
-        GameStats.TotalStars = 450
+        GameStats.TotalStars = GameConfigObj.level3
     end
     if gameState.State >= 6 then
-        GameStats.TotalStars = 1200
+        GameStats.TotalStars = GameConfigObj.level4
     end
 end
 
@@ -160,6 +160,8 @@ function NextTick()
     GameStats.StageLeftDuration = GameStats.CurrentStars
     GameStats.StageTotalDuration = GameStats.TotalStars
     if gameState.State == 1 then
+        GameStats.CurrentStars = 0
+        GameStats.TotalStars = GameConfigObj.level1
         for x,mass in pairs(GameObj.level1) do
             for y,state in pairs(mass) do
                 FloorMatrix[y][x].Color = state
@@ -170,21 +172,22 @@ function NextTick()
         gameState.State = gameState.State + 1
     end
     if gameState.State == 2 then
-        if GameStats.CurrentStars >= 100 then
+        ButtonsList[GameConfigObj.startButton].Color = colors.NONE
+        if GameStats.CurrentStars >= GameConfigObj.level1 then
             gameState.State = 3
-            GameStats.TotalStars = 250
+            GameStats.TotalStars = GameConfigObj.level2
         end
     end
     if gameState.State == 4 then
-        if GameStats.CurrentStars >= 250 then
+        if GameStats.CurrentStars >= GameConfigObj.level2 then
             gameState.State = 5
-            GameStats.TotalStars = 450
+            GameStats.TotalStars = GameConfigObj.level3
         end
     end
     if gameState.State == 6 then
-        if GameStats.CurrentStars >= 450 then
+        if GameStats.CurrentStars >= GameConfigObj.level3 then
             gameState.State = 7
-            GameStats.TotalStars = 1200
+            GameStats.TotalStars = GameConfigObj.level4
         end
     end
     if gameState.State == 3 then
@@ -225,10 +228,11 @@ function NextTick()
                     FloorMatrix[x][y].Color = colors.NONE
                 end
                 if gameState.State >= 4 then
-                    if FloorMatrix[x][y].Color == colors.RED then
+                    if FloorMatrix[x][y].Color == colors.CYAN then
                         FloorMatrix[x][y].Color = colors.NONE
                     end
                 end
+                if FloorMatrix[x][y].Defect == false then
                 if FloorMatrix[x][y].Color == colors.NONE then
                     if gameState.State == 2 then
                         if math.random(0,100) < 20 then
@@ -243,10 +247,11 @@ function NextTick()
                             FloorMatrix[x][y].Bright = GameConfigObj.bright
                         end
                         if random > 90 - (gameState.State * 3) then
-                            FloorMatrix[x][y].Color = colors.RED
+                            FloorMatrix[x][y].Color = colors.CYAN
                             FloorMatrix[x][y].Bright = GameConfigObj.bright
                         end
                     end
+                end
                 end
                 
             end
@@ -302,13 +307,13 @@ function PixelClick(click)
     if FloorMatrix[click.X][click.Y].Color == colors.GREEN then
         FloorMatrix[click.X][click.Y].Color = colors.NONE
         audio.PlayAsync("CLICK")
-        GameStats.CurrentStars = GameStats.CurrentStars + 1
+        GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.greenPoint
     end
     if gameState.State >= 4 then
-        if FloorMatrix[click.X][click.Y].Color == colors.RED then
+        if FloorMatrix[click.X][click.Y].Color == colors.CYAN then
             FloorMatrix[click.X][click.Y].Color = colors.NONE
             audio.PlayAsync("CLICK")
-            GameStats.CurrentStars = GameStats.CurrentStars + 3
+            GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.cyanPoint
         end
     end
     
