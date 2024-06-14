@@ -407,15 +407,21 @@ CGameMode.PixelMovement = function()
 end
 
 CGameMode.MovePixel = function(iPixelID)
-    if CGameMode.tPixels[iPixelID].iPointY < 1 then return; end
+    if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY < 1)
+    or (tGame.Direction == 2 and CGameMode.tPixels[iPixelID].iPointY > tGame.Rows+1)
+    then return; end
 
-    if not CGameMode.tPixels[iPixelID].bProlong then
+    if not CGameMode.tPixels[iPixelID].bProlong and (CGameMode.tPixels[iPixelID].iPointY > 0 and CGameMode.tPixels[iPixelID].iPointY <= tGame.Rows) then
         tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = 0
     end
 
-    CGameMode.tPixels[iPixelID].iPointY = CGameMode.tPixels[iPixelID].iPointY - 1
+    if tGame.Direction == 1 then
+        CGameMode.tPixels[iPixelID].iPointY = CGameMode.tPixels[iPixelID].iPointY - 1
+    elseif tGame.Direction == 2 then
+        CGameMode.tPixels[iPixelID].iPointY = CGameMode.tPixels[iPixelID].iPointY + 1
+    end
 
-    if CGameMode.tPixels[iPixelID].iPointY > 0 then
+    if CGameMode.tPixels[iPixelID].iPointY > 0 and CGameMode.tPixels[iPixelID].iPointY < tGame.Rows then
         tFloor[CGameMode.tPixels[iPixelID].iPointX][CGameMode.tPixels[iPixelID].iPointY].iPixelID = iPixelID
     end
 end
@@ -425,10 +431,11 @@ CGameMode.CalculatePixel = function(iPixelID)
 
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
 
-    if CGameMode.tPixels[iPixelID].iPointY <= tGame.StartPositions[iPlayerID].Y then
+    if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY <= tGame.StartPositions[iPlayerID].Y) 
+    or (tGame.Direction == 2 and CGameMode.tPixels[iPixelID].iPointY >= tGame.StartPositions[iPlayerID].Y) then
         CGameMode.tPixels[iPixelID].iBright = CColors.BRIGHT100
 
-        if CGameMode.tPixels[iPixelID].iPointY == 0 then
+        if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY == 0) or (tGame.Direction == 2 and CGameMode.tPixels[iPixelID].iPointY == tGame.Rows+1) then
             if CGameMode.tPixels[iPixelID].bVisual then CGameMode.tPixels[iPixelID] = nil return; end
 
             if not CGameMode.tPixels[iPixelID].bProlong and CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
@@ -438,7 +445,11 @@ CGameMode.CalculatePixel = function(iPixelID)
             end
 
             if CGameMode.tPixels[iPixelID].bProlong then
-                CGameMode.tPixels[iPixelID].iPointY = -1
+                if tGame.Direction == 1 then
+                    CGameMode.tPixels[iPixelID].iPointY = -1
+                elseif tGame.Direction == 2 then
+                    CGameMode.tPixels[iPixelID].iPointY = tGame.Rows+2
+                end
             else
                 CGameMode.tPixels[iPixelID] = nil
             end
@@ -449,18 +460,38 @@ CGameMode.CalculatePixel = function(iPixelID)
 end
 
 CGameMode.PlayerHitRow = function(iX, iY)
-    if iY <= tGame.StartPositions[1].Y and iY > 0 then
-        local bClickAny = false
-        for iY1 = 1, tGame.StartPositions[1].Y do
-            if tFloor[iX][iY1].bClick then
-                bClickAny = true
+
+    if tGame.Direction == 1 then
+        if iY <= tGame.StartPositions[1].Y and iY > 0 then
+            local bClickAny = false
+            for iY1 = 1, tGame.StartPositions[1].Y do
+                if tFloor[iX][iY1].bClick then
+                    bClickAny = true
+                end
+            end
+
+            if bClickAny then
+                for iY2 = 1, tGame.StartPositions[1].Y do
+                    if tFloor[iX][iY2].iPixelID and CGameMode.tPixels[tFloor[iX][iY2].iPixelID] and CGameMode.tPixels[tFloor[iX][iY2].iPixelID].bClickable then
+                        CGameMode.ScorePixel(tFloor[iX][iY2].iPixelID)
+                    end
+                end
             end
         end
+    elseif tGame.Direction == 2 then
+        if iY >= tGame.StartPositions[1].Y and iY < tGame.Rows then
+            local bClickAny = false
+            for iY1 = tGame.Rows, tGame.StartPositions[1].Y, -1 do
+                if tFloor[iX][iY1].bClick then
+                    bClickAny = true
+                end
+            end
 
-        if bClickAny then
-            for iY2 = 1, tGame.StartPositions[1].Y do
-                if tFloor[iX][iY2].iPixelID and CGameMode.tPixels[tFloor[iX][iY2].iPixelID] and CGameMode.tPixels[tFloor[iX][iY2].iPixelID].bClickable then
-                    CGameMode.ScorePixel(tFloor[iX][iY2].iPixelID)
+            if bClickAny then
+                for iY2 = tGame.Rows, tGame.StartPositions[1].Y, -1 do
+                    if tFloor[iX][iY2].iPixelID and CGameMode.tPixels[tFloor[iX][iY2].iPixelID] and CGameMode.tPixels[tFloor[iX][iY2].iPixelID].bClickable then
+                        CGameMode.ScorePixel(tFloor[iX][iY2].iPixelID)
+                    end
                 end
             end
         end
@@ -490,8 +521,14 @@ CGameMode.ScorePixel = function(iPixelID)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
-        for iY = 1, tGame.StartPositions[iPlayerID].Y do
-            tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+        if tGame.Direction == 1 then
+            for iY = 1, tGame.StartPositions[iPlayerID].Y do
+                tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+            end
+        elseif tGame.Direction == 2 then
+            for iY = tGame.Rows, tGame.StartPositions[1].Y, -1 do
+                tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+            end   
         end
 
         CGameMode.tPixels[iPixelID] = nil
@@ -514,11 +551,16 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
 
     CGameMode.tPixels[iPixelID] = CHelp.ShallowCopy(CGameMode.tPixelStruct)
     CGameMode.tPixels[iPixelID].iPointX = iPointX
-    CGameMode.tPixels[iPixelID].iPointY = tGame.Rows
     CGameMode.tPixels[iPixelID].iPlayerID = iPlayerID
     CGameMode.tPixels[iPixelID].iBright = tConfig.Bright
     CGameMode.tPixels[iPixelID].bClickable = true
     CGameMode.tPixels[iPixelID].iBatchID = iBatchID
+
+    if tGame.Direction == 1 then
+        CGameMode.tPixels[iPixelID].iPointY = tGame.Rows
+    elseif tGame.Direction == 2 then
+        CGameMode.tPixels[iPixelID].iPointY = 0
+    end
 
     if string.match(iPixelType, "L") and not tConfig.EasyMode then
         CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
@@ -626,8 +668,13 @@ CPaint.Pixels = function()
 end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
-    SetColColorBright(tGame.StartPositions[iPlayerID], tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
-    SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y-1,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
+    if tGame.Direction == 1 then
+        SetColColorBright(tGame.StartPositions[iPlayerID], tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y-1,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
+    elseif tGame.Direction == 2 then
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y+1,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y,}, tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
+    end
 end
 
 CPaint.PlayerZones = function()

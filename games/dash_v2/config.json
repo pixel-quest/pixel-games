@@ -1,11 +1,44 @@
 {
   "Bright": 6,
-  "GameCountdown": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
+  "GameCountdown": 5,
+  "GameCountdown_Min": 1,
+  "GameCountdown_Max": 30,
+  "GameCountdown_Step": 1,
+
   "SafeZoneResetTimer": 4,
-  "HealthMultiplier": 0.5,
-  "LavaFrameDelay": 200,
+  "SafeZoneResetTimer_Min": 1,
+  "SafeZoneResetTimer_Max": 15,
+  "SafeZoneResetTimer_Step": 1,
+  
+  "HealthMultiplier": 0,
+  "HealthMultiplier_Min": 0,
+  "HealthMultiplier_Max": 2.5,
+  "HealthMultiplier_Step": 0.1,
+  
+  "LavaFrameDelay": 150,
+  "LavaFrameDelay_Min": 0,
+  "LavaFrameDelay_Max": 2000,
+  "LavaFrameDelay_Step": 100,
+  
   "LavaCooldown": 1500,
+  "LavaCooldown_Min": 0,
+  "LavaCooldown_Max": 10000,
+  "LavaCooldown_Step": 500,
+  
   "HardZoneDespawn": false,
-  "StageSwitchHitRegDelay": 1500
+  
+  "StageSwitchHitRegDelay": 1500,
+  "StageSwitchHitRegDelay_Hidden": true,
+
+  "LavaLag": 300,
+  "LavaLag_Min": 0,
+  "LavaLag_Max": 1000,
+  "LavaLag_Step": 100
 }

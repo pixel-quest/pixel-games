@@ -1,8 +1,22 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
   "PixelMoveDelayMS": 150,
+  "PixelMoveDelayMS_Min": 50,
+  "PixelMoveDelayMS_Max": 1000,
+  "PixelMoveDelayMS_Step": 50,
+  
   "SongStartDelayMS": 100,
+  "SongStartDelayMS_Min": 0,
+  "SongStartDelayMS_Max": 10000,
+  "SongStartDelayMS_Step": 10,
+
   "EasyMode": false,
   "RowColorSwitch": false
 }

@@ -1,9 +1,30 @@
 {
   "Bright": 5,
-  "PodSize": 2,
-  "MinBallDelayMS": 70,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true,
+
+  "PodSize": 2,
+  "PodSize_Hidden": true,
+
+  "MinBallDelayMS": 70,
+  "MinBallDelayMS_Hidden": true,
+
   "PointsToWinRound": 5,
+  "PointsToWinRound_Min": 1,
+  "PointsToWinRound_Max": 50,
+  "PointsToWinRound_Step": 1,
+  
   "InitialBallDelayMS": 250,
-  "BallDelayHitDecreaseMS": 20
+  "InitialBallDelayMS_Min": 120,
+  "InitialBallDelayMS_Max": 2000,
+  "InitialBallDelayMS_Step": 10,
+
+  "BallDelayHitDecreaseMS": 20,
+  "BallDelayHitDecreaseMS_Min": 1,
+  "BallDelayHitDecreaseMS_Max": 50,
+  "BallDelayHitDecreaseMS_Step": 1
 }

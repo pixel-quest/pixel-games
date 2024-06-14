@@ -1,5 +1,14 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
+  "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
+
   "GameCountdown": 5,
-  "WinDurationMS": 10000
+  "GameCountdown_Min": 1,
+  "GameCountdown_Max": 30,
+  "GameCountdown_Step": 1
 }
