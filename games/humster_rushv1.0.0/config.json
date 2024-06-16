@@ -1,0 +1,11 @@
+{
+    "delay": 10,
+    "bright": 75,
+    "greenPoint": 1,
+    "cyanPoint": 5,
+    "startButton": 30,
+    "level1": 150,
+    "level2": 300,
+    "level3": 450,
+    "level4": 1200
+  }
