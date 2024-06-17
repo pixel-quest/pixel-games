@@ -118,9 +118,7 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
     end
-    ButtonsList[GameConfigObj.startButton].Color = colors.RED
-    ButtonsList[GameConfigObj.startButton].Bright = GameConfigObj.bright
-    GameStats.StageTotalDuration = GameConfigObj.level1
+    audio.PlaySyncFromScratch() -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
 end
 
 -- PauseGame (служебный): пауза игры
@@ -131,7 +129,7 @@ end
 function ResumeGame()
 end
 gameState = {
-    State = 0,
+    State = -1,
     Tick = 0,
 }
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -157,9 +155,32 @@ end
 
 
 function NextTick()
+    if gameState.State == -1 then 
+        for i, num in pairs(GameObj.Buttons) do
+            if ButtonsList[num].Defect == false then
+                 ButtonsList[num].Color = colors.RED
+                 ButtonsList[num].Bright = GameConfigObj.bright
+            end
+        end
+        gameState.State = 0
+    end
+    if gameState.State == 0 then 
+        for i, num in pairs(GameObj.Buttons) do
+            if ButtonsList[num].Defect == true then
+                 ButtonsList[num].Color = colors.NONE
+                 ButtonsList[num].Bright = 0
+            end
+        end
+    end
     GameStats.StageLeftDuration = GameStats.CurrentStars
     GameStats.StageTotalDuration = GameStats.TotalStars
     if gameState.State == 1 then
+        for i, num in pairs(GameObj.Buttons) do
+            if ButtonsList[num].Defect == false then
+                 ButtonsList[num].Color = colors.NONE
+                 ButtonsList[num].Bright = GameConfigObj.bright
+            end
+        end
         GameStats.CurrentStars = 0
         GameStats.TotalStars = GameConfigObj.level1
         for x,mass in pairs(GameObj.level1) do
@@ -172,7 +193,6 @@ function NextTick()
         gameState.State = gameState.State + 1
     end
     if gameState.State == 2 then
-        ButtonsList[GameConfigObj.startButton].Color = colors.NONE
         if GameStats.CurrentStars >= GameConfigObj.level1 then
             gameState.State = 3
             GameStats.TotalStars = GameConfigObj.level2
@@ -221,7 +241,7 @@ function NextTick()
         gameState.State = gameState.State + 1
     end
     if gameState.Tick < time.unix() then
-        gameState.Tick = time.unix() + 4
+        gameState.Tick = time.unix() + GameConfigObj.delay
         for y = 1,15 do
             for x = 19,24 do
                 if FloorMatrix[x][y].Color == colors.GREEN then
@@ -341,7 +361,7 @@ function ButtonClick(click)
 
     ButtonsList[click.Button].Click = time.unix()
     
-    if click.Button == GameConfigObj.startButton then
+    if ButtonsList[click.Button].Color == colors.RED then
         gameState.State = 1
         ButtonsList[click.Button].Color = colors.NONE
         audio.PlayRandomBackground()
@@ -359,11 +379,6 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
-    if defect.Defect == true then
-        log.print("true")
-    else
-        log.print("false")    
-    end
     FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
 end
 
@@ -376,4 +391,5 @@ end
 --      Defect: bool,
 -- }
 function DefectButton(defect)
+    ButtonsList[defect.Button].Defect = defect.Defect
 end

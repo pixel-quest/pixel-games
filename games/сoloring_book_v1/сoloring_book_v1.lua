@@ -331,11 +331,10 @@ function ButtonClick(click)
 
 
     ButtonsList[click.Button].Click = time.unix()
-    if click.Button == GameConfigObj.saveButton then
-        gameState.Color = 0
-        SetLeftColor()
-        gameState.Color = -1
-    end
+    gameState.Color = 0
+    SetLeftColor()
+    gameState.Color = -1
+    
 
 end
 
