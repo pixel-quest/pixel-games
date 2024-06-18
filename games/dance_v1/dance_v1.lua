@@ -238,6 +238,7 @@ end
 --TUTORIAL
 CTutorial = {}
 CTutorial.bStarted = false
+CTutorial.bSkipDelayOn = true
 
 CTutorial.Start = function()
     CTutorial.bStarted = true
@@ -246,9 +247,15 @@ CTutorial.Start = function()
 
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
+
+    CTimer.New(5000, function()
+        CTutorial.bSkipDelayOn = false
+    end)
 end
 
 CTutorial.Skip = function()
+    if CTutorial.bSkipDelayOn then return end
+
     CSongSync.Clear()
     CGameMode.Clear()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
@@ -438,12 +445,6 @@ CGameMode.CalculatePixel = function(iPixelID)
         if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY == 0) or (tGame.Direction == 2 and CGameMode.tPixels[iPixelID].iPointY == tGame.Rows+1) then
             if CGameMode.tPixels[iPixelID].bVisual then CGameMode.tPixels[iPixelID] = nil return; end
 
-            if not CGameMode.tPixels[iPixelID].bProlong and CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] then
-                CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] = false
-                CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.RED)
-                CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.RED)
-            end
-
             if CGameMode.tPixels[iPixelID].bProlong then
                 if tGame.Direction == 1 then
                     CGameMode.tPixels[iPixelID].iPointY = -1
@@ -514,10 +515,8 @@ CGameMode.ScorePixel = function(iPixelID)
             CGameMode.CountTargetScore()
         end
     --end
-
-    if CGameMode.tPlayerPixelBatches[iPlayerID][CGameMode.tPixels[iPixelID].iBatchID] == true then
-        CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X - 1, CColors.GREEN)
-        CPaint.AnimateRow(tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize, CColors.GREEN)
+    if not CGameMode.tPixels[iPixelID].bProlong then
+        CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, tGameStats.Players[iPlayerID].Color)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
@@ -641,8 +640,13 @@ CPaint.Borders = function()
     for i = 1, #tGame.StartPositions do
         if tPlayerInGame[i] then
             local iColor = CColors.WHITE
-            SetRowColorBright(tGame.StartPositions[i].X-1, tGame.Rows, iColor, CColors.BRIGHT70)
-            SetRowColorBright(tGame.StartPositions[i].X+tGame.StartPositionSize, tGame.Rows, iColor, CColors.BRIGHT70)
+            if tFloor[tGame.StartPositions[i].X-1] then
+                SetRowColorBright(tGame.StartPositions[i].X-1, tGame.Rows, iColor, CColors.BRIGHT70)
+            end
+
+            if tFloor[tGame.StartPositions[i].X+tGame.StartPositionSize] then
+                SetRowColorBright(tGame.StartPositions[i].X+tGame.StartPositionSize, tGame.Rows, iColor, CColors.BRIGHT70)
+            end
         end
     end
 end
@@ -688,7 +692,7 @@ end
 CPaint.AnimateRow = function(iX, iColor)
     for iY = 1, tGame.Rows do
         tFloor[iX][iY].iColor = iColor
-        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iBright = tConfig.Bright+2
         tFloor[iX][iY].bAnimated = true
     end
 

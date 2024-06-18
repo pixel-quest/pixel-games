@@ -18,5 +18,5 @@
   "SongStartDelayMS_Step": 10,
 
   "EasyMode": false,
-  "RowColorSwitch": false
+  "RowColorSwitch": true
 }
