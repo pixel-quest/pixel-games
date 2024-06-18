@@ -158,7 +158,10 @@ function TutorialTick()
 
     if bAnyButtonClick then
         bAnyButtonClick = false
-        CTutorial.End()
+
+        if not CTutorial.bSkipDelayOn then
+            CTutorial.End()
+        end
     end
 end
 
@@ -191,6 +194,7 @@ end
 --TUTORIAL
 CTutorial = {}
 CTutorial.iFinishCount = 0
+CTutorial.bSkipDelayOn = true
 
 CTutorial.MAX_FINISH = 4
 
@@ -201,6 +205,10 @@ CTutorial.Start = function()
         CTutorial.LoadMaps()
         CAudio.PlayRandomBackground()
     end)
+
+    CTimer.New(5000, function()
+        CTutorial.bSkipDelayOn = false
+    end)    
 end
 
 CTutorial.LoadMaps = function()
