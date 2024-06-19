@@ -588,14 +588,16 @@ CGameMode.LavaGetColorFromY = function(iY, iPlayerID)
         return CColors.GREEN
     end
 
-    if CGameMode.LavaIsLavaY(iY) then
+    if CGameMode.LavaIsLavaY(iY, iPlayerID) then
         return CColors.RED
     end
 
     return CColors.WHITE
 end
 
-CGameMode.LavaIsLavaY = function(iY)
+CGameMode.LavaIsLavaY = function(iY, iPlayerID)
+    if iPlayerID ~= nil and CGameMode.GetStartY(iPlayerID) == iY then return false end
+
     return iY % 3 ~= 0
 end
 
@@ -614,7 +616,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
             CAudio.PlayAsync(CAudio.CLICK)
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
-    elseif CGameMode.LavaIsLavaY(iY) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
+    elseif CGameMode.LavaIsLavaY(iY, iPlayerID) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
         CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] = true
         CGameMode.AddScoreToPlayer(iPlayerID, -5)
         CAudio.PlayAsync(CAudio.MISCLICK)
@@ -702,6 +704,11 @@ end
 CGameMode.ClassicsIsLavaXY = function(iX, iY)
     local iPlayerID = tFloor[iX][iY].iPlayerID
     if iPlayerID == 0 then return; end
+
+    if CGameMode.GetStartY(iPlayerID) == iY then return false end
+
+    if iY == (tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1) then return false end
+    if iY == (tGame.StartPositions[iPlayerID].Y+1) then return false end
 
     iX = iX - tGame.StartPositions[iPlayerID].X
 
