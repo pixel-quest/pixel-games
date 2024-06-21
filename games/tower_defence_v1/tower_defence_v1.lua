@@ -204,6 +204,7 @@ function GameSetupTick()
     SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
 
     if bAnyButtonClick then
+        CAudio.PlaySyncFromScratch("")
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME
     end
@@ -263,6 +264,7 @@ CGameMode.PrepareGame = function()
     CUnits.UnitSettings()
 
     CAudio.PlaySync("games/tower-defence-game.mp3")
+    CAudio.PlaySync("games/tower-defence-tutorial.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
