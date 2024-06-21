@@ -118,7 +118,7 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
     end
-    audio.PlaySyncFromScratch() -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
+    audio.PlaySyncFromScratch("hamster-guide.mp3") -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
 end
 
 -- PauseGame (служебный): пауза игры
