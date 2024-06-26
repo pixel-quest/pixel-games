@@ -23,6 +23,7 @@
 ### Список текущих механик Pixel Quest
 - **Lua**
   - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/rainbow_v1/rainbow_v1.lua)
+  - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном* [mario_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/mario_v1/mario_v1.lua)
   - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pixel_duel_v1/pixel_duel_v1.lua)
   - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/sea_is_rough_v1/sea_is_rough_v1.lua)
   - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/safe_color_v1/safe_color_v1.lua)
@@ -39,10 +40,11 @@
   - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/huarong_v1/huarong_v1.lua)
   - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/olympics_v1/olympics_v1.lua)
   - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/match_the_picture_v1/match_the_picture_v1.lua)
+  - **Хомяк** – *тупая кликалка на хомяка* [humster_rush_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/humster_rush_v1/humster_rush_v1.lua)
+  - **Рисовалка** – *тупая кликалка на хомяка* [сoloring_book_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
   - **Вирус** – *игроки захватывают поле своим цветом (в процессе разработки)*
 - **Go**
   - Заставка **Круги на воде** – *расходящиеся круги от шагов*
-  - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном*
   - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
   - **Классики** – *классики 3х6*
 
