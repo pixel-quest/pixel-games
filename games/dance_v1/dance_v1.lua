@@ -70,6 +70,7 @@ local tFloorStruct = {
     iWeight = 0,
     iPixelID = 0,
     bAnimated = false,
+    iAnimationPriority = 0,
 }
 local tButtonStruct = {
     iColor = CColors.NONE,
@@ -455,12 +456,12 @@ CGameMode.CalculatePixel = function(iPixelID)
                 CGameMode.tPixels[iPixelID] = nil
             end
         else
-            CGameMode.PlayerHitRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iPointY)
+            CGameMode.PlayerHitRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iPointY, false)
         end
     end
 end
 
-CGameMode.PlayerHitRow = function(iX, iY)
+CGameMode.PlayerHitRow = function(iX, iY, bEvent)
     if iGameState ~= GAMESTATE_TUTORIAL and iGameState ~= GAMESTATE_GAME then return; end
 
     if tGame.Direction == 1 then
@@ -479,8 +480,7 @@ CGameMode.PlayerHitRow = function(iX, iY)
                     end
                 end
             end
-        else
-            CAudio.PlayAsync(CAudio.MISCLICK)
+        elseif bEvent then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     elseif tGame.Direction == 2 then
@@ -499,8 +499,7 @@ CGameMode.PlayerHitRow = function(iX, iY)
                     end
                 end
             end
-        else
-            CAudio.PlayAsync(CAudio.MISCLICK)
+        elseif bEvent then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     end
@@ -523,7 +522,7 @@ CGameMode.ScorePixel = function(iPixelID)
         end
     --end
     if not CGameMode.tPixels[iPixelID].bProlong then
-        CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, tGameStats.Players[iPlayerID].Color)
+        CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iColor)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
@@ -574,6 +573,14 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
         CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW
     elseif string.match(iPixelType, "H") then
         CGameMode.tPixels[iPixelID].iColor = CColors.BLUE
+    end
+
+    if tGame.Direction == 2 then
+        if CGameMode.tPixels[iPixelID].iColor == CColors.GREEN then
+           CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW 
+        elseif CGameMode.tPixels[iPixelID].iColor == CColors.YELLOW then
+           CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
+        end
     end
 
     CGameMode.tPixels[iPixelID].bProlong = string.match(iPixelType, "P") --and not tConfig.EasyMode
@@ -662,8 +669,10 @@ CPaint.Pixels = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             if tFloor[iX][iY] and tFloor[iX][iY].iPixelID and CGameMode.tPixels[tFloor[iX][iY].iPixelID] ~= nil then
-                tFloor[iX][iY].iColor = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iColor
-                tFloor[iX][iY].iBright = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iBright
+                if not tFloor[iX][iY].bAnimated or tFloor[iX][iY].iAnimationPriority <= 0 then
+                    tFloor[iX][iY].iColor = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iColor
+                    tFloor[iX][iY].iBright = CGameMode.tPixels[tFloor[iX][iY].iPixelID].iBright
+                end
             end
         end
     end
@@ -699,7 +708,7 @@ end
 CPaint.AnimateRow = function(iX, iColor)
     for iY = 1, tGame.Rows do
         tFloor[iX][iY].iColor = iColor
-        tFloor[iX][iY].iBright = tConfig.Bright+2
+        tFloor[iX][iY].iBright = 2
         tFloor[iX][iY].bAnimated = true
     end
 
@@ -715,6 +724,9 @@ end
 CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     if not tFloor[iX] or not tFloor[iX][iY] or tFloor[iX][iY].bAnimated then return; end
     tFloor[iX][iY].bAnimated = true
+    tFloor[iX][iY].iAnimationPriority = 1
+
+    CAudio.PlayAsync(CAudio.MISCLICK)
 
     local iCount = 0
     CTimer.New(CPaint.ANIMATE_DELAY*3, function()
@@ -737,6 +749,8 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
         tFloor[iX][iY].iBright = tConfig.Bright
         tFloor[iX][iY].iColor = iColor
         tFloor[iX][iY].bAnimated = false
+        tFloor[iX][iY].iAnimationPriority = 0
+
 
         return nil
     end)
@@ -878,7 +892,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].iWeight = click.Weight
 
     if click.Click then
-        CGameMode.PlayerHitRow(click.X, click.Y)
+        CGameMode.PlayerHitRow(click.X, click.Y, true)
     end
 end
 
