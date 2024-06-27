@@ -558,12 +558,23 @@ CUnits.NewUnit = function(iX, iY, iUnitType,  bScoreable, bXMain, iSize)
         CUnits.tUnits[iUnitID].iSize = iSize
     end
 
-    if bScoreable then
+    if bScoreable then 
+        local iSpawnAttemptsCount = 0
+
         while CUnits.RectHasUnitsOrBlocked(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize) do
+            iSpawnAttemptsCount = iSpawnAttemptsCount + 1
+
             if CUnits.tUnits[iUnitID].bXMain then
                 CUnits.tUnits[iUnitID].iY = math.random(1, tGame.Rows)
             else
                 CUnits.tUnits[iUnitID].iX = math.random(1, tGame.Cols)
+            end
+
+            if iSpawnAttemptsCount >= 20 then
+                CLog.print("cant spawn unit after "..iSpawnAttemptsCount.." attempts!")
+
+                CUnits.tUnits[iUnitID] = nil
+                return 
             end
         end
     end
@@ -591,7 +602,7 @@ CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
         for iY = iYStart, iYStart + iSize do
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].iUnitID > 0 then return true end
-                --if tFloor[iX][iY].bDefect then return true end
+                if tFloor[iX][iY].bDefect then return true end
                 if tFloor[iX][iY].bBlocked then return true end
             end
         end
