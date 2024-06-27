@@ -591,7 +591,7 @@ CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
         for iY = iYStart, iYStart + iSize do
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].iUnitID > 0 then return true end
-                if tFloor[iX][iY].bDefect then return true end
+                --if tFloor[iX][iY].bDefect then return true end
                 if tFloor[iX][iY].bBlocked then return true end
             end
         end
