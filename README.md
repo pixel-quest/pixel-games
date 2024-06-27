@@ -24,6 +24,7 @@
 - **Lua**
   - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/rainbow_v1/rainbow_v1.lua)
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном* [mario_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/mario_v1/mario_v1.lua)
+  - Заставка **Круги на воде** – *расходящиеся круги от шагов* [water_circles_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/water_circles_v1/water_circles_v1.lua)
   - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pixel_duel_v1/pixel_duel_v1.lua)
   - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/sea_is_rough_v1/sea_is_rough_v1.lua)
   - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/safe_color_v1/safe_color_v1.lua)
@@ -44,7 +45,6 @@
   - **Рисовалка** – *тупая кликалка на хомяка* [сoloring_book_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
   - **Вирус** – *игроки захватывают поле своим цветом (в процессе разработки)*
 - **Go**
-  - Заставка **Круги на воде** – *расходящиеся круги от шагов*
   - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
   - **Классики** – *классики 3х6*
 
