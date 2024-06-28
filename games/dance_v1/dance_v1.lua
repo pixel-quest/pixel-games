@@ -484,7 +484,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
                     end
                 end
             end
-        elseif bEvent then
+        elseif bEvent and CSongSync.bOn then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     elseif tGame.Direction == 2 then
@@ -503,7 +503,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
                     end
                 end
             end
-        elseif bEvent then
+        elseif bEvent and CSongSync.bOn then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     end
