@@ -5,5 +5,6 @@
   	"Bright_Step": 1,
 
   	"CircleTickTime": 100,
+  	"CircleSpawnDelay": 400,
   	"MaxCircleSize": 30
 }

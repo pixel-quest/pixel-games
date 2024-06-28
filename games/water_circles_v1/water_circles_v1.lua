@@ -140,8 +140,13 @@ end
 --
 CCircles = {}
 CCircles.tCircles = {}
+CCircles.bSpawnDelayOn = false
+CCircles.LastClickX = 0
+CCircles.LastClickY = 0
 
 CCircles.New = function(iX, iY)
+    if CCircles.bSpawnDelayOn or (iX == CCircles.LastClickX and iY == CCircles.LastClickY) then return; end
+
     local iCircleId = #CCircles.tCircles+1
 
     CCircles.tCircles[iCircleId] = {}
@@ -149,6 +154,14 @@ CCircles.New = function(iX, iY)
     CCircles.tCircles[iCircleId].iY = iY
     CCircles.tCircles[iCircleId].iSize = 1
     CCircles.tCircles[iCircleId].iColor = math.random(1,7)
+
+    CCircles.LastClickX = iX
+    CCircles.LastClickY = iY
+
+    CCircles.bSpawnDelayOn = true
+    CTimer.New(tConfig.CircleSpawnDelay, function()
+        CCircles.bSpawnDelayOn = false
+    end)
 end
 
 CCircles.Tick = function()
