@@ -730,7 +730,10 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
     tFloor[iX][iY].iAnimationPriority = 1
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+
+    if tConfig.OutOfZoneSound then
+        CAudio.PlayAsync(CAudio.MISCLICK)
+    end
 
     local iCount = 0
     CTimer.New(CPaint.ANIMATE_DELAY*3, function()

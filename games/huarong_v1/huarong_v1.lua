@@ -536,18 +536,22 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
 
     if not CGameMode.bOneAxisMoveMode then
         if CGameMode.tFinishPosPlayerX[iPlayerID] and CGameMode.tFinishPosPlayerX[iPlayerID].iX then
-            tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.NONE
-            tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright
+            if tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX] and tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor then 
+                tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iColor = CColors.NONE
+                tFloor[CGameMode.tFinishPosPlayerX[iPlayerID].iX][CGameMode.tFinishPosPlayerX[iPlayerID].iY].iBright = iBright
+            end
         end
     end  
     if CGameMode.tFinishPosPlayerY[iPlayerID] and CGameMode.tFinishPosPlayerY[iPlayerID].iX then
-        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iColor = CColors.NONE
-        tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iBright = iBright
+        if tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX] and tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY] then
+            tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iColor = CColors.NONE
+            tFloor[CGameMode.tFinishPosPlayerY[iPlayerID].iX][CGameMode.tFinishPosPlayerY[iPlayerID].iY].iBright = iBright
+        end
     end  
 end
 
 CPaint.PlayerZones = function()
-    for i = 1, #tGame.StartPositions do
+    for i = #tGame.StartPositions, 1, -1 do
         if tPlayerInGame[i] then
             CPaint.PlayerZone(i, CColors.BRIGHT30)
         end
@@ -659,9 +663,11 @@ function SetRowColorBright(tStart, iY, iSize, iColor, iBright)
         local iX = tStart
         iY = iY + 1
 
-        if not (iY < 1 or iY > tGame.Rows) then     
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright            
+        if not (iY < 1 or iY > tGame.Rows) then
+            if tFloor[iX] and tFloor[iX][iY] then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright     
+            end       
         end
     end
 end
@@ -671,9 +677,11 @@ function SetColColorBright(tStart, iSize, iColor, iBright)
         local iX = tStart.X + i
         local iY = tStart.Y
 
-        if not (iX < 1 or iX > tGame.Cols) then     
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright            
+        if not (iX < 1 or iX > tGame.Cols) then    
+            if tFloor[iX] and tFloor[iX][iY] then 
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end            
         end
     end
 end
