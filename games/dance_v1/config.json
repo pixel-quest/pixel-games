@@ -18,5 +18,6 @@
   "SongStartDelayMS_Step": 10,
 
   "EasyMode": false,
-  "RowColorSwitch": true
+  "RowColorSwitch": true,
+  "OutOfZoneSound": true
 }

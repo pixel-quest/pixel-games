@@ -484,7 +484,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
                     end
                 end
             end
-        elseif bEvent then
+        elseif bEvent and CSongSync.bOn then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     elseif tGame.Direction == 2 then
@@ -503,7 +503,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
                     end
                 end
             end
-        elseif bEvent then
+        elseif bEvent and CSongSync.bOn then
             CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
         end
     end
@@ -730,7 +730,10 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
     tFloor[iX][iY].iAnimationPriority = 1
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+
+    if tConfig.OutOfZoneSound then
+        CAudio.PlayAsync(CAudio.MISCLICK)
+    end
 
     local iCount = 0
     CTimer.New(CPaint.ANIMATE_DELAY*3, function()
