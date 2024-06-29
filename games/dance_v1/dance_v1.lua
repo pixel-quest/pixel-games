@@ -169,7 +169,7 @@ function TutorialTick()
             end
         elseif not bCountDownStarted then
             CTutorial.Skip()
-        end 
+        end
     end
 
     if CTutorial.bStarted and CSongSync.bOn then
@@ -248,7 +248,7 @@ CTutorial.bSkipDelayOn = true
 CTutorial.Start = function()
     CTutorial.bStarted = true
     CAudio.PlaySyncFromScratch("") -- обрыв звука
-    CAudio.PlaySync("dance/how_to_play.mp3") 
+    CAudio.PlaySync("dance/how_to_play.mp3")
 
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
@@ -312,7 +312,7 @@ CSongSync.Clear = function()
     CSongSync.bOn = false
     CSongSync.tSong = {}
     CSongSync.iTime = 0
-    CSongSync.iSongPoint = 0   
+    CSongSync.iSongPoint = 0
 end
 
 CSongSync.Count = function(iTimePassed)
@@ -332,7 +332,7 @@ CSongSync.Count = function(iTimePassed)
                         --CTimer.New(5000, function()
                         --    CTutorial.Skip()
                         --end)
-                    else 
+                    else
                         CTimer.New(5000, function()
                             CGameMode.EndGame()
                         end)
@@ -443,7 +443,7 @@ CGameMode.CalculatePixel = function(iPixelID)
 
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
 
-    if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY <= tGame.StartPositions[iPlayerID].Y) 
+    if (tGame.Direction == 1 and CGameMode.tPixels[iPixelID].iPointY <= tGame.StartPositions[iPlayerID].Y)
     or (tGame.Direction == 2 and CGameMode.tPixels[iPixelID].iPointY >= tGame.StartPositions[iPlayerID].Y) then
         CGameMode.tPixels[iPixelID].iBright = CColors.BRIGHT100
 
@@ -537,7 +537,7 @@ CGameMode.ScorePixel = function(iPixelID)
         elseif tGame.Direction == 2 then
             for iY = tGame.Rows, tGame.StartPositions[1].Y, -1 do
                 tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
-            end   
+            end
         end
 
         CGameMode.tPixels[iPixelID] = nil
@@ -581,7 +581,7 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
 
     if tGame.Direction == 2 then
         if CGameMode.tPixels[iPixelID].iColor == CColors.GREEN then
-           CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW 
+           CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW
         elseif CGameMode.tPixels[iPixelID].iColor == CColors.YELLOW then
            CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
         end
@@ -625,7 +625,7 @@ CGameMode.Clear = function()
 
     CGameMode.tPixels = {}
     CGameMode.tPlayerPixelBatches = {}
-    CGameMode.tPlayerRowClick = {}    
+    CGameMode.tPlayerRowClick = {}
 end
 
 CGameMode.SongTimer = function()
@@ -712,7 +712,7 @@ end
 CPaint.AnimateRow = function(iX, iColor)
     for iY = 1, tGame.Rows do
         tFloor[iX][iY].iColor = iColor
-        tFloor[iX][iY].iBright = 2
+        tFloor[iX][iY].iBright = CColors.BRIGHT15
         tFloor[iX][iY].bAnimated = true
     end
 
@@ -929,7 +929,7 @@ end
 
 -----------------------------------------------------------
 
-tTutorialSong = 
+tTutorialSong =
 {
     { 30000, "N", "N", "N", "N" },
     { 30500, "N", "N", "N", "N" },
