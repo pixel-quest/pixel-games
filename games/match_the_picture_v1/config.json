@@ -7,7 +7,7 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
-  "GameCountdown": 10,
+  "GameCountdown": 15,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
