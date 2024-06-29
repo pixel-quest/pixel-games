@@ -4,8 +4,8 @@
   "Bright_Max": 7,
   "Bright_Step": 1,
 
-  "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true,
+  "WinDurationMS": 10000,
+  "WinDurationMS_Hidden": true,
 
   "GameCountdown": 5,
   "GameCountdown_Min": 1,

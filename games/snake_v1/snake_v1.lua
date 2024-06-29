@@ -314,7 +314,7 @@ CGameMode.RandomPositionForPixel = function()
 end
 
 CGameMode.IsValidPixelPosition = function(iX, iY)
-    if tFloor[iX][iY].bBlocked or tFloor[iX][iY].bDefect or (iX == CSnake.iHeadX and iY == CSnake.iHeadY) then return false end
+    if tFloor[iX][iY].bBlocked or tFloor[iX][iY].bDefect or (iX == CSnake.iHeadX and iY == CSnake.iHeadY) or tFloor[iX][iY].iPixelID ~= 0 then return false end
 
     return true
 end
@@ -380,26 +380,27 @@ CSnake.tPath = nil
 CSnake.iStep = 2
 
 CSnake.Create = function()
-    CSnake.iHeadX = math.random(1, tGame.Cols - CSnake.iLength)
-    CSnake.iHeadY = math.random(1, tGame.Rows)
+    CSnake.iHeadX = math.floor(tGame.Cols/2)
+    CSnake.iHeadY = math.floor(tGame.Rows/2)
     CSnake.iLength = tConfig.SnakeLength-1
 
     for i = 1, CSnake.iLength do
         CSnake.tTail[i] = {}
         CSnake.tTail[i].iX = CSnake.iHeadX + (i)
         CSnake.tTail[i].iY = CSnake.iHeadY
-        tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = true
+
+        if tFloor[CSnake.tTail[i].iX] and tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY] then
+            tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = true
+        end
     end
 end
 
 CSnake.Start = function()
     CTimer.New(tConfig.SnakeThinkTime, function()
-        CSnake.Think()
+        if iGameState ~= GAMESTATE_GAME then return nil end
 
-        if iGameState == GAMESTATE_GAME then
-            return tConfig.SnakeThinkTime
-        end
-        return nil
+        CSnake.Think()
+        return tConfig.SnakeThinkTime
     end)
 end
 
@@ -418,6 +419,13 @@ CSnake.Think = function()
             CLog.print("snake is stuck! noclip on")
             CSnake.tPath = CSnake.GetPath(true)
             bStuck = true
+        end
+
+        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil or CSnake.tPath[CSnake.iStep].iX == nil then 
+            CLog.print("snake is dead stuck!")
+
+            CSnake.NewDestination()
+            return; 
         end
 
         local iXPlus, iYPlus = CSnake.tPath[CSnake.iStep].iX - CSnake.iHeadX, CSnake.tPath[CSnake.iStep].iY - CSnake.iHeadY
@@ -452,7 +460,9 @@ end
 CSnake.Move = function(iXPlus, iYPlus)
     for i = CSnake.iLength, 1, -1 do
         if (CSnake.tTail[i].iX > 0 and i == CSnake.iLength) or (CSnake.tTail[i+1] and CSnake.tTail[i+1].iX == 0 and i == CSnake.iLength -1) then
-            tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = false
+            if tFloor[CSnake.tTail[i].iX] and tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY] then
+                tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = false
+            end
         end
 
         local iNextX = CSnake.iHeadX
@@ -465,7 +475,9 @@ CSnake.Move = function(iXPlus, iYPlus)
         CSnake.tTail[i].iX = iNextX 
         CSnake.tTail[i].iY = iNextY
 
-        tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = true        
+        if tFloor[CSnake.tTail[i].iX] and tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY] then
+            tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].bBlocked = true        
+        end
     end    
 
     CSnake.iHeadX = CSnake.iHeadX + iXPlus
@@ -582,8 +594,10 @@ end
 CPaint.Snake = function()
     for i = 1, #CSnake.tTail do
         if CSnake.tTail[i] and CSnake.tTail[i].iX > 0 then
-            tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iColor = CSnake.iColor
-            tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iBright = tConfig.Bright-1
+            if tFloor[CSnake.tTail[i].iX] and tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY] then
+                tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iColor = CSnake.iColor
+                tFloor[CSnake.tTail[i].iX][CSnake.tTail[i].iY].iBright = tConfig.Bright-1
+            end
         end    
     end
 
