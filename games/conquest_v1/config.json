@@ -1,0 +1,29 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"WinDurationMS": 10000,
+	"WinDurationMS_Hidden": true,
+
+	"TeamCount": 2,
+	"TeamCount_Min": 1,
+	"TeamCount_Max": 4,
+	"TeamCount_Step": 1,
+
+	"UnitCountPerTeam": 1,
+	"UnitCountPerTeam_Min": 1,
+	"UnitCountPerTeam_Max": 3,
+	"UnitCountPerTeam_Step": 1,
+
+	"GameLength": 60,
+	"GameLength_Min": 30,
+	"GameLength_Max": 300,
+	"GameLength_Step": 10,	
+
+	"UnitThinkDelay": 500,
+	"UnitThinkDelay_Min": 100,
+	"UnitThinkDelay_Max": 2000,
+	"UnitThinkDelay_Step": 100
+}
