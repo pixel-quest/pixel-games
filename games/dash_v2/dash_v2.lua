@@ -145,23 +145,27 @@ function GameSetupTick()
     local iPlayersReady = 0
 
     local iButton = 0
+    local iPosI = 1
     for iPos, tPos in pairs(tButtons) do
-        iButton = iButton + 1
-        if iButton > 6 then break; end
+        iPosI = iPosI + 1
+        if iPosI % 2 ~= 0 and not tPos.bDefect then 
+            iButton = iButton + 1
+            if iButton > 6 then break; end
 
-        local iBright = CColors.BRIGHT15
-        if CGameMode.SafeZoneClicked(tPos) or (bCountDownStarted and tPlayerInGame[iPos]) then
-            iBright = tConfig.Bright
-            iPlayersReady = iPlayersReady + 1
-            tPlayerInGame[iPos] = true
-            tPos.bSafeZoneOn = true
-            tPos.iSafeZoneBright = tConfig.Bright
-        else
-            tPlayerInGame[iPos] = false
-            tPos.bSafeZoneOn = false
+            local iBright = CColors.BRIGHT15
+            if CGameMode.SafeZoneClicked(tPos) or (bCountDownStarted and tPlayerInGame[iPos]) then
+                iBright = tConfig.Bright
+                iPlayersReady = iPlayersReady + 1
+                tPlayerInGame[iPos] = true
+                tPos.bSafeZoneOn = true
+                tPos.iSafeZoneBright = tConfig.Bright
+            else
+                tPlayerInGame[iPos] = false
+                tPos.bSafeZoneOn = false
+            end
+
+            CPaint.SafeZone(tPos, iBright)
         end
-
-        CPaint.SafeZone(tPos, iBright)
     end
 
     if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
