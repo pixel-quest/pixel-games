@@ -554,7 +554,7 @@ CPaint.SafeZones = function()
 end
 
 CPaint.SafeZone = function(tButton, iBright)
-    if tButton.bDefect then return false end 
+    --if tButton.bDefect then return false end 
 
     for iX = tButton.iSafeZoneX, tButton.iSafeZoneX + tGame.SafeZoneSizeX-1 do
         for iY = tButton.iSafeZoneY, tButton.iSafeZoneY + tGame.SafeZoneSizeY-1 do
