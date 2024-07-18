@@ -1,0 +1,26 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"AnimationDelay": 300,
+	"AnimationDelay_Min": 100,
+	"AnimationDelay_Max": 1000,
+	"AnimationDelay_Step": 100,
+
+	"TextAnimation": 0,
+	"TextAnimation_Min": 0,
+	"TextAnimation_Max": 1,
+	"TextAnimation_Step": 1,
+
+	"TextColor": 2,
+	"TextColor_Min": 1,
+	"TextColor_Max": 7,
+	"TextColor_Step": 1,
+
+	"BackgroundName": "test",
+	"Text": "NTCN",
+
+	"Music": ""
+}
