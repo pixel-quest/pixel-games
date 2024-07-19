@@ -1,0 +1,15 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"AnimationDelay": 300,
+	"AnimationDelay_Min": 100,
+	"AnimationDelay_Max": 1000,
+	"AnimationDelay_Step": 100,
+
+	"BackgroundName": "minion",
+
+	"Music": ""
+}
