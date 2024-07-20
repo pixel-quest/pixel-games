@@ -148,7 +148,7 @@ function GameSetupTick()
     local iPosI = 1
     for iPos, tPos in pairs(tButtons) do
         iPosI = iPosI + 1
-        if iPosI % 2 ~= 0 and not tPos.bDefect then 
+        if iPosI % 2 == 0 and not tPos.bDefect then 
             iButton = iButton + 1
             if iButton > 6 then break; end
 
