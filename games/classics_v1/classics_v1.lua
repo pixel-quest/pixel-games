@@ -162,7 +162,7 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    CGameMode.EndGame()
 end
 
 --GAMEMODE
@@ -216,20 +216,22 @@ CGameMode.Start = function()
     CGameMode.bGameStarted = true
     CGameMode.LoadMapsForPlayers()
 
-    CTimer.New(1000, function()
-        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+    if tGameStats.StageLeftDuration > 1 then
+        CTimer.New(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-        if tGameStats.StageLeftDuration <= 0 then
-            CGameMode.EndGame()
-            return nil
-        end
+            if tGameStats.StageLeftDuration <= 0 then
+                CGameMode.EndGame()
+                return nil
+            end
 
-        if tGameStats.StageLeftDuration < 10 then
-            CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
-        end
+            if tGameStats.StageLeftDuration < 10 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
 
-        return 1000
-    end)
+            return 1000
+        end)
+    end
 end
 
 CGameMode.LoadMapsForPlayers = function()
@@ -307,7 +309,7 @@ CMaps.LoadMapForPlayer = function(iPlayerID)
             iMapX = iMapX + 1
 
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
-            if tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then 
+            if not tFloor[iX][iY].bDefect and tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then 
                 iBlockType = tMap[iMapY][iMapX]
             end
 
