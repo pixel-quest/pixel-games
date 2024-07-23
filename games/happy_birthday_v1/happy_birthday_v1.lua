@@ -14,11 +14,8 @@
         - При нехватке места на строке буквы переносятся на следующую
         - В среднем максимум в строке 5 символов, но зависит от их ширины
 
-        Поддерживаются только русские буквы, НО пишутся они с английской раскладки
-        Например: 
-            Чтобы написать "ЖЕНЯ" надо ввести ":TYZ"
-            Чтобы написать "10 ЛЕТ" надо ввести "10 KTN"
-
+        Поддерживаются только русские ЗАГЛАВНЫЕ буквы
+        
         Если буква неопределена - вместо неё будет нарисован квадрат 4x5
 
     Выбор музыки:
@@ -222,36 +219,38 @@ CPaint.Text = function()
 
     for i = 1, #sText do
         local tLetter = tLoadedLetters["default"]
-        local sLetter = sText:sub(i, i)
-
-        if tLoadedLetters[sLetter] ~= nil then
-            tLetter = tLoadedLetters[sLetter]
-        end
-
-        local iAnimY = 0
-        if CPaint.bAnimateText and CPaint.iTextAnimationFrame % 2 ~= 0 then
-            if (CPaint.iTextAnimationFrame == 1 and i % 2 ~= 0) or (CPaint.iTextAnimationFrame == 3 and i % 2 == 0) then
-                iAnimY = -2
-            else
-                iAnimY = 2
+        local iLetterByte = sText:byte(i)
+        CLog.print(i.." "..iLetterByte)
+        if iLetterByte ~= 208 then
+            if tLoadedLetters[iLetterByte] ~= nil then
+                tLetter = tLoadedLetters[iLetterByte]
             end
-        end
 
-        for iLocalY = 1, tLetter.iSizeY do
-            for iLocalX = 1, tLetter.iSizeX do
-                if tLetter.tPaint[iLocalY][iLocalX] == 1 then
-                    if tFloor[iX+iLocalX][iY+iLocalY+iAnimY] then
-                        tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iColor = CPaint.iTextColor
-                        tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iBright = tConfig.Bright
+            local iAnimY = 0
+            if CPaint.bAnimateText and CPaint.iTextAnimationFrame % 2 ~= 0 then
+                if (CPaint.iTextAnimationFrame == 1 and i % 2 ~= 0) or (CPaint.iTextAnimationFrame == 3 and i % 2 == 0) then
+                    iAnimY = -2
+                else
+                    iAnimY = 2
+                end
+            end
+
+            for iLocalY = 1, tLetter.iSizeY do
+                for iLocalX = 1, tLetter.iSizeX do
+                    if tLetter.tPaint[iLocalY][iLocalX] == 1 then
+                        if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY+iAnimY] then
+                            tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iColor = CPaint.iTextColor
+                            tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iBright = tConfig.Bright
+                        end
                     end
                 end
             end
-        end
 
-        iX = iX + tLetter.iSizeX+1
-        if (iX + 4) > tGame.Cols then
-            iX = 0
-            iY = iY + 7
+            iX = iX + tLetter.iSizeX+1
+            if (iX + 4) > tGame.Cols then
+                iX = 0
+                iY = iY + 7
+            end
         end
     end
 end
@@ -424,6 +423,7 @@ tLoadedLetters[" "] =
         {0,}
     }
 }
+tLoadedLetters[32] = tLoadedLetters[" "]
 
 tLoadedLetters["!"] =
 {
@@ -438,6 +438,8 @@ tLoadedLetters["!"] =
     }
 }
 
+tLoadedLetters[33] = tLoadedLetters["!"]
+
 tLoadedLetters["?"] =
 {
     iSizeX = 4,
@@ -450,6 +452,7 @@ tLoadedLetters["?"] =
         {0, 1, 0, 0}
     }
 }
+tLoadedLetters[63] = tLoadedLetters["?"]
 
 tLoadedLetters["0"] =
 {
@@ -463,6 +466,7 @@ tLoadedLetters["0"] =
         {1, 1, 1,}
     }
 }
+tLoadedLetters[48] = tLoadedLetters["0"]
 
 tLoadedLetters["1"] =
 {
@@ -476,6 +480,7 @@ tLoadedLetters["1"] =
         {1, 1, 1,}
     }
 }
+tLoadedLetters[49] = tLoadedLetters["1"]
 
 tLoadedLetters["2"] =
 {
@@ -489,6 +494,7 @@ tLoadedLetters["2"] =
         {1, 1, 1, 1}
     }
 }
+tLoadedLetters[50] = tLoadedLetters["2"]
 
 tLoadedLetters["3"] =
 {
@@ -502,6 +508,7 @@ tLoadedLetters["3"] =
         {0, 1, 1, 0}
     }
 }
+tLoadedLetters[51] = tLoadedLetters["3"]
 
 tLoadedLetters["4"] =
 {
@@ -515,6 +522,7 @@ tLoadedLetters["4"] =
         {0, 0, 1, 0}
     }
 }
+tLoadedLetters[52] = tLoadedLetters["4"]
 
 tLoadedLetters["5"] =
 {
@@ -528,6 +536,7 @@ tLoadedLetters["5"] =
         {1, 1, 1, 0}
     }
 }
+tLoadedLetters[53] = tLoadedLetters["5"]
 
 tLoadedLetters["6"] =
 {
@@ -541,6 +550,7 @@ tLoadedLetters["6"] =
         {0, 1, 1, 0}
     }
 }
+tLoadedLetters[54] = tLoadedLetters["6"]
 
 tLoadedLetters["7"] =
 {
@@ -554,6 +564,7 @@ tLoadedLetters["7"] =
         {0, 0, 1, 0}
     }
 }
+tLoadedLetters[55] = tLoadedLetters["7"]
 
 tLoadedLetters["8"] =
 {
@@ -567,6 +578,7 @@ tLoadedLetters["8"] =
         {0, 1, 1, 0}
     }
 }
+tLoadedLetters[56] = tLoadedLetters["8"]
 
 tLoadedLetters["9"] =
 {
@@ -580,6 +592,7 @@ tLoadedLetters["9"] =
         {0, 0, 1, 0}
     }
 }
+tLoadedLetters[57] = tLoadedLetters["9"]
 
 tLoadedLetters["А"] =
 {
@@ -594,7 +607,9 @@ tLoadedLetters["А"] =
     }
 }
 tLoadedLetters["а"] = tLoadedLetters["А"]
-tLoadedLetters["F"] = tLoadedLetters["А"]
+tLoadedLetters["A"] = tLoadedLetters["А"]
+tLoadedLetters[65] = tLoadedLetters["А"]
+tLoadedLetters[144] = tLoadedLetters["А"]
 
 tLoadedLetters["Б"] =
 {
@@ -609,7 +624,7 @@ tLoadedLetters["Б"] =
     }
 }
 tLoadedLetters["б"] = tLoadedLetters["Б"]
-tLoadedLetters["<"] = tLoadedLetters["Б"]
+tLoadedLetters[145] = tLoadedLetters["Б"]
 
 tLoadedLetters["В"] =
 {
@@ -624,7 +639,7 @@ tLoadedLetters["В"] =
     }
 }
 tLoadedLetters["в"] = tLoadedLetters["В"]
-tLoadedLetters["D"] = tLoadedLetters["В"]
+tLoadedLetters[146] = tLoadedLetters["В"]
 
 tLoadedLetters["Г"] =
 {
@@ -639,7 +654,7 @@ tLoadedLetters["Г"] =
     }
 }
 tLoadedLetters["г"] = tLoadedLetters["Г"]
-tLoadedLetters["U"] = tLoadedLetters["Г"]
+tLoadedLetters[147] = tLoadedLetters["Г"]
 
 tLoadedLetters["Д"] =
 {
@@ -654,7 +669,7 @@ tLoadedLetters["Д"] =
     }
 }
 tLoadedLetters["д"] = tLoadedLetters["Д"]
-tLoadedLetters["L"] = tLoadedLetters["Д"]
+tLoadedLetters[148] = tLoadedLetters["Д"]
 
 tLoadedLetters["Е"] =
 {
@@ -669,10 +684,10 @@ tLoadedLetters["Е"] =
     }
 }
 tLoadedLetters["е"] = tLoadedLetters["Е"]
-tLoadedLetters["T"] = tLoadedLetters["Е"]
+tLoadedLetters[149] = tLoadedLetters["Е"]
 tLoadedLetters["ё"] = tLoadedLetters["Е"]
 tLoadedLetters["Ё"] = tLoadedLetters["Е"]
-tLoadedLetters["~"] = tLoadedLetters["Е"]
+tLoadedLetters[129] = tLoadedLetters["Е"]
 
 tLoadedLetters["Ж"] =
 {
@@ -687,7 +702,7 @@ tLoadedLetters["Ж"] =
     }
 }
 tLoadedLetters["ж"] = tLoadedLetters["Ж"]
-tLoadedLetters[":"] = tLoadedLetters["Ж"]
+tLoadedLetters[150] = tLoadedLetters["Ж"]
 
 tLoadedLetters["З"] =
 {
@@ -702,7 +717,7 @@ tLoadedLetters["З"] =
     }
 }
 tLoadedLetters["з"] = tLoadedLetters["З"]
-tLoadedLetters["P"] = tLoadedLetters["З"]
+tLoadedLetters[151] = tLoadedLetters["З"]
 
 tLoadedLetters["И"] =
 {
@@ -717,10 +732,10 @@ tLoadedLetters["И"] =
     }
 }
 tLoadedLetters["и"] = tLoadedLetters["И"]
-tLoadedLetters["B"] = tLoadedLetters["И"]
+tLoadedLetters[152] = tLoadedLetters["И"]
 tLoadedLetters["Й"] = tLoadedLetters["И"]
 tLoadedLetters["й"] = tLoadedLetters["И"]
-tLoadedLetters["Q"] = tLoadedLetters["И"]
+tLoadedLetters[153] = tLoadedLetters["И"]
 
 tLoadedLetters["К"] =
 {
@@ -735,7 +750,7 @@ tLoadedLetters["К"] =
     }
 }
 tLoadedLetters["к"] = tLoadedLetters["К"]
-tLoadedLetters["R"] = tLoadedLetters["К"]
+tLoadedLetters[154] = tLoadedLetters["К"]
 
 tLoadedLetters["Л"] =
 {
@@ -750,7 +765,7 @@ tLoadedLetters["Л"] =
     }
 }
 tLoadedLetters["л"] = tLoadedLetters["Л"]
-tLoadedLetters["K"] = tLoadedLetters["Л"]
+tLoadedLetters[155] = tLoadedLetters["Л"]
 
 tLoadedLetters["М"] =
 {
@@ -765,7 +780,7 @@ tLoadedLetters["М"] =
     }
 }
 tLoadedLetters["м"] = tLoadedLetters["М"]
-tLoadedLetters["V"] = tLoadedLetters["М"]
+tLoadedLetters[156] = tLoadedLetters["М"]
 
 tLoadedLetters["Н"] =
 {
@@ -780,7 +795,7 @@ tLoadedLetters["Н"] =
     }
 }
 tLoadedLetters["н"] = tLoadedLetters["Н"]
-tLoadedLetters["Y"] = tLoadedLetters["Н"]
+tLoadedLetters[157] = tLoadedLetters["Н"]
 
 tLoadedLetters["О"] =
 {
@@ -795,7 +810,7 @@ tLoadedLetters["О"] =
     }
 }
 tLoadedLetters["о"] = tLoadedLetters["О"]
-tLoadedLetters["J"] = tLoadedLetters["О"]
+tLoadedLetters[158] = tLoadedLetters["О"]
 
 tLoadedLetters["П"] =
 {
@@ -810,7 +825,7 @@ tLoadedLetters["П"] =
     }
 }
 tLoadedLetters["п"] = tLoadedLetters["П"]
-tLoadedLetters["G"] = tLoadedLetters["П"]
+tLoadedLetters[159] = tLoadedLetters["П"]
 
 tLoadedLetters["Р"] =
 {
@@ -825,7 +840,7 @@ tLoadedLetters["Р"] =
     }
 }
 tLoadedLetters["р"] = tLoadedLetters["Р"]
-tLoadedLetters["H"] = tLoadedLetters["Р"]
+tLoadedLetters[160] = tLoadedLetters["Р"]
 
 tLoadedLetters["С"] =
 {
@@ -840,7 +855,7 @@ tLoadedLetters["С"] =
     }
 }
 tLoadedLetters["с"] = tLoadedLetters["С"]
-tLoadedLetters["C"] = tLoadedLetters["С"]
+tLoadedLetters[161] = tLoadedLetters["С"]
 
 tLoadedLetters["Т"] =
 {
@@ -855,7 +870,7 @@ tLoadedLetters["Т"] =
     }
 }
 tLoadedLetters["т"] = tLoadedLetters["Т"]
-tLoadedLetters["N"] = tLoadedLetters["Т"]
+tLoadedLetters[162] = tLoadedLetters["Т"]
 
 tLoadedLetters["У"] =
 {
@@ -870,7 +885,7 @@ tLoadedLetters["У"] =
     }
 }
 tLoadedLetters["у"] = tLoadedLetters["У"]
-tLoadedLetters["E"] = tLoadedLetters["У"]
+tLoadedLetters[163] = tLoadedLetters["У"]
 
 tLoadedLetters["Ф"] =
 {
@@ -885,7 +900,7 @@ tLoadedLetters["Ф"] =
     }
 }
 tLoadedLetters["ф"] = tLoadedLetters["Ф"]
-tLoadedLetters["A"] = tLoadedLetters["Ф"]
+tLoadedLetters[164] = tLoadedLetters["Ф"]
 
 tLoadedLetters["Х"] =
 {
@@ -900,7 +915,7 @@ tLoadedLetters["Х"] =
     }
 }
 tLoadedLetters["х"] = tLoadedLetters["Х"]
-tLoadedLetters["{"] = tLoadedLetters["Х"]
+tLoadedLetters[165] = tLoadedLetters["Х"]
 
     tLoadedLetters["Ц"] =
 {
@@ -915,7 +930,7 @@ tLoadedLetters["{"] = tLoadedLetters["Х"]
     }
 }
 tLoadedLetters["ц"] = tLoadedLetters["Ц"]
-tLoadedLetters["W"] = tLoadedLetters["Ц"]
+tLoadedLetters[166] = tLoadedLetters["Ц"]
 
 tLoadedLetters["Ч"] =
 {
@@ -930,7 +945,7 @@ tLoadedLetters["Ч"] =
     }
 }
 tLoadedLetters["ч"] = tLoadedLetters["Ч"]
-tLoadedLetters["X"] = tLoadedLetters["Ч"]
+tLoadedLetters[167] = tLoadedLetters["Ч"]
 
 tLoadedLetters["Ш"] =
 {
@@ -945,10 +960,10 @@ tLoadedLetters["Ш"] =
     }
 }
 tLoadedLetters["ш"] = tLoadedLetters["Ш"]
-tLoadedLetters["I"] = tLoadedLetters["Ш"]
+tLoadedLetters[168] = tLoadedLetters["Ш"]
 tLoadedLetters["Щ"] = tLoadedLetters["Ш"]
 tLoadedLetters["щ"] = tLoadedLetters["Ш"]
-tLoadedLetters["O"] = tLoadedLetters["Ш"]
+tLoadedLetters[169] = tLoadedLetters["Ш"]
 
 tLoadedLetters["Ъ"] =
 {
@@ -963,7 +978,7 @@ tLoadedLetters["Ъ"] =
     }
 }
 tLoadedLetters["ъ"] = tLoadedLetters["Ъ"]
-tLoadedLetters["}"] = tLoadedLetters["Ъ"]
+tLoadedLetters[170] = tLoadedLetters["Ъ"]
 
 tLoadedLetters["Ы"] =
 {
@@ -978,7 +993,7 @@ tLoadedLetters["Ы"] =
     }
 }
 tLoadedLetters["ы"] = tLoadedLetters["Ы"]
-tLoadedLetters["S"] = tLoadedLetters["Ы"]
+tLoadedLetters[171] = tLoadedLetters["Ы"]
 
 tLoadedLetters["Ь"] =
 {
@@ -993,7 +1008,7 @@ tLoadedLetters["Ь"] =
     }
 }
 tLoadedLetters["ь"] = tLoadedLetters["Ь"]
-tLoadedLetters["M"] = tLoadedLetters["Ь"]
+tLoadedLetters[172] = tLoadedLetters["Ь"]
 
 tLoadedLetters["Э"] =
 {
@@ -1008,7 +1023,7 @@ tLoadedLetters["Э"] =
     }
 }
 tLoadedLetters["э"] = tLoadedLetters["Э"]
-tLoadedLetters['"'] = tLoadedLetters["Э"]
+tLoadedLetters[173] = tLoadedLetters["Э"]
 
 tLoadedLetters["Ю"] =
 {
@@ -1023,7 +1038,7 @@ tLoadedLetters["Ю"] =
     }
 }
 tLoadedLetters["ю"] = tLoadedLetters["Ю"]
-tLoadedLetters[">"] = tLoadedLetters["Ю"]
+tLoadedLetters[174] = tLoadedLetters["Ю"]
 
 tLoadedLetters["Я"] =
 {
@@ -1038,4 +1053,4 @@ tLoadedLetters["Я"] =
     }
 }
 tLoadedLetters["я"] = tLoadedLetters["Я"]
-tLoadedLetters["Z"] = tLoadedLetters["Я"]
+tLoadedLetters[175] = tLoadedLetters["Я"]

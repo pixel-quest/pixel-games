@@ -117,6 +117,7 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     CGameMode.Init()
+    CGameMode.Announcer()
 end
 
 function NextTick()
@@ -188,6 +189,11 @@ CGameMode.iWinner = 0
 CGameMode.Init = function()
     CField.SetupField()
     CGameMode.SetupUnits()
+end
+
+CGameMode.Announcer = function()
+    CAudio.PlaySync("games/virus.mp3")
+    CAudio.PlaySync("voices/virus-guide.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
