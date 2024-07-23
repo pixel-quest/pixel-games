@@ -12,10 +12,7 @@
             "amongus" - амогус
             "hulk" - халк
             "batsign" - лого бэтмена
-
-
-    Выбор музыки:
-        - Название звука вписывается в настройку "Music"
+            "marvel" - железный человек и капитан америка
 
 
 ]]
@@ -103,9 +100,14 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    CPaint.OffsetTimer()
+
     CPaint.sBackgroundName = tConfig.BackgroundName
     CPaint.BackgroundFrameTimerStart()
-    CAudio.PlayBackground(tConfig.Music)
+
+    if CPaint.sBackgroundName ~= "" then
+        CAudio.PlayBackground("backgrounds/heroes/"..CPaint.sBackgroundName..".mp3")
+    end
 end
 
 function NextTick()
@@ -151,15 +153,26 @@ CPaint.iTextColor = 1
 CPaint.bAnimateText = false
 CPaint.iTextAnimationFrame = 1
 
-CPaint.PaintBG = function()
-    if CPaint.sBackgroundName == "" then return end
+CPaint.iOffset = 0
 
-    local tBg = tGame.Backgrounds[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
+CPaint.PaintBG = function()
+    local tBg = nil
+    if CPaint.sBackgroundName ~= "" then
+        tBg = tGame.Backgrounds[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
+    end
 
     for iY = 1, tGame.Rows do
         for iX = 1, tGame.Cols do
-            tFloor[iX][iY].iColor = tBg[iY][iX]
-            tFloor[iX][iY].iBright = tConfig.Bright
+            local tBackgroundColor = CPaint.GetBackgroundColor(iX, iY)
+            if tBackgroundColor ~= nil then
+                tFloor[iX][iY].iColor = tBackgroundColor.color
+                tFloor[iX][iY].iBright = tBackgroundColor.bright
+            end
+
+            if tBg ~= nil and tBg[iY][iX] ~= 8 then
+                tFloor[iX][iY].iColor = tBg[iY][iX]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
         end
     end
 end
@@ -180,6 +193,22 @@ CPaint.BackgroundFrameTimerStart = function()
 
         return nil
     end)
+end
+
+CPaint.OffsetTimer = function()
+    CTimer.New(tConfig.AnimationDelay, function()
+        CPaint.iOffset = CPaint.iOffset + 1
+
+        return tConfig.AnimationDelay
+    end)
+end
+
+CPaint.GetBackgroundColor = function(iX, iY)
+    local iId = math.floor((iX + iY + CPaint.iOffset) %(#tGame.Colors))
+
+    if iId == 0 then iId = 1 end
+
+    return tGame.Colors[iId]
 end
 --//
 
