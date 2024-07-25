@@ -108,5 +108,10 @@
   ],
 
   "SafeZoneSizeX": 2,
-  "SafeZoneSizeY": 2
+  "SafeZoneSizeY": 2,
+
+  "SafeZoneOffsetTop": 0,
+  "SafeZoneOffsetLeft": 0,
+  "SafeZoneOffsetRight": 0,
+  "SafeZoneOffsetBottom": 0
 }

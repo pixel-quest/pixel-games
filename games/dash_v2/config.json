@@ -12,6 +12,11 @@
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
 
+  "MaxPlayerCount": 6,
+  "MaxPlayerCount_Min": 1,
+  "MaxPlayerCount_Max": 10,
+  "MaxPlayerCount_Step": 1,
+
   "SafeZoneResetTimer": 4,
   "SafeZoneResetTimer_Min": 1,
   "SafeZoneResetTimer_Max": 15,

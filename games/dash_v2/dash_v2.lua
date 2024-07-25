@@ -96,16 +96,16 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
         local iX = iButton
-        local iY = 1
+        local iY = 1 + (tGame.SafeZoneOffsetTop or 0)
 
         if iX > tGame.Cols*2 + tGame.Rows then
-            iX = 1
+            iX = 1 + (tGame.SafeZoneOffsetLeft or 0)
             iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
         elseif iX > tGame.Cols + tGame.Rows then
             iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
-            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
+            iY = tGame.Rows - (tGame.SafeZoneSizeY/2) - (tGame.SafeZoneOffsetBottom or 0)
         elseif iX > tGame.Cols then
-            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
+            iX = tGame.Cols - (tGame.SafeZoneSizeX/2) - (tGame.SafeZoneOffsetRight or 0)
             iY = iButton - tGame.Cols 
         end
 
@@ -150,7 +150,7 @@ function GameSetupTick()
         iPosI = iPosI + 1
         if iPosI % 2 == 0 and not tPos.bDefect then 
             iButton = iButton + 1
-            if iButton > 6 then break; end
+            if iButton > tConfig.MaxPlayerCount then break; end
 
             local iBright = CColors.BRIGHT15
             if CGameMode.SafeZoneClicked(tPos) or (bCountDownStarted and tPlayerInGame[iPos]) then
@@ -309,14 +309,17 @@ CGameMode.ReachGoal = function(tButton)
     end
 end
 
-CGameMode.AssignRandomGoal = function()
+CGameMode.AssignRandomGoal = function(iAttemptCount)
+    if iAttemptCount == nil then iAttemptCount = 0 end
+    if iAttemptCount >= 20 then CLog.print("cant find empty button to asign a goal"); return; end
+
     local iButtonId = tGame.Buttons[math.random(1, #tGame.Buttons)]
     if tButtons[iButtonId] and not tButtons[iButtonId].bDefect and not tButtons[iButtonId].bGoal and not tButtons[iButtonId].bSafeZoneOn then
         tButtons[iButtonId].bGoal = true
         tButtons[iButtonId].bSafeZoneOn = true
         tButtons[iButtonId].iSafeZoneBright = tConfig.Bright
     else
-        CGameMode.AssignRandomGoal()
+        CGameMode.AssignRandomGoal(iAttemptCount + 1)
     end
 end
 
