@@ -21,10 +21,13 @@
 <img src="https://github.com/pixel-quest/pixel-games/raw/main/img/stand2.jpg">
 
 ### Список текущих механик Pixel Quest
+- **Go**
+  - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
 - **Lua**
   - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/rainbow_v1/rainbow_v1.lua)
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном* [mario_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/mario_v1/mario_v1.lua)
   - Заставка **Круги на воде** – *расходящиеся круги от шагов* [water_circles_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/water_circles_v1/water_circles_v1.lua)
+  - Заставка **Супергерои** – *рисунки мультяшных супергероев* [heroes_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/heroes_v1/heroes_v1.lua)
   - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pixel_duel_v1/pixel_duel_v1.lua)
   - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/sea_is_rough_v1/sea_is_rough_v1.lua)
   - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/safe_color_v1/safe_color_v1.lua)
@@ -38,15 +41,14 @@
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v1/minesweeper_v1.lua)
   - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dash_v2/dash_v2.lua)
   - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/snake_v1/snake_v1.lua)
+  - **Змейка** – *змейка с управлением через геймпад* [snake_gamepad_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/snake_gamepad_v1/snake_gamepad_v1.lua)
   - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/huarong_v1/huarong_v1.lua)
   - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/olympics_v1/olympics_v1.lua)
   - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/match_the_picture_v1/match_the_picture_v1.lua)
   - **Хомяк** – *тупая кликалка на хомяка* [humster_rush_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/humster_rush_v1/humster_rush_v1.lua)
   - **Рисовалка** – *тупая кликалка на хомяка* [сoloring_book_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
-  - **Вирус** – *игроки захватывают поле своим цветом (в процессе разработки)*
-- **Go**
-  - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
-  - **Классики** – *классики 3х6*
+  - **Вирус** – *игроки захватывают поле своим цветом* [conquest_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/conquest_v1/conquest_v1.lua)
+  - **Классики** – *классики 3х6* [classics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_v1/classics_v1.lua)
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
