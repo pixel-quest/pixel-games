@@ -9,6 +9,6 @@
 	"AnimationDelay_Max": 1000,
 	"AnimationDelay_Step": 100,
 
-	"BackgroundName": "minion",
-	"BackgroundName_List": ["minion","creeper","skull","amongus","hulk","batsign","marvel"]
+	"BackgroundName": "mario",
+	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel"]
 }

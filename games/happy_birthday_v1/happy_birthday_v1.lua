@@ -220,7 +220,6 @@ CPaint.Text = function()
     for i = 1, #sText do
         local tLetter = tLoadedLetters["default"]
         local iLetterByte = sText:byte(i)
-        CLog.print(i.." "..iLetterByte)
         if iLetterByte ~= 208 then
             if tLoadedLetters[iLetterByte] ~= nil then
                 tLetter = tLoadedLetters[iLetterByte]
