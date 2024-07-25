@@ -96,21 +96,26 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
         local iX = iButton
-        local iY = 1 + (tGame.SafeZoneOffsetTop or 0)
+        local iY = 1
 
         if iX > tGame.Cols*2 + tGame.Rows then
-            iX = 1 + (tGame.SafeZoneOffsetLeft or 0)
+            iX = 1
             iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
         elseif iX > tGame.Cols + tGame.Rows then
             iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
-            iY = tGame.Rows - (tGame.SafeZoneSizeY/2) - (tGame.SafeZoneOffsetBottom or 0)
+            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
         elseif iX > tGame.Cols then
-            iX = tGame.Cols - (tGame.SafeZoneSizeX/2) - (tGame.SafeZoneOffsetRight or 0)
+            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
             iY = iButton - tGame.Cols 
         end
 
         tButtons[iButton].iSafeZoneX = iX
         tButtons[iButton].iSafeZoneY = iY
+
+        if tGame.SafeZoneOffsets[tostring(iButton)] then
+            tButtons[iButton].iSafeZoneX = tButtons[iButton].iSafeZoneX + tGame.SafeZoneOffsets[tostring(iButton)].X
+            tButtons[iButton].iSafeZoneY = tButtons[iButton].iSafeZoneY + tGame.SafeZoneOffsets[tostring(iButton)].Y
+        end
     end
 
     CGameMode.InitGameMode()
@@ -148,8 +153,8 @@ function GameSetupTick()
     local iPosI = 1
     for iPos, tPos in pairs(tButtons) do
         if not tPos.bDefect then
-            iPosI = iPosI + 1
-            if iPosI % 2 ~= 0 then 
+            --iPosI = iPosI + 1
+            --if iPosI % 2 ~= 0 then 
                 iButton = iButton + 1
                 --if iButton > tConfig.MaxPlayerCount then break; end
 
@@ -166,7 +171,7 @@ function GameSetupTick()
                 end
 
                 CPaint.SafeZone(tPos, iBright)
-            end
+            --end
         end
     end
 
@@ -316,7 +321,7 @@ CGameMode.AssignRandomGoal = function(iAttemptCount)
     if iAttemptCount >= 20 then CLog.print("cant find empty button to asign a goal"); return; end
 
     local iButtonId = tGame.Buttons[math.random(1, #tGame.Buttons)]
-    if tButtons[iButtonId] and not tButtons[iButtonId].bDefect and not tButtons[iButtonId].bGoal and not tButtons[iButtonId].bSafeZoneOn then
+    if tButtons[iButtonId] and not tButtons[iButtonId].bDefect and not tButtons[iButtonId].bGoal and (not tButtons[iButtonId].bSafeZoneOn or iAttemptCount > 10) then
         tButtons[iButtonId].bGoal = true
         tButtons[iButtonId].bSafeZoneOn = true
         tButtons[iButtonId].iSafeZoneBright = tConfig.Bright
