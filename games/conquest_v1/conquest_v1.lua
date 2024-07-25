@@ -194,6 +194,7 @@ end
 CGameMode.Announcer = function()
     CAudio.PlaySync("games/virus.mp3")
     CAudio.PlaySync("voices/virus-guide.mp3")
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
