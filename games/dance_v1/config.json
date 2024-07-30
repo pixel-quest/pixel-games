@@ -7,6 +7,16 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
+  "StartPositionSize": 4,
+  "StartPositionSize_Min": 2,
+  "StartPositionSize_Max": 4,
+  "StartPositionSize_Step": 1, 
+
+  "Direction": 1,
+  "Direction_Min": 1,
+  "Direction_Max": 2,
+  "Direction_Step": 1,   
+
   "PixelMoveDelayMS": 150,
   "PixelMoveDelayMS_Min": 50,
   "PixelMoveDelayMS_Max": 1000,
@@ -15,7 +25,7 @@
   "SongStartDelayMS": 100,
   "SongStartDelayMS_Min": 0,
   "SongStartDelayMS_Max": 10000,
-  "SongStartDelayMS_Step": 10,
+  "SongStartDelayMS_Step": 10, 
 
   "EasyMode": false,
   "RowColorSwitch": true,

@@ -356,8 +356,6 @@
   [ 185518, "N", "N", "N", "R" ],
   [ 186006, "N", "L", "N", "N" ],
   [ 186493, "N", "L", "R", "N" ],
-  [ 186981, "N", "L", "R", "N" ]], "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77], "SongName": "dance/FireBall-Pitbull.mp3",
-"StartPositions": [{"X": 1, "Y": 13, "Color": 2}, {"X": 6, "Y": 13, "Color": 3}, {"X": 11, "Y": 13, "Color": 4}, {"X": 16, "Y": 13, "Color": 5}, {"X": 21, "Y": 13, "Color": 6}], 
-"StartPositionSize": 4,
-"Direction": 2
+  [ 186981, "N", "L", "R", "N" ]], "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77], 
+  "SongName": "dance/FireBall-Pitbull.mp3"
 }
