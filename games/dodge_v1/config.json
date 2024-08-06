@@ -1,0 +1,39 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"CrossMovementDelay": 200,
+	"CrossMovementDelay_Min": 50,
+	"CrossMovementDelay_Max": 1000,
+	"CrossMovementDelay_Step": 50,
+
+	"WinDurationMS": 10000,
+	"WinDurationMS_Hidden": true,
+
+	"CrossAFKTimer": 10,
+	"CrossAFKTimer_Min": 5,
+	"CrossAFKTimer_Max": 60,
+	"CrossAFKTimer_Step": 5,
+
+	"EffectsCount": 5,
+	"EffectsCount_Min": 2,
+	"EffectsCount_Max": 30,
+	"EffectsCount_Step": 1,
+
+	"TeamHealth": 10,
+	"TeamHealth_Min": 5,
+	"TeamHealth_Max": 25,
+	"TeamHealth_Step": 5,
+
+	"DamageCooldown": 1000,
+	"DamageCooldown_Min": 100,
+	"DamageCooldown_Max": 5000,
+	"DamageCooldown_Step": 100,
+
+	"PauseBetweenEffects": 15,
+	"PauseBetweenEffects_Min": 5,
+	"PauseBetweenEffects_Max": 60,
+	"PauseBetweenEffects_Step": 1
+}
