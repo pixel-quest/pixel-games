@@ -290,7 +290,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CLog.print("Game Started!")
+    --CLog.print("Game Started!")
 
     CTimer.New(1, function()
         if iGameState == GAMESTATE_GAME then
@@ -422,7 +422,7 @@ CBuffs.BUFF_TYPE_ALLY = 3
 CBuffs.BUFF_TYPE_COUNT = 3
 
 CBuffs.ApplyBuff = function(iBuffType)
-    CLog.print("ApplyBuff type #"..iBuffType)
+    --CLog.print("ApplyBuff type #"..iBuffType)
 
     if iBuffType == CBuffs.BUFF_TYPE_HEAL then
         CGameMode.HealBase()

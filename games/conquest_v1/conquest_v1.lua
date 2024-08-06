@@ -422,7 +422,7 @@ end
 
 CUnits.UnitThinkDefault = function(iUnitID)
     if CUnits.tUnits[iUnitID].iDestX == 0 or (CUnits.tUnits[iUnitID].iX == CUnits.tUnits[iUnitID].iDestX and CUnits.tUnits[iUnitID].iY == CUnits.tUnits[iUnitID].iDestY) then
-        CLog.print("New Destination for unit #"..iUnitID)
+        --CLog.print("New Destination for unit #"..iUnitID)
         CUnits.RandomDestinationForUnit(iUnitID)
     end
 
