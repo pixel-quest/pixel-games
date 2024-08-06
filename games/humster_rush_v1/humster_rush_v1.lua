@@ -326,13 +326,13 @@ function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = time.unix()
     if FloorMatrix[click.X][click.Y].Color == colors.GREEN then
         FloorMatrix[click.X][click.Y].Color = colors.NONE
-        audio.PlayAsync("CLICK")
+        audio.PlayAsync(audio.CLICK)
         GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.greenPoint
     end
     if gameState.State >= 4 then
         if FloorMatrix[click.X][click.Y].Color == colors.CYAN then
             FloorMatrix[click.X][click.Y].Color = colors.NONE
-            audio.PlayAsync("CLICK")
+            audio.PlayAsync(audio.CLICK)
             GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.cyanPoint
         end
     end
