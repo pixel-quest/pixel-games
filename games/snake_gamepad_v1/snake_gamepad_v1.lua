@@ -805,23 +805,23 @@ function ButtonClick(click)
     if tButtons[click.Button] ~= nil then
     	tButtons[click.Button].bClick = click.Click
     end
-    
-    if click.LeftClick and CSnake.iDir ~= 2 then
-       CSnake.iDir = 1
-    end
-    
-    if click.RightClick and CSnake.iDir ~= 1 then
-       CSnake.iDir = 2
-    end
-    if click.UpClick and CSnake.iDir ~= 4 then
-       CSnake.iDir = 3
-    end
-    if click.DownClick and CSnake.iDir ~= 3 then
-       CSnake.iDir = 4
-    end
 
     if click.Click then
         bAnyButtonClick = true
+    end
+    
+    if click.GamepadLeftClick and CSnake.iDir ~= 2 then
+       CSnake.iDir = 1
+    end
+    
+    if click.GamepadRightClick and CSnake.iDir ~= 1 then
+       CSnake.iDir = 2
+    end
+    if click.GamepadUpClick and CSnake.iDir ~= 4 then
+       CSnake.iDir = 3
+    end
+    if click.GamepadDownClick and CSnake.iDir ~= 3 then
+       CSnake.iDir = 4
     end
 end
 
