@@ -183,6 +183,12 @@ end
 --  click = {
 --      Button: int,
 --      Click: bool,
+--      GamepadAddress: int,
+--	    GamepadUpClick: bool,
+--	    GamepadDownClick: bool,
+--	    GamepadLeftClick: bool,
+--	    GamepadRightClick: bool,
+--	    GamepadTriggerClick: bool,
 --  }
 function ButtonClick(click)
     if ButtonsList[click.Button] == nil then

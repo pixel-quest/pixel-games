@@ -520,11 +520,11 @@ function placePixel(color)
     if color == colors.NONE then
         return
     end
-    for randomAttempt=1,50 do
+    for randomAttempt=1,10 do
         local x = math.random(1, GameObj.Cols)
         local y = math.random(1, GameObj.Rows)
         if FloorMatrix[x][y].Color == colors.NONE and
-                not FloorMatrix[x][y].Click and -- под ноги не размещаем
+                -- not FloorMatrix[x][y].Click and -- под ноги не размещаем
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
             FloorMatrix[x][y].Bright = GameConfigObj.Bright
             FloorMatrix[x][y].Color = color
