@@ -87,11 +87,7 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGameStats.TotalLives = tConfig.TeamHealth 
-    tGameStats.CurrentLives = tConfig.TeamHealth
-    tGameStats.TotalStages = tConfig.EffectsCount
-    tGameStats.StageNum = 1
-
+    CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
 
@@ -162,6 +158,15 @@ CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 CGameMode.bDamageCooldown = false
 
+CGameMode.InitGameMode = function()
+    tGameStats.TotalLives = tConfig.TeamHealth 
+    tGameStats.CurrentLives = tConfig.TeamHealth
+    tGameStats.TotalStages = tConfig.EffectsCount
+    tGameStats.StageNum = 1
+
+    CCross.iBright = tConfig.Bright-2
+end
+
 CGameMode.Announcer = function()
     --voice-- название игры
     --voice-- объяснение правил
@@ -196,6 +201,8 @@ CGameMode.StartGame = function()
     CEffect.Thinker()
 
     CEffect.NextEffectTimer()
+
+    CCross.AiNewDest()
 end
 
 CGameMode.DamagePlayer = function(iDamage)
@@ -292,7 +299,7 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     CLog.print("next effect: "..iEffectId)
-    --iEffectId = 4
+    --iEffectId = 5
 
     --voice-- следующий эффект...
     --voice-- название эффекта
@@ -303,13 +310,17 @@ CEffect.NextEffectTimer = function()
             CEffect.LoadEffect(iEffectId)
             CEffect.EffectTimer()
 
+            CCross.iBright = tConfig.Bright-2
+
             return nil
         else
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-            if tGameStats.StageLeftDuration < 10 then
+            if tGameStats.StageLeftDuration <= 5 then
                 CAudio.PlaySyncFromScratch("")
                 CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+
+                CCross.iBright = (tConfig.Bright-2) + (6 - tGameStats.StageLeftDuration)
             end
             return 1000
         end
@@ -348,6 +359,8 @@ CEffect.EndCurrentEffect = function()
     CEffect.iPassedEffectsCount = CEffect.iPassedEffectsCount + 1
     if CEffect.iPassedEffectsCount < tConfig.EffectsCount then
         CEffect.bEffectOn = false
+        CCross.AiNewDest()
+
         tGameStats.StageNum = tGameStats.StageNum + 1
         CEffect.NextEffectTimer()
     else
@@ -401,11 +414,13 @@ end
 ---- эффект: выстрел в 4 стороны
 CEffect.EFFECT_SHOT = 1
 CEffect.tEffects[CEffect.EFFECT_SHOT] = {}
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_LENGTH] = 5
+CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_LENGTH] = 3
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_TICK_DELAY] = 100
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+
     CEffect.tCurrentEffectData.iMaxProjectiles = 4
     CEffect.tCurrentEffectData.tProjectiles = {}
 
@@ -438,9 +453,17 @@ CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_DRAW] = function()
     for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
         local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
         if tProjectile then
-            if tFloor[tProjectile.iX] and tFloor[tProjectile.iX][tProjectile.iY] then
-                tFloor[tProjectile.iX][tProjectile.iY].iColor = CEffect.iColor
-                tFloor[tProjectile.iX][tProjectile.iY].iBright = tConfig.Bright
+            local iIncX = 1 if tProjectile.iVelX ~= 0 then iIncX = tProjectile.iVelX end
+            local iIncY = 1 if tProjectile.iVelY ~= 0 then iIncY = tProjectile.iVelY end
+
+            for iX = tProjectile.iX, tProjectile.iX + tProjectile.iVelX*2, iIncX do
+                for iY = tProjectile.iY, tProjectile.iY + tProjectile.iVelY*2, iIncY do   
+                    if tFloor[iX] and tFloor[iX][iY] then
+                        tFloor[iX][iY].iColor = CEffect.iColor
+                        tFloor[iX][iY].iBright = tConfig.Bright
+                        CGameMode.DamagePlayerCheck(iX, iY, 1)
+                    end
+                end
             end
         end
     end
@@ -456,8 +479,6 @@ CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_TICK] = function()
 
             if (tProjectile.iX < 1 or tProjectile.iX > tGame.Cols) or (tProjectile.iY < 1 or tProjectile.iY > tGame.Rows) then
                 CEffect.tCurrentEffectData.tProjectiles[iProjectileID] = nil
-            else
-                CGameMode.DamagePlayerCheck(tProjectile.iX, tProjectile.iY, 1)
             end
         end
     end
@@ -465,7 +486,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_UNLOAD] = function()
-
+    CCross.bBlockMovement = false
 end
 ----
 
@@ -477,6 +498,8 @@ CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_TICK_DELAY] = 200
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+
     CEffect.tCurrentEffectData.iX = CCross.iX
     CEffect.tCurrentEffectData.iY = CCross.iY
     CEffect.tCurrentEffectData.iSize = 1
@@ -536,7 +559,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_UNLOAD] = function()
-    
+    CCross.bBlockMovement = false
 end
 ----
 
@@ -548,6 +571,8 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_TICK_DELAY] = 250
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+
     CEffect.tCurrentEffectData.iUnitCount = math.random(2,3)
     CEffect.tCurrentEffectData.iUnitSize = math.random(2,3)
     CEffect.tCurrentEffectData.tUnits = {}
@@ -593,6 +618,12 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_TICK] = function()
         local iX = 0
         local iY = 0
 
+        --pad unit
+        --if iUnitID == 1 and (CPad.LastInteractionTime ~= -1 and CPad.LastInteractionTime < 10) then
+        --    return CPad.iXPlus, CPad.iYPlus
+        --end
+        --
+
         if CEffect.tCurrentEffectData.tUnits[iUnitID].iX < CEffect.tCurrentEffectData.tUnits[iUnitID].iDestX then
             iX = 1
         elseif CEffect.tCurrentEffectData.tUnits[iUnitID].iX > CEffect.tCurrentEffectData.tUnits[iUnitID].iDestX then
@@ -625,7 +656,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_UNLOAD] = function()
-    
+    CCross.bBlockMovement = false
 end
 ----
 
@@ -637,8 +668,6 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_TICK_DELAY] = 75
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_INIT] = function()
-    CEffect.tCurrentEffectData.iX = CCross.iX
-    CEffect.tCurrentEffectData.iY = CCross.iY
     CEffect.tCurrentEffectData.iTargetX = math.random(1, tGame.Cols)
     CEffect.tCurrentEffectData.iTargetY = 1
     CEffect.tCurrentEffectData.iTargetDir = 1
@@ -678,16 +707,14 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_DRAW] = function()
         end
     end
 
-    Line(CEffect.tCurrentEffectData.iX, CEffect.tCurrentEffectData.iY, CEffect.tCurrentEffectData.iTargetX, CEffect.tCurrentEffectData.iTargetY, function(iX, iY)
-
-        for iX2 = (iX-CEffect.tCurrentEffectData.iLineWidth), iX+CEffect.tCurrentEffectData.iLineWidth do
+    Line(CCross.iX, CCross.iY, CEffect.tCurrentEffectData.iTargetX, CEffect.tCurrentEffectData.iTargetY, function(iX, iY)
+        for iX2 = (iX-CEffect.tCurrentEffectData.iLineWidth), iX do
             Pixel(iX2, iY)
         end
 
-        for iY2 = (iY-CEffect.tCurrentEffectData.iLineWidth), iY+CEffect.tCurrentEffectData.iLineWidth do
+        for iY2 = (iY-CEffect.tCurrentEffectData.iLineWidth), iY do
             Pixel(iX, iY2)
         end
-
     end)
 end
 
@@ -716,6 +743,59 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_UNLOAD] = function()
 end
 ----
 
+----эффект: лазер
+CEffect.EFFECT_LASER = 5
+CEffect.tEffects[CEffect.EFFECT_LASER] = {}
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_LENGTH] = 7
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_TICK_DELAY] = nil
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_INIT] = function()
+
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_SOUND] = function()
+    
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_DRAW] = function()
+    local function Pixel(iX, iY)
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CEffect.iColor
+            tFloor[iX][iY].iBright = tConfig.Bright
+
+            CGameMode.DamagePlayerCheck(iX, iY, 1)
+        end
+    end
+
+    for iX = CCross.iX, tGame.Cols do
+        Pixel(iX, CCross.iY)
+    end
+
+    for iX = CCross.iX, 1, -1 do
+        Pixel(iX, CCross.iY)
+    end
+
+    for iY = CCross.iY, tGame.Rows do
+        Pixel(CCross.iX, iY)
+    end
+
+    for iY = CCross.iY, 1, -1 do
+        Pixel(CCross.iX, iY)
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_TICK] = function()
+    
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_UNLOAD] = function()
+    
+end
 
 --//
 
@@ -725,29 +805,37 @@ CCross.iX = math.floor(tGame.Cols/2)
 CCross.iY = math.floor(tGame.Rows/2)
 CCross.iSize = 4
 CCross.iColor = 3
+CCross.iBright = 5
 CCross.bAiOn = true
+CCross.iAiDestX = 0
+CCross.iAiDestY = 0
+CCross.bBlockMovement = false
 
 CCross.Move = function(iXPlus, iYPlus)
-    if CEffect.bEffectOn then return; end
+    if CCross.bBlockMovement then return; end
 
     local iNewX = CCross.iX + iXPlus
     local iNewY = CCross.iY + iYPlus
 
-    if iNewX > 0 and iNewX < tGame.Cols then
+    if iNewX > 0 and iNewX <= tGame.Cols then
         CCross.iX = iNewX
     end
 
-    if iNewY > 0 and iNewY < tGame.Rows then
+    if iNewY > 0 and iNewY <= tGame.Rows then
         CCross.iY = iNewY
     end    
 end
-
+    
 CCross.Thinker = function()
     CTimer.New(tConfig.CrossMovementDelay, function()
         CCross.bAiOn = (CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.CrossAFKTimer))
 
         if CCross.bAiOn then
-            CCross.Move(math.random(-1,1), math.random(-1,1))
+            if CCross.iAiDestX == CCross.iX and CCross.iAiDestY == CCross.iY then
+                CCross.AiNewDest()
+            end
+
+            CCross.Move(CCross.AIGetDestXYPlus())
         else
             CCross.Move(CPad.iXPlus, CPad.iYPlus)
         end
@@ -756,6 +844,39 @@ CCross.Thinker = function()
     end) 
 end
 
+CCross.AiNewDest = function()
+    local iMax = -999
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            local iWeight = tFloor[iX][iY].iWeight + math.random(-5,5)
+            if iWeight >= iMax then
+                iMax = iWeight
+                CCross.iAiDestX = iX
+                CCross.iAiDestY = iY
+            end
+        end
+    end
+end
+
+CCross.AIGetDestXYPlus = function()
+    local iXPlus = 0
+    local iYPlus = 0
+
+    if CCross.iX < CCross.iAiDestX then
+        iXPlus = 1
+    elseif CCross.iX > CCross.iAiDestX then
+        iXPlus = -1
+    end
+
+    if CCross.iY < CCross.iAiDestY then
+        iYPlus = 1
+    elseif CCross.iY > CCross.iAiDestY then
+        iYPlus = -1
+    end    
+
+    return iXPlus, iYPlus
+end
 --//
 
 --paint
@@ -763,16 +884,16 @@ CPaint = {}
 
 CPaint.Cross = function()
     for iX = (CCross.iX - math.floor(CCross.iSize/2)), (CCross.iX + math.floor(CCross.iSize/2)) do
-        if tFloor[iX] and tFloor[iX][CCross.iY] then
+        if tFloor[iX] and tFloor[iX][CCross.iY] and iX ~= CCross.iX then
             tFloor[iX][CCross.iY].iColor = CCross.iColor
-            tFloor[iX][CCross.iY].iBright = tConfig.Bright
+            tFloor[iX][CCross.iY].iBright = CCross.iBright
         end
     end 
 
     for iY = (CCross.iY - math.floor(CCross.iSize/2)), (CCross.iY + math.floor(CCross.iSize/2)) do
-        if tFloor[CCross.iX] and tFloor[CCross.iX][iY] then
+        if tFloor[CCross.iX] and tFloor[CCross.iX][iY] and iY ~= CCross.iY then
             tFloor[CCross.iX][iY].iColor = CCross.iColor
-            tFloor[CCross.iX][iY].iBright = tConfig.Bright
+            tFloor[CCross.iX][iY].iBright = CCross.iBright
         end
     end     
 end
@@ -931,8 +1052,8 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if click.Gamepad and click.Gamepad > 0 then
-        CPad.Click(click.UpClick, click.DownClick, click.LeftClick, click.RightClick, click.TriggerClick)
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
         if tButtons[click.Button] == nil then return end
         tButtons[click.Button].bClick = click.Click
