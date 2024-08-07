@@ -369,7 +369,7 @@ CMaps.GetRandomMap = function()
             CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
         end
 
-        CLog.print("random map #"..CMaps.iRandomMapID)
+        --CLog.print("random map #"..CMaps.iRandomMapID)
 
         return tGame.Maps[CMaps.iRandomMapID], tGame.MapLavaFrames[CMaps.iRandomMapID]
     end
@@ -404,7 +404,7 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
     end
 
     CGameMode.iMapCoinCount = iCoinCount
-    CLog.print("Map Loaded: "..iBlockCount.." blocks "..iCoinCount.." coins")
+    --CLog.print("Map Loaded: "..iBlockCount.." blocks "..iCoinCount.." coins")
 end
 
 CMaps.GenerateRandomMap = function()

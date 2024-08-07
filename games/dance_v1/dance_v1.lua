@@ -96,15 +96,37 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
-    if tGame.Direction == nil or tGame.Direction == 0 then
-        tGame.Direction = 1
-    end
+    SetupPlayerPositions()
 
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
 
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
+end
+
+function SetupPlayerPositions()
+    tGame.Direction = tConfig.Direction or 1
+    tGame.StartPositionSize = tConfig.StartPositionSize or 4
+
+    local iY = 3
+    if tGame.Direction == 2 then
+        iY = tGame.Rows - 2
+    end
+
+    local iX = 1
+
+    tGame.StartPositions = {}
+    for iPlayerID = 1, 6 do
+        if iX < tGame.Cols then
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = iPlayerID
+        end
+
+        iX = iX + tGame.StartPositionSize + 1
+    end
 end
 
 function NextTick()
@@ -554,6 +576,7 @@ end
 
 CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelType)
     if iPixelType == "N" then return; end
+    if 5 - iPointX > tGame.StartPositionSize then return; end
 
     iPointX = tGame.StartPositions[iPlayerID].X + 4 - iPointX
     local iPixelID = #CGameMode.tPixels+1
