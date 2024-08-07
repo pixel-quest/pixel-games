@@ -22,9 +22,9 @@
 	"EffectsCount_Max": 30,
 	"EffectsCount_Step": 1,
 
-	"TeamHealth": 10,
+	"TeamHealth": 20,
 	"TeamHealth_Min": 5,
-	"TeamHealth_Max": 25,
+	"TeamHealth_Max": 50,
 	"TeamHealth_Step": 5,
 
 	"DamageCooldown": 1000,
