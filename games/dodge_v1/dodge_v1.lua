@@ -267,7 +267,9 @@ CEffect.tEffects = {}
 CEffect.tCurrentEffectData = {}
 
 CEffect.iCurrentEffect = 0
+CEffect.iNextEffect = 0
 CEffect.iLastEffect = 0
+CEffect.bCanCast = false
 CEffect.bEffectOn = false
 CEffect.iColor = CColors.RED
 CEffect.iPassedEffectsCount = 0
@@ -315,10 +317,8 @@ CEffect.NextEffectTimer = function()
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
     CTimer.New(1000, function()
         if tGameStats.StageLeftDuration <= 1 then
-            CEffect.LoadEffect(iEffectId)
-            CEffect.EffectTimer()
-
-            CCross.iBright = tConfig.Bright-2
+            CEffect.iNextEffect = iEffectId
+            CEffect.bCanCast = true
 
             return nil
         else
@@ -378,6 +378,7 @@ CEffect.EndCurrentEffect = function()
 end
 
 CEffect.LoadEffect = function(iEffectId)
+    CEffect.bCanCast = false
     CEffect.bEffectOn = true
 
     CEffect.iCurrentEffect = iEffectId
@@ -837,9 +838,17 @@ CCross.Thinker = function()
                 CCross.AiNewDest()
             end
 
+            if CEffect.bCanCast then 
+                CCross.CastEffect()
+            end
+
             CCross.Move(CCross.AIGetDestXYPlus())
         else
             CCross.Move(CPad.iXPlus, CPad.iYPlus)
+
+            if CEffect.bCanCast and CPad.bTrigger then
+                CCross.CastEffect()
+            end
         end
 
         return tConfig.CrossMovementDelay
@@ -879,6 +888,15 @@ CCross.AIGetDestXYPlus = function()
 
     return iXPlus, iYPlus
 end
+
+CCross.CastEffect = function()
+    if CEffect.bCanCast then
+        CEffect.LoadEffect(CEffect.iNextEffect)
+        CEffect.EffectTimer()
+
+        CCross.iBright = tConfig.Bright-2
+    end
+end
 --//
 
 --paint
@@ -910,7 +928,11 @@ CPad.iYPlus = 0
 CPad.bTrigger = false
 
 CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
-    CPad.LastInteractionTime = CTime.unix()
+    CLog.print(tostring(bUp).." "..tostring(bDown).." "..tostring(bLeft).." "..tostring(bRight).." "..tostring(bTrigger))
+
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
 
     CPad.bTrigger = bTrigger
 
