@@ -9,6 +9,8 @@
 	"CrossMovementDelay_Max": 1000,
 	"CrossMovementDelay_Step": 50,
 
+	"EliminationMode": false,
+
 	"WinDurationMS": 10000,
 	"WinDurationMS_Hidden": true,
 

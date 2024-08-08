@@ -159,8 +159,11 @@ CGameMode.bVictory = false
 CGameMode.bDamageCooldown = false
 
 CGameMode.InitGameMode = function()
-    tGameStats.TotalLives = tConfig.TeamHealth 
-    tGameStats.CurrentLives = tConfig.TeamHealth
+    if not tConfig.EliminationMode then
+        tGameStats.TotalLives = tConfig.TeamHealth 
+        tGameStats.CurrentLives = tConfig.TeamHealth
+    end
+
     tGameStats.TotalStages = tConfig.EffectsCount
     tGameStats.StageNum = 1
 
@@ -208,11 +211,16 @@ end
 CGameMode.DamagePlayer = function(iDamage)
     if CGameMode.bDamageCooldown then return; end
 
-    tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
-    if tGameStats.CurrentLives <= 0 then
-        CGameMode.EndGame(false)
-    else 
-        CAudio.PlayAsync(CAudio.MISCLICK)
+    if not tConfig.EliminationMode then 
+        tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
+        if tGameStats.CurrentLives <= 0 then
+            CGameMode.EndGame(false)
+        else 
+            CAudio.PlayAsync(CAudio.MISCLICK)
+        end
+    else
+        CAudio.PlaySync(CAudio.MISCLICK)
+        --voice-- игрок выбыл      
     end
 
     CGameMode.bDamageCooldown = true
@@ -259,7 +267,9 @@ CEffect.tEffects = {}
 CEffect.tCurrentEffectData = {}
 
 CEffect.iCurrentEffect = 0
+CEffect.iNextEffect = 0
 CEffect.iLastEffect = 0
+CEffect.bCanCast = false
 CEffect.bEffectOn = false
 CEffect.iColor = CColors.RED
 CEffect.iPassedEffectsCount = 0
@@ -299,7 +309,7 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     CLog.print("next effect: "..iEffectId)
-    --iEffectId = 5
+    --iEffectId = 4
 
     --voice-- следующий эффект...
     --voice-- название эффекта
@@ -307,10 +317,8 @@ CEffect.NextEffectTimer = function()
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
     CTimer.New(1000, function()
         if tGameStats.StageLeftDuration <= 1 then
-            CEffect.LoadEffect(iEffectId)
-            CEffect.EffectTimer()
-
-            CCross.iBright = tConfig.Bright-2
+            CEffect.iNextEffect = iEffectId
+            CEffect.bCanCast = true
 
             return nil
         else
@@ -330,9 +338,9 @@ end
 CEffect.EffectTimer = function()
     tGameStats.StageLeftDuration = CEffect.tEffects[CEffect.iCurrentEffect][CEffect.CONST_LENGTH]
     CTimer.New(1000, function()
-        if iGameState > GAMESTATE_GAME then return nil end
-
         if tGameStats.StageLeftDuration <= 0 then
+            if iGameState > GAMESTATE_GAME then return nil end
+
             CEffect.EndCurrentEffect()
 
             return nil
@@ -349,6 +357,7 @@ CEffect.EndCurrentEffect = function()
     CEffect.iLastEffect = CEffect.iCurrentEffect
 
     CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_UNLOAD]()
+    CEffect.tCurrentEffectData = nil
     CEffect.tCurrentEffectData = {}
     CEffect.iCurrentEffect = 0
 
@@ -369,6 +378,7 @@ CEffect.EndCurrentEffect = function()
 end
 
 CEffect.LoadEffect = function(iEffectId)
+    CEffect.bCanCast = false
     CEffect.bEffectOn = true
 
     CEffect.iCurrentEffect = iEffectId
@@ -619,9 +629,9 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_TICK] = function()
         local iY = 0
 
         --pad unit
-        --if iUnitID == 1 and (CPad.LastInteractionTime ~= -1 and CPad.LastInteractionTime < 10) then
-        --    return CPad.iXPlus, CPad.iYPlus
-        --end
+        if iUnitID == 1 and not (CPad.LastInteractionTime == -1 or CPad.LastInteractionTime > 10) then
+            return CPad.iXPlus, CPad.iYPlus
+        end
         --
 
         if CEffect.tCurrentEffectData.tUnits[iUnitID].iX < CEffect.tCurrentEffectData.tUnits[iUnitID].iDestX then
@@ -670,7 +680,6 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_TICK_DELAY] = 75
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_INIT] = function()
     CEffect.tCurrentEffectData.iTargetX = math.random(1, tGame.Cols)
     CEffect.tCurrentEffectData.iTargetY = 1
-    CEffect.tCurrentEffectData.iTargetDir = 1
     CEffect.tCurrentEffectData.iLineWidth = 1
 end
 
@@ -720,20 +729,14 @@ end
 
 -- логический цикл эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_TICK] = function()
-    local iIncrement = 1
-
     if CEffect.tCurrentEffectData.iTargetX < tGame.Cols+1 and CEffect.tCurrentEffectData.iTargetY == 0 then
-        CEffect.tCurrentEffectData.iTargetDir = 1
-        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX + iIncrement
+        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX + 1
     elseif CEffect.tCurrentEffectData.iTargetX >= tGame.Cols and CEffect.tCurrentEffectData.iTargetY < tGame.Rows+1 then
-        CEffect.tCurrentEffectData.iTargetDir = 2
-        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY + iIncrement
+        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY + 1
     elseif CEffect.tCurrentEffectData.iTargetY >= tGame.Rows and CEffect.tCurrentEffectData.iTargetX > 0 then
-        CEffect.tCurrentEffectData.iTargetDir = 3
-        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX - iIncrement
+        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX - 1
     elseif CEffect.tCurrentEffectData.iTargetY > 0 then
-        CEffect.tCurrentEffectData.iTargetDir = 4
-        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY - iIncrement
+        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY - 1
     end
 end
 
@@ -747,7 +750,7 @@ end
 CEffect.EFFECT_LASER = 5
 CEffect.tEffects[CEffect.EFFECT_LASER] = {}
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_LENGTH] = 7
-CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_TICK_DELAY] = nil
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_TICK_DELAY] = 200
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_INIT] = function()
@@ -835,9 +838,17 @@ CCross.Thinker = function()
                 CCross.AiNewDest()
             end
 
+            if CEffect.bCanCast then 
+                CCross.CastEffect()
+            end
+
             CCross.Move(CCross.AIGetDestXYPlus())
         else
             CCross.Move(CPad.iXPlus, CPad.iYPlus)
+
+            if CEffect.bCanCast and CPad.bTrigger then
+                CCross.CastEffect()
+            end
         end
 
         return tConfig.CrossMovementDelay
@@ -877,6 +888,15 @@ CCross.AIGetDestXYPlus = function()
 
     return iXPlus, iYPlus
 end
+
+CCross.CastEffect = function()
+    if CEffect.bCanCast then
+        CEffect.LoadEffect(CEffect.iNextEffect)
+        CEffect.EffectTimer()
+
+        CCross.iBright = tConfig.Bright-2
+    end
+end
 --//
 
 --paint
@@ -908,7 +928,11 @@ CPad.iYPlus = 0
 CPad.bTrigger = false
 
 CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
-    CPad.LastInteractionTime = CTime.unix()
+    CLog.print(tostring(bUp).." "..tostring(bDown).." "..tostring(bLeft).." "..tostring(bRight).." "..tostring(bTrigger))
+
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
 
     CPad.bTrigger = bTrigger
 
