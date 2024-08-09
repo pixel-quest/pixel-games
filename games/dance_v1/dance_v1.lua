@@ -106,7 +106,11 @@ function StartGame(gameJson, gameConfigJson)
 end
 
 function SetupPlayerPositions()
-    tGame.Direction = tGame.Direction or 1
+    if not tGame.MirrorGame then
+        tGame.Direction = 1
+    else
+        tGame.Direction = 2
+    end
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
     local iY = 3
