@@ -106,7 +106,7 @@ function StartGame(gameJson, gameConfigJson)
 end
 
 function SetupPlayerPositions()
-    tGame.Direction = tConfig.Direction or 1
+    tGame.Direction = tGame.Direction or 1
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
     local iY = 3

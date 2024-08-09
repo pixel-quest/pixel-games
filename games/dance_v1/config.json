@@ -8,14 +8,9 @@
   "WinDurationMS_Hidden": true,
 
   "StartPositionSize": 4,
-  "StartPositionSize_Min": 2,
+  "StartPositionSize_Min": 3,
   "StartPositionSize_Max": 4,
   "StartPositionSize_Step": 1, 
-
-  "Direction": 1,
-  "Direction_Min": 1,
-  "Direction_Max": 2,
-  "Direction_Step": 1,   
 
   "PixelMoveDelayMS": 150,
   "PixelMoveDelayMS_Min": 50,
