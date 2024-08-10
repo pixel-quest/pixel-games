@@ -24,14 +24,14 @@
 	"EffectsCount_Max": 30,
 	"EffectsCount_Step": 1,
 
-	"TeamHealth": 20,
+	"TeamHealth": 15,
 	"TeamHealth_Min": 5,
 	"TeamHealth_Max": 50,
 	"TeamHealth_Step": 5,
 
-	"DamageCooldown": 1000,
+	"DamageCooldown": 800,
 	"DamageCooldown_Min": 100,
-	"DamageCooldown_Max": 5000,
+	"DamageCooldown_Max": 2000,
 	"DamageCooldown_Step": 100,
 
 	"PauseBetweenEffects": 15,

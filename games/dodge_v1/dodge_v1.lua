@@ -66,6 +66,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    iCoinId = 0
 }
 local tButtonStruct = { 
     bClick = false,
@@ -234,7 +235,7 @@ end
 CGameMode.DamagePlayerCheck = function(iX, iY, iDamage)
     if CGameMode.bDamageCooldown then return; end
 
-    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect then
+    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 then
         if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
             CGameMode.DamagePlayer(iDamage)
         end
@@ -269,19 +270,29 @@ CEffect.tCurrentEffectData = {}
 CEffect.iCurrentEffect = 0
 CEffect.iNextEffect = 0
 CEffect.iLastEffect = 0
-CEffect.bCanCast = false
-CEffect.bEffectOn = false
 CEffect.iColor = CColors.RED
 CEffect.iPassedEffectsCount = 0
+CEffect.iEndId = 0
+
+CEffect.bCanCast = false
+CEffect.bEffectOn = false
+CEffect.bReadyToEnd = false
 
 CEffect.FUNC_INIT = 1
 CEffect.FUNC_SOUND = 2
 CEffect.FUNC_DRAW = 3
 CEffect.FUNC_TICK = 4
 CEffect.FUNC_UNLOAD = 5
+CEffect.FUNC_ANNOUNCER = 6
 
-CEffect.CONST_LENGTH = 6
-CEffect.CONST_TICK_DELAY = 7
+CEffect.CONST_LENGTH = 7
+CEffect.CONST_TICK_DELAY = 8
+CEffect.CONST_SPECIAL_ENDING_ON = 9
+
+CEffect.SPECIAL_ENDING_COUNT = 2
+CEffect.SPECIAL_ENDING_TYPE_DEFAULT = 0
+CEffect.SPECIAL_ENDING_TYPE_BUTTON = 1
+CEffect.SPECIAL_ENDING_TYPE_COINS = 2
 
 CEffect.Thinker = function()
     CTimer.New(100, function()
@@ -300,6 +311,14 @@ end
 CEffect.DrawCurrentEffect = function()
     if CEffect.iCurrentEffect ~= 0 then
         CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_DRAW]() 
+
+        if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_COINS then
+            CEffect.SpecialEndingPaintCoins()
+        end
+
+        if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON and CEffect.bReadyToEnd then
+            SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+        end
     end
 end
 
@@ -309,10 +328,14 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     CLog.print("next effect: "..iEffectId)
-    --iEffectId = 4
+    --iEffectId = 3
 
     --voice-- следующий эффект...
-    --voice-- название эффекта
+    CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
+
+    if CEffect.tEffects[iEffectId][CEffect.CONST_SPECIAL_ENDING_ON] and math.random(1, 100) >= 50 then
+        CEffect.iEndId = math.random(1, CEffect.SPECIAL_ENDING_COUNT)
+    end
 
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
     CTimer.New(1000, function()
@@ -336,10 +359,21 @@ CEffect.NextEffectTimer = function()
 end
 
 CEffect.EffectTimer = function()
+    if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_COINS then
+        CEffect.SpecialEndingCoins()
+        return;
+    end
+
     tGameStats.StageLeftDuration = CEffect.tEffects[CEffect.iCurrentEffect][CEffect.CONST_LENGTH]
     CTimer.New(1000, function()
         if tGameStats.StageLeftDuration <= 0 then
             if iGameState > GAMESTATE_GAME then return nil end
+
+            if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON then
+                CEffect.bReadyToEnd = true
+                CEffect.SpecialEndingButton()
+                return
+            end
 
             CEffect.EndCurrentEffect()
 
@@ -360,9 +394,12 @@ CEffect.EndCurrentEffect = function()
     CEffect.tCurrentEffectData = nil
     CEffect.tCurrentEffectData = {}
     CEffect.iCurrentEffect = 0
+    CEffect.iEndId = CEffect.SPECIAL_ENDING_TYPE_DEFAULT
+    CEffect.bReadyToEnd = false
 
     if iGameState > GAMESTATE_GAME then return nil end
 
+    CAudio.PlaySync(CAudio.STAGE_DONE)
     --voice-- эффект закончен...
 
     CEffect.iPassedEffectsCount = CEffect.iPassedEffectsCount + 1
@@ -386,6 +423,66 @@ CEffect.LoadEffect = function(iEffectId)
     CEffect.tEffects[iEffectId][CEffect.FUNC_INIT]()
     CEffect.tEffects[iEffectId][CEffect.FUNC_SOUND]()
 end
+
+CEffect.SpecialEndingButton = function()
+    --voice-- нажмите на кнопку чтобы остановить эффект
+end
+
+CEffect.SpecialEndingButtonPressButton = function()
+    CEffect.EndCurrentEffect()
+end
+
+CEffect.SpecialEndingCoins = function()
+    --voice-- Соберите пиксели чтобы закончить эффект
+
+    CEffect.tCurrentEffectData.tCoins = {}
+
+    for iCoinId = 1, math.random(5, 15) do
+        local iX = 0
+        local iY = 0
+
+        repeat
+            iX = math.random(1, tGame.Cols)
+            iY = math.random(1, tGame.Rows)
+        until tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0
+
+        CEffect.tCurrentEffectData.tCoins[iCoinId] = {}
+        CEffect.tCurrentEffectData.tCoins[iCoinId].iX = iX
+        CEffect.tCurrentEffectData.tCoins[iCoinId].iY = iY
+        tFloor[iX][iY].iCoinId = iCoinId
+    end
+
+    tGameStats.TotalStars = #CEffect.tCurrentEffectData.tCoins
+end
+
+CEffect.SpecialEndingPaintCoins = function()
+    for iCoinId = 1, #CEffect.tCurrentEffectData.tCoins do
+        if CEffect.tCurrentEffectData.tCoins[iCoinId] then
+            tFloor[CEffect.tCurrentEffectData.tCoins[iCoinId].iX][CEffect.tCurrentEffectData.tCoins[iCoinId].iY].iColor = CColors.BLUE
+            tFloor[CEffect.tCurrentEffectData.tCoins[iCoinId].iX][CEffect.tCurrentEffectData.tCoins[iCoinId].iY].iBright = tConfig.Bright
+        end
+    end
+end
+
+CEffect.SpecialEndingCollectCoin = function(iCoinId, iX, iY)
+    if CEffect.tCurrentEffectData.tCoins[iCoinId] == nil then return end
+
+    CEffect.tCurrentEffectData.tCoins[iCoinId] = nil
+
+    tGameStats.CurrentStars = tGameStats.CurrentStars + 1
+    if tGameStats.CurrentStars >= tGameStats.TotalStars then
+        CEffect.EndCurrentEffect()
+
+        tGameStats.TotalStars = 0
+        tGameStats.CurrentStars = 0
+    else
+        CAudio.PlayAsync(CAudio.CLICK)
+    end
+
+    CTimer.New(1000, function()
+        tFloor[iX][iY].iCoinId = 0
+    end)
+end
 --//
 
 --EFFECT TABLES
@@ -394,6 +491,12 @@ CEffect.EFFECT_ = 0
 CEffect.tEffects[CEffect.EFFECT_] = {}
 CEffect.tEffects[CEffect.EFFECT_][CEffect.CONST_LENGTH] = 20
 CEffect.tEffects[CEffect.EFFECT_][CEffect.CONST_TICK_DELAY] = 200
+CEffect.tEffects[CEffect.EFFECT_][CEffect.CONST_SPECIAL_ENDING_ON] = false
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_][CEffect.FUNC_INIT] = function()
@@ -426,6 +529,12 @@ CEffect.EFFECT_SHOT = 1
 CEffect.tEffects[CEffect.EFFECT_SHOT] = {}
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_LENGTH] = 3
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_TICK_DELAY] = 100
+CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_SPECIAL_ENDING_ON] = false
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_INIT] = function()
@@ -505,6 +614,12 @@ CEffect.EFFECT_CIRCLE = 2
 CEffect.tEffects[CEffect.EFFECT_CIRCLE] = {}
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_LENGTH] = 10
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_TICK_DELAY] = 200
+CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_SPECIAL_ENDING_ON] = false
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_INIT] = function()
@@ -578,6 +693,12 @@ CEffect.EFFECT_ENEMY = 3
 CEffect.tEffects[CEffect.EFFECT_ENEMY] = {}
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_LENGTH] = 20
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_TICK_DELAY] = 250
+CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_INIT] = function()
@@ -612,8 +733,10 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_DRAW] = function()
                         tFloor[iX][iY].iBright = tConfig.Bright
                         CGameMode.DamagePlayerCheck(iX, iY, 1)
 
-                        if tGameStats.StageLeftDuration <= (tConfig.Bright-1) then
-                            tFloor[iX][iY].iBright = (tConfig.Bright-1) - ((tConfig.Bright-1) - tGameStats.StageLeftDuration)
+                        if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_DEFAULT then
+                            if tGameStats.StageLeftDuration <= (tConfig.Bright-1) then
+                                tFloor[iX][iY].iBright = (tConfig.Bright-1) - ((tConfig.Bright-1) - tGameStats.StageLeftDuration)
+                            end
                         end
                     end
                 end        
@@ -629,7 +752,7 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_TICK] = function()
         local iY = 0
 
         --pad unit
-        if iUnitID == 1 and not (CPad.LastInteractionTime == -1 or CPad.LastInteractionTime > 10) then
+        if iUnitID == 1 and not (CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.CrossAFKTimer)) then
             return CPad.iXPlus, CPad.iYPlus
         end
         --
@@ -675,6 +798,12 @@ CEffect.EFFECT_LINE = 4
 CEffect.tEffects[CEffect.EFFECT_LINE] = {}
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_LENGTH] = 10
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_TICK_DELAY] = 75
+CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_INIT] = function()
@@ -751,6 +880,12 @@ CEffect.EFFECT_LASER = 5
 CEffect.tEffects[CEffect.EFFECT_LASER] = {}
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_LENGTH] = 7
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_TICK_DELAY] = 200
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_ANNOUNCER] = function()
+
+end
 
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_INIT] = function()
@@ -1028,6 +1163,10 @@ function SetGlobalColorBright(iColor, iBright)
         for iY = 1, tGame.Rows do
             tFloor[iX][iY].iColor = iColor
             tFloor[iX][iY].iBright = iBright
+
+            if CEffect.bEffectOn == false then
+                tFloor[iX][iY].iCoinId = 0
+            end
         end
     end
 
@@ -1069,10 +1208,18 @@ function PixelClick(click)
     if not tFloor[click.X][click.Y].bDefect and click.Click and tFloor[click.X][click.Y].iColor == CColors.RED then
         CGameMode.DamagePlayer(1)
     end
+
+    if click.Click and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
+        CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, click.X, click.Y)
+    end
 end
 
 function DefectPixel(defect)
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
+
+    if defect.Defect and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
+        CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, defect.X, defect.Y)
+    end
 end
 
 function ButtonClick(click)
@@ -1082,6 +1229,10 @@ function ButtonClick(click)
         if tButtons[click.Button] == nil then return end
         tButtons[click.Button].bClick = click.Click
         bAnyButtonClick = true
+
+        if click.Click and iGameState == GAMESTATE_GAME and CEffect.bEffectOn and CEffect.bReadyToEnd and CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON then
+            CEffect.SpecialEndingButtonPressButton()
+        end
     end
 end
 
