@@ -1,8 +1,14 @@
 --[[
-    Название: Название механики
+    Название: Уклонись
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики: 
+        Прицел бегает за игроками и раз в несколько секунд пытается задеть их различными эффектами
+        Если игрок наступил на красный пиксель эффекта - команда теряет жизнь, потеряв все жизни команда проигрывает
+        Иногда чтобы завершить эффект игрокам потребуется выполнить дополнительное действие - собрать монетки или нажать на кнопку
+        Игра поддерживает управление геймпадом, один из игроков может контролировать прицел пытаясь попасть по другим игрокам
+
+    Идеи по доработке: 
+        Больше эффектов
 ]]
 math.randomseed(os.time())
 
@@ -172,8 +178,8 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice-- название игры
-    --voice-- объяснение правил
+    CAudio.PlaySync("dodge_gamename.mp3")
+    CAudio.PlaySync("dodge_rules.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -220,8 +226,8 @@ CGameMode.DamagePlayer = function(iDamage)
             CAudio.PlayAsync(CAudio.MISCLICK)
         end
     else
-        CAudio.PlaySync(CAudio.MISCLICK)
-        --voice-- игрок выбыл      
+        --CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlayAsync("player_out.mp3")     
     end
 
     CGameMode.bDamageCooldown = true
@@ -328,9 +334,9 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     CLog.print("next effect: "..iEffectId)
-    --iEffectId = 3
+    --iEffectId = 1
 
-    --voice-- следующий эффект...
+    CAudio.PlaySync("next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
 
     if CEffect.tEffects[iEffectId][CEffect.CONST_SPECIAL_ENDING_ON] and math.random(1, 100) >= 50 then
@@ -342,6 +348,10 @@ CEffect.NextEffectTimer = function()
         if tGameStats.StageLeftDuration <= 1 then
             CEffect.iNextEffect = iEffectId
             CEffect.bCanCast = true
+
+            if not CCross.IsAiOn() then
+                CAudio.PlaySync("dodge_effect_cast_ready.mp3")
+            end
 
             return nil
         else
@@ -425,7 +435,7 @@ CEffect.LoadEffect = function(iEffectId)
 end
 
 CEffect.SpecialEndingButton = function()
-    --voice-- нажмите на кнопку чтобы остановить эффект
+    CAudio.PlayAsync("special_effect_button.mp3")
 end
 
 CEffect.SpecialEndingButtonPressButton = function()
@@ -433,7 +443,7 @@ CEffect.SpecialEndingButtonPressButton = function()
 end
 
 CEffect.SpecialEndingCoins = function()
-    --voice-- Соберите пиксели чтобы закончить эффект
+    CAudio.PlayAsync("special_effect_coins.mp3")
 
     CEffect.tCurrentEffectData.tCoins = {}
 
@@ -528,12 +538,12 @@ end
 CEffect.EFFECT_SHOT = 1
 CEffect.tEffects[CEffect.EFFECT_SHOT] = {}
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_LENGTH] = 3
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_TICK_DELAY] = 100
+CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_TICK_DELAY] = 150
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_SPECIAL_ENDING_ON] = false
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_ANNOUNCER] = function()
-
+    CAudio.PlaySync("dodge_effect_shot.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -569,18 +579,32 @@ end
 
 -- отрисовка эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_DRAW] = function()
+    local function Pixel(iX, iY)
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CEffect.iColor
+            tFloor[iX][iY].iBright = tConfig.Bright
+            CGameMode.DamagePlayerCheck(iX, iY, 1)
+        end
+    end
+
     for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
         local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
         if tProjectile then
             local iIncX = 1 if tProjectile.iVelX ~= 0 then iIncX = tProjectile.iVelX end
             local iIncY = 1 if tProjectile.iVelY ~= 0 then iIncY = tProjectile.iVelY end
 
+            local i = 0
             for iX = tProjectile.iX, tProjectile.iX + tProjectile.iVelX*2, iIncX do
-                for iY = tProjectile.iY, tProjectile.iY + tProjectile.iVelY*2, iIncY do   
-                    if tFloor[iX] and tFloor[iX][iY] then
-                        tFloor[iX][iY].iColor = CEffect.iColor
-                        tFloor[iX][iY].iBright = tConfig.Bright
-                        CGameMode.DamagePlayerCheck(iX, iY, 1)
+                for iY = tProjectile.iY, tProjectile.iY + tProjectile.iVelY*2, iIncY do  
+                    i = i + 1 
+                    Pixel(iX, iY)
+                    if i >= 2 then
+                        Pixel(iX+tProjectile.iVelY, iY+tProjectile.iVelX)
+                        Pixel(iX-tProjectile.iVelY, iY-tProjectile.iVelX)
+                    end
+                    if i >= 3 then
+                        Pixel(iX+tProjectile.iVelY*2, iY+tProjectile.iVelX*2)
+                        Pixel(iX-tProjectile.iVelY*2, iY-tProjectile.iVelX*2)
                     end
                 end
             end
@@ -612,13 +636,13 @@ end
 ----эффект: круг
 CEffect.EFFECT_CIRCLE = 2
 CEffect.tEffects[CEffect.EFFECT_CIRCLE] = {}
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_LENGTH] = 10
+CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_LENGTH] = 6
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_TICK_DELAY] = 200
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_SPECIAL_ENDING_ON] = false
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_ANNOUNCER] = function()
-
+    CAudio.PlaySync("dodge_effect_circle.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -697,7 +721,11 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_enemy.mp3")
 
+    if not CCross.IsAiOn() then
+        CAudio.PlaySync("dodge_enemy_controls.mp3")
+    end
 end
 
 -- прогрузка переменных эффекта
@@ -719,7 +747,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_SOUND] = function()
-    
+    CAudio.PlayAsync("dodge_enemy_voiceline.mp3")
 end
 
 -- отрисовка эффекта
@@ -752,7 +780,7 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_TICK] = function()
         local iY = 0
 
         --pad unit
-        if iUnitID == 1 and not (CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.CrossAFKTimer)) then
+        if iUnitID == 1 and not CCross.IsAiOn() then
             return CPad.iXPlus, CPad.iYPlus
         end
         --
@@ -802,7 +830,7 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_ANNOUNCER] = function()
-
+    CAudio.PlaySync("dodge_effect_line.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -814,7 +842,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_SOUND] = function()
-    
+    CAudio.PlaySync("electro-laser.mp3")
 end
 
 -- отрисовка эффекта
@@ -871,7 +899,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_UNLOAD] = function()
-    
+    CAudio.PlaySyncFromScratch("")
 end
 ----
 
@@ -884,7 +912,7 @@ CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_ANNOUNCER] = function()
-
+    CAudio.PlaySync("dodge_effect_laser.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -894,7 +922,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_SOUND] = function()
-    
+    CAudio.PlaySync("electro-laser.mp3")
 end
 
 -- отрисовка эффекта
@@ -932,7 +960,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_UNLOAD] = function()
-    
+    CAudio.PlaySyncFromScratch("")
 end
 
 --//
@@ -944,7 +972,6 @@ CCross.iY = math.floor(tGame.Rows/2)
 CCross.iSize = 4
 CCross.iColor = 3
 CCross.iBright = 5
-CCross.bAiOn = true
 CCross.iAiDestX = 0
 CCross.iAiDestY = 0
 CCross.bBlockMovement = false
@@ -966,9 +993,7 @@ end
     
 CCross.Thinker = function()
     CTimer.New(tConfig.CrossMovementDelay, function()
-        CCross.bAiOn = (CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.CrossAFKTimer))
-
-        if CCross.bAiOn then
+        if CCross.IsAiOn() then
             if CCross.iAiDestX == CCross.iX and CCross.iAiDestY == CCross.iY then
                 CCross.AiNewDest()
             end
@@ -988,6 +1013,10 @@ CCross.Thinker = function()
 
         return tConfig.CrossMovementDelay
     end) 
+end
+
+CCross.IsAiOn = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.CrossAFKTimer)
 end
 
 CCross.AiNewDest = function()

@@ -34,8 +34,8 @@
 	"DamageCooldown_Max": 2000,
 	"DamageCooldown_Step": 100,
 
-	"PauseBetweenEffects": 15,
-	"PauseBetweenEffects_Min": 5,
+	"PauseBetweenEffects": 10,
+	"PauseBetweenEffects_Min": 10,
 	"PauseBetweenEffects_Max": 60,
 	"PauseBetweenEffects_Step": 1
 }
