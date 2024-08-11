@@ -602,7 +602,7 @@ CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
         for iY = iYStart, iYStart + iSize do
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].iUnitID > 0 then return true end
-                if tFloor[iX][iY].bDefect then return true end
+                --if tFloor[iX][iY].bDefect then return true end
                 if tFloor[iX][iY].bBlocked then return true end
             end
         end
@@ -752,7 +752,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
             if not tFloor[iXCheck] or not tFloor[iXCheck][iYCheck] then return true end
             if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
-            if tFloor[iXCheck][iYCheck].bDefect then return false end
+            --if tFloor[iXCheck][iYCheck].bDefect then return false end
             if tFloor[iXCheck][iYCheck].bClick then return false end
         end
     end
