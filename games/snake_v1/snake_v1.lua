@@ -379,6 +379,9 @@ CSnake.bStepedOn = false
 CSnake.tPath = nil
 CSnake.iStep = 2
 
+CSnake.iXPlus = -1
+CSnake.iYPlus = 0
+
 CSnake.Create = function()
     CSnake.iHeadX = math.floor(tGame.Cols/2)
     CSnake.iHeadY = math.floor(tGame.Rows/2)
@@ -405,6 +408,27 @@ CSnake.Start = function()
 end
 
 CSnake.Think = function()
+    if CPad.AFK() then
+        CSnake.AiThink()
+    else
+        CSnake.iDestPixelID = 0
+        CSnake.PadThink()
+    end
+
+    if tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID ~= 0 then
+        local iSnakePixelID = tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID
+        if CGameMode.tPixels[iSnakePixelID] and CGameMode.tPixels[iSnakePixelID].iX then 
+            CSnake.SnakeCollectPixel(iSnakePixelID)
+            CSnake.NewDestination()
+        end
+    end
+
+    if tFloor[CSnake.iHeadX][CSnake.iHeadY].bBlocked and tGameStats.Players[6].Score > 0 and tGameStats.Players[6].Score > CSnake.iLength*0.75 then
+        tGameStats.Players[6].Score = tGameStats.Players[6].Score - 1
+    end       
+end
+
+CSnake.AiThink = function()
     if CSnake.iDestPixelID == 0 or CGameMode.tPixels[CSnake.iDestPixelID].iX == nil then
         CSnake.NewDestination()
     end
@@ -437,14 +461,18 @@ CSnake.Think = function()
             CSnake.tPath = nil
         end
     end
+end
 
-    if tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID ~= 0 then
-        local iSnakePixelID = tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID
-        if CGameMode.tPixels[iSnakePixelID] and CGameMode.tPixels[iSnakePixelID].iX then 
-            CSnake.SnakeCollectPixel(iSnakePixelID)
-            CSnake.NewDestination()
-        end
-    end    
+CSnake.PadThink = function()
+    if CPad.iXPlus ~= 0 then
+        CSnake.iXPlus = CPad.iXPlus
+        CSnake.iYPlus = 0
+    elseif CPad.iYPlus ~= 0 then
+        CSnake.iXPlus = 0
+        CSnake.iYPlus = CPad.iYPlus
+    end
+
+    CSnake.Move(CSnake.iXPlus, CSnake.iYPlus)
 end
 
 CSnake.CanMove = function(iXPlus, iYPlus)
@@ -481,7 +509,23 @@ CSnake.Move = function(iXPlus, iYPlus)
     end    
 
     CSnake.iHeadX = CSnake.iHeadX + iXPlus
-    CSnake.iHeadY = CSnake.iHeadY + iYPlus    
+    CSnake.iHeadY = CSnake.iHeadY + iYPlus   
+
+    CSnake.CalculateHeadOOB()
+end
+
+CSnake.CalculateHeadOOB = function()
+    if CSnake.iHeadX < 1 then
+        CSnake.iHeadX = tGame.Cols
+    elseif CSnake.iHeadX > tGame.Cols then
+        CSnake.iHeadX = 1
+    end
+
+    if CSnake.iHeadY < 1 then
+        CSnake.iHeadY = tGame.Rows
+    elseif CSnake.iHeadY > tGame.Rows then
+        CSnake.iHeadY = 1
+    end    
 end
 
 CSnake.NewDestination = function()
@@ -795,6 +839,36 @@ CPath.Path = function(tStartBlock, tGoalBlock, tBlocks, bStuck)
 end
 --//
 
+--Pad
+CPad = {}
+CPad.LastInteractionTime = -1
+
+CPad.iXPlus = 0
+CPad.iYPlus = 0
+CPad.bTrigger = false
+
+CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
+
+    CPad.bTrigger = bTrigger
+
+    CPad.iXPlus = 0
+    CPad.iYPlus = 0
+
+    if bUp then CPad.iYPlus = CPad.iYPlus - 1 end
+    if bDown then CPad.iYPlus = CPad.iYPlus + 1 end
+
+    if bLeft then CPad.iXPlus = CPad.iXPlus - 1 end
+    if bRight then CPad.iXPlus = CPad.iXPlus + 1 end
+end
+
+CPad.AFK = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
+end
+--//
+
 --TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
 CTimer = {}
 CTimer.tTimers = {}
@@ -932,11 +1006,15 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return end
-    tButtons[click.Button].bClick = click.Click
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tButtons[click.Button] == nil then return end
+        tButtons[click.Button].bClick = click.Click
 
-    if click.Click then
-        bAnyButtonClick = true
+        if click.Click then
+            bAnyButtonClick = true
+        end
     end
 end
 
