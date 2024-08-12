@@ -434,6 +434,14 @@ CEffect.LoadEffect = function(iEffectId)
     CEffect.tEffects[iEffectId][CEffect.FUNC_SOUND]()
 end
 
+CEffect.PaintEffectPixel = function(iX, iY)
+    if tFloor[iX] and tFloor[iX][iY] then
+        tFloor[iX][iY].iColor = CEffect.iColor
+        tFloor[iX][iY].iBright = tConfig.Bright
+        CGameMode.DamagePlayerCheck(iX, iY, 1)
+    end
+end
+
 CEffect.SpecialEndingButton = function()
     CAudio.PlayAsync("special_effect_button.mp3")
 end
@@ -454,7 +462,7 @@ CEffect.SpecialEndingCoins = function()
         repeat
             iX = math.random(1, tGame.Cols)
             iY = math.random(1, tGame.Rows)
-        until tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0
+        until tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 and tFloor[iX][iY].iColor ~= CCross.iColor
 
         CEffect.tCurrentEffectData.tCoins[iCoinId] = {}
         CEffect.tCurrentEffectData.tCoins[iCoinId].iX = iX
@@ -579,14 +587,6 @@ end
 
 -- отрисовка эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_DRAW] = function()
-    local function Pixel(iX, iY)
-        if tFloor[iX] and tFloor[iX][iY] then
-            tFloor[iX][iY].iColor = CEffect.iColor
-            tFloor[iX][iY].iBright = tConfig.Bright
-            CGameMode.DamagePlayerCheck(iX, iY, 1)
-        end
-    end
-
     for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
         local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
         if tProjectile then
@@ -597,14 +597,14 @@ CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_DRAW] = function()
             for iX = tProjectile.iX, tProjectile.iX + tProjectile.iVelX*2, iIncX do
                 for iY = tProjectile.iY, tProjectile.iY + tProjectile.iVelY*2, iIncY do  
                     i = i + 1 
-                    Pixel(iX, iY)
+                    CEffect.PaintEffectPixel(iX, iY)
                     if i >= 2 then
-                        Pixel(iX+tProjectile.iVelY, iY+tProjectile.iVelX)
-                        Pixel(iX-tProjectile.iVelY, iY-tProjectile.iVelX)
+                        CEffect.PaintEffectPixel(iX+tProjectile.iVelY, iY+tProjectile.iVelX)
+                        CEffect.PaintEffectPixel(iX-tProjectile.iVelY, iY-tProjectile.iVelX)
                     end
                     if i >= 3 then
-                        Pixel(iX+tProjectile.iVelY*2, iY+tProjectile.iVelX*2)
-                        Pixel(iX-tProjectile.iVelY*2, iY-tProjectile.iVelX*2)
+                        CEffect.PaintEffectPixel(iX+tProjectile.iVelY*2, iY+tProjectile.iVelX*2)
+                        CEffect.PaintEffectPixel(iX-tProjectile.iVelY*2, iY-tProjectile.iVelX*2)
                     end
                 end
             end
@@ -865,21 +865,13 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_DRAW] = function()
         end
     end
 
-    local function Pixel(iX, iY)
-        if tFloor[iX] and tFloor[iX][iY] then
-            tFloor[iX][iY].iColor = CEffect.iColor
-            tFloor[iX][iY].iBright = tConfig.Bright
-            CGameMode.DamagePlayerCheck(iX, iY, 1)
-        end
-    end
-
     Line(CCross.iX, CCross.iY, CEffect.tCurrentEffectData.iTargetX, CEffect.tCurrentEffectData.iTargetY, function(iX, iY)
         for iX2 = (iX-CEffect.tCurrentEffectData.iLineWidth), iX do
-            Pixel(iX2, iY)
+            CEffect.PaintEffectPixel(iX2, iY)
         end
 
         for iY2 = (iY-CEffect.tCurrentEffectData.iLineWidth), iY do
-            Pixel(iX, iY2)
+            CEffect.PaintEffectPixel(iX, iY2)
         end
     end)
 end
@@ -927,29 +919,20 @@ end
 
 -- отрисовка эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_DRAW] = function()
-    local function Pixel(iX, iY)
-        if tFloor[iX] and tFloor[iX][iY] then
-            tFloor[iX][iY].iColor = CEffect.iColor
-            tFloor[iX][iY].iBright = tConfig.Bright
-
-            CGameMode.DamagePlayerCheck(iX, iY, 1)
-        end
-    end
-
     for iX = CCross.iX, tGame.Cols do
-        Pixel(iX, CCross.iY)
+        CEffect.PaintEffectPixel(iX, CCross.iY)
     end
 
     for iX = CCross.iX, 1, -1 do
-        Pixel(iX, CCross.iY)
+        CEffect.PaintEffectPixel(iX, CCross.iY)
     end
 
     for iY = CCross.iY, tGame.Rows do
-        Pixel(CCross.iX, iY)
+        CEffect.PaintEffectPixel(CCross.iX, iY)
     end
 
     for iY = CCross.iY, 1, -1 do
-        Pixel(CCross.iX, iY)
+        CEffect.PaintEffectPixel(CCross.iX, iY)
     end
 end
 
