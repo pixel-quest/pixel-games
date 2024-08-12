@@ -1,8 +1,27 @@
 {
   "Bright": 6,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "BlockSize": 2,
+  "BlockSize_Min": 1,
+  "BlockSize_Max": 2,
+  "BlockSize_Step": 1,  
+
   "StagesQty": 10,
+  "StagesQty_Min": 5,
+  "StagesQty_Max": 20,
+  "StagesQty_Step": 1,    
+  
   "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true,
+  
   "CircleDrawDelayMs": 30,
-  "GameDurationSec": 60
+  "CircleDrawDelayMs_Hidden": true,  
+  
+  "GameDurationSec": 60,
+  "GameDurationSec_Min": 20,
+  "GameDurationSec_Max": 120,
+  "GameDurationSec_Step": 5
 }
