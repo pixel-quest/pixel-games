@@ -41,13 +41,13 @@
   - **Сапёр** – *соревновательная игра на запоминание рисунка мин* [minesweeper_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v1/minesweeper_v1.lua)
   - **Перебежка** – *бегаем от кнопки к кнопке, перепрыгивая полоску лавы* [dash_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dash_v2/dash_v2.lua)
   - **Змейка** – *аналог Пиксель дуэли против компьютерной змейки* [snake_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/snake_v1/snake_v1.lua)
-  - **Змейка** – *змейка с управлением через геймпад* [snake_gamepad_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/snake_gamepad_v1/snake_gamepad_v1.lua)
   - **Час пик** – *выведи машинку из затора в час пик*  [huarong_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/huarong_v1/huarong_v1.lua)
   - **Олимпиада** – *соревнования по разным механикам* [olympics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/olympics_v1/olympics_v1.lua)
   - **Повтори рисунок** – *нужно на скорость нарисовать рисунок по шаблону* [match_the_picture_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/match_the_picture_v1/match_the_picture_v1.lua)
   - **Хомяк** – *тупая кликалка на хомяка* [humster_rush_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/humster_rush_v1/humster_rush_v1.lua)
   - **Рисовалка** – *тупая кликалка на хомяка* [сoloring_book_v1](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
   - **Вирус** – *игроки захватывают поле своим цветом* [conquest_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/conquest_v1/conquest_v1.lua)
+  - **Уклонись** – *игроки должны уклоняться от разных эффектов* [dodge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dodge_v1/dodge_v1.lua)
   - **Классики** – *классики 3х6* [classics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_v1/classics_v1.lua)
 
 ## Лицензия
