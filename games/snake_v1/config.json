@@ -27,5 +27,10 @@
   "SnakeLength_Max": 10,
   "SnakeLength_Step": 1,
 
-  "SnakeDamagePlayerOnStep": true
+  "SnakeDamagePlayerOnStep": true,
+
+  "PadAFKTimer": 10,
+  "PadAFKTimer_Min": 5,
+  "PadAFKTimer_Max": 30,
+  "PadAFKTimer_Step": 1
 }

@@ -1,6 +1,16 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "PointsToWin": 10,
+  "PointsToWin_Min": 5,
+  "PointsToWin_Max": 50,
+  "PointsToWin_Step": 5,
+
   "MoveAllPixels": false,
-  "WinDurationSec": 10
+  
+  "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true
 }

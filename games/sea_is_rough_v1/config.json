@@ -1,9 +1,29 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "MovePixels": true,
+
   "PointsToWin": 50,
+  "PointsToWin_Min": 10,
+  "PointsToWin_Max": 200,
+  "PointsToWin_Step": 10,
+  
   "StageDurationSec": 8,
+  "StageDurationSec_Min": 6,
+  "StageDurationSec_Max": 16,
+  "StageDurationSec_Step": 1,  
+  
   "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true, 
+
   "StopDurationSec": 3,
-  "FillingPercentage": 50
+  "StopDurationSec_Min": 2,
+  "StopDurationSec_Max": 10,
+  "StopDurationSec_Step": 1,    
+
+  "FillingPercentage": 50,
+  "FillingPercentage_Hidden": true 
 }

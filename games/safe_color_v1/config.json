@@ -1,9 +1,34 @@
 {
   "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+
   "StartLives": 0,
+  "StartLives_Min": 0,
+  "StartLives_Max": 50,
+  "StartLives_Step": 5,   
+  
   "StagesQty": 10,
+  "StagesQty_Min": 5,
+  "StagesQty_Max": 20,
+  "StagesQty_Step": 1,   
+
   "StageDurationSec": 4,
+  "StageDurationSec_Min": 2,
+  "StageDurationSec_Max": 8,
+  "StageDurationSec_Step": 1,  
+  
   "StopDurationSec": 4,
+  "StopDurationSec_Min": 2,
+  "StopDurationSec_Max": 8,
+  "StopDurationSec_Step": 1,  
+
   "WinDurationSec": 10,
-  "LavaDelay": 200
+  "WinDurationSec_Hidden": true,
+
+  "LavaDelay": 200,
+  "LavaDelay_Min": 50,
+  "LavaDelay_Max": 1000,
+  "LavaDelay_Step": 50  
 }
