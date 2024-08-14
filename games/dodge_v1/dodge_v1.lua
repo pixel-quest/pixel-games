@@ -333,8 +333,8 @@ CEffect.NextEffectTimer = function()
     while iEffectId == CEffect.iLastEffect do
         iEffectId = math.random(1, #CEffect.tEffects)
     end
-    CLog.print("next effect: "..iEffectId)
-    --iEffectId = 1
+    --CLog.print("next effect: "..iEffectId)
+    --iEffectId = 9
 
     CAudio.PlaySync("next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
@@ -731,6 +731,7 @@ end
 -- прогрузка переменных эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_INIT] = function()
     CCross.bBlockMovement = true
+    CCross.bHidden = true
 
     CEffect.tCurrentEffectData.iUnitCount = math.random(2,3)
     CEffect.tCurrentEffectData.iUnitSize = math.random(2,3)
@@ -818,6 +819,7 @@ end
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_UNLOAD] = function()
     CCross.bBlockMovement = false
+    CCross.bHidden = false
 end
 ----
 
@@ -940,11 +942,330 @@ end
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_TICK] = function()
     
 end
+----
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_UNLOAD] = function()
     CAudio.PlaySyncFromScratch("")
 end
+
+---- эффект: закрас
+CEffect.EFFECT_DRAW = 6
+CEffect.tEffects[CEffect.EFFECT_DRAW] = {}
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.CONST_LENGTH] = 20
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_draw.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_INIT] = function()
+    CEffect.tCurrentEffectData.tPixels = {}
+    CEffect.tCurrentEffectData.iLastCrossX = 0
+    CEffect.tCurrentEffectData.iLastCrossY = 0
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_SOUND] = function()
+    CAudio.PlayAsync("spray-paint.mp3")
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_DRAW] = function()
+    for iPixelId = 1, #CEffect.tCurrentEffectData.tPixels do
+        if CEffect.tCurrentEffectData.tPixels[iPixelId] then
+            CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.tPixels[iPixelId].iX, CEffect.tCurrentEffectData.tPixels[iPixelId].iY)
+        end
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_TICK] = function()
+    if not (CCross.iX == CEffect.tCurrentEffectData.iLastCrossX and CCross.iY == CEffect.tCurrentEffectData.iLastCrossY) then
+        local iPixelId = #CEffect.tCurrentEffectData.tPixels+1
+
+        CEffect.tCurrentEffectData.tPixels[iPixelId] = {}
+        CEffect.tCurrentEffectData.tPixels[iPixelId].iX = CCross.iX
+        CEffect.tCurrentEffectData.tPixels[iPixelId].iY = CCross.iY
+    end
+
+    CEffect.tCurrentEffectData.iLastCrossX = CCross.iX
+    CEffect.tCurrentEffectData.iLastCrossY = CCross.iY
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_UNLOAD] = function()
+    
+end
+----
+
+----эффект: закрас линией
+CEffect.EFFECT_LINEDRAW = 7
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW] = {}
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.CONST_LENGTH] = 8
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.CONST_TICK_DELAY] = 140
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.CONST_SPECIAL_ENDING_ON] = false
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_linedraw.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_INIT] = function()
+    CEffect.tCurrentEffectData.tPixels = {}
+
+    CEffect.tCurrentEffectData.iTargetX = math.random(1, tGame.Cols)
+    CEffect.tCurrentEffectData.iTargetY = 1
+    CEffect.tCurrentEffectData.iLineWidth = 1
+
+    CCross.bBlockMovement = true
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_SOUND] = function()
+    CAudio.PlayAsync("spray-paint.mp3")
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_DRAW] = function()
+    for iPixelId = 1, #CEffect.tCurrentEffectData.tPixels do
+        if CEffect.tCurrentEffectData.tPixels[iPixelId] then
+            CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.tPixels[iPixelId].iX, CEffect.tCurrentEffectData.tPixels[iPixelId].iY)
+        end
+    end 
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_TICK] = function()
+    if CEffect.tCurrentEffectData.iTargetX < tGame.Cols+1 and CEffect.tCurrentEffectData.iTargetY == 0 then
+        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX + 1
+    elseif CEffect.tCurrentEffectData.iTargetX >= tGame.Cols and CEffect.tCurrentEffectData.iTargetY < tGame.Rows+1 then
+        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY + 1
+    elseif CEffect.tCurrentEffectData.iTargetY >= tGame.Rows and CEffect.tCurrentEffectData.iTargetX > 0 then
+        CEffect.tCurrentEffectData.iTargetX = CEffect.tCurrentEffectData.iTargetX - 1
+    elseif CEffect.tCurrentEffectData.iTargetY > 0 then
+        CEffect.tCurrentEffectData.iTargetY = CEffect.tCurrentEffectData.iTargetY - 1
+    end
+
+    local function Line(iX1, iY1, iX2, iY2, fDraw)
+        local iDX, iSX = math.abs( iX2 - iX1 ), iX1 < iX2 and 1 or -1
+        local iDY, iSY = -math.abs( iY2 - iY1 ), iY1 < iY2 and 1 or -1
+        local iDXDY = iDX + iDY
+
+        for i = 1, tGame.Cols + tGame.Rows do  
+            local iE = iDXDY + iDXDY
+            if iE >= iDY then
+                iDXDY, iX1 = iDXDY + iDY, iX1 + iSX
+            end
+            
+            if iE <= iDX then
+                iDXDY, iY1 = iDXDY + iDX, iY1 + iSY
+            end
+            fDraw(iX1, iY1, 1)
+        end
+    end
+
+    local function Pixel(iX, iY)
+        local iPixelId = #CEffect.tCurrentEffectData.tPixels+1
+        CEffect.tCurrentEffectData.tPixels[iPixelId] = {}
+        CEffect.tCurrentEffectData.tPixels[iPixelId].iX = iX
+        CEffect.tCurrentEffectData.tPixels[iPixelId].iY = iY
+    end
+
+    Line(CCross.iX, CCross.iY, CEffect.tCurrentEffectData.iTargetX, CEffect.tCurrentEffectData.iTargetY, function(iX, iY)
+        for iX2 = (iX-CEffect.tCurrentEffectData.iLineWidth), iX do
+            Pixel(iX2, iY)
+        end
+
+        for iY2 = (iY-CEffect.tCurrentEffectData.iLineWidth), iY do
+            Pixel(iX, iY2)
+        end
+    end)    
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_UNLOAD] = function()
+    CCross.bBlockMovement = false
+end
+----
+
+----эффект: полоска
+CEffect.EFFECT_STRIPE = 8
+CEffect.tEffects[CEffect.EFFECT_STRIPE] = {}
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.CONST_LENGTH] = 8
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.CONST_TICK_DELAY] = 175
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_stripe.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+    CCross.bHidden = true
+
+    CEffect.tCurrentEffectData.iX = CCross.iX
+    CEffect.tCurrentEffectData.iY = CCross.iY
+    CEffect.tCurrentEffectData.iLineType = math.random(1,2)
+    CEffect.tCurrentEffectData.iVel = 1
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_SOUND] = function()
+    CAudio.PlayAsync("lightsaber-ignition.mp3")
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_DRAW] = function()
+    if CEffect.tCurrentEffectData.iLineType == 1 then
+        for iY = 1, tGame.Rows do
+            CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.iX, iY)
+        end
+    else
+        for iX = 1, tGame.Cols do
+            CEffect.PaintEffectPixel(iX, CEffect.tCurrentEffectData.iY)
+        end    
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_TICK] = function()
+    if CEffect.tCurrentEffectData.iLineType == 1 then
+        CEffect.tCurrentEffectData.iX = CEffect.tCurrentEffectData.iX + CEffect.tCurrentEffectData.iVel
+        if CEffect.tCurrentEffectData.iX == tGame.Cols or CEffect.tCurrentEffectData.iX == 1 then
+            CEffect.tCurrentEffectData.iVel = -CEffect.tCurrentEffectData.iVel
+            CAudio.PlayAsync("lightsaber-swing.mp3")
+        end
+    else
+        CEffect.tCurrentEffectData.iY = CEffect.tCurrentEffectData.iY + CEffect.tCurrentEffectData.iVel
+        if CEffect.tCurrentEffectData.iY == tGame.Rows or CEffect.tCurrentEffectData.iY == 1 then
+            CEffect.tCurrentEffectData.iVel = -CEffect.tCurrentEffectData.iVel
+            CAudio.PlayAsync("lightsaber-swing.mp3")
+        end
+    end
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_UNLOAD] = function()
+    CCross.bBlockMovement = false
+    CCross.bHidden = false
+end
+----
+
+----эффект: мяч
+CEffect.EFFECT_BALL = 9
+CEffect.tEffects[CEffect.EFFECT_BALL] = {}
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.CONST_LENGTH] = 12
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.CONST_TICK_DELAY] = 125
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_ball.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+    CCross.bHidden = true
+
+    CEffect.tCurrentEffectData.tBalls = {}
+    CEffect.tCurrentEffectData.iBallCount = math.random(2,3)
+    for iBallId = 1, CEffect.tCurrentEffectData.iBallCount do
+        CEffect.tCurrentEffectData.tBalls[iBallId] = {} 
+        CEffect.tCurrentEffectData.tBalls[iBallId].iX = CCross.iX 
+        CEffect.tCurrentEffectData.tBalls[iBallId].iY = CCross.iY 
+        CEffect.tCurrentEffectData.tBalls[iBallId].iVelX = math.random(-1,1) 
+        CEffect.tCurrentEffectData.tBalls[iBallId].iVelY = math.random(-1,1) 
+        CEffect.tCurrentEffectData.tBalls[iBallId].iSize = 2
+        CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown = 5
+
+        if CEffect.tCurrentEffectData.tBalls[iBallId].iVelX == 0 then CEffect.tCurrentEffectData.tBalls[iBallId].iVelX = 1 end
+        if CEffect.tCurrentEffectData.tBalls[iBallId].iVelY == 0 then CEffect.tCurrentEffectData.tBalls[iBallId].iVelY = -1 end
+    end
+
+    CEffect.tCurrentEffectData.bCollisionEnabled = true
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_SOUND] = function()
+    CAudio.PlaySync("ball-kick.mp3")
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_DRAW] = function()
+    for iBallId = 1, CEffect.tCurrentEffectData.iBallCount do
+        if CEffect.tCurrentEffectData.tBalls[iBallId] then
+            for iX = CEffect.tCurrentEffectData.tBalls[iBallId].iX, CEffect.tCurrentEffectData.tBalls[iBallId].iX + CEffect.tCurrentEffectData.tBalls[iBallId].iSize-1 do
+                for iY = CEffect.tCurrentEffectData.tBalls[iBallId].iY, CEffect.tCurrentEffectData.tBalls[iBallId].iY + CEffect.tCurrentEffectData.tBalls[iBallId].iSize-1 do
+                    CEffect.PaintEffectPixel(iX, iY)
+                end
+            end
+        end
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_TICK] = function()
+    for iBallId = 1, CEffect.tCurrentEffectData.iBallCount do
+        if CEffect.tCurrentEffectData.tBalls[iBallId] then
+            local bCheckCollision = true
+
+            CEffect.tCurrentEffectData.tBalls[iBallId].iX = CEffect.tCurrentEffectData.tBalls[iBallId].iX + CEffect.tCurrentEffectData.tBalls[iBallId].iVelX
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iX == 1 or CEffect.tCurrentEffectData.tBalls[iBallId].iX+CEffect.tCurrentEffectData.tBalls[iBallId].iSize-1 == tGame.Cols then
+                CEffect.tCurrentEffectData.tBalls[iBallId].iVelX = -CEffect.tCurrentEffectData.tBalls[iBallId].iVelX
+                bCheckCollision = false
+            end
+
+            CEffect.tCurrentEffectData.tBalls[iBallId].iY = CEffect.tCurrentEffectData.tBalls[iBallId].iY + CEffect.tCurrentEffectData.tBalls[iBallId].iVelY
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iY == 1 or CEffect.tCurrentEffectData.tBalls[iBallId].iY + CEffect.tCurrentEffectData.tBalls[iBallId].iSize-1 == tGame.Rows then
+                CEffect.tCurrentEffectData.tBalls[iBallId].iVelY = -CEffect.tCurrentEffectData.tBalls[iBallId].iVelY
+                bCheckCollision = false
+            end
+
+            if not bCheckCollision then
+                CAudio.PlayAsync("ball-bounce.mp3")
+            end
+
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iX < 1 then CEffect.tCurrentEffectData.tBalls[iBallId].iX = 3 end
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iX > tGame.Cols then CEffect.tCurrentEffectData.tBalls[iBallId].iX = tGame.Cols-3 end
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iY < 1 then CEffect.tCurrentEffectData.tBalls[iBallId].iY = 3 end
+            if CEffect.tCurrentEffectData.tBalls[iBallId].iY > tGame.Rows then CEffect.tCurrentEffectData.tBalls[iBallId].iY = tGame.Rows-3 return end      
+
+            if CEffect.tCurrentEffectData.bCollisionEnabled and CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown == 0 and bCheckCollision then
+                for iCheckBallId = 1, CEffect.tCurrentEffectData.iBallCount do
+                    if iCheckBallId ~= iBallId and RectIntersects(
+                    CEffect.tCurrentEffectData.tBalls[iBallId].iX+CEffect.tCurrentEffectData.tBalls[iBallId].iVelX, CEffect.tCurrentEffectData.tBalls[iBallId].iY+CEffect.tCurrentEffectData.tBalls[iBallId].iVelY, CEffect.tCurrentEffectData.tBalls[iBallId].iSize, 
+                    CEffect.tCurrentEffectData.tBalls[iCheckBallId].iX, CEffect.tCurrentEffectData.tBalls[iCheckBallId].iY, CEffect.tCurrentEffectData.tBalls[iCheckBallId].iSize
+                    ) then
+                        CEffect.tCurrentEffectData.tBalls[iBallId].iVelX = -CEffect.tCurrentEffectData.tBalls[iBallId].iVelX
+                        CEffect.tCurrentEffectData.tBalls[iBallId].iVelY = -CEffect.tCurrentEffectData.tBalls[iBallId].iVelY
+                        CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown = 5
+
+                        CAudio.PlayAsync("ball-bounce.mp3")
+
+                        return;
+                    end
+                end
+            elseif CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown > 0 then 
+                CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown = CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown - 1
+            end
+        end
+    end    
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_UNLOAD] = function()
+    CCross.bBlockMovement = false
+    CCross.bHidden = false
+end
+----
 
 --//
 
@@ -958,6 +1279,7 @@ CCross.iBright = 5
 CCross.iAiDestX = 0
 CCross.iAiDestY = 0
 CCross.bBlockMovement = false
+CCross.bHidden = false
 
 CCross.Move = function(iXPlus, iYPlus)
     if CCross.bBlockMovement then return; end
@@ -1050,6 +1372,8 @@ end
 CPaint = {}
 
 CPaint.Cross = function()
+    if CCross.bHidden then return end
+
     for iX = (CCross.iX - math.floor(CCross.iSize/2)), (CCross.iX + math.floor(CCross.iSize/2)) do
         if tFloor[iX] and tFloor[iX][CCross.iY] and iX ~= CCross.iX then
             tFloor[iX][CCross.iY].iColor = CCross.iColor
@@ -1075,7 +1399,7 @@ CPad.iYPlus = 0
 CPad.bTrigger = false
 
 CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
-    CLog.print(tostring(bUp).." "..tostring(bDown).." "..tostring(bLeft).." "..tostring(bRight).." "..tostring(bTrigger))
+    --CLog.print(tostring(bUp).." "..tostring(bDown).." "..tostring(bLeft).." "..tostring(bRight).." "..tostring(bTrigger))
 
     if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
         CPad.LastInteractionTime = CTime.unix()
