@@ -1,0 +1,37 @@
+{
+  "start_lives": 0,
+  "start_lives_Min": 0,
+  "start_lives_Max": 100,
+  "start_lives_Step": 5,
+
+  "frame_duration_coeff": 3,
+  "frame_duration_coeff_Min": 1,
+  "frame_duration_coeff_Max": 5,
+  "frame_duration_coeff_Step": 1,
+
+  "stage_duration_coeff": 2,
+  "stage_duration_coeff_Min": 1,
+  "stage_duration_coeff_Max": 5,
+  "stage_duration_coeff_Step": 1,
+
+  "burn_delay": 300,
+  "burn_delay_Hidden": true,
+
+  "bright": 6,
+  "bright_Hidden": true,
+
+  "buttons_bright": 5,
+  "buttons_bright_Hidden": true,
+
+  "start_from_stage": 0,
+  "start_from_stage_Hidden": true,
+
+  "burn_effect_duration": 1250,
+  "burn_effect_duration_Hidden": true,
+
+  "burn_effect_duration_phase_on": 150,
+  "burn_effect_duration_phase_on_Hidden": true,
+
+  "burn_effect_duration_phase_off": 100,
+  "burn_effect_duration_phase_off_Hidden": true
+}
