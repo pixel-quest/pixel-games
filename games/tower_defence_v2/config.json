@@ -1,0 +1,17 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"Difficulty": 2,
+	"Difficulty_Min": 1,
+	"Difficulty_Max": 4,
+	"Difficulty_Step": 1,
+
+	"PadAFKTimer": 20,
+	"PadAFKTimer_Hidden": true,
+
+	"AnimationDelay": 60,
+	"AnimationDelay_Hidden": true	
+}

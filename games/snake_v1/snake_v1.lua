@@ -378,6 +378,7 @@ CSnake.iColor = CColors.RED
 CSnake.bStepedOn = false
 CSnake.tPath = nil
 CSnake.iStep = 2
+CSnake.bStuck = false
 
 CSnake.iXPlus = -1
 CSnake.iYPlus = 0
@@ -434,29 +435,38 @@ CSnake.AiThink = function()
     end
 
     if CSnake.iDestPixelID ~= 0 then
-        if CSnake.tPath == nil or CSnake.tPath == {} then
+        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then
             CSnake.tPath = CSnake.GetPath(false)
         end
 
-        local bStuck = false
-        if CSnake.tPath == nil then
-            CLog.print("snake is stuck! noclip on")
-            CSnake.tPath = CSnake.GetPath(true)
-            bStuck = true
+        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then 
+            CLog.print("snake is stuck! new destination?")
+            CSnake.NewDestination()
+            CSnake.tPath = CSnake.GetPath(false)
         end
 
-        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil or CSnake.tPath[CSnake.iStep].iX == nil then 
-            CLog.print("snake is dead stuck!")
+        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then
+            CLog.print("snake is stuck! noclip on")
+            CSnake.tPath = CSnake.GetPath(true)
+            CSnake.bStuck = true
+        end
 
+        if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then 
+            CLog.print("snake is dead stuck!")
             CSnake.NewDestination()
             return; 
         end
 
         local iXPlus, iYPlus = CSnake.tPath[CSnake.iStep].iX - CSnake.iHeadX, CSnake.tPath[CSnake.iStep].iY - CSnake.iHeadY
 
-        if bStuck or CSnake.CanMove(iXPlus, iYPlus) then
+        local bCanMove = CSnake.CanMove(iXPlus, iYPlus)
+        if CSnake.bStuck or bCanMove then
             CSnake.Move(iXPlus, iYPlus)
             CSnake.iStep = CSnake.iStep + 1
+
+            if bCanMove then
+                CSnake.bStuck = false
+            end
         else
             CSnake.tPath = nil
         end
@@ -529,13 +539,15 @@ CSnake.CalculateHeadOOB = function()
 end
 
 CSnake.NewDestination = function()
+    local iLastDestPixelID = CSnake.iDestPixelID
+
     CSnake.tPath = nil
     CSnake.iDestPixelID = 0
 
     local iMaxDist = -1
 
     for iPixelID = 1, #CGameMode.tPixels do
-        if CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iX then
+        if iPixelID ~= iLastDestPixelID and CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iX then
             local iDist = CPath.Dist(CGameMode.tPixels[iPixelID].iX, CGameMode.tPixels[iPixelID].iY, CSnake.iHeadX, CSnake.iHeadY)
 
             if iDist > iMaxDist then
@@ -691,7 +703,7 @@ end
 --PATHFINDING
 CPath = {}
 CPath.INF = 1/0
-CPath.MAX_ITER = 500
+CPath.MAX_ITER = 70
 CPath.bStuck = false
 
 CPath.Dist = function(iX1, iY1, iX2, iY2)
@@ -783,14 +795,12 @@ CPath.AStar = function(tStartBlock, tGoalBlock, tBlocks)
     local iIter = 0
     while #tOpenSet > 0 do
         iIter = iIter + 1
-        if iIter >= CPath.MAX_ITER then
-            return nil
-        end
 
         local tCurrent = CPath.LowScore(tOpenSet, tFScore)
-        if CPath.Equals(tCurrent, tGoalBlock) then
+        if CPath.Equals(tCurrent, tGoalBlock) or iIter >= CPath.MAX_ITER then
             local tPath = CPath.Unwind({}, tCameFrom, tCurrent)
             table.insert(tPath, tCurrent)
+            --CLog.print(iIter)
             return tPath
         end
 

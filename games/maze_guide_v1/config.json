@@ -1,0 +1,21 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+
+	"Difficulty": 2,
+	"Difficulty_Min": 1,
+	"Difficulty_Max": 4,
+	"Difficulty_Step": 1,
+
+	"TimerOn": true,
+
+	"ControlPanelWidth": 2,
+	"ControlPanelWidth_Min": 1,
+	"ControlPanelWidth_Max": 2,
+	"ControlPanelWidth_Step": 1,	
+
+	"MovementTick": 250,	
+	"MovementTick_Hidden": true	
+}

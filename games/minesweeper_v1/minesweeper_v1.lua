@@ -59,7 +59,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
