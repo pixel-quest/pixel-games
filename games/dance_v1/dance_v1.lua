@@ -96,7 +96,9 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
-    SetupPlayerPositions()
+    if tGame.StartPositions == nil then
+        SetupPlayerPositions()
+    end
 
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
