@@ -440,19 +440,19 @@ CSnake.AiThink = function()
         end
 
         if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then 
-            CLog.print("snake is stuck! new destination?")
+            --CLog.print("snake is stuck! new destination?")
             CSnake.NewDestination()
             CSnake.tPath = CSnake.GetPath(false)
         end
 
         if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then
-            CLog.print("snake is stuck! noclip on")
+            --CLog.print("snake is stuck! noclip on")
             CSnake.tPath = CSnake.GetPath(true)
             CSnake.bStuck = true
         end
 
         if CSnake.tPath == nil or CSnake.tPath[CSnake.iStep] == nil then 
-            CLog.print("snake is dead stuck!")
+            --CLog.print("snake is dead stuck!")
             CSnake.NewDestination()
             return; 
         end
@@ -539,7 +539,7 @@ CSnake.CalculateHeadOOB = function()
 end
 
 CSnake.NewDestination = function()
-    local iLastDestPixelID = CSnake.iDestPixelID
+    --local iLastDestPixelID = CSnake.iDestPixelID
 
     CSnake.tPath = nil
     CSnake.iDestPixelID = 0
@@ -547,7 +547,7 @@ CSnake.NewDestination = function()
     local iMaxDist = -1
 
     for iPixelID = 1, #CGameMode.tPixels do
-        if iPixelID ~= iLastDestPixelID and CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iX then
+        if CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iX then
             local iDist = CPath.Dist(CGameMode.tPixels[iPixelID].iX, CGameMode.tPixels[iPixelID].iY, CSnake.iHeadX, CSnake.iHeadY)
 
             if iDist > iMaxDist then
@@ -560,6 +560,8 @@ end
 
 CSnake.GetPath = function(bStuck)
     CSnake.iStep = 2
+
+    if CSnake.iDestPixelID == nil or CGameMode.tPixels[CSnake.iDestPixelID] == nil then return nil end
 
     return CPath.Path(
         {iX = CSnake.iHeadX, iY = CSnake.iHeadY}, 
