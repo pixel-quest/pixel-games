@@ -162,16 +162,34 @@ CPaint.PaintBG = function()
         tBg = tGame.Backgrounds[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
     end
 
-    for iY = 1, tGame.Rows do
-        for iX = 1, tGame.Cols do
+    local iX = 0
+    local iXInc = 1
+    local iY = 0
+    local iYInc = 1
+
+    if tConfig.MirrorImage then 
+        iX = tGame.Cols+1
+        iXInc = -1
+        iY = tGame.Rows+1
+        iYInc = -1
+    end
+
+    local iXStart = iX
+
+    for iBGY = 1, tGame.Rows do
+        iX = iXStart
+        iY = iY + iYInc
+        for iBGX = 1, tGame.Cols do
+            iX = iX + iXInc
+
             local tBackgroundColor = CPaint.GetBackgroundColor(iX, iY)
             if tBackgroundColor ~= nil then
                 tFloor[iX][iY].iColor = tBackgroundColor.color
                 tFloor[iX][iY].iBright = tBackgroundColor.bright
             end
 
-            if tBg ~= nil and tBg[iY][iX] ~= 8 then
-                tFloor[iX][iY].iColor = tBg[iY][iX]
+            if tBg ~= nil and tBg[iBGY][iBGX] ~= 8 then
+                tFloor[iX][iY].iColor = tBg[iBGY][iBGX]
                 tFloor[iX][iY].iBright = tConfig.Bright
             end
         end

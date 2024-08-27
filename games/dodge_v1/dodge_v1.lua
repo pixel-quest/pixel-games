@@ -333,8 +333,8 @@ CEffect.NextEffectTimer = function()
     while iEffectId == CEffect.iLastEffect do
         iEffectId = math.random(1, #CEffect.tEffects)
     end
-    --CLog.print("next effect: "..iEffectId)
-    --iEffectId = 9
+    CLog.print("next effect: "..iEffectId)
+    --iEffectId = 8
 
     CAudio.PlaySync("next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
@@ -1280,6 +1280,7 @@ CCross.iAiDestX = 0
 CCross.iAiDestY = 0
 CCross.bBlockMovement = false
 CCross.bHidden = false
+CCross.iTicksNewDest = 0
 
 CCross.Move = function(iXPlus, iYPlus)
     if CCross.bBlockMovement then return; end
@@ -1287,11 +1288,11 @@ CCross.Move = function(iXPlus, iYPlus)
     local iNewX = CCross.iX + iXPlus
     local iNewY = CCross.iY + iYPlus
 
-    if iNewX > 0 and iNewX <= tGame.Cols then
+    if iNewX > 1 and iNewX <= tGame.Cols-1 then
         CCross.iX = iNewX
     end
 
-    if iNewY > 0 and iNewY <= tGame.Rows then
+    if iNewY > 1 and iNewY <= tGame.Rows-1 then
         CCross.iY = iNewY
     end    
 end
@@ -1299,8 +1300,11 @@ end
 CCross.Thinker = function()
     CTimer.New(tConfig.CrossMovementDelay, function()
         if CCross.IsAiOn() then
-            if CCross.iAiDestX == CCross.iX and CCross.iAiDestY == CCross.iY then
+            CCross.iTicksNewDest = CCross.iTicksNewDest + 1
+
+            if CCross.iTicksNewDest > 10 or (CCross.iAiDestX == CCross.iX and CCross.iAiDestY == CCross.iY) then
                 CCross.AiNewDest()
+                CCross.iTicksNewDest = 0
             end
 
             if CEffect.bCanCast then 
