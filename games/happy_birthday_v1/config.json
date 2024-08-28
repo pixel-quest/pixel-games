@@ -3,24 +3,36 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость", 
 
 	"AnimationDelay": 300,
 	"AnimationDelay_Min": 100,
 	"AnimationDelay_Max": 1000,
 	"AnimationDelay_Step": 100,
+	"AnimationDelay_Ru": "Частота анимации",
+	"AnimationDelay_En": "Animation tick rate",
 
 	"TextAnimation": 0,
 	"TextAnimation_Min": 0,
 	"TextAnimation_Max": 1,
 	"TextAnimation_Step": 1,
+	"TextAnimation_Ru": "Вид анимации текста",
+	"TextAnimation_En": "Text animation style",
 
 	"TextColor": 2,
 	"TextColor_Min": 1,
 	"TextColor_Max": 7,
 	"TextColor_Step": 1,
+	"TextColor_Ru": "Цвет текста",
+	"TextColor_En": "Text Color",
 
 	"BackgroundName": "test",
-	"Text": "NTCN",
+	"BackgroundName_Ru": "Название Заднего Фона",
+	"BackgroundName_En": "Back Ground Name",
 
-	"Music": "backgrounds/happy_birthday.mp3"
+	"Text": "ТЕКСТ",
+	"Text_Ru": "Текст (только русские заглавные буквы)",
+
+	"Music": "backgrounds/happy_birthday.mp3",
+	"Music_Ru": "Музыка"
 }

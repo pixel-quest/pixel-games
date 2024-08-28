@@ -3,14 +3,21 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость", 
 
 	"AnimationDelay": 150,
 	"AnimationDelay_Min": 100,
 	"AnimationDelay_Max": 1000,
 	"AnimationDelay_Step": 100,
+	"AnimationDelay_Ru": "Частота анимации",
+	"AnimationDelay_En": "Animation tick rate",	
 
 	"MirrorImage": false,
+	"MirrorImage_Ru": "Отзеркалить картинку",
+	"MirrorImage_En": "Mirror the image",
 
 	"BackgroundName": "mario",
-	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel"]
+	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel"],
+	"BackgroundName_Ru": "Картинка",
+	"BackgroundName_En": "Image"
 }
