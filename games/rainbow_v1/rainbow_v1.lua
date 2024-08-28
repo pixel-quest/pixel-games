@@ -125,7 +125,10 @@ function StartGame(gameJson, gameConfigJson)
 
     GradientLength = table.getn(GameObj.Colors)
     audio.PlaySyncFromScratch("") -- just reset audio player on start new game
-    audio.PlayRandomBackground()
+
+    if not GameConfigObj.NoSound then
+        audio.PlayRandomBackground()
+    end
 end
 
 -- PauseGame (служебный): пауза игры
