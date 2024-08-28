@@ -115,9 +115,9 @@ function SetupPlayerPositions()
     end
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
-    local iY = 3
+    local iY = 4
     if tGame.Direction == 2 then
-        iY = tGame.Rows - 2
+        iY = tGame.Rows - 3
     end
 
     local iX = 1
@@ -173,7 +173,12 @@ function TutorialTick()
             if iPos <= #tGame.StartPositions then
 
                 local iBright = CColors.BRIGHT15
-                if CheckPositionClick({X = tPos.X, Y = tPos.Y-1}, tGame.StartPositionSize) then
+                local iCheckY = tPos.Y-3
+                if tGame.Direction == 2 then
+                    iCheckY = tPos.Y
+                end
+
+                if CheckPositionClick({X = tPos.X, Y = iCheckY}, tGame.StartPositionSize) then
                     tGameStats.Players[iPos].Color = tPos.Color
                     iBright = tConfig.Bright
                     iPlayersReady = iPlayersReady + 1
@@ -485,6 +490,7 @@ CGameMode.CalculatePixel = function(iPixelID)
                     CGameMode.tPixels[iPixelID].iPointY = tGame.Rows+2
                 end
             else
+                CPaint.AnimateHit(iPlayerID, false)
                 CGameMode.tPixels[iPixelID] = nil
             end
         else
@@ -554,7 +560,8 @@ CGameMode.ScorePixel = function(iPixelID)
         end
     --end
     if not CGameMode.tPixels[iPixelID].bProlong then
-        CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iColor)
+        --CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iColor)
+        CPaint.AnimateHit(iPlayerID, true)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
@@ -682,6 +689,7 @@ end
 --PAINT
 CPaint = {}
 CPaint.ANIMATE_DELAY = 50
+CPaint.tHitAnimatedForPlayerID = {}
 
 CPaint.Borders = function()
     for i = 1, #tGame.StartPositions do
@@ -722,11 +730,11 @@ end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
     if tGame.Direction == 1 then
-        SetColColorBright(tGame.StartPositions[iPlayerID], tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
-        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y-1,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y-1,}, tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y-2,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
     elseif tGame.Direction == 2 then
-        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y+1,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
-        SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y,}, tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X+1, Y = tGame.StartPositions[iPlayerID].Y+2,}, tGame.StartPositionSize-3, tGame.StartPositions[iPlayerID].Color, iBright)
+        SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y+1,}, tGame.StartPositionSize-1, tGame.StartPositions[iPlayerID].Color, iBright)
     end
 end
 
@@ -752,6 +760,27 @@ CPaint.AnimateRow = function(iX, iColor)
             end
         end)
     end
+end
+
+CPaint.AnimateHit = function(iPlayerID, bHit)
+    if CPaint.tHitAnimatedForPlayerID[iPlayerID] then return; end
+    CPaint.tHitAnimatedForPlayerID[iPlayerID] = true
+
+    local iColor = CColors.GREEN
+    if not bHit then iColor = CColors.RED end
+
+    local iY = tGame.Rows
+    if tGame.Direction == 2 then iY = 1 end
+
+    for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize-1 do
+        tFloor[iX][iY].bAnimated = true
+        tFloor[iX][iY].iAnimationPriority = 1
+        tFloor[iX][iY].iColor = iColor
+    end    
+
+    CTimer.New(tConfig.PixelMoveDelayMS, function()
+        CPaint.tHitAnimatedForPlayerID[iPlayerID] = false     
+    end)
 end
 
 CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
