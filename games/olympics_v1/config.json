@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость",  
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
@@ -11,29 +12,41 @@
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
+  "GameCountdown_Ru": "Отсчёт до начала игры",
+  "GameCountdown_En": "Game start countdown",
 
   "RoundCountdown": 6,
   "RoundCountdown_Min": 1,
   "RoundCountdown_Max": 20,
   "RoundCountdown_Step": 1,
+  "RoundCountdown_Ru": "Отсчёт до начала раунда",
+  "RoundCountdown_En": "Round start countdown", 
 
   "LongJumpCount": 5,
   "LongJumpCount_Min": 1,
   "LongJumpCount_Max": 25,
   "LongJumpCount_Step": 1,
+  "LongJumpCount_Ru": "Количество повторений прыжков",
+  "LongJumpCount_En": "Long jump repeats",
 
   "ShuttleRaceCount": 5,
   "ShuttleRaceCount_Min": 1,
   "ShuttleRaceCount_Max": 25,
   "ShuttleRaceCount_Step": 1,
+  "ShuttleRaceCount_Ru": "Количество повторений челночного бега",
+  "ShuttleRaceCount_En": "Shuttle race repeats",
 
   "LavaCount": 5,
   "LavaCount_Min": 1,
   "LavaCount_Max": 25,
   "LavaCount_Step": 1,
+  "LavaCount_Ru": "Количество повторений прыжков через лаву",
+  "LavaCount_En": "Lava jumps repeats",
 
   "ClassicsCount": 5,
   "ClassicsCount_Min": 1,
   "ClassicsCount_Max": 25,
-  "ClassicsCount_Step": 1  
+  "ClassicsCount_Step": 1,
+  "ClassicsCount_Ru": "Количество повторений классиков",
+  "ClassicsCount_En": "Classics repeats"
 }
