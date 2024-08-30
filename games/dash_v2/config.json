@@ -50,7 +50,7 @@
   "StageSwitchHitRegDelay": 1500,
   "StageSwitchHitRegDelay_Hidden": true,
 
-  "LavaLag": 300,
+  "LavaLag": 400,
   "LavaLag_Min": 0,
   "LavaLag_Max": 1000,
   "LavaLag_Step": 100,
