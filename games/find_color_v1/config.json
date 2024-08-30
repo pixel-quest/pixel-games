@@ -25,9 +25,9 @@
   "CircleDrawDelayMs": 30,
   "CircleDrawDelayMs_Hidden": true,  
   
-  "GameDurationSec": 60,
+  "GameDurationSec": 120,
   "GameDurationSec_Min": 20,
-  "GameDurationSec_Max": 120,
+  "GameDurationSec_Max": 240,
   "GameDurationSec_Step": 5,
   "GameDurationSec_Ru": "Длительность игры",
   "GameDurationSec_En": "Game Duration"
