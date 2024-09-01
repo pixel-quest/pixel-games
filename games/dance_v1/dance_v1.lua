@@ -96,6 +96,13 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
+    if not tGame.MirrorGame then
+        tGame.Direction = 1
+    else
+        tGame.Direction = 2
+    end
+    tGame.StartPositionSize = tConfig.StartPositionSize or 4
+
     if tGame.StartPositions == nil then
         SetupPlayerPositions()
     end
@@ -108,13 +115,6 @@ function StartGame(gameJson, gameConfigJson)
 end
 
 function SetupPlayerPositions()
-    if not tGame.MirrorGame then
-        tGame.Direction = 1
-    else
-        tGame.Direction = 2
-    end
-    tGame.StartPositionSize = tConfig.StartPositionSize or 4
-
     local iY = 4
     if tGame.Direction == 2 then
         iY = tGame.Rows - 3
@@ -912,7 +912,7 @@ function SetColColorBright(tStart, iSize, iColor, iBright)
         local iX = tStart.X + i
         local iY = tStart.Y
 
-        if not (iX < 1 or iX > tGame.Cols) and not tFloor[iX][iY].bAnimated then
+        if not (iX < 1 or iX > tGame.Cols) and not (iY < 1 or iY > tGame.Rows) and not tFloor[iX][iY].bAnimated then
             tFloor[iX][iY].iColor = iColor
             tFloor[iX][iY].iBright = iBright
         end
