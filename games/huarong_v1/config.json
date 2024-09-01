@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость", 
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
@@ -10,5 +11,7 @@
   "GameCountdown": 5,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
-  "GameCountdown_Step": 1
+  "GameCountdown_Step": 1,
+  "GameCountdown_Ru": "Отсчёт до начала игры",
+  "GameCountdown_En": "Game start countdown"  
 }

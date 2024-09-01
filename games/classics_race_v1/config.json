@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость",
 
   "GameCountdown": 5,
   "GameCountdown_Hidden": true,
@@ -14,6 +15,10 @@
   "GameLength_Min": 30,
   "GameLength_Max": 300,
   "GameLength_Step": 5,
+  "GameLength_Ru": "Длительность игры",
+  "GameLength_En": "Game Length",
 
-  "EnableMissPenalty": true
+  "EnableMissPenalty": true,
+  "EnableMissPenalty_Ru": "Включить Штраф за Промах",
+  "EnableMissPenalty_En": "Enable Miss Penalty"
 }

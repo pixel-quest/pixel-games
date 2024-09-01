@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость",
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
@@ -10,19 +11,30 @@
   "StartPositionSize": 4,
   "StartPositionSize_Min": 3,
   "StartPositionSize_Max": 4,
-  "StartPositionSize_Step": 1, 
+  "StartPositionSize_Step": 1,
+  "StartPositionSize_Ru": "Размер Игровых Позиций",
+  "StartPositionSize_En": "Player Position Size",
 
   "PixelMoveDelayMS": 150,
   "PixelMoveDelayMS_Min": 50,
   "PixelMoveDelayMS_Max": 1000,
   "PixelMoveDelayMS_Step": 50,
+  "PixelMoveDelayMS_Ru": "Частота Движения Пикселя",
+  "PixelMoveDelayMS_En": "Pixel Movement Tick Rate",
   
   "SongStartDelayMS": 100,
   "SongStartDelayMS_Min": 0,
   "SongStartDelayMS_Max": 10000,
   "SongStartDelayMS_Step": 10, 
+  "SongStartDelayMS_Ru": "Задержка Начала Песни", 
+  "SongStartDelayMS_En": "Song Start Delay", 
 
   "EasyMode": false,
+  "EasyMode_Ru": "Легкий режим (Без разделения на левую и правую ногу)",
+  "EasyMode_En": "Easy Mode (No left/right leg colored pixels)",
+
   "RowColorSwitch": true,
-  "OutOfZoneSound": true
+  "OutOfZoneSound": true,
+  "OutOfZoneSound_Ru": "Включить звук выхода с зоны",
+  "OutOfZoneSound_En": "Enable 'Out Of Zone' warning sound"
 }

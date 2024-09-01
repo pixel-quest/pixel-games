@@ -3,6 +3,7 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
+	"Bright_Ru": "Яркость",
 
 	"WinDurationMS": 10000,
 	"WinDurationMS_Hidden": true,
@@ -11,19 +12,27 @@
 	"TeamCount_Min": 1,
 	"TeamCount_Max": 4,
 	"TeamCount_Step": 1,
+	"TeamCount_Ru": "Количество Вражеских Команд",
+	"TeamCount_En": "Number Of Enemy Teams",
 
 	"UnitCountPerTeam": 1,
 	"UnitCountPerTeam_Min": 1,
 	"UnitCountPerTeam_Max": 3,
 	"UnitCountPerTeam_Step": 1,
+	"UnitCountPerTeam_Ru": "Количество Врагов на Команду",
+	"UnitCountPerTeam_En": "Enemy Unit Count per Team",
 
 	"GameLength": 60,
 	"GameLength_Min": 30,
 	"GameLength_Max": 300,
 	"GameLength_Step": 10,	
+  	"GameLength_Ru": "Длительность игры",
+  	"GameLength_En": "Game Duration",
 
 	"UnitThinkDelay": 500,
 	"UnitThinkDelay_Min": 100,
 	"UnitThinkDelay_Max": 2000,
-	"UnitThinkDelay_Step": 100
+	"UnitThinkDelay_Step": 100,
+	"UnitThinkDelay_Ru": "Частота Движения Юнита",
+	"UnitThinkDelay_En": "Unit Movement Tick Rate"
 }

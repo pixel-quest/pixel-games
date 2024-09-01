@@ -367,6 +367,23 @@ CGameMode.GetStartY = function(iPlayerID)
     return tGame.StartPositions[iPlayerID].Y
 end
 
+CGameMode.PositionInsidePlayZone = function(iX, iY)
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] then
+            if iX >= tGame.StartPositions[iPlayerID].X and iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+CGameMode.OutSideZoneClick = function(iX, iY)
+    CAudio.PlayAsync(CAudio.MISCLICK)
+    CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
+end
+
 --LONGJUMP GAMEMODE
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LONGJUMP] = function()
     CGameMode.iCountdown = CGameMode.iCountdown + 7
@@ -965,7 +982,11 @@ function PixelClick(click)
     tFloor[click.X][click.Y].iWeight = click.Weight
 
     if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bRoundOn then
-        CGameMode.tGameModeClick[CGameMode.iGameMode](click.X, click.Y)
+        if CGameMode.PositionInsidePlayZone(click.X, click.Y) then
+            CGameMode.tGameModeClick[CGameMode.iGameMode](click.X, click.Y)
+        else
+            CGameMode.OutSideZoneClick(click.X, click.Y)
+        end
     end
 end
 

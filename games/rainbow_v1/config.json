@@ -1,3 +1,4 @@
 {
-  "Delay": 100
+  "Delay": 100,
+  "NoSound": false
 }

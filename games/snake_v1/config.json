@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость",    
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
@@ -11,26 +12,38 @@
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
+  "GameCountdown_Ru": "Отсчёт до начала игры",
+  "GameCountdown_En": "Game start countdown", 
 
   "TargetScore": 20,
   "TargetScore_Min": 5,
   "TargetScore_Max": 150,
   "TargetScore_Step": 5,
+  "TargetScore_Step_Ru": "Количество очков для победы",
+  "TargetScore_Step_En": "Target Score",
 
   "SnakeThinkTime": 170,
   "SnakeThinkTime_Min": 10,
   "SnakeThinkTime_Max": 2000,
   "SnakeThinkTime_Step": 10,
+  "SnakeThinkTime_Ru": "Частота передвижения змейки",
+  "SnakeThinkTime_En": "Snake movement tick rate",
   
   "SnakeLength": 3,
   "SnakeLength_Min": 2,
   "SnakeLength_Max": 10,
   "SnakeLength_Step": 1,
+  "SnakeLength_Ru": "Начальная длинна змейки",
+  "SnakeLength_En": "Snake starting size",
 
   "SnakeDamagePlayerOnStep": true,
+  "SnakeDamagePlayerOnStep_Ru": "Змейка наносит урон при наступании",
+  "SnakeDamagePlayerOnStep_En": "Snake damages players on step",
 
   "PadAFKTimer": 10,
   "PadAFKTimer_Min": 5,
   "PadAFKTimer_Max": 30,
-  "PadAFKTimer_Step": 1
+  "PadAFKTimer_Step": 1,
+  "PadAFKTimer_Ru": "Длительность Отсутсвия Геймпада (Через сколько времени неиспользования геймпада передовать управление ИИ)",
+  "PadAFKTimer_En": "GamePad Afk Timer (When no inputs are coming from Pad for this long - give the controls to AI)"
 }

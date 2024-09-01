@@ -396,6 +396,8 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
+    if not click or not ButtonsList[click.Button] then return; end
+
     if GameStats.StageNum ~= CONST_STAGE_START then
         return -- не интересуют клики кнопок вне этапа выбора цвета
     end
