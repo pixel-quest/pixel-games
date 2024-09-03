@@ -120,7 +120,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -199,7 +199,7 @@ end
 CPaint.BackgroundFrameTimerStart = function()
     if CPaint.sBackgroundName == "" then return end
 
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         CPaint.iBackgroundFrameId = CPaint.iBackgroundFrameId + 1
 
         if CPaint.iBackgroundFrameId > #tGame.Backgrounds[CPaint.sBackgroundName] then
@@ -215,7 +215,7 @@ CPaint.BackgroundFrameTimerStart = function()
 end
 
 CPaint.OffsetTimer = function()
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         CPaint.iOffset = CPaint.iOffset + 1
 
         return tConfig.AnimationDelay
@@ -231,33 +231,72 @@ CPaint.GetBackgroundColor = function(iX, iY)
 end
 --//
 
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
+---------------AVONLIB TEST
+_G.AL = {}
+local LOC = {}
 
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
+--STACK
+AL.Stack = function()
+    local tStack = {}
+    tStack.tTable = {}
+
+    tStack.Push = function(item)
+        table.insert(tStack.tTable, item)
+    end
+
+    tStack.Pop = function()
+        return table.remove(tStack.tTable, 1)
+    end
+
+    tStack.Size = function()
+        return #tStack.tTable
+    end
+
+    return tStack
+end
+--//
+
+--TIMER
+local tTimers = AL.Stack()
+
+AL.NewTimer = function(iSetTime, fCallback)
+    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
 end
 
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
+AL.CountTimers = function(iTimePassed)
+    for i = 1, tTimers.Size() do
+        local tTimer = tTimers.Pop()
 
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
+        tTimer.iTime = tTimer.iTime - iTimePassed
 
-                CTimer.tTimers[i] = nil
+        if tTimer.iTime <= 0 then
+            local iNewTime = tTimer.fCallback()
+            if iNewTime then
+                tTimer.iTime = tTimer.iTime + iNewTime
+            else
+                tTimer = nil
             end
+        end
+
+        if tTimer then
+            tTimers.Push(tTimer)
         end
     end
 end
 --//
+
+--RECT
+function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
+    if iSize1 == 0 or iSize2 == 0 then return false; end
+
+    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
+
+    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
+
+    return true
+end
+--//
+---------------//
 
 --UTIL прочие утилиты
 function SetGlobalColorBright(iColor, iBright)
