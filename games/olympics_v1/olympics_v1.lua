@@ -210,6 +210,8 @@ CGameMode.tGameModeStart = {}
 CGameMode.tGameModeTick = {}
 CGameMode.tGameModeClick = {}
 
+CGameMode.iStartHeight = 1
+
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.PrepareNextRound()
@@ -260,6 +262,7 @@ CGameMode.PrepareNextRound = function()
     CGameMode.iFinishedCount = 0
     CGameMode.PlayerData = {}
     CGameMode.tPlayerFinished = {}
+    CGameMode.iStartHeight = 1
 
     CGameMode.NextGameModeType()
 
@@ -325,8 +328,10 @@ end
 
 CGameMode.PlayerOnStart = function(iPlayerID)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-        if tFloor[iX][CGameMode.GetStartY(iPlayerID)].bClick then
-            return true
+        for iY = CGameMode.GetStartY(iPlayerID), CGameMode.GetStartY(iPlayerID)+CGameMode.iStartHeight-1 do
+            if tFloor[iX][iY].bClick then
+                return true
+            end
         end
     end  
 
@@ -386,6 +391,8 @@ end
 
 --LONGJUMP GAMEMODE
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LONGJUMP] = function()
+    CGameMode.iStartHeight = 3
+
     CGameMode.iCountdown = CGameMode.iCountdown + 7
     CAudio.PlaySync("voices/longjump-guide.mp3")
 end
@@ -417,10 +424,6 @@ CGameMode.LongJumpPaintPlayerZone = function(iPlayerID)
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do  
             local iColor = CColors.WHITE
 
-            if iY <= CGameMode.GetStartY(iPlayerID)+2 then
-                iColor = tGameStats.Players[iPlayerID].Color
-            end
-
             if CGameMode.bRoundOn and iY == CGameMode.PlayerData[iPlayerID].iLandingSpotY then
                 iColor = CColors.GREEN
             end
@@ -428,6 +431,15 @@ CGameMode.LongJumpPaintPlayerZone = function(iPlayerID)
             local iBright = tConfig.Bright
             if not CGameMode.bRoundOn then
                 iBright = iBright - 2
+            end
+
+            if iY <= CGameMode.GetStartY(iPlayerID)+2 then
+                iColor = tGameStats.Players[iPlayerID].Color
+                iBright = tConfig.Bright
+
+                if not CGameMode.PlayerOnStart(iPlayerID) then 
+                    iBright = iBright - 2
+                end
             end
 
             tFloor[iX][iY].iColor = iColor
