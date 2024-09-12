@@ -1,0 +1,21 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+	"RoundCountdown": 5,
+	"RoundCountdown_Min": 1,
+	"RoundCountdown_Max": 15,
+	"RoundCountdown_Step": 1,
+	"RoundCountdown_Ru": "Отсчёт до начала раунда",
+	"RoundCountdown_En": "Round start countdown",
+
+	"RoundCount": 5,
+	"RoundCount_Min": 1,
+	"RoundCount_Max": 25,
+	"RoundCount_Step": 1,
+	"RoundCount_Ru": "Количество Раундов",
+	"RoundCount_En": "Round Count"  	
+}
