@@ -134,6 +134,7 @@ local Pixel = { -- пиксель тип
 local CONST_STAGE_CHOOSE_COLOR = 0 -- выбор цвета
 local CONST_STAGE_GAME = 1 -- игра
 local CONST_STAGE_WIN = -1 -- победа
+local StartPlayersCount = 0 -- количество игроков в момент нажатия кнопки старт
 local StageStartTime = 0 -- время начала текущего этапа
 local Freezing = false -- переменная, отвечающая за начало заморозки
 local Freezed = false -- переменная, отвечающая за этап заморозки
