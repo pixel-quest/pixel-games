@@ -3,7 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
-  "Bright_Ru": "Яркость",   
+  "Bright_ru": "Яркость",
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
@@ -12,22 +12,22 @@
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
-  "GameCountdown_Ru": "Отсчёт до начала игры",
-  "GameCountdown_En": "Game start countdown",  
+  "GameCountdown_ru": "Отсчёт до начала игры",
+  "GameCountdown_en": "Game start countdown",
 
   "RoundCountdown": 3,
   "RoundCountdown_Min": 1,
   "RoundCountdown_Max": 20,
   "RoundCountdown_Step": 1,
-  "RoundCountdown_Ru": "Отсчёт до начала раунда",
-  "RoundCountdown_En": "Round start countdown",  
+  "RoundCountdown_ru": "Отсчёт до начала раунда",
+  "RoundCountdown_en": "Round start countdown",
 
   "RoundCount": 5,
   "RoundCount_Min": 1,
   "RoundCount_Max": 25,
   "RoundCount_Step": 1,
-  "RoundCount_Ru": "Количество Раундов",
-  "RoundCount_En": "Round Count",  
+  "RoundCount_ru": "Количество Раундов",
+  "RoundCount_en": "Round Count",
 
   "LavaScorePenalty": -0.5,
   "LavaScorePenalty_Hidden": true,
@@ -39,6 +39,6 @@
   "BlockMoveAnimationTimeMS_Min": 100,
   "BlockMoveAnimationTimeMS_Max": 5000,
   "BlockMoveAnimationTimeMS_Step": 100,
-  "BlockMoveAnimationTimeMS_Ru": "Частота Анимации Блоков",
-  "BlockMoveAnimationTimeMS_En": "Block Movement Tick Rate"
+  "BlockMoveAnimationTimeMS_ru": "Частота Анимации Блоков",
+  "BlockMoveAnimationTimeMS_en": "Block Movement Tick Rate"
 }

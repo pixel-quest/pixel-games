@@ -3,21 +3,21 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
-  "Bright_Ru": "Яркость", 
+  "Bright_ru": "Яркость",
 
   "BlockSize": 2,
   "BlockSize_Min": 1,
   "BlockSize_Max": 2,
   "BlockSize_Step": 1,  
-  "BlockSize_Ru": "Размер Блока",  
-  "BlockSize_En": "Block Size",  
+  "BlockSize_ru": "Размер Блока",
+  "BlockSize_en": "Block Size",
 
   "StagesQty": 10,
   "StagesQty_Min": 5,
   "StagesQty_Max": 20,
   "StagesQty_Step": 1,    
-  "StagesQty_Ru": "Количество Раундов/Стадий",    
-  "StagesQty_En": "Round/Stage Count",    
+  "StagesQty_ru": "Количество Раундов/Стадий",
+  "StagesQty_en": "Round/Stage Count",
   
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true,
@@ -29,6 +29,6 @@
   "GameDurationSec_Min": 20,
   "GameDurationSec_Max": 240,
   "GameDurationSec_Step": 5,
-  "GameDurationSec_Ru": "Длительность игры",
-  "GameDurationSec_En": "Game Duration"
+  "GameDurationSec_ru": "Длительность игры",
+  "GameDurationSec_en": "Game Duration"
 }

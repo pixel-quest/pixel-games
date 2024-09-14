@@ -3,24 +3,24 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",    
+  	"Bright_ru": "Яркость",
 
 	"Difficulty": 2,
 	"Difficulty_Min": 1,
 	"Difficulty_Max": 4,
 	"Difficulty_Step": 1,
-	"Difficulty_Ru": "Сложнось",
+	"Difficulty_ru": "Сложнось",
 
 	"TimerOn": true,
-	"TimerOn_Ru": "Ограниченное время",
-	"TimerOn_En": "Time Limit Enabled",
+	"TimerOn_ru": "Ограниченное время",
+	"TimerOn_en": "Time Limit Enabled",
 
 	"ControlPanelWidth": 2,
 	"ControlPanelWidth_Min": 1,
 	"ControlPanelWidth_Max": 2,
 	"ControlPanelWidth_Step": 1,	
-	"ControlPanelWidth_Ru": "Размер зоны управления пикселем",	
-	"ControlPanelWidth_En": "Pixel control zone size",	
+	"ControlPanelWidth_ru": "Размер зоны управления пикселем",
+	"ControlPanelWidth_en": "Pixel control zone size",
 
 	"MovementTick": 250,	
 	"MovementTick_Hidden": true	
