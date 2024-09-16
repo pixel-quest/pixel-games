@@ -35,6 +35,7 @@
   - **Танцы** – *ловим пиксели под веселую корейскую музыку* [dance_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dance_v1/dance_v1.lua)
   - **Найди цвет** – *на разноцветном поле требуется найти нужный цвет* [find_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/find_color_v1/find_color_v1.lua)
   - **Защита базы** – *по центру карты стоит база, которую защищают игроки* [tower_defence_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/tower_defence_v1/tower_defence_v1.lua)
+  - **Защита базы 2** – *попытка расширить игру за счёт перемещающегося поля* [tower_defence_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/tower_defence_v2/tower_defence_v2.lua)
   - **Лава дуэль** – *игровое поле поделено на зоны, где отдельные игроки соревнуются на скорость* [lava_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/lava_duel_v1/lava_duel_v1.lua)
   - **Эстафета** – *две команды соревнуются между собой на скорость прохождения* [classics_race_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_race_v1/classics_race_v1.lua)
   - **Лабиринт** – *аналог Пакмана* [labyrinth_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/labyrinth_v1/labyrinth_v1.lua)
@@ -49,6 +50,9 @@
   - **Вирус** – *игроки захватывают поле своим цветом* [conquest_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/conquest_v1/conquest_v1.lua)
   - **Уклонись** – *игроки должны уклоняться от разных эффектов* [dodge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/dodge_v1/dodge_v1.lua)
   - **Классики** – *классики 3х6* [classics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_v1/classics_v1.lua)
+  - **Проводник** – *игра на двоих по выводу пикселя из лабиринта* [maze_guide_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/maze_guide_v1/maze_guide_v1.lua)
+  - **Рефлекс** – *игра на реакцию* [reflex_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/reflex_v1/reflex_v1.lua)
+  - **Рисовалка** – *рисовалка* [сoloring_book_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
