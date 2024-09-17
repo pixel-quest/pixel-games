@@ -497,9 +497,11 @@ CSnake.PadThink = function()
     if CPad.iXPlus ~= 0 then
         CSnake.iXPlus = CPad.iXPlus
         CSnake.iYPlus = 0
+        CPad.iXPlus = 0
     elseif CPad.iYPlus ~= 0 then
-        CSnake.iXPlus = 0
         CSnake.iYPlus = CPad.iYPlus
+        CSnake.iXPlus = 0
+        CPad.iYPlus = 0
     end
 
     CSnake.Move(CSnake.iXPlus, CSnake.iYPlus)
