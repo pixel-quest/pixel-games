@@ -1419,6 +1419,10 @@ CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
 
     if bLeft then CPad.iXPlus = CPad.iXPlus - 1 end
     if bRight then CPad.iXPlus = CPad.iXPlus + 1 end
+
+    if CPad.iXPlus ~= 0 or CPad.iYPlus ~= 0 then
+        CCross.Move(CPad.iXPlus, CPad.iYPlus)
+    end
 end
 --//
 
