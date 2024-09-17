@@ -127,7 +127,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -199,6 +199,7 @@ CGameMode.bVictory = false
 CGameMode.iWinnerID = -1
 CGameMode.tPixels = {}
 CGameMode.tBlockList = {}
+CGameMode.bArenaMode = false
 
 CGameMode.InitGameMode = function()
     tGameStats.TargetScore = tConfig.TargetScore
@@ -206,6 +207,8 @@ CGameMode.InitGameMode = function()
     if tGameStats.TargetScore > tGame.Cols*tGame.Rows*0.4 then
         tGameStats.TargetScore = tGame.Cols*tGame.Rows*0.4
     end
+
+    if tGame.ArenaMode ~= nil and tGame.ArenaMode == true then CGameMode.bArenaMode = true end
 
     CGameMode.LoadBlockList()
 
@@ -225,7 +228,7 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -280,7 +283,15 @@ CGameMode.PlacePixelForPlayer = function(iPlayerID)
 
     CGameMode.tPixels[iPixelID] = {}
     CGameMode.tPixels[iPixelID].iPlayerID = iPlayerID
-    CGameMode.tPixels[iPixelID].iX, CGameMode.tPixels[iPixelID].iY = CGameMode.RandomPositionForPixel()
+    
+    if not CGameMode.bArenaMode then
+        CGameMode.tPixels[iPixelID].iX, CGameMode.tPixels[iPixelID].iY = CGameMode.RandomPositionForPixel()
+    else
+        CGameMode.tPixels[iPixelID].iX, CGameMode.tPixels[iPixelID].iY = CGameMode.RandomPositionForPixel(
+            tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX-1, 
+            tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSizeY-1
+        )
+    end
 
     tFloor[CGameMode.tPixels[iPixelID].iX][CGameMode.tPixels[iPixelID].iY].iPixelID = iPixelID
 end
@@ -306,12 +317,17 @@ CGameMode.PlayerClickPixel = function(iPixelID)
     CGameMode.PlacePixelForPlayer(iPlayerID)
 end
 
-CGameMode.RandomPositionForPixel = function()
+CGameMode.RandomPositionForPixel = function(iMinX, iMaxX, iMinY, iMaxY)
     local iX, iY = 0, 0
 
+    if iMinX == nil then iMinX = 1 end
+    if iMinY == nil then iMinY = 1 end
+    if iMaxX == nil then iMaxX = tGame.Cols end
+    if iMaxY == nil then iMaxY = tGame.Rows end
+
     repeat
-        iX = math.random(1, tGame.Cols)
-        iY = math.random(1, tGame.Rows)
+        iX = math.random(iMinX, iMaxX)
+        iY = math.random(iMinY, iMaxY)
     until CGameMode.IsValidPixelPosition(iX, iY)
 
     return iX, iY
@@ -352,7 +368,7 @@ CGameMode.EndGame = function(bVictory)
 
     iGameState = GAMESTATE_POSTGAME
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
 end
@@ -404,7 +420,7 @@ CSnake.Create = function()
 end
 
 CSnake.Start = function()
-    CTimer.New(tConfig.SnakeThinkTime, function()
+    AL.NewTimer(tConfig.SnakeThinkTime, function()
         if iGameState ~= GAMESTATE_GAME then return nil end
 
         CSnake.Think()
@@ -612,7 +628,7 @@ end
 CSnake.SnakePulse = function()
     local iIter = 0
 
-    CTimer.New(CPaint.ANIMATION_DELAY, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY, function()
         iIter = iIter + 1
 
         if CSnake.iColor == CColors.RED then
@@ -680,7 +696,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY*3, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -885,33 +901,75 @@ CPad.AFK = function()
 end
 --//
 
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
+--lib-------------------------------
+_G.AL = {}
+local LOC = {}
 
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
+_G.AL = {}
+local LOC = {}
+
+--STACK
+AL.Stack = function()
+    local tStack = {}
+    tStack.tTable = {}
+
+    tStack.Push = function(item)
+        table.insert(tStack.tTable, item)
+    end
+
+    tStack.Pop = function()
+        return table.remove(tStack.tTable, 1)
+    end
+
+    tStack.Size = function()
+        return #tStack.tTable
+    end
+
+    return tStack
+end
+--//
+
+--TIMER
+local tTimers = AL.Stack()
+
+AL.NewTimer = function(iSetTime, fCallback)
+    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
 end
 
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
+AL.CountTimers = function(iTimePassed)
+    for i = 1, tTimers.Size() do
+        local tTimer = tTimers.Pop()
 
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
+        tTimer.iTime = tTimer.iTime - iTimePassed
 
-                CTimer.tTimers[i] = nil
+        if tTimer.iTime <= 0 then
+            local iNewTime = tTimer.fCallback()
+            if iNewTime ~= nil then
+                tTimer.iTime = tTimer.iTime + iNewTime
+            else
+                tTimer = nil
             end
+        end
+
+        if tTimer then
+            tTimers.Push(tTimer)
         end
     end
 end
 --//
+
+--RECT
+function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
+    if iSize1 == 0 or iSize2 == 0 then return false; end
+
+    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
+
+    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
+
+    return true
+end
+--//
+------------------------------------------------
 
 --UTIL прочие утилиты
 function CheckPositionClick(tStart, iSizeX, iSizeY)
