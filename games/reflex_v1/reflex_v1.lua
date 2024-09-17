@@ -2,6 +2,11 @@
     Название: Рефлекс/Реакция
     Автор: Avondale, дискорд - avonda
     Описание механики:
+        У игроков на поле есть 7 цветов на выбор.
+        После начала раунда спустя небольшой промежуток времени(каждый раз разный) объявляется цвет.
+        Игрокам нужно нажать на этот цвет.
+        Кто быстрее нажал на правильный цвет получит больше очков.
+        Выигрывает тот кто по истечению всех раундов набрал больше очков.
 
     Идеи по доработке:
 
@@ -199,8 +204,8 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename
-    --voice guide
+    CAudio.PlaySync("reflex_gamename.mp3")
+    CAudio.PlaySync("reflex_guide.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
