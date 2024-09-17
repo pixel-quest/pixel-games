@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_ru": "Яркость",
 
   "BaseColor": 2,
   "BaseColor_Hidden": true,
@@ -17,14 +18,20 @@
   "UnitSpawnDelay_Min": 1000,
   "UnitSpawnDelay_Max": 10000,
   "UnitSpawnDelay_Step": 1000,
+  "UnitSpawnDelay_ru": "Задержка между появлением юнитов",
+  "UnitSpawnDelay_en": "Delay between unit spawns",
   
   "UnitThinkDelay": 500,
   "UnitThinkDelay_Min": 100,
   "UnitThinkDelay_Max": 5000,
   "UnitThinkDelay_Step": 100,
+  "UnitThinkDelay_ru": "Частота передвижения юнитов",
+  "UnitThinkDelay_en": "Unit movement tick rate",
 
   "Difficulty": 2,
   "Difficulty_Min": 1,
   "Difficulty_Max": 6,
-  "Difficulty_Step": 1
+  "Difficulty_Step": 1,
+  "Difficulty_ru": "Сложность. 1 - 'Very Easy' - для одного игрока. 2 - 'Easy' - легкий для новичков. 3 -'Medium' - средний для тех кто уже играл. 4 -'Hard' - испытание для самых быстрых. 5 - 'Ultra Hard' - для 5 и более человек 6 - 'Ultra Hardcore' - для 10 и более человек.",
+  "Difficulty_en": "Difficulty. 1 - 'Very Easy' - single player. 2 - 'Easy' - for new players. 3 -'Medium' - for returining players. 4 -'Hard' - a challenge for the best players. 5 - 'Ultra Hard' - for 5+ people 6 - 'Ultra Hardcore' - for 10+ people."
 }
