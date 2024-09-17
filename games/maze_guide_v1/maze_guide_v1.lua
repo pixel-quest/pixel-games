@@ -118,7 +118,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -186,16 +186,16 @@ CGameMode.iHeroPlusX = 0
 CGameMode.iHeroPlusY = 0
 
 CGameMode.DIFFICULTY_WORLD_SIZE = {}
-CGameMode.DIFFICULTY_WORLD_SIZE[1] = 31
-CGameMode.DIFFICULTY_WORLD_SIZE[2] = 37
-CGameMode.DIFFICULTY_WORLD_SIZE[3] = 41
-CGameMode.DIFFICULTY_WORLD_SIZE[4] = 41
+CGameMode.DIFFICULTY_WORLD_SIZE[1] = 20
+CGameMode.DIFFICULTY_WORLD_SIZE[2] = 30
+CGameMode.DIFFICULTY_WORLD_SIZE[3] = 40
+CGameMode.DIFFICULTY_WORLD_SIZE[4] = 50
 
 CGameMode.DIFFICULTY_TIMER = {}
 CGameMode.DIFFICULTY_TIMER[1] = 300
 CGameMode.DIFFICULTY_TIMER[2] = 250
-CGameMode.DIFFICULTY_TIMER[3] = 180
-CGameMode.DIFFICULTY_TIMER[4] = 60
+CGameMode.DIFFICULTY_TIMER[3] = 200
+CGameMode.DIFFICULTY_TIMER[4] = 150
 
 CGameMode.init = function()
     CGameMode.iDifficulty = tConfig.Difficulty
@@ -203,6 +203,7 @@ CGameMode.init = function()
     CWorld.init()
 
     CGameMode.HeroMove(0, 0)
+    CCamera.FocusOnWorldPos(CGameMode.iHeroX, CGameMode.iHeroY)
 end
 
 CGameMode.Announcer = function()
@@ -214,7 +215,7 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -235,15 +236,15 @@ CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
-    CTimer.New(tConfig.MovementTick, function()
+    AL.NewTimer(tConfig.MovementTick, function()
         if iGameState ~= GAMESTATE_GAME then return; end
 
         if CWorld.tBlocks[CGameMode.iHeroX][CGameMode.iHeroY].iBlockType == CWorld.BLOCK_TYPE_FINISH then
             CGameMode.EndGame(true)
         end
 
-        CGameMode.HeroMove(CGameMode.iHeroPlusX, 0)
-        CGameMode.HeroMove(0, CGameMode.iHeroPlusY)
+        CGameMode.HeroMove(CGameMode.iHeroPlusX, CGameMode.iHeroPlusY)
+        CCamera.FocusOnWorldPos(CGameMode.iHeroX, CGameMode.iHeroY)
 
         CGameMode.iHeroPlusX = 0
         CGameMode.iHeroPlusY = 0
@@ -253,7 +254,7 @@ CGameMode.StartGame = function()
 
     if tConfig.TimerOn then
         tGameStats.StageLeftDuration = CGameMode.DIFFICULTY_TIMER[CGameMode.iDifficulty]
-        CTimer.New(1000, function()
+        AL.NewTimer(1000, function()
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
             if tGameStats.StageLeftDuration == 0 then
@@ -282,12 +283,12 @@ CGameMode.EndGame = function(bVictory)
         CAudio.PlaySync(CAudio.DEFEAT)
     end
 
-    CTimer.New(10000, function()
+    AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH
     end)
 
     local iY = 1
-    CTimer.New(240, function()
+    AL.NewTimer(240, function()
         for iX = 1, tGame.Cols do
             if bVictory then
                 tFloor[iX][iY].iColor = CColors.GREEN
@@ -306,13 +307,16 @@ CGameMode.EndGame = function(bVictory)
 end
 
 CGameMode.HeroMove = function(iXPlus, iYPlus)
-    if CWorld.tBlocks[CGameMode.iHeroX+iXPlus] and CWorld.tBlocks[CGameMode.iHeroX+iXPlus][CGameMode.iHeroY+iYPlus] 
-    and CWorld.tBlocks[CGameMode.iHeroX+iXPlus][CGameMode.iHeroY+iYPlus].iBlockType ~= CWorld.BLOCK_TYPE_TERRAIN then
+    if iXPlus ~= 0 and CWorld.tBlocks[CGameMode.iHeroX+iXPlus] and CWorld.tBlocks[CGameMode.iHeroX+iXPlus][CGameMode.iHeroY] 
+    and CWorld.tBlocks[CGameMode.iHeroX+iXPlus][CGameMode.iHeroY].iBlockType ~= CWorld.BLOCK_TYPE_TERRAIN then
         CGameMode.iHeroX = CGameMode.iHeroX + iXPlus
-        CGameMode.iHeroY = CGameMode.iHeroY + iYPlus
+        return;
     end
 
-    CCamera.FocusOnWorldPos(CGameMode.iHeroX, CGameMode.iHeroY)
+    if iYPlus ~= 0 and CWorld.tBlocks[CGameMode.iHeroX][CGameMode.iHeroY+iYPlus] 
+    and CWorld.tBlocks[CGameMode.iHeroX][CGameMode.iHeroY+iYPlus].iBlockType ~= CWorld.BLOCK_TYPE_TERRAIN then
+        CGameMode.iHeroY = CGameMode.iHeroY + iYPlus
+    end    
 end
 
 CGameMode.PlayerControl = function(iControlId, iX, iY)
@@ -398,7 +402,7 @@ CWorld.iSizeX = 0
 CWorld.iSizeY = 0
 CWorld.iDepth = 0
 
-CWorld.tChunks = {}
+CWorld.tCells = nil
 
 CWorld.CHUNK_MAX_DEPTH = 200
 
@@ -418,30 +422,22 @@ CWorld.init = function()
         end
     end
 
-    CWorld.tChunks[1] = {iX = 2, iY = 2, iDepth = 0}
-    while true do
-        local bEnd = true
-        for iChunkId = 1, #CWorld.tChunks do
-            if CWorld.tChunks[iChunkId] and CWorld.tChunks[iChunkId].iDepth < CWorld.CHUNK_MAX_DEPTH then
-                bEnd = false
-                CWorld.CarveChunk(CWorld.tChunks[iChunkId])
-            end
-        end
+    CWorld.tCells = AL.Stack()
 
-        if bEnd then break; end
+    CWorld.tCells.Push({iX = 2, iY = 2,})
+    while CWorld.tCells.Size() > 0 do
+        CWorld.Carve(CWorld.tCells.PopLast())
     end
-    CWorld.tChunks = nil
     
-    CWorld.tBlocks[2][1].iBlockType = CWorld.BLOCK_TYPE_START
-    CWorld.tBlocks[CWorld.iSizeX-1][CWorld.iSizeY].iBlockType = CWorld.BLOCK_TYPE_FINISH
+    CWorld.SetBlock(2, 1, CWorld.BLOCK_TYPE_START)
+    CWorld.SetBlock(CWorld.iSizeX, CWorld.iSizeY+1, CWorld.BLOCK_TYPE_FINISH)
 end
 
-CWorld.CarveChunk = function(tChunk)
+CWorld.Carve = function(tCell)
     CWorld.iDepth = CWorld.iDepth + 1
-    tChunk.iDepth = tChunk.iDepth + 1
 
-    local iX = tChunk.iX
-    local iY = tChunk.iY
+    local iX = tCell.iX
+    local iY = tCell.iY
 
     CWorld.tBlocks[iX][iY].iBlockType = CWorld.BLOCK_TYPE_EMPTY
 
@@ -463,23 +459,14 @@ CWorld.CarveChunk = function(tChunk)
 
         local iNX = iX + iDX
         local iNY = iY + iDY
-        local iNX2 = iNX + iDX
-        local iNY2 = iNY + iDY
         if CWorld.tBlocks[iNX] and CWorld.tBlocks[iNX][iNY] and CWorld.tBlocks[iNX][iNY].iBlockType == CWorld.BLOCK_TYPE_TERRAIN then
+            local iNX2 = iNX + iDX
+            local iNY2 = iNY + iDY            
             if CWorld.tBlocks[iNX2] and CWorld.tBlocks[iNX2][iNY2] and CWorld.tBlocks[iNX2][iNY2].iBlockType == CWorld.BLOCK_TYPE_TERRAIN then
                 CWorld.tBlocks[iNX][iNY].iBlockType = CWorld.BLOCK_TYPE_EMPTY
-
-                local iChunkId = #CWorld.tChunks+1
-                CWorld.tChunks[iChunkId] = {}
-                CWorld.tChunks[iChunkId].iX = iNX2
-                CWorld.tChunks[iChunkId].iY = iNY2
-
-                if tChunk.iDepth < CWorld.CHUNK_MAX_DEPTH then
-                    CWorld.tChunks[iChunkId].iDepth = tChunk.iDepth
-                    CWorld.CarveChunk(CWorld.tChunks[iChunkId])
-                else
-                    CWorld.tChunks[iChunkId].iDepth = 0
-                end
+                CWorld.tCells.Push(tCell)
+                CWorld.tCells.Push({iX = iNX2, iY = iNY2,})
+                return;
             end
         end
     end
@@ -565,33 +552,76 @@ CCamera.DrawWorld = function()
 end
 --//
 
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
+--LIBA------------
+_G.AL = {}
+local LOC = {}
 
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
+--STACK
+AL.Stack = function()
+    local tStack = {}
+    tStack.tTable = {}
+
+    tStack.Push = function(item)
+        table.insert(tStack.tTable, item)
+    end
+
+    tStack.Pop = function()
+        return table.remove(tStack.tTable, 1)
+    end
+
+    tStack.PopLast = function()
+        return table.remove(tStack.tTable, #tStack.tTable)
+    end
+
+    tStack.Size = function()
+        return #tStack.tTable
+    end
+
+    return tStack
+end
+--//
+
+--TIMER
+local tTimers = AL.Stack()
+
+AL.NewTimer = function(iSetTime, fCallback)
+    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
 end
 
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
+AL.CountTimers = function(iTimePassed)
+    for i = 1, tTimers.Size() do
+        local tTimer = tTimers.Pop()
 
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
+        tTimer.iTime = tTimer.iTime - iTimePassed
 
-                CTimer.tTimers[i] = nil
+        if tTimer.iTime <= 0 then
+            local iNewTime = tTimer.fCallback()
+            if iNewTime then
+                tTimer.iTime = tTimer.iTime + iNewTime
+            else
+                tTimer = nil
             end
+        end
+
+        if tTimer then
+            tTimers.Push(tTimer)
         end
     end
 end
 --//
+
+--RECT
+function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
+    if iSize1 == 0 or iSize2 == 0 then return false; end
+
+    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
+
+    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
+
+    return true
+end
+--//
+------------------
 
 --UTIL прочие утилиты
 function CheckPositionClick(tStart, iSizeX, iSizeY)
@@ -629,16 +659,6 @@ function SetRectColorBright(iX, iY, iSizeX, iSizeY, iColor, iBright)
             end            
         end
     end
-end
-
-function RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
-    if iSize1 == 0 or iSize2 == 0 then return false; end
-
-    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
-
-    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
-
-    return true
 end
 
 function SetGlobalColorBright(iColor, iBright)

@@ -9,7 +9,8 @@
 	"Difficulty_Min": 1,
 	"Difficulty_Max": 4,
 	"Difficulty_Step": 1,
-	"Difficulty_ru": "Сложнось",
+	"Difficulty_ru": "Сложность, от неё зависит размер лабиринта и сколько времени даётся на решение",
+	"Difficulty_en": "Difficulty - sets maze size and time limit",
 
 	"TimerOn": true,
 	"TimerOn_ru": "Ограниченное время",
