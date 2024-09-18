@@ -478,14 +478,8 @@ CSnake.AiThink = function()
 end
 
 CSnake.PadThink = function()
-    if CPad.iXPlus ~= 0 then
-        CSnake.iXPlus = CPad.iXPlus
-        CSnake.iYPlus = 0
-    elseif CPad.iYPlus ~= 0 then
-        CSnake.iXPlus = 0
-        CSnake.iYPlus = CPad.iYPlus
-    end
-
+    CSnake.iXPlus = CPad.iXPlus  
+    CSnake.iYPlus = CPad.iYPlus
     CSnake.Move(CSnake.iXPlus, CSnake.iYPlus)
 end
 
@@ -870,14 +864,25 @@ CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
 
     CPad.bTrigger = bTrigger
 
-    CPad.iXPlus = 0
-    CPad.iYPlus = 0
+    if bUp then 
+    	CPad.iYPlus = -1 
+    	CPad.iXPlus = 0
+    end
+    
+    if bDown then 
+    	CPad.iYPlus = 1 
+    	CPad.iXPlus = 0
+    end
 
-    if bUp then CPad.iYPlus = CPad.iYPlus - 1 end
-    if bDown then CPad.iYPlus = CPad.iYPlus + 1 end
-
-    if bLeft then CPad.iXPlus = CPad.iXPlus - 1 end
-    if bRight then CPad.iXPlus = CPad.iXPlus + 1 end
+    if bLeft then
+    	CPad.iXPlus = -1
+    	CPad.iYPlus = 0
+    end
+    
+    if bRight then 
+    	CPad.iXPlus = 1 
+    	CPad.iYPlus = 0
+    end
 end
 
 CPad.AFK = function()
