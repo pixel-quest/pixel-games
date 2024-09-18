@@ -149,8 +149,7 @@ function StartGame(gameJson, gameConfigJson)
     GameConfigObj = json.decode(gameConfigJson)
 
     -- ограничение на размер стартовой позиции
-    if GameObj.StartPositionSize == nil or
-            GameObj.StartPositionSize < 1 or GameObj.StartPositionSize > 2 then
+    if GameObj.StartPositionSize == nil then
         GameObj.StartPositionSize = 2
     end
 
@@ -534,53 +533,75 @@ function switchStage(newStage)
     end
 
     local NewTargetPositions = {}
-    local currentPlayersCount = countActivePlayers()
 
     -- дозаполним нужный цвет по количеству игроков
-    for p = 1, countActivePlayers() do
-        for randomAttempt = 0, 50 do
-            x = (math.random(GameObj.Cols/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1
-            y = (math.random(GameObj.Rows/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1 + GameObj.YOffset
+    for p = 1, #GameObj.StartPositions do
+        if isPlayerActive(p) then
+            for randomAttempt = 0, 50 do
+                x = (math.random(GameObj.Cols/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1
+                y = (math.random(GameObj.Rows/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1 + GameObj.YOffset
 
-            if FloorMatrix[x][y].Color == GameStats.TargetColor then
-                goto continue
-            end
-            if x > 1 and FloorMatrix[x-1][y].Color == GameStats.TargetColor then
-                goto continue
-            end
-            if y > 1 and FloorMatrix[x][y-1].Color == GameStats.TargetColor then
-                goto continue
-            end
-            if x+2 <= GameObj.Cols and FloorMatrix[x+2][y].Color == GameStats.TargetColor then
-                goto continue
-            end
-            if y+2 <= GameObj.Rows and FloorMatrix[x][y+2].Color == GameStats.TargetColor then
-                goto continue
-            end
+                if GameObj.ArenaMode == true then
+                    x = math.random(GameObj.StartPositions[p].X,GameObj.StartPositions[p].X+GameObj.StartPositionSize-1)           
+                    y = math.random(GameObj.StartPositions[p].Y,GameObj.StartPositions[p].Y+GameObj.StartPositionSize-1)      
 
-            FloorMatrix[x][y].Color = GameStats.TargetColor
-            FloorMatrix[x][y].Bright = GameConfigObj.Bright
+                    if x % 2 == 0 then 
+                        x = x - 1
+                        if x < GameObj.StartPositions[p].X then
+                            x = GameObj.StartPositions[p].X
+                        end
+                    end
+                    if y % 2 == 0 then 
+                        y = y - 1
+                        if y < GameObj.StartPositions[p].Y then
+                            y = GameObj.StartPositions[p].Y
+                        end
+                    end
 
-            if GameConfigObj.BlockSize > 1 then
-                FloorMatrix[x][y+1].Color = GameStats.TargetColor
-                FloorMatrix[x][y+1].Bright = GameConfigObj.Bright
+                end
 
-                FloorMatrix[x+1][y].Color = GameStats.TargetColor
-                FloorMatrix[x+1][y].Bright = GameConfigObj.Bright
+                if FloorMatrix[x][y].Color == GameStats.TargetColor then
+                    goto continue
+                end
+                if x > 1 and FloorMatrix[x-1][y].Color == GameStats.TargetColor then
+                    goto continue
+                end
+                if y > 1 and FloorMatrix[x][y-1].Color == GameStats.TargetColor then
+                    goto continue
+                end
+                if x+2 <= GameObj.Cols and FloorMatrix[x+2][y].Color == GameStats.TargetColor then
+                    goto continue
+                end
+                if y+2 <= GameObj.Rows and FloorMatrix[x][y+2].Color == GameStats.TargetColor then
+                    goto continue
+                end
 
-                FloorMatrix[x+1][y+1].Color = GameStats.TargetColor
-                FloorMatrix[x+1][y+1].Bright = GameConfigObj.Bright
+                FloorMatrix[x][y].Color = GameStats.TargetColor
+                FloorMatrix[x][y].Bright = GameConfigObj.Bright
+
+                if GameConfigObj.BlockSize > 1 then
+                    FloorMatrix[x][y+1].Color = GameStats.TargetColor
+                    FloorMatrix[x][y+1].Bright = GameConfigObj.Bright
+
+                    FloorMatrix[x+1][y].Color = GameStats.TargetColor
+                    FloorMatrix[x+1][y].Bright = GameConfigObj.Bright
+
+                    FloorMatrix[x+1][y+1].Color = GameStats.TargetColor
+                    FloorMatrix[x+1][y+1].Bright = GameConfigObj.Bright
+                end
+                do break end
+                ::continue::
             end
-            do break end
-            ::continue::
         end
-        table.insert(NewTargetPositions, p, {X = x, Y = y, ClickedAt = 0})
+        table.insert(NewTargetPositions, p, {X = x or 0, Y = y or 0, ClickedAt = 0})
     end
     TargetPositions = NewTargetPositions
 
 end
 
-
+function isPlayerActive(player)
+    return GameStats.Players[player].Color > colors.NONE
+end
 
 -- Проверить стартовую позицию на ниличие человека на ней
 function checkPositionClick(startPosition, positionSize)
