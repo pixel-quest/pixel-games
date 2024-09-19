@@ -1,0 +1,18 @@
+{
+  "Cols": 18,
+  "Rows": 6,
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
+  "StartPositionSize": 6,
+  "StartPositions": [
+    {"X": 1, "Y": 1, "Color": 2},
+    {"X": 7, "Y": 1, "Color": 3},
+    {"X": 13, "Y": 1, "Color": 4}
+  ],
+  "BurnEffect": {
+    "DurationOnMs": 200,
+    "DurationOffMs": 120,
+    "TotalDurationMs": 1500
+  },
+  "YOffset": 0,
+  "ArenaMode": true
+}
