@@ -9,7 +9,8 @@
 	"Difficulty_Min": 1,
 	"Difficulty_Max": 4,
 	"Difficulty_Step": 1,
-	"Difficulty_ru": "Сложнось",
+	"Difficulty_ru": "Сложность",
+	"Difficulty_en": "Difficulty",
 
 	"TimerOn": true,
 	"TimerOn_ru": "Ограниченное время",

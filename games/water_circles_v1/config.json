@@ -3,8 +3,16 @@
   	"Bright_Min": 1,
   	"Bright_Max": 7,
   	"Bright_Step": 1,
+  	"Bright_ru": "Яркость",
 
   	"CircleTickTime": 100,
+  	"CircleTickTime_Hidden": true,
+
   	"CircleSpawnDelay": 400,
-  	"MaxCircleSize": 30
+  	"CircleSpawnDelay_ru": "Задержка появления круга",
+  	"CircleSpawnDelay_en": "Сircle Spawn Delay",
+
+  	"MaxCircleSize": 30,
+  	"MaxCircleSize_ru": "Максимальный размер круга",
+  	"MaxCircleSize_en": "Circle size limit"
 }

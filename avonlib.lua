@@ -14,6 +14,10 @@ AL.Stack = function()
         return table.remove(tStack.tTable, 1)
     end
 
+    tStack.PopLast = function()
+        return table.remove(tStack.tTable, #tStack.tTable)
+    end
+
     tStack.Size = function()
         return #tStack.tTable
     end

@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_ru": "Яркость",
 
   "BaseColor": 2,
   "BaseColor_Hidden": true,
@@ -17,14 +18,20 @@
   "UnitSpawnDelay_Min": 1000,
   "UnitSpawnDelay_Max": 10000,
   "UnitSpawnDelay_Step": 1000,
+  "UnitSpawnDelay_ru": "Задержка между появлением юнитов",
+  "UnitSpawnDelay_en": "Delay between unit spawns",
   
   "UnitThinkDelay": 500,
   "UnitThinkDelay_Min": 100,
   "UnitThinkDelay_Max": 5000,
   "UnitThinkDelay_Step": 100,
+  "UnitThinkDelay_ru": "Частота передвижения юнитов",
+  "UnitThinkDelay_en": "Unit movement tick rate",
 
   "Difficulty": 2,
   "Difficulty_Min": 1,
   "Difficulty_Max": 6,
-  "Difficulty_Step": 1
+  "Difficulty_Step": 1,
+  "Difficulty_ru": "Сложность",
+  "Difficulty_en": "Difficulty"
 }

@@ -3,6 +3,7 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_ru": "Яркость",  
 
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true,
@@ -17,14 +18,20 @@
   "PointsToWinRound_Min": 1,
   "PointsToWinRound_Max": 50,
   "PointsToWinRound_Step": 1,
-  
+  "PointsToWin_ru": "Очков для победы",
+  "PointsToWin_en": "Points to win",  
+
   "InitialBallDelayMS": 250,
   "InitialBallDelayMS_Min": 120,
   "InitialBallDelayMS_Max": 2000,
   "InitialBallDelayMS_Step": 10,
+  "InitialBallDelayMS_ru": "Стартовый тикрейт движения мяча(чем меньше тем быстрее)",
+  "InitialBallDelayMS_en": "Initial ball movement tickrate",
 
   "BallDelayHitDecreaseMS": 20,
   "BallDelayHitDecreaseMS_Min": 1,
   "BallDelayHitDecreaseMS_Max": 50,
-  "BallDelayHitDecreaseMS_Step": 1
+  "BallDelayHitDecreaseMS_Step": 1,
+  "BallDelayHitDecreaseMS_ru": "Ускорение мяча за удар",
+  "BallDelayHitDecreaseMS_en": "Ball speed increase per hit"
 }
