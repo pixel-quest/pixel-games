@@ -2,7 +2,7 @@
     Название: Рефлекс/Реакция
     Автор: Avondale, дискорд - avonda
     Описание механики:
-        У игроков на поле есть 7 цветов на выбор.
+        У игроков на поле есть 6 цветов на выбор.
         После начала раунда спустя небольшой промежуток времени(каждый раз разный) объявляется цвет.
         Игрокам нужно нажать на этот цвет.
         Кто быстрее нажал на правильный цвет получит больше очков.
@@ -185,6 +185,9 @@ end
 
 --GAMEMODE
 CGameMode = {}
+
+CGameMode.MAX_COLOR_COUNT = 6
+
 CGameMode.iCountdown = 0
 CGameMode.iPlayerCount = 0
 CGameMode.iRountCount = 0
@@ -196,8 +199,11 @@ CGameMode.iWinnerID = 0
 CGameMode.iFinishedPlayerCount = 0
 CGameMode.iCorrectlyFinishedPlayerCount = 0
 CGameMode.tFinishedPlayer = {}
+CGameMode.tPlayerCorrectColor = {}
+CGameMode.tPlayerColorOffset = {}
+CGameMode.tPlayerPosition = {}
 
-CGameMode.iTargetPixelColor = CColors.NONE
+CGameMode.tTargetPixelColor = {}
 
 CGameMode.InitGameMode = function()
     tGameStats.TotalStages = tConfig.RoundCount
@@ -214,7 +220,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.iRountCount = CGameMode.iRountCount + 1
     tGameStats.StageNum = CGameMode.iRountCount
-
 
     AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
@@ -238,22 +243,71 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    --CAudio.PlaySync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
+
+    AL.NewTimer(250, function()
+        if iGameState == GAMESTATE_GAME and CGameMode.tTargetPixelColor[1] == nil then
+            for iPlayerID = 1,6 do
+                CGameMode.PlayerFieldOffsetIncrement(iPlayerID)
+            end
+        end
+
+        if iGameState >= GAMESTATE_POSTGAME then return nil end
+        return 250
+    end)
 end
 
 CGameMode.StartNextRound = function()
     CGameMode.bRoundOn = true
 
+    CAudio.PlaySync("reflex_warning.mp3")
+
     AL.NewTimer(math.random(2,8)*1000, function()
-        CGameMode.NewTargetPixelColor()
+        if CGameMode.bRoundOn then
+            CGameMode.NewTargetPixelColor(math.random(1, tGame.PreviewHeight))
+        end
     end)
 end
 
-CGameMode.NewTargetPixelColor = function()
-    CGameMode.iTargetPixelColor = math.random(1,7)
-    CAudio.PlaySyncColorSound(CGameMode.iTargetPixelColor)
-    tGameStats.TargetColor = CGameMode.iTargetPixelColor
+CGameMode.NewTargetPixelColor = function(iColorCount)
+    for i = 1, iColorCount do
+        repeat CGameMode.tTargetPixelColor[i] = math.random(1,CGameMode.MAX_COLOR_COUNT)
+        until i == 1 or CGameMode.tTargetPixelColor[i] ~= CGameMode.tTargetPixelColor[i-1] 
+        CAudio.PlaySyncColorSound(CGameMode.tTargetPixelColor[i])   
+    end
+
+    if iColorCount == 1 then
+        tGameStats.TargetColor = CGameMode.tTargetPixelColor[1]
+    end
+end
+
+CGameMode.PlayerHitPixelColor = function(iPlayerID, iColor)
+    if CGameMode.tPlayerCorrectColor[iPlayerID] == nil then CGameMode.tPlayerCorrectColor[iPlayerID] = {}; CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount = 0 end
+
+    for i = 1, #CGameMode.tTargetPixelColor do
+        if iColor == CGameMode.tTargetPixelColor[i] then
+            if CGameMode.tPlayerCorrectColor[iPlayerID][iColor] == nil then
+                CGameMode.tPlayerCorrectColor[iPlayerID][iColor] = true
+                CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount = CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount + 1
+
+                if CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount == #CGameMode.tTargetPixelColor then
+                    CGameMode.PlayerCorrectTarget(iPlayerID)
+                    CGameMode.tFinishedPlayer[iPlayerID] = true
+                
+                    return true
+                end
+
+                return false
+            else
+                return false
+            end
+        end
+    end
+    
+    CGameMode.PlayerWrongTarget(iPlayerID)
+    CGameMode.tFinishedPlayer[iPlayerID] = false
+    return true
 end
 
 CGameMode.EndRound = function()
@@ -261,7 +315,9 @@ CGameMode.EndRound = function()
     CGameMode.iFinishedPlayerCount = 0
     CGameMode.iCorrectlyFinishedPlayerCount = 0
     CGameMode.tFinishedPlayer = {}
-    CGameMode.iTargetPixelColor = CColors.NONE
+    CGameMode.tPlayerCorrectColor = {}
+    CGameMode.tTargetPixelColor = {}
+    CGameMode.tPlayerPosition = {}
     tGameStats.TargetColor = CColors.NONE
 
     if CGameMode.iRountCount == tConfig.RoundCount then
@@ -287,20 +343,14 @@ end
 CGameMode.PlayerClickPixel = function(iPlayerID, iColor)
     if CGameMode.tFinishedPlayer[iPlayerID] ~= nil then return; end
 
-    if iColor == CGameMode.iTargetPixelColor then
-        CGameMode.PlayerCorrectTarget(iPlayerID)
-        CGameMode.tFinishedPlayer[iPlayerID] = true
-    else
-        CGameMode.PlayerWrongTarget(iPlayerID)
-        CGameMode.tFinishedPlayer[iPlayerID] = false
-    end
+    if CGameMode.PlayerHitPixelColor(iPlayerID, iColor) then
+        CGameMode.iFinishedPlayerCount = CGameMode.iFinishedPlayerCount + 1
 
-    CGameMode.iFinishedPlayerCount = CGameMode.iFinishedPlayerCount + 1
-
-    if CGameMode.iFinishedPlayerCount == CGameMode.iPlayerCount then
-        AL.NewTimer(2000, function()
-            CGameMode.EndRound()
-        end)
+        if CGameMode.iFinishedPlayerCount == CGameMode.iPlayerCount then
+            AL.NewTimer(2000, function()
+                CGameMode.EndRound()
+            end)
+        end
     end
 end
 
@@ -311,6 +361,8 @@ CGameMode.PlayerCorrectTarget = function(iPlayerID)
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iScoreIncrease
 
     CGameMode.iCorrectlyFinishedPlayerCount = CGameMode.iCorrectlyFinishedPlayerCount + 1
+
+    CGameMode.tPlayerPosition[iPlayerID] = CGameMode.iCorrectlyFinishedPlayerCount
 
     if tGameStats.Players[iPlayerID].Score > CGameMode.iBestScore then
         CGameMode.iBestScore = tGameStats.Players[iPlayerID].Score
@@ -323,6 +375,10 @@ CGameMode.PlayerWrongTarget = function(iPlayerID)
     CAudio.PlayAsync(CAudio.MISCLICK)
 end
 
+CGameMode.PlayerFieldOffsetIncrement = function(iPlayerID)
+    if CGameMode.tPlayerColorOffset[iPlayerID] == nil then CGameMode.tPlayerColorOffset[iPlayerID] = 0 end 
+    CGameMode.tPlayerColorOffset[iPlayerID] = CGameMode.tPlayerColorOffset[iPlayerID] + 1
+end
 --//
 
 --PAINT
@@ -351,12 +407,30 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
         end
     end
 
-    SetRectColorBright(tGame.StartPositions[iPlayerID].X, 
-        tGame.StartPositions[iPlayerID].Y, 
-        tGame.StartPositionSizeX-1, 
-        tGame.StartPositionSizeY-1, 
-        iColor, 
-        iBright)
+    if CGameMode.tPlayerPosition[iPlayerID] ~= nil then
+        local tLetter = tLoadedLetters[CGameMode.tPlayerPosition[iPlayerID]]
+
+        local iX = tGame.StartPositions[iPlayerID].X
+        local iY = tGame.StartPositions[iPlayerID].Y-1
+
+        for iLocalY = 1, tLetter.iSizeY do
+            for iLocalX = 1, tLetter.iSizeX do
+                if tLetter.tPaint[iLocalY][iLocalX] == 1 then
+                    if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY] then
+                        tFloor[iX+iLocalX][iY+iLocalY].iColor = iColor
+                        tFloor[iX+iLocalX][iY+iLocalY].iBright = iBright
+                    end
+                end
+            end
+        end
+    else
+        SetRectColorBright(tGame.StartPositions[iPlayerID].X, 
+            tGame.StartPositions[iPlayerID].Y, 
+            tGame.StartPositionSizeX-1, 
+            tGame.StartPositionSizeY-1, 
+            iColor, 
+            iBright)
+    end
 
     if iGameState == GAMESTATE_GAME and CGameMode.tFinishedPlayer[iPlayerID] == nil then
         CPaint.PlayerZonePixels(iPlayerID, tConfig.Bright)
@@ -365,11 +439,22 @@ end
 
 CPaint.PlayerZonePixels = function(iPlayerID, iBright)
     for iY = tGame.StartPositions[iPlayerID].PixelsY, tGame.StartPositions[iPlayerID].PixelsY+1 do
-        for iColor = 1, 7 do
+        for iColor = 1, CGameMode.MAX_COLOR_COUNT do
+            local iColorOff = iColor
+            if CGameMode.tPlayerColorOffset[iPlayerID] then
+                iColorOff = math.ceil((iColor + CGameMode.tPlayerColorOffset[iPlayerID]) % CGameMode.MAX_COLOR_COUNT)
+                if iColorOff == 0 then iColorOff = CGameMode.MAX_COLOR_COUNT end
+            end 
+
             local iX = tGame.StartPositions[iPlayerID].X + iColor-1
             if not tFloor[iX][iY].bDefect then
-                tFloor[iX][iY].iColor = iColor
-                tFloor[iX][iY].iBright = iBright
+                local iColorBright = iBright
+                if CGameMode.tPlayerCorrectColor[iPlayerID] and CGameMode.tPlayerCorrectColor[iPlayerID][iColorOff] == true then
+                    iColorBright = 2
+                end
+
+                tFloor[iX][iY].iColor = iColorOff
+                tFloor[iX][iY].iBright = iColorBright
                 tFloor[iX][iY].iPlayerID = iPlayerID
             end
         end
@@ -377,12 +462,15 @@ CPaint.PlayerZonePixels = function(iPlayerID, iBright)
 end
 
 CPaint.TargetColor = function()
-    if CGameMode.iTargetPixelColor == CColors.NONE then return; end
+    if #CGameMode.tTargetPixelColor < 1 then return; end
 
-    local iYStart = math.ceil(tGame.Rows/2)
-    for iY = iYStart, iYStart+1 do
+    local iYStart = tGame.PreviewY
+    local iColor = 0
+    for iY = iYStart, iYStart+tGame.PreviewHeight-1 do
+        iColor = iColor + 1
+        if iColor > #CGameMode.tTargetPixelColor then iColor = 1 end
         for iX = 1, tGame.Cols do
-            tFloor[iX][iY].iColor = CGameMode.iTargetPixelColor
+            tFloor[iX][iY].iColor = CGameMode.tTargetPixelColor[iColor]
             tFloor[iX][iY].iBright = tConfig.Bright
         end
     end
@@ -562,3 +650,122 @@ function DefectButton(defect)
         tButtons[defect.Button].iBright = CColors.BRIGHT0
     end    
 end
+
+tLoadedLetters = {}
+
+tLoadedLetters[1] =
+{
+    iSizeX = 3,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 0,},
+        {1, 1, 0,},
+        {0, 1, 0,},
+        {0, 1, 0,},
+        {1, 1, 1,}
+    }
+}
+
+tLoadedLetters[2] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 1, 0, 0},
+        {1, 1, 1, 1}
+    }
+}
+
+tLoadedLetters[3] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[4] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 0, 1, 0},
+        {0, 1, 1, 0},
+        {1, 0, 1, 0},
+        {1, 1, 1, 1},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[5] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {0, 0, 0, 1},
+        {1, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[6] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[7] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[8] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[9] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0}
+    }
+}
