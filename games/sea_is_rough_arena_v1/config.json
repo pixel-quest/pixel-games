@@ -3,19 +3,26 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_ru": "Яркость",
 
   "MovePixels": true,
+  "MovePixels_ru": "Двигать пиксели",
+  "MovePixels_en": "Move pixels",
 
   "PointsToWin": 50,
   "PointsToWin_Min": 10,
   "PointsToWin_Max": 200,
   "PointsToWin_Step": 10,
-  
+  "PointsToWin_ru": "Очков для победы",
+  "PointsToWin_en": "Points to win",  
+
   "StageDurationSec": 8,
   "StageDurationSec_Min": 6,
   "StageDurationSec_Max": 16,
   "StageDurationSec_Step": 1,  
-  
+  "StageDurationSec_ru": "Длительность стадии",
+  "StageDurationSec_en": "Stage duration",  
+
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true, 
 
@@ -23,6 +30,8 @@
   "StopDurationSec_Min": 2,
   "StopDurationSec_Max": 10,
   "StopDurationSec_Step": 1,    
+  "StopDurationSec_ru": "Длительность остановки",
+  "StopDurationSec_en": "Stop Duration",
 
   "FillingPercentage": 50,
   "FillingPercentage_Hidden": true 

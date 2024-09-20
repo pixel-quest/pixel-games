@@ -3,13 +3,18 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_ru": "Яркость",
 
   "PointsToWin": 10,
   "PointsToWin_Min": 5,
   "PointsToWin_Max": 50,
   "PointsToWin_Step": 5,
+  "PointsToWin_ru": "Очков для победы",
+  "PointsToWin_en": "Points to win",
 
   "MoveAllPixels": false,
+  "MoveAllPixels_ru": "Двигать все пиксели",
+  "MoveAllPixels_en": "Move all pixels",
   
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true

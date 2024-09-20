@@ -65,14 +65,14 @@ local GameObj = {
     Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
     Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
-    StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
+    --[[StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
         { X = 2, Y = 2, Color = colors.RED },
         { X = 6, Y = 2, Color = colors.YELLOW },
         { X = 10, Y = 2, Color = colors.GREEN },
         { X = 14, Y = 2, Color = colors.CYAN },
         { X = 18, Y = 2, Color = colors.BLUE },
         { X = 22, Y = 2, Color = colors.MAGENTA },
-    },
+    },]]
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
@@ -93,12 +93,12 @@ local GameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = colors.RED },
-        { Score = 0, Lives = 0, Color = colors.YELLOW },
-        { Score = 0, Lives = 0, Color = colors.GREEN },
-        { Score = 0, Lives = 0, Color = colors.CYAN },
-        { Score = 0, Lives = 0, Color = colors.BLUE },
-        { Score = 0, Lives = 0, Color = colors.MAGENTA },
+        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = 0 },
     },
     TargetScore = 0,
     StageNum = 0,
@@ -147,8 +147,7 @@ function StartGame(gameJson, gameConfigJson)
     GameConfigObj = json.decode(gameConfigJson)
 
     -- ограничение на размер стартовой позиции
-    if GameObj.StartPositionSize == nil or
-            GameObj.StartPositionSize < 1 or GameObj.StartPositionSize > 2 then
+    if GameObj.StartPositionSize == nil then
         GameObj.StartPositionSize = 2
     end
 
@@ -455,12 +454,26 @@ end
 
 -- Поставить пиксель конкретного цвета в случайном месте
 function placePixel(color)
-    if color == colors.NONE then
+    if color == colors.NONE or getPlayerByColor(color) == nil then
         return
     end
+
+    local minX = 1
+    local maxX = GameObj.Cols
+    local minY = 1
+    local maxY = GameObj.Rows
+
+    if GameObj.ArenaMode ~= nil and GameObj.ArenaMode then
+        local _,player = getPlayerByColor(color)
+        minX = GameObj.StartPositions[player].X
+        maxX = GameObj.StartPositions[player].X + GameObj.StartPositionSize-1
+        minY = GameObj.StartPositions[player].Y
+        maxY = GameObj.StartPositions[player].Y + GameObj.StartPositionSize-1
+    end
+
     for randomAttempt=1,100 do
-        local x = math.random(1, GameObj.Cols)
-        local y = math.random(1, GameObj.Rows)
+        local x = math.random(minX, maxX)
+        local y = math.random(minY, maxY)
         if FloorMatrix[x][y].Color == colors.NONE and
                 not FloorMatrix[x][y].Click and
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
@@ -514,7 +527,7 @@ function getPlayerByColor(color)
     end
     for playerIdx, player in ipairs(GameStats.Players) do
         if player.Color == color then
-            return player
+            return player, playerIdx
         end
     end
 end

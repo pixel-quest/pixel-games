@@ -101,12 +101,12 @@ local GameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = 0 },
-        { Score = 0, Lives = 0, Color = 0 },
-        { Score = 0, Lives = 0, Color = 0 },
-        { Score = 0, Lives = 0, Color = 0 },
-        { Score = 0, Lives = 0, Color = 0 },
-        { Score = 0, Lives = 0, Color = 0 },
+        { Score = 0, Lives = 0, Color = colors.RED },
+        { Score = 0, Lives = 0, Color = colors.YELLOW },
+        { Score = 0, Lives = 0, Color = colors.GREEN },
+        { Score = 0, Lives = 0, Color = colors.CYAN },
+        { Score = 0, Lives = 0, Color = colors.BLUE },
+        { Score = 0, Lives = 0, Color = colors.MAGENTA },
     },
     TargetScore = 0, -- очки
     StageNum = 0,
@@ -156,7 +156,8 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
     GameConfigObj = json.decode(gameConfigJson)
 
     -- ограничение на размер стартовой позиции
-    if GameObj.StartPositionSize == nil then
+    if GameObj.StartPositionSize == nil or
+            GameObj.StartPositionSize < 1 or GameObj.StartPositionSize > 2 then
         GameObj.StartPositionSize = 2
     end
 
@@ -523,15 +524,6 @@ function placePixel(color)
     for randomAttempt=1,10 do
         local x = math.random(1, GameObj.Cols)
         local y = math.random(1, GameObj.Rows)
-
-        if GameObj.ArenaMode == true then
-            local _,player = getPlayerByColor(color)
-            if player and GameObj.StartPositions[player] then
-                x = math.random(GameObj.StartPositions[player].X, GameObj.StartPositions[player].X+GameObj.StartPositionSize-1)
-                y = math.random(GameObj.StartPositions[player].Y, GameObj.StartPositions[player].Y+GameObj.StartPositionSize-1)
-            end
-        end
-
         if FloorMatrix[x][y].Color == colors.NONE and
                 -- not FloorMatrix[x][y].Click and -- под ноги не размещаем
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
@@ -585,7 +577,7 @@ function getPlayerByColor(color)
     end
     for playerIdx, player in ipairs(GameStats.Players) do
         if player.Color == color then
-            return player, playerIdx
+            return player
         end
     end
 end
