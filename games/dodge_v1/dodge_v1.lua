@@ -1279,7 +1279,7 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_ANNOUNCER] = function()
-
+    CAudio.PlaySync("dodge_effect_gun.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1288,7 +1288,7 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_INIT] = function()
     CCross.bHidden = true
 
     CEffect.tCurrentEffectData.iSize = 3
-    CEffect.tCurrentEffectData.iX = math.random(1, tGame.Cols)
+    CEffect.tCurrentEffectData.iX = math.random(1, tGame.Cols-CEffect.tCurrentEffectData.iSize)
     CEffect.tCurrentEffectData.iY = math.random(1, 2)
     if CEffect.tCurrentEffectData.iY > 1 then CEffect.tCurrentEffectData.iY = tGame.Rows end
 
@@ -1343,7 +1343,12 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_TICK] = function()
             CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iX = CEffect.tCurrentEffectData.iX
             CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.iY
             CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVel = 1
-            if CEffect.tCurrentEffectData.iY > 1 then CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVel = -1 end
+            if CEffect.tCurrentEffectData.iY > 1 then 
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVel = -1 
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY - (CEffect.tCurrentEffectData.iSize-1)
+            else
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY + (CEffect.tCurrentEffectData.iSize-1)
+            end
 
             CAudio.PlayAsync("plasma.mp3")
 
