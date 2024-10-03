@@ -1,0 +1,30 @@
+{
+  "Cols": 18,
+  "Rows": 6,
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
+  "PreviewY": 1,
+  "PreviewHeight": 1,
+
+  "StartPositions": [
+    {
+      "X": 1,
+      "Y": 2,
+      "Color": 1,
+      "PixelsY": 2
+    },
+    {
+      "X": 7,
+      "Y": 2,
+      "Color": 2,
+      "PixelsY": 2
+    },
+    {
+      "X": 13,
+      "Y": 2,
+      "Color": 3,
+      "PixelsY": 2
+    }
+  ],
+  "StartPositionSizeX": 6,
+  "StartPositionSizeY": 5  
+}
