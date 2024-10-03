@@ -32,5 +32,6 @@
     }
   ],
   "StartPositionSizeX": 6,
-  "StartPositionSizeY": 6
+  "StartPositionSizeY": 6,
+  "ArenaMode": true  
 }
