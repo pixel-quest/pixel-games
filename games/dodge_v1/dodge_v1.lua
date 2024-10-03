@@ -132,7 +132,6 @@ end
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
     CEffect.DrawCurrentEffect()
-    CPaint.Cross()
 end
 
 function PostGameTick()
@@ -318,6 +317,8 @@ CEffect.DrawCurrentEffect = function()
     if CEffect.iCurrentEffect ~= 0 then
         CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_DRAW]() 
 
+        CPaint.Cross()
+
         if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_COINS then
             CEffect.SpecialEndingPaintCoins()
         end
@@ -325,6 +326,8 @@ CEffect.DrawCurrentEffect = function()
         if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON and CEffect.bReadyToEnd then
             SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
         end
+    else
+        CPaint.Cross()
     end
 end
 
@@ -334,7 +337,7 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     CLog.print("next effect: "..iEffectId)
-    --iEffectId = 8
+    --iEffectId = 10
 
     CAudio.PlaySync("next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
@@ -1267,6 +1270,132 @@ CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_UNLOAD] = function()
 end
 ----
 
+--Эффект: пушка
+CEffect.EFFECT_GUN = 10
+CEffect.tEffects[CEffect.EFFECT_GUN] = {}
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.CONST_LENGTH] = 15
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlaySync("dodge_effect_gun.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+    CCross.bHidden = true
+
+    CEffect.tCurrentEffectData.iSize = 3
+    CEffect.tCurrentEffectData.iX = math.random(1, tGame.Cols-CEffect.tCurrentEffectData.iSize)
+    CEffect.tCurrentEffectData.iY = math.random(1, 2)
+    if CEffect.tCurrentEffectData.iY > 1 then CEffect.tCurrentEffectData.iY = tGame.Rows end
+
+    CEffect.tCurrentEffectData.tProjectiles = {}
+    CEffect.tCurrentEffectData.bCooldown = false
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_SOUND] = function()
+    
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_DRAW] = function()
+    for iX = 1, tGame.Cols do
+        CEffect.PaintEffectPixel(iX, CEffect.tCurrentEffectData.iY)
+    end
+
+    local iStartY = CEffect.tCurrentEffectData.iY
+    if iStartY > 1 then iStartY = iStartY - CEffect.tCurrentEffectData.iSize end
+
+    for iY = iStartY, iStartY + CEffect.tCurrentEffectData.iSize-1 do
+        for iX = CEffect.tCurrentEffectData.iX, CEffect.tCurrentEffectData.iX + CEffect.tCurrentEffectData.iSize-1 do
+            CEffect.PaintEffectPixel(iX, iY)
+        end
+    end
+
+    for iProjectileID = 1, #CEffect.tCurrentEffectData.tProjectiles do
+        local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
+        if tProjectile ~= nil then
+            for iX = tProjectile.iX, tProjectile.iX + CEffect.tCurrentEffectData.iSize-1 do
+                CEffect.PaintEffectPixel(iX, tProjectile.iY)
+            end
+        end
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_TICK] = function()
+    local function movegun(iXPlus)
+        if iXPlus == 0 then return; end
+
+        if (CEffect.tCurrentEffectData.iX + iXPlus) > 0 and (CEffect.tCurrentEffectData.iX + iXPlus + CEffect.tCurrentEffectData.iSize-1) <= tGame.Cols then
+            CEffect.tCurrentEffectData.iX = CEffect.tCurrentEffectData.iX + iXPlus
+        end
+    end
+
+    local function shootgun()
+        if not CEffect.tCurrentEffectData.bCooldown then
+            local iProjectileID = #CEffect.tCurrentEffectData.tProjectiles+1
+            CEffect.tCurrentEffectData.tProjectiles[iProjectileID] = {}
+            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iX = CEffect.tCurrentEffectData.iX
+            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.iY
+            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVel = 1
+            if CEffect.tCurrentEffectData.iY > 1 then 
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVel = -1 
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY - (CEffect.tCurrentEffectData.iSize-1)
+            else
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY + (CEffect.tCurrentEffectData.iSize-1)
+            end
+
+            CAudio.PlayAsync("plasma.mp3")
+
+            CEffect.tCurrentEffectData.bCooldown = true
+            CTimer.New(500, function()
+                CEffect.tCurrentEffectData.bCooldown = false
+            end)
+        end
+    end
+
+    for iProjectileID = 1, #CEffect.tCurrentEffectData.tProjectiles do
+        local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
+        if tProjectile ~= nil then
+            tProjectile.iY = tProjectile.iY + tProjectile.iVel
+
+            if (tProjectile.iY + CEffect.tCurrentEffectData.iSize) < 1 or tProjectile.iY > tGame.Rows then
+                tProjectile = nil
+                CEffect.tCurrentEffectData.tProjectiles[iProjectileID] = nil
+            end
+        end
+    end
+
+    if CCross.IsAiOn() then
+        local iXPlus = 0
+        if CCross.iAiDestX < CEffect.tCurrentEffectData.iX then iXPlus = -1
+        elseif CCross.iAiDestX > CEffect.tCurrentEffectData.iX then iXPlus = 1
+        else CCross.AiNewDest() end
+
+        movegun(iXPlus)
+        shootgun()
+    else 
+        movegun(CPad.iXPlus)
+
+        if CPad.bTrigger then
+            shootgun()
+            CPad.bTrigger = false
+        end
+    end
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_UNLOAD] = function()
+    CCross.bBlockMovement = false
+    CCross.bHidden = false
+end
+----
+
 --//
 
 --cross
@@ -1334,7 +1463,7 @@ CCross.AiNewDest = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             local iWeight = tFloor[iX][iY].iWeight + math.random(-5,5)
-            if iWeight >= iMax then
+            if iWeight > iMax then
                 iMax = iWeight
                 CCross.iAiDestX = iX
                 CCross.iAiDestY = iY
