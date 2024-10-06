@@ -134,8 +134,11 @@ end
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
     SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
-
     local iPlayersReady = 0
+
+    if tGame.ArenaMode then
+        bAnyButtonClick = false
+    end
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
@@ -151,13 +154,24 @@ function GameSetupTick()
             end
 
             CPaint.PlayerZone(iPos, iBright, false)
+        
+            if tPlayerInGame[iPos] and tGame.ArenaMode then
+                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
+                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
+
+                for iX = iCenterX, iCenterX+1 do
+                    for iY = iCenterY, iCenterY+1 do
+                        tFloor[iX][iY].iColor = 5
+                        if tFloor[iX][iY].bClick then bAnyButtonClick = true end
+                    end
+                end
+            end
         end
     end
 
     if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
         bCountDownStarted = true
         bAnyButtonClick = false
-        iGameState = GAMESTATE_GAME
         CGameMode.StartCountDown(tConfig.GameCountdown)
     end
 end
@@ -232,6 +246,13 @@ CGameMode.StartCountDown = function(iCountDownTime)
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
+        if tGame.ArenaMode then
+            if not bAnyButtonClick then
+                bCountDownStarted = false              
+                return nil
+            end
+        end
+
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
             
@@ -248,6 +269,7 @@ end
 CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
+    iGameState = GAMESTATE_GAME
 
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
