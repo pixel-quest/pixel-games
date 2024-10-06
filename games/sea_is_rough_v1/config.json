@@ -1,29 +1,37 @@
 {
   "Bright": 5,
-  "Bright_Min": 1,
+  "Bright_ru": "Яркость",
+  "Bright_en": "Bright",
   "Bright_Max": 7,
-  "Bright_Step": 1,
-
+  "Bright_Min": 1,
   "MovePixels": true,
-
+  "MovePixels_ru": "Перемещать пиксели",
+  "MovePixels_en": "Move pixels",
+  "Bright_Step": 1,
   "PointsToWin": 50,
-  "PointsToWin_Min": 10,
-  "PointsToWin_Max": 200,
-  "PointsToWin_Step": 10,
-  
-  "StageDurationSec": 8,
-  "StageDurationSec_Min": 6,
-  "StageDurationSec_Max": 16,
-  "StageDurationSec_Step": 1,  
-  
+  "PointsToWin_ru": "Очков для победы",
+  "PointsToWin_en": "Points to win",
   "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true, 
-
+  "PointsToWin_Max": 200,
+  "PointsToWin_Min": 10,
   "StopDurationSec": 3,
-  "StopDurationSec_Min": 2,
-  "StopDurationSec_Max": 10,
-  "StopDurationSec_Step": 1,    
-
+  "PointsToWin_Step": 10,
+  "StageDurationSec": 8,
   "FillingPercentage": 50,
-  "FillingPercentage_Hidden": true 
+  "FillingPercentage_ru": "Процент заполнения",
+  "FillingPercentage_en": "Filling percentage",
+  "FillingPercentage_Min": 5,
+  "FillingPercentage_Max": 95,
+  "FillingPercentage_Step": 5,
+  "StopDurationSec_ru": "Время замирания, сек",
+  "StopDurationSec_en": "Stop duration, sec",
+  "StopDurationSec_Max": 10,
+  "StopDurationSec_Min": 2,
+  "StageDurationSec_Max": 16,
+  "StageDurationSec_Min": 6,
+  "StageDurationSec_ru": "Время этапа, сек",
+  "StageDurationSec_en": "Stage duration, sec",
+  "StopDurationSec_Step": 1,
+  "StageDurationSec_Step": 1,
+  "WinDurationSec_Hidden": true
 }
