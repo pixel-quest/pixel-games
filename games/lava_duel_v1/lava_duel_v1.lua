@@ -104,7 +104,12 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TotalStages = tConfig.RoundCount
 
     CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    
+    if tGame.ArenaMode then 
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 function NextTick()
@@ -149,6 +154,26 @@ function GameSetupTick()
             end
 
             CPaint.PlayerZone(iPos, iBright, false)
+
+            if tPlayerInGame[iPos] and tGame.ArenaMode then
+                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
+                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
+
+                local bArenaClick = false
+                for iX = iCenterX, iCenterX+1 do
+                    for iY = iCenterY, iCenterY+1 do
+                        tFloor[iX][iY].iColor = 5
+
+                        if tFloor[iX][iY].bClick then 
+                            bArenaClick = true
+                        end
+                    end
+                end
+
+                if bArenaClick then
+                    bAnyButtonClick = true 
+                end
+            end 
         end
     end
 
