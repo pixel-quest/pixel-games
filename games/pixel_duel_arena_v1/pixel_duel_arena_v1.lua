@@ -251,6 +251,7 @@ function NextTick()
                 StageStartTime = time.unix()
             end     
         else
+            CountDownStarted = false
             StartPlayersCount = 0
             StageStartTime = 0
         end
