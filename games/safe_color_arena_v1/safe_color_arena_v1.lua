@@ -148,6 +148,8 @@ local LeftAudioPlayed = { -- 3... 2... 1...
 }
 local StageDonePlayed = false
 
+local tArenaPlayerReady = {}
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -179,7 +181,12 @@ function StartGame(gameJson, gameConfigJson)
     audio.PlaySyncFromScratch("games/safe-color-game.mp3") -- Игра "Безопасный цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     audio.PlaySync("voices/listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
-    audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    
+    if GameObj.ArenaMode then 
+        audio.PlaySync("press-zone-for-start.mp3")
+    else
+        audio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 -- PauseGame (служебный): пауза игры
@@ -204,6 +211,8 @@ end
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
     if GameStats.StageNum == CONST_STAGE_START then -- этап старта
+        local bAnyPlayerClick = false
+
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
@@ -216,6 +225,43 @@ function NextTick()
                 PlayerInGame[positionIndex] = false
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
+            
+            if PlayerInGame[positionIndex] and GameObj.ArenaMode then
+                local iCenterX = startPosition.X + math.floor(GameObj.StartPositionSize/3)
+                local iCenterY = startPosition.Y + math.floor(GameObj.StartPositionSize/3)
+                local bArenaClick = false
+
+                for iX = iCenterX, iCenterX+1 do
+                    for iY = iCenterY, iCenterY+1 do
+                        FloorMatrix[iX][iY].Color = 5
+                        if tArenaPlayerReady[positionIndex] then
+                            FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
+                        end
+
+                        if FloorMatrix[iX][iY].Click and not FloorMatrix[iX][iY].Defect then 
+                            bArenaClick = true
+                        end
+                    end
+                end
+
+                if bArenaClick then
+                    bAnyPlayerClick = true
+                    tArenaPlayerReady[positionIndex] = true               
+                else
+                    tArenaPlayerReady[positionIndex] = false
+                end                
+            end
+        end
+
+        if bAnyPlayerClick then
+            StartPlayersCount = countActivePlayers()
+
+            if StageStartTime == 0 then
+                StageStartTime = time.unix()
+            end     
+        else
+            StartPlayersCount = 0
+            StageStartTime = 0
         end
 
         --[[
