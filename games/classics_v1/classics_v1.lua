@@ -79,6 +79,8 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tArenaPlayerReady = {}
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -132,9 +134,39 @@ function GameSetupTick()
     CPaint.PlayerZones()
     SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
 
-    if bAnyButtonClick then
+    if tGame.ArenaMode then
         bAnyButtonClick = false
-        iGameState = GAMESTATE_GAME
+
+        for iPos, tPos in ipairs(tGame.StartPositions) do
+            if iPos <= #tGame.StartPositions then
+                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)-1
+                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
+
+                local bArenaClick = false
+                for iX = iCenterX, iCenterX+2 do
+                    for iY = iCenterY, iCenterY+1 do
+                        tFloor[iX][iY].iColor = 5
+                        if tArenaPlayerReady[iPos] then
+                            tFloor[iX][iY].iBright = tConfig.Bright+2
+                        end
+
+                        if tFloor[iX][iY].bClick then 
+                            bArenaClick = true
+                        end
+                    end
+                end
+
+                if bArenaClick then
+                    bAnyButtonClick = true 
+                    tArenaPlayerReady[iPos] = true
+                else
+                    tArenaPlayerReady[iPos] = false
+                end           
+            end
+        end
+    end
+
+    if bAnyButtonClick and not CGameMode.bCountDownStarted then
         CGameMode.CountDownNextRound()
     end
 end
@@ -174,6 +206,7 @@ CGameMode.tPlayerSeeds = {}
 CGameMode.tPlayerMapTotalCoinCount = {}
 CGameMode.tPlayerMapTotalCoinCollected = {}
 CGameMode.iDefaultSeed = 1
+CGameMode.bCountDownStarted = false
 
 CGameMode.InitGameMode = function()
     if tGame.Direction == "right" then
@@ -190,9 +223,16 @@ CGameMode.CountDownNextRound = function()
     CGameMode.iCountdown = tConfig.GameCountdown
     tGameStats.StageLeftDuration = CGameMode.iCountdown
 
+    CGameMode.bCountDownStarted = true
+
     CTimer.New(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+
+        if tGame.ArenaMode and not bAnyButtonClick then
+            CGameMode.bCountDownStarted = false
+            return nil
+        end
         
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
@@ -211,6 +251,7 @@ CGameMode.CountDownNextRound = function()
 end
 
 CGameMode.Start = function()
+    iGameState = GAMESTATE_GAME
     CAudio.PlayRandomBackground()
     tGameStats.StageLeftDuration = tConfig.GameLength
     CGameMode.bGameStarted = true

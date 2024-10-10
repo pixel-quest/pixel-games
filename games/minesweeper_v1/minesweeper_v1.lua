@@ -139,7 +139,7 @@ function GameSetupTick()
 end
 
 function GameSetupTickSinglePlayer()
-    if bAnyButtonClick then
+    if bAnyButtonClick or (tGame.ArenaMode and iPrevTickTime > 0) then
         bAnyButtonClick = false
 
         tPlayerInGame[1] = true
@@ -153,6 +153,10 @@ end
 
 function GameSetupTickMultiPlayer()
     local iPlayersReady = 0
+
+    if tGame.ArenaMode then
+        bAnyButtonClick = false
+    end
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
@@ -168,6 +172,26 @@ function GameSetupTickMultiPlayer()
             end
 
             CPaint.PlayerZone(iPos, iBright)
+
+            if tPlayerInGame[iPos] and tGame.ArenaMode then
+                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
+                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
+
+                local bArenaClick = false
+                for iX = iCenterX, iCenterX+1 do
+                    for iY = iCenterY, iCenterY+1 do
+                        tFloor[iX][iY].iColor = 5
+
+                        if tFloor[iX][iY].bClick then 
+                            bArenaClick = true
+                        end
+                    end
+                end
+
+                if bArenaClick then
+                    bAnyButtonClick = true 
+                end
+            end            
         end
     end
 
@@ -243,7 +267,11 @@ CGameMode.AnnounceGameStart = function()
         CAudio.PlaySync("voices/choose-color.mp3")
     end
 
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if tGame.ArenaMode then 
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 CGameMode.StartNextRoundCountDown = function(iCountDownTime)
