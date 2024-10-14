@@ -33,6 +33,7 @@ local bAnyButtonClick = false
 local tPlayerInGame = {}
 local iSongStartedTime = 0
 local bCountDownStarted = false
+local tArenaPlayerReady = {}
 
 local tGameStats = {
     StageLeftDuration = 0,
@@ -111,7 +112,11 @@ function StartGame(gameJson, gameConfigJson)
     if err ~= nil then error(err); end
 
     CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if tGame.ArenaMode then 
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 function SetupPlayerPositions()
@@ -168,6 +173,10 @@ end
 function TutorialTick()
     local iPlayersReady = 0
 
+    if tGame.ArenaMode then
+        bAnyButtonClick = false
+    end
+
     if not CTutorial.bStarted then
         for iPos, tPos in ipairs(tGame.StartPositions) do
             if iPos <= #tGame.StartPositions then
@@ -178,7 +187,7 @@ function TutorialTick()
                     iCheckY = tPos.Y
                 end
 
-                if CheckPositionClick({X = tPos.X, Y = iCheckY}, tGame.StartPositionSize) then
+                if CheckPositionClick({X = tPos.X, Y = iCheckY}, tGame.StartPositionSize) or (tGame.ArenaMode and tPlayerInGame[iPos]) then
                     tGameStats.Players[iPos].Color = tPos.Color
                     iBright = tConfig.Bright
                     iPlayersReady = iPlayersReady + 1
@@ -189,11 +198,46 @@ function TutorialTick()
                 end
 
                 CPaint.PlayerZone(iPos, iBright)
+
+                if tPlayerInGame[iPos] and tGame.ArenaMode then
+                    local iCenterX = tPos.X + math.floor(tGame.StartPositionSize/3)
+                    local iCenterY = tPos.Y + math.floor(tGame.StartPositionSize/2)
+
+                    local bArenaClick = false
+                    for iX = iCenterX, iCenterX+1 do
+                        for iY = iCenterY, iCenterY+1 do
+                            tFloor[iX][iY].iColor = 5
+                            tFloor[iX][iY].iBright = tConfig.Bright
+
+                            if tArenaPlayerReady[iPos] then
+                                tFloor[iX][iY].iBright = tConfig.Bright+2
+                            end
+
+                            if tFloor[iX][iY].bClick then 
+                                bArenaClick = true
+                            end
+                        end
+                    end
+
+                    if bArenaClick then
+                        bAnyButtonClick = true
+                    end
+
+                    tArenaPlayerReady[iPos] = bArenaClick
+                end  
             end
         end
     end
 
     if bAnyButtonClick then
+        if tGame.ArenaMode then
+            if not bCountDownStarted then
+                CGameMode.CountDown(5)
+            end
+            
+            return nil
+        end
+
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
@@ -406,11 +450,18 @@ CGameMode.CountDown = function(iCountDownTime)
     CSongSync.Clear()
     CGameMode.Clear()
 
+    bCountDownStarted = true
+
     CGameMode.iCountdown = iCountDownTime
 
     CAudio.PlaySyncFromScratch("")
     CTimer.New(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+
+        if tGame.ArenaMode and not bAnyButtonClick then
+            bCountDownStarted = false
+            return nil
+        end
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
