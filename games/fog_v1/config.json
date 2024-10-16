@@ -1,0 +1,14 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+	"CoinCount": 10,	
+	"CoinCount_Min": 5,	
+	"CoinCount_Max": 15,	
+	"CoinCount_Step": 1,	
+	"CoinCount_En": "Amount of coins",	
+	"CoinCount_Ru": "Количество монет"
+}

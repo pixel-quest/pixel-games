@@ -1,0 +1,439 @@
+--[[
+    Название: Туман
+    Автор: Avondale, дискорд - avonda
+
+    Описание механики: 
+
+    Идеи по доработке: 
+
+]]
+math.randomseed(os.time())
+
+local CLog = require("log")
+local CInspect = require("inspect")
+local CHelp = require("help")
+local CJson = require("json")
+local CTime = require("time")
+local CAudio = require("audio")
+local CColors = require("colors")
+
+local tGame = {
+    Cols = 24,
+    Rows = 15, 
+    Buttons = {}, 
+}
+local tConfig = {}
+
+-- стейты или этапы игры
+local GAMESTATE_SETUP = 1
+local GAMESTATE_GAME = 2
+local GAMESTATE_POSTGAME = 3
+local GAMESTATE_FINISH = 4
+
+local bGamePaused = false
+local iGameState = GAMESTATE_SETUP
+local iPrevTickTime = 0
+
+local tGameStats = {
+    StageLeftDuration = 0, 
+    StageTotalDuration = 0, 
+    CurrentStars = 0,
+    TotalStars = 0,
+    CurrentLives = 0,
+    TotalLives = 0,
+    Players = { -- максимум 6 игроков
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.NONE },
+    },
+    TargetScore = 0,
+    StageNum = 0,
+    TotalStages = 0,
+    TargetColor = CColors.NONE,
+}
+
+local tGameResults = {
+    Won = false,
+}
+
+local tFloor = {} 
+local tButtons = {}
+
+local tFloorStruct = { 
+    iColor = CColors.NONE,
+    iBright = CColors.BRIGHT0,
+    bClick = false,
+    bDefect = false,
+    iWeight = 0,
+}
+local tButtonStruct = { 
+    bClick = false,
+    bDefect = false,
+}
+
+function StartGame(gameJson, gameConfigJson)
+    tGame = CJson.decode(gameJson)
+    tConfig = CJson.decode(gameConfigJson)
+
+    for iX = 1, tGame.Cols do
+        tFloor[iX] = {}    
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct) 
+        end
+    end
+
+    for _, iId in pairs(tGame.Buttons) do
+        tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
+    end
+
+    CGameMode.InitGameMode()
+end
+
+function NextTick()
+    if iGameState == GAMESTATE_SETUP then
+        GameSetupTick()
+    end
+
+    if iGameState == GAMESTATE_GAME then
+        GameTick()
+    end
+
+    if iGameState == GAMESTATE_POSTGAME then
+        PostGameTick()
+    end
+
+    if iGameState == GAMESTATE_FINISH then
+        return tGameResults
+    end    
+
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = CTime.unix()
+end
+
+function GameSetupTick()
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
+    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
+    CWorld.Draw()
+end
+
+function GameTick()
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
+    CWorld.Draw()
+end
+
+function PostGameTick()
+    
+end
+
+function RangeFloor(setPixel, setButton)
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+        end
+    end
+
+    for i, tButton in pairs(tButtons) do
+        setButton(i, tButton.iColor, tButton.iBright)
+    end
+end
+
+function SwitchStage()
+    
+end
+
+--GAMEMODE
+CGameMode = {}
+CGameMode.iCountdown = 0
+
+CGameMode.InitGameMode = function()
+    CWorld.Load()
+end
+
+CGameMode.StartCountDown = function(iCountDownTime)
+    CGameMode.iCountdown = iCountDownTime
+
+    AL.NewTimer(1000, function()
+        CAudio.PlaySyncFromScratch("")
+        tGameStats.StageLeftDuration = CGameMode.iCountdown
+
+        if CGameMode.iCountdown <= 0 then
+            CGameMode.StartGame()
+            
+            return nil
+        else
+            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            CGameMode.iCountdown = CGameMode.iCountdown - 1
+
+            return 1000
+        end
+    end)
+end
+
+CGameMode.StartGame = function()
+    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayRandomBackground()
+
+    
+end
+
+CGameMode.PlayerClick = function(iX, iY)
+    CWorld.Vision(iX, iY, true)
+    AL.NewTimer(500, function()
+        if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
+            CWorld.Vision(iX, iY, true)
+            return 500
+        else
+            CWorld.Vision(iX, iY, false)
+            return nil
+        end
+    end)
+end
+--//
+
+--WORLD
+CWorld = {}
+CWorld.tBlocks = {}
+
+CWorld.BLOCK_TYPE_EMPTY = 1
+CWorld.BLOCK_TYPE_TERRAIN = 2
+CWorld.BLOCK_TYPE_COIN = 3
+CWorld.BLOCK_TYPE_SAFEZONE = 4
+
+CWorld.BLOCK_TYPE_TO_COLOR = {}
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_EMPTY] = CColors.NONE
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.MAGENTA
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_COIN] = CColors.YELLOW
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_SAFEZONE] = CColors.GREEN
+CWorld.FOG_COLOR = CColors.BLUE
+
+CWorld.VISION_RADIUS = 1
+
+CWorld.Load = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            CWorld.SetBlock(iX, iY, 1)
+        end
+    end
+
+    for iCoinId = 1, tConfig.CoinCount do
+        local iX = 0
+        local iY = 0
+
+        repeat
+            iX = math.random(1, tGame.Cols)
+            iY = math.random(1, tGame.Rows)
+        until CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] and CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_EMPTY and not tFloor[iX][iY].bDefect
+
+        CWorld.SetBlock(iX, iY, CWorld.BLOCK_TYPE_COIN)
+    end
+end
+
+CWorld.SetBlock = function(iX, iY, iBlockType)
+    if CWorld.tBlocks[iX] == nil then CWorld.tBlocks[iX] = {} end
+    CWorld.tBlocks[iX][iY] = {} 
+    CWorld.tBlocks[iX][iY].iBlockType = iBlockType 
+    CWorld.tBlocks[iX][iY].bVisible = false  
+end
+
+CWorld.Draw = function()
+    for iX = 1, tGame.Cols do 
+        for iY = 1, tGame.Rows do 
+            if CWorld.tBlocks[iX][iY].bVisible or CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_SAFEZONE then
+                tFloor[iX][iY].iColor = CWorld.BLOCK_TYPE_TO_COLOR[CWorld.tBlocks[iX][iY].iBlockType]
+            else
+                tFloor[iX][iY].iColor = CWorld.FOG_COLOR
+            end
+            tFloor[iX][iY].iBright = tConfig.Bright          
+        end
+    end
+end
+
+CWorld.Vision = function(iXStart, iYStart, bVisible)
+    for iX = iXStart - CWorld.VISION_RADIUS, iXStart + CWorld.VISION_RADIUS do
+        for iY = iYStart - CWorld.VISION_RADIUS, iYStart + CWorld.VISION_RADIUS do
+            if CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] then
+                CWorld.tBlocks[iX][iY].bVisible = bVisible
+            end
+        end
+    end
+end
+--//
+
+------------------------------AVONLIB
+_G.AL = {}
+local LOC = {}
+
+--STACK
+AL.Stack = function()
+    local tStack = {}
+    tStack.tTable = {}
+
+    tStack.Push = function(item)
+        table.insert(tStack.tTable, item)
+    end
+
+    tStack.Pop = function()
+        return table.remove(tStack.tTable, 1)
+    end
+
+    tStack.Size = function()
+        return #tStack.tTable
+    end
+
+    return tStack
+end
+--//
+
+--TIMER
+local tTimers = AL.Stack()
+
+AL.NewTimer = function(iSetTime, fCallback)
+    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
+end
+
+AL.CountTimers = function(iTimePassed)
+    for i = 1, tTimers.Size() do
+        local tTimer = tTimers.Pop()
+
+        tTimer.iTime = tTimer.iTime - iTimePassed
+
+        if tTimer.iTime <= 0 then
+            local iNewTime = tTimer.fCallback()
+            if iNewTime then
+                tTimer.iTime = tTimer.iTime + iNewTime
+            else
+                tTimer = nil
+            end
+        end
+
+        if tTimer then
+            tTimers.Push(tTimer)
+        end
+    end
+end
+--//
+
+--RECT
+function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
+    if iSize1 == 0 or iSize2 == 0 then return false; end
+
+    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
+
+    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
+
+    return true
+end
+--//
+------------------------------------
+
+--UTIL прочие утилиты
+function CheckPositionClick(tStart, iSizeX, iSizeY)
+    for iX = tStart.X, tStart.X + iSizeX - 1 do
+        for iY = tStart.Y, tStart.Y + iSizeY - 1 do
+            if tFloor[iX] and tFloor[iX][iY] then
+                if tFloor[iX][iY].bClick then
+                    return true
+                end 
+            end
+        end
+    end
+
+    return false
+end
+
+function SetPositionColorBright(tStart, iSize, iColor, iBright)
+    for i = 0, iSize * iSize - 1 do
+        local iX = tStart.X + i % iSize
+        local iY = tStart.Y + math.floor(i / iSize)
+
+        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then     
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright            
+        end
+    end
+end
+
+function SetRectColorBright(iX, iY, iSizeX, iSizeY, iColor, iBright)
+    for i = iX, iX + iSizeX do
+        for j = iY, iY + iSizeY do
+            if not (i < 1 or j > tGame.Cols or j < 1 or j > tGame.Rows) and not tFloor[i][j].bAnimated then     
+                tFloor[i][j].iColor = iColor
+                tFloor[i][j].iBright = iBright            
+            end            
+        end
+    end
+end
+
+function SetGlobalColorBright(iColor, iBright)
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].iColor = iColor
+            tFloor[iX][iY].iBright = iBright
+        end
+    end
+
+    for i, tButton in pairs(tButtons) do
+        tButtons[i].iColor = iColor
+        tButtons[i].iBright = iBright
+    end
+end
+
+function SetAllButtonColorBright(iColor, iBright, bCheckDefect)
+    for i, tButton in pairs(tButtons) do
+        if not bCheckDefect or not tButtons[i].bDefect then
+            tButtons[i].iColor = iColor
+            tButtons[i].iBright = iBright
+        end
+    end
+end
+--//
+
+
+--//
+function GetStats()
+    return tGameStats
+end
+
+function PauseGame()
+    bGamePaused = true
+end
+
+function ResumeGame()
+    bGamePaused = false
+	iPrevTickTime = CTime.unix()
+end
+
+function PixelClick(click)
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click then
+            CGameMode.PlayerClick(click.X, click.Y)
+        end
+    end
+end
+
+function DefectPixel(defect)
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
+end
+
+function ButtonClick(click)
+    if tButtons[click.Button] == nil then return end
+    tButtons[click.Button].bClick = click.Click
+end
+
+function DefectButton(defect)
+    if tButtons[defect.Button] == nil then return end
+    tButtons[defect.Button].bDefect = defect.Defect
+
+    if defect.Defect then
+        tButtons[defect.Button].iColor = CColors.NONE
+        tButtons[defect.Button].iBright = CColors.BRIGHT0
+    end    
+end
