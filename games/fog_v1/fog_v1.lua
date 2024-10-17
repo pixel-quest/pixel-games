@@ -33,6 +33,7 @@ local GAMESTATE_FINISH = 4
 local bGamePaused = false
 local iGameState = GAMESTATE_SETUP
 local iPrevTickTime = 0
+local bAnyButtonClick = false
 
 local tGameStats = {
     StageLeftDuration = 0, 
@@ -42,7 +43,7 @@ local tGameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.GREEN },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
@@ -90,6 +91,7 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     CGameMode.InitGameMode()
+    CGameMode.Announcer()
 end
 
 function NextTick()
@@ -117,15 +119,24 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
     SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
     CWorld.Draw()
+
+    if bAnyButtonClick and not CGameMode.bCountDownStarted then
+        CGameMode.StartCountDown(5)
+    end
 end
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
     CWorld.Draw()
+    CUnits.DrawUnits()
 end
 
 function PostGameTick()
-    
+    if CGameMode.bVictory then
+        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
+    else
+        SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    end
 end
 
 function RangeFloor(setPixel, setButton)
@@ -147,13 +158,26 @@ end
 --GAMEMODE
 CGameMode = {}
 CGameMode.iCountdown = 0
+CGameMode.bCountDownStarted = false
+CGameMode.bVictory = false
 
 CGameMode.InitGameMode = function()
     CWorld.Load()
+
+    tGameStats.TotalStars = tConfig.CoinCount
+    tGameStats.TotalLives = tConfig.TeamHealth
+    tGameStats.CurrentLives = tConfig.TeamHealth
+end
+
+CGameMode.Announcer = function()
+    --voice gamename
+    --voice guide
+    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
+    CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
@@ -175,11 +199,23 @@ end
 CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
+    iGameState = GAMESTATE_GAME
 
-    
+    AL.NewTimer(tConfig.UnitThinkDelay, function()
+        if iGameState ~= GAMESTATE_GAME then return nil end
+
+        CUnits.Think()
+
+        return tConfig.UnitThinkDelay
+    end)
 end
 
 CGameMode.PlayerClick = function(iX, iY)
+    if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_COIN then
+        CGameMode.PlayerAddScore(1)
+        CWorld.SetBlock(iX, iY, CWorld.BLOCK_TYPE_EMPTY)
+    end    
+
     CWorld.Vision(iX, iY, true)
     AL.NewTimer(500, function()
         if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
@@ -190,6 +226,165 @@ CGameMode.PlayerClick = function(iX, iY)
             return nil
         end
     end)
+
+    if CWorld.tBlocks[iX][iY].iUnitId > 0 then
+        if CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iX == iX and CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iY == iY then
+            CUnits.DamagePlayer()
+        end
+    end
+end
+
+CGameMode.PlayerAddScore = function(iAmount)
+    CAudio.PlayAsync(CAudio.CLICK)
+    tGameStats.CurrentStars = tGameStats.CurrentStars + 1
+
+    if tGameStats.CurrentStars >= tGameStats.TotalStars then
+        CGameMode.EndGame(true)
+    end
+end
+
+CGameMode.EndGame = function(bVictory)
+    CGameMode.bVictory = bVictory
+    CAudio.StopBackground()
+
+    if bVictory then
+        CAudio.PlaySync(CAudio.VICTORY)
+    else
+        CAudio.PlaySync(CAudio.DEFEAT)
+    end
+
+    iGameState = GAMESTATE_POSTGAME
+
+    AL.NewTimer(10000, function()
+        iGameState = GAMESTATE_FINISH
+    end)   
+end
+--//
+
+--UNITS
+CUnits = {}
+CUnits.tUnits = {}
+
+CUnits.iUnitColor = CColors.RED
+CUnits.bDamageCooldown = false
+
+CUnits.UNIT_DAMAGE = 1
+CUnits.UNIT_DAMAGE_COOLDOWN = 1500
+
+CUnits.CreateUnit = function(iX, iY)
+    local iUnitId = #CUnits.tUnits+1
+    CUnits.tUnits[iUnitId] = {}
+    CUnits.tUnits[iUnitId].iX = iX
+    CUnits.tUnits[iUnitId].iY = iY
+
+    CWorld.tBlocks[iX][iY].iUnitId = iUnitId
+    CUnits.NewDestinationForUnit(iUnitId)
+end
+
+CUnits.NewDestinationForUnit = function(iUnitId)
+    CUnits.tUnits[iUnitId].iDestX = math.random(1, tGame.Cols)
+    CUnits.tUnits[iUnitId].iDestY = math.random(1, tGame.Rows)    
+end
+
+CUnits.DrawUnits = function()
+    for iUnitId = 1, #CUnits.tUnits do
+        if CUnits.tUnits[iUnitId] then
+            tFloor[CUnits.tUnits[iUnitId].iX][CUnits.tUnits[iUnitId].iY].iColor = CUnits.iUnitColor
+            tFloor[CUnits.tUnits[iUnitId].iX][CUnits.tUnits[iUnitId].iY].iBright = tConfig.Bright
+        end
+    end
+end
+
+CUnits.Think = function()
+    for iUnitId = 1, #CUnits.tUnits do
+        if CUnits.tUnits[iUnitId] then
+            CUnits.UnitThink(iUnitId)
+        end
+    end
+end
+
+CUnits.UnitThink = function(iUnitId)
+    local iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitId)
+
+    if iXPlus == 0 and iYPlus == 0 then
+        CUnits.NewDestinationForUnit(iUnitId)
+        iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitId)
+    end
+
+    local iNewX = CUnits.tUnits[iUnitId].iX + iXPlus
+    local iNewY = CUnits.tUnits[iUnitId].iY + iYPlus
+
+    if CUnits.CanMove(iUnitId, iNewX, iNewY) then
+        CUnits.Move(iUnitId, iNewX, iNewY)
+    else
+        CUnits.NewDestinationForUnit(iUnitId)  
+    end
+end
+
+CUnits.GetDestinationXYPlus = function(iUnitId)
+    local iX = 0
+    local iY = 0
+
+    if CUnits.tUnits[iUnitId].iX < CUnits.tUnits[iUnitId].iDestX then
+        iX = 1
+    elseif CUnits.tUnits[iUnitId].iX > CUnits.tUnits[iUnitId].iDestX then
+        iX = -1
+    end
+
+    if CUnits.tUnits[iUnitId].iY < CUnits.tUnits[iUnitId].iDestY then
+        iY = 1
+    elseif CUnits.tUnits[iUnitId].iY > CUnits.tUnits[iUnitId].iDestY then
+        iY = -1
+    end
+
+    return iX, iY
+end
+
+CUnits.CanMove = function(iUnitId, iX, iY)
+    if CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] then
+        if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_EMPTY then
+            if CWorld.tBlocks[iX][iY].iUnitId > 0 and CWorld.tBlocks[iX][iY].iUnitId ~= iUnitId then
+                if CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iX ~= iX or CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iY ~= iY then
+                    return true
+                end
+            else
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
+CUnits.Move = function(iUnitId, iX, iY)
+    CUnits.tUnits[iUnitId].iX = iX
+    CUnits.tUnits[iUnitId].iY = iY
+    CWorld.tBlocks[iX][iY].iUnitId = iUnitId
+
+    CUnits.Collision(iX, iY)
+end
+
+CUnits.Collision = function(iX, iY)
+    if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
+        CUnits.DamagePlayer()
+    end
+end
+
+CUnits.DamagePlayer = function()
+    if CUnits.bDamageCooldown then return; end
+
+    tGameStats.CurrentLives = tGameStats.CurrentLives - CUnits.UNIT_DAMAGE
+    if tGameStats.CurrentLives == 0 then
+        CGameMode.EndGame(false)
+    else
+        CUnits.bDamageCooldown = true
+        CUnits.iUnitColor = CColors.MAGENTA
+
+        AL.NewTimer(CUnits.UNIT_DAMAGE_COOLDOWN, function()
+            CUnits.bDamageCooldown = false
+            CUnits.iUnitColor = CColors.RED           
+        end)
+    end
 end
 --//
 
@@ -204,7 +399,7 @@ CWorld.BLOCK_TYPE_SAFEZONE = 4
 
 CWorld.BLOCK_TYPE_TO_COLOR = {}
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_EMPTY] = CColors.NONE
-CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.MAGENTA
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.CYAN
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_COIN] = CColors.YELLOW
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_SAFEZONE] = CColors.GREEN
 CWorld.FOG_COLOR = CColors.BLUE
@@ -214,8 +409,15 @@ CWorld.VISION_RADIUS = 1
 CWorld.Load = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            CWorld.SetBlock(iX, iY, 1)
+            CWorld.SetBlock(iX, iY, CWorld.BLOCK_TYPE_EMPTY)
         end
+    end
+
+    for iStructureId = 1, math.random(2,4) do
+        local iBlockType = CWorld.BLOCK_TYPE_SAFEZONE
+        if iStructureId > 2 and math.random(1, 3) == 3 then iBlockType = CWorld.BLOCK_TYPE_TERRAIN end
+
+        CWorld.CreateStructure(math.random(1, tGame.Cols), math.random(1, tGame.Rows), iBlockType)       
     end
 
     for iCoinId = 1, tConfig.CoinCount do
@@ -229,6 +431,18 @@ CWorld.Load = function()
 
         CWorld.SetBlock(iX, iY, CWorld.BLOCK_TYPE_COIN)
     end
+
+    for iUnitId = 1, tConfig.UnitCount do
+        local iX = 1
+        local iY = 1
+
+        repeat
+            iX = math.random(1, tGame.Cols)
+            iY = math.random(1, tGame.Rows)
+        until CUnits.CanMove(0, iX, iY)   
+
+        CUnits.CreateUnit(iX, iY)
+    end
 end
 
 CWorld.SetBlock = function(iX, iY, iBlockType)
@@ -236,6 +450,7 @@ CWorld.SetBlock = function(iX, iY, iBlockType)
     CWorld.tBlocks[iX][iY] = {} 
     CWorld.tBlocks[iX][iY].iBlockType = iBlockType 
     CWorld.tBlocks[iX][iY].bVisible = false  
+    CWorld.tBlocks[iX][iY].iUnitId = 0  
 end
 
 CWorld.Draw = function()
@@ -256,6 +471,18 @@ CWorld.Vision = function(iXStart, iYStart, bVisible)
         for iY = iYStart - CWorld.VISION_RADIUS, iYStart + CWorld.VISION_RADIUS do
             if CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] then
                 CWorld.tBlocks[iX][iY].bVisible = bVisible
+            end
+        end
+    end
+end
+
+CWorld.CreateStructure = function(iXStart, iYStart, iBlockType)
+    local iSize = math.random(2,3)
+
+    for iX = iXStart, iXStart+iSize do
+        for iY = iYStart, iYStart+iSize do
+            if CWorld.tBlocks[iX] and CWorld.tBlocks[iY] then
+                CWorld.SetBlock(iX, iY, iBlockType)
             end
         end
     end
@@ -411,7 +638,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if click.Click then
+        if click.Click and iGameState == GAMESTATE_GAME then
             CGameMode.PlayerClick(click.X, click.Y)
         end
     end
@@ -420,12 +647,18 @@ end
 function DefectPixel(defect)
     if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
         tFloor[defect.X][defect.Y].bDefect = defect.Defect
+
+        if defect.Defect and CWorld.tBlocks[defect.X][defect.Y].iBlockType == CWorld.BLOCK_TYPE_COIN then
+            CGameMode.PlayerClick(defect.X, defect.Y)
+        end
     end
 end
 
 function ButtonClick(click)
     if tButtons[click.Button] == nil then return end
     tButtons[click.Button].bClick = click.Click
+
+    if click.Click then bAnyButtonClick = true end
 end
 
 function DefectButton(defect)
