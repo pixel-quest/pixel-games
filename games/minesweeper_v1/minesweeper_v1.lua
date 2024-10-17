@@ -410,7 +410,7 @@ CMaps.GetRandomMap = function()
         CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
     end
 
-    CLog.print("random map #"..CMaps.iRandomMapID)
+    --CLog.print("random map #"..CMaps.iRandomMapID)
 
     return tGame.Maps[CMaps.iRandomMapID]
 end
