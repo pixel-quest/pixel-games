@@ -1,6 +1,7 @@
 {
   "Cols": 6,
   "Rows": 6,
+  "ArenaMode": true,  
   "Maps": [
         [   
       [1,1,1,1,1,1],

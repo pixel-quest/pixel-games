@@ -88,6 +88,7 @@ local tButtonStruct = {
 }
 
 local tPlayerInGame = {}
+local tArenaPlayerReady = {}
 local bAnyButtonClick = false
 local bCountDownStarted = false
 
@@ -159,11 +160,25 @@ function GameSetupTick()
                 local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
                 local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
 
+                local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
                         tFloor[iX][iY].iColor = 5
-                        if tFloor[iX][iY].bClick then bAnyButtonClick = true end
+                        if tArenaPlayerReady[iPos] then
+                            tFloor[iX][iY].iBright = tConfig.Bright+2
+                        end
+
+                        if tFloor[iX][iY].bClick then 
+                            bArenaClick = true
+                        end
                     end
+                end
+
+                if bArenaClick then
+                    bAnyButtonClick = true 
+                    tArenaPlayerReady[iPos] = true
+                else
+                    tArenaPlayerReady[iPos] = false
                 end
             end
         end
@@ -236,13 +251,18 @@ CGameMode.Announcer = function()
     if #tGame.StartPositions > 1 then
         CAudio.PlaySync("voices/choose-color.mp3")
     end
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    if tGame.ArenaMode then 
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(100, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 

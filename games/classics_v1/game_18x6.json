@@ -1,6 +1,7 @@
 {
   "Cols": 18,
   "Rows": 6,
+  "ArenaMode": true,  
   "Buttons": [
     2,
     6,
