@@ -194,7 +194,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -345,6 +345,8 @@ CGameMode.EndGame = function()
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 
 CGameMode.PlayerTouchedGround = function(iPlayerID)
@@ -408,7 +410,7 @@ CMaps.GetRandomMap = function()
         CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
     end
 
-    CLog.print("random map #"..CMaps.iRandomMapID)
+    --CLog.print("random map #"..CMaps.iRandomMapID)
 
     return tGame.Maps[CMaps.iRandomMapID]
 end
