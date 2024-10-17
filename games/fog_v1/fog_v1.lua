@@ -132,11 +132,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    if CGameMode.bVictory then
-        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
-    else
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
-    end
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -258,6 +254,12 @@ CGameMode.EndGame = function(bVictory)
     AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH
     end)   
+
+    if CGameMode.bVictory then
+        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
+    else
+        SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    end
 end
 --//
 
