@@ -166,8 +166,8 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename
-    --voice guide
+    CAudio.PlaySync("fog_gamename.mp3")
+    CAudio.PlaySync("fog_guide.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -223,10 +223,8 @@ CGameMode.PlayerClick = function(iX, iY)
         end
     end)
 
-    if CWorld.tBlocks[iX][iY].iUnitId > 0 then
-        if CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iX == iX and CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iY == iY then
-            CUnits.DamagePlayer()
-        end
+    if CUnits.IsUnitOnPosition(iX, iY) then
+        CUnits.DamagePlayer()
     end
 end
 
@@ -244,8 +242,10 @@ CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
 
     if bVictory then
+        CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
     else
+        CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
     end
 
@@ -278,6 +278,7 @@ CUnits.CreateUnit = function(iX, iY)
     CUnits.tUnits[iUnitId] = {}
     CUnits.tUnits[iUnitId].iX = iX
     CUnits.tUnits[iUnitId].iY = iY
+    CUnits.tUnits[iUnitId].bLastMoveX = false
 
     CWorld.tBlocks[iX][iY].iUnitId = iUnitId
     CUnits.NewDestinationForUnit(iUnitId)
@@ -313,8 +314,16 @@ CUnits.UnitThink = function(iUnitId)
         iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitId)
     end
 
-    local iNewX = CUnits.tUnits[iUnitId].iX + iXPlus
-    local iNewY = CUnits.tUnits[iUnitId].iY + iYPlus
+    local iNewX = CUnits.tUnits[iUnitId].iX
+    local iNewY = CUnits.tUnits[iUnitId].iY
+
+    if not CUnits.tUnits[iUnitId].bLastMoveX then
+        iNewX = iNewX + iXPlus
+        CUnits.tUnits[iUnitId].bLastMoveX = true
+    else
+        iNewY = iNewY + iYPlus
+        CUnits.tUnits[iUnitId].bLastMoveX = false
+    end
 
     if CUnits.CanMove(iUnitId, iNewX, iNewY) then
         CUnits.Move(iUnitId, iNewX, iNewY)
@@ -379,6 +388,8 @@ CUnits.DamagePlayer = function()
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false)
     else
+        CAudio.PlayAsync(CAudio.MISCLICK)
+
         CUnits.bDamageCooldown = true
         CUnits.iUnitColor = CColors.MAGENTA
 
@@ -387,6 +398,15 @@ CUnits.DamagePlayer = function()
             CUnits.iUnitColor = CColors.RED           
         end)
     end
+end
+
+CUnits.IsUnitOnPosition = function(iX, iY)
+    if CWorld.tBlocks[iX][iY].iUnitId > 0 then
+        if CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iX == iX and CUnits.tUnits[CWorld.tBlocks[iX][iY].iUnitId].iY == iY then
+            return CWorld.tBlocks[iX][iY].iUnitId
+        end
+    end
+    return false
 end
 --//
 
@@ -473,6 +493,14 @@ CWorld.Vision = function(iXStart, iYStart, bVisible)
         for iY = iYStart - CWorld.VISION_RADIUS, iYStart + CWorld.VISION_RADIUS do
             if CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] then
                 CWorld.tBlocks[iX][iY].bVisible = bVisible
+
+                if bVisible then
+                    local iUnitId = CUnits.IsUnitOnPosition(iX, iY)
+                    if iUnitId then
+                        CUnits.tUnits[iUnitId].iDestX = iXStart
+                        CUnits.tUnits[iUnitId].iDestY = iYStart
+                    end
+                end
             end
         end
     end
@@ -617,6 +645,10 @@ function SetAllButtonColorBright(iColor, iBright, bCheckDefect)
             tButtons[i].iBright = iBright
         end
     end
+end
+
+function Dist(iX1, iY1, iX2, iY2)
+    return math.sqrt(math.pow(iX2 - iX1, 2) + math.pow(iY2 - iY1, 2))
 end
 --//
 

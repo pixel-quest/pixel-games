@@ -26,10 +26,10 @@
 	"UnitCount_En": "Enemy count",	
 	"UnitCount_Ru": "Количество врагов",
 
-	"UnitThinkDelay": 300,	
-	"UnitThinkDelay_Min": 100,	
-	"UnitThinkDelay_Max": 1000,	
-	"UnitThinkDelay_Step": 100,	
+	"UnitThinkDelay": 200,	
+	"UnitThinkDelay_Min": 50,	
+	"UnitThinkDelay_Max": 500,	
+	"UnitThinkDelay_Step": 50,	
 	"UnitThinkDelay_En": "Enemy movement tick rate",	
 	"UnitThinkDelay_Ru": "Частота движения врагов"	
 }
