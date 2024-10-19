@@ -1,0 +1,35 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+	"CoinCount": 10,	
+	"CoinCount_Min": 5,	
+	"CoinCount_Max": 15,	
+	"CoinCount_Step": 1,	
+	"CoinCount_En": "Amount of coins",	
+	"CoinCount_Ru": "Количество монет",
+
+	"TeamHealth": 10,	
+	"TeamHealth_Min": 5,	
+	"TeamHealth_Max": 20,	
+	"TeamHealth_Step": 1,	
+	"TeamHealth_En": "Team Lives",	
+	"TeamHealth_Ru": "Количество жизней команды",
+
+	"UnitCount": 2,	
+	"UnitCount_Min": 1,	
+	"UnitCount_Max": 4,	
+	"UnitCount_Step": 1,	
+	"UnitCount_En": "Enemy count",	
+	"UnitCount_Ru": "Количество врагов",
+
+	"UnitThinkDelay": 200,	
+	"UnitThinkDelay_Min": 50,	
+	"UnitThinkDelay_Max": 500,	
+	"UnitThinkDelay_Step": 50,	
+	"UnitThinkDelay_En": "Enemy movement tick rate",	
+	"UnitThinkDelay_Ru": "Частота движения врагов"	
+}
