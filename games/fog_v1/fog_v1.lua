@@ -166,8 +166,9 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("fog_gamename.mp3")
-    CAudio.PlaySync("fog_guide.mp3")
+    CAudio.PlayBackground("fog_setup_song.mp3")
+
+    CAudio.PlaySync("fog_halloween_guide.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -194,7 +195,7 @@ end
 
 CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
-    CAudio.PlayRandomBackground()
+    CGameMode.RandomBackGround()
     iGameState = GAMESTATE_GAME
 
     AL.NewTimer(tConfig.UnitThinkDelay, function()
@@ -204,6 +205,25 @@ CGameMode.StartGame = function()
 
         return tConfig.UnitThinkDelay
     end)
+
+    AL.NewTimer(math.random(5000, 30000), function()
+        if iGameState == GAMESTATE_GAME then
+            CGameMode.RandomScarySound()
+
+            return math.random(10000, 40000)
+        end
+
+        return nil
+    end)
+end
+
+CGameMode.RandomBackGround = function()
+    CAudio.StopBackground()
+    CAudio.PlayBackground(tGame.SongList[math.random(1, #tGame.SongList)])
+end
+
+CGameMode.RandomScarySound = function()
+    CAudio.PlayAsync(tGame.ScarySoundsList[math.random(1, #tGame.ScarySoundsList)])
 end
 
 CGameMode.PlayerClick = function(iX, iY)
@@ -388,7 +408,8 @@ CUnits.DamagePlayer = function()
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false)
     else
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        --CAudio.PlayAsync(CAudio.MISCLICK)
+        CGameMode.RandomScarySound()
 
         CUnits.bDamageCooldown = true
         CUnits.iUnitColor = CColors.MAGENTA
