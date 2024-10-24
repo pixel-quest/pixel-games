@@ -14,6 +14,7 @@
             "batsign" - лого бэтмена
             "marvel" - железный человек и капитан америка
             "mario" - марио
+            "pumpkin" - тыква
 
 
 ]]
@@ -158,8 +159,12 @@ CPaint.iOffset = 0
 
 CPaint.PaintBG = function()
     local tBg = nil
+    local tBgBr = nil
     if CPaint.sBackgroundName ~= "" then
         tBg = tGame.Backgrounds[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
+        if tGame.BackgroundsBrightMaps[CPaint.sBackgroundName] ~= nil then
+            tBgBr = tGame.BackgroundsBrightMaps[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
+        end
     end
 
     local iX = 0
@@ -191,6 +196,10 @@ CPaint.PaintBG = function()
             if tBg ~= nil and tBg[iBGY][iBGX] ~= 8 then
                 tFloor[iX][iY].iColor = tBg[iBGY][iBGX]
                 tFloor[iX][iY].iBright = tConfig.Bright
+
+                if tBgBr ~= nil and tBgBr[iBGY][iBGX] ~= 9 then
+                    tFloor[iX][iY].iBright = tBgBr[iBGY][iBGX]
+                end
             end
         end
     end
