@@ -156,6 +156,7 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.bVictory = false
+CGameMode.tLastPlayerStep = {}
 
 CGameMode.InitGameMode = function()
     CWorld.Load()
@@ -206,11 +207,11 @@ CGameMode.StartGame = function()
         return tConfig.UnitThinkDelay
     end)
 
-    AL.NewTimer(math.random(5000, 30000), function()
+    AL.NewTimer(math.random(5000, 15000), function()
         if iGameState == GAMESTATE_GAME then
             CGameMode.RandomScarySound()
 
-            return math.random(10000, 40000)
+            return math.random(10000, 25000)
         end
 
         return nil
@@ -224,6 +225,10 @@ end
 
 CGameMode.RandomScarySound = function()
     CAudio.PlayAsync(tGame.ScarySoundsList[math.random(1, #tGame.ScarySoundsList)])
+end
+
+CGameMode.RandomDamageSound = function()
+    CAudio.PlayAsync(tGame.DamageSoundsList[math.random(1, #tGame.DamageSoundsList)])
 end
 
 CGameMode.PlayerClick = function(iX, iY)
@@ -245,6 +250,8 @@ CGameMode.PlayerClick = function(iX, iY)
 
     if CUnits.IsUnitOnPosition(iX, iY) then
         CUnits.DamagePlayer()
+    elseif CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_EMPTY then
+        CGameMode.tLastPlayerStep = {iX = iX, iY = iY}
     end
 end
 
@@ -305,8 +312,14 @@ CUnits.CreateUnit = function(iX, iY)
 end
 
 CUnits.NewDestinationForUnit = function(iUnitId)
-    CUnits.tUnits[iUnitId].iDestX = math.random(1, tGame.Cols)
-    CUnits.tUnits[iUnitId].iDestY = math.random(1, tGame.Rows)    
+    if CGameMode.tLastPlayerStep.iX ~= nil then
+        CUnits.tUnits[iUnitId].iDestX = CGameMode.tLastPlayerStep.iX
+        CUnits.tUnits[iUnitId].iDestY = CGameMode.tLastPlayerStep.iY
+        CGameMode.tLastPlayerStep = {}
+    else
+        CUnits.tUnits[iUnitId].iDestX = math.random(1, tGame.Cols)
+        CUnits.tUnits[iUnitId].iDestY = math.random(1, tGame.Rows)   
+    end 
 end
 
 CUnits.DrawUnits = function()
@@ -409,7 +422,7 @@ CUnits.DamagePlayer = function()
         CGameMode.EndGame(false)
     else
         --CAudio.PlayAsync(CAudio.MISCLICK)
-        CGameMode.RandomScarySound()
+        CGameMode.RandomDamageSound()
 
         CUnits.bDamageCooldown = true
         CUnits.iUnitColor = CColors.MAGENTA
@@ -445,7 +458,8 @@ CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_EMPTY] = CColors.NONE
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.CYAN
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_COIN] = CColors.YELLOW
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_SAFEZONE] = CColors.GREEN
-CWorld.FOG_COLOR = CColors.BLUE
+CWorld.FOG_COLOR = CColors.WHITE
+CWorld.FOG_BRIGHT = CColors.BRIGHT30
 
 CWorld.VISION_RADIUS = 1
 
@@ -501,10 +515,11 @@ CWorld.Draw = function()
         for iY = 1, tGame.Rows do 
             if CWorld.tBlocks[iX][iY].bVisible or CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_SAFEZONE then
                 tFloor[iX][iY].iColor = CWorld.BLOCK_TYPE_TO_COLOR[CWorld.tBlocks[iX][iY].iBlockType]
+                tFloor[iX][iY].iBright = tConfig.Bright
             else
                 tFloor[iX][iY].iColor = CWorld.FOG_COLOR
+                tFloor[iX][iY].iBright = CWorld.FOG_BRIGHT
             end
-            tFloor[iX][iY].iBright = tConfig.Bright          
         end
     end
 end

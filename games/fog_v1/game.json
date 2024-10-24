@@ -16,5 +16,12 @@
     "fog_laugh1.mp3",
     "fog_laugh2.mp3",
     "fog_ghost1.mp3"
+  ],
+
+  "DamageSoundsList":
+  [
+    "fog_scream1.mp3",
+    "fog_scream2.mp3",
+    "fog_scream3.mp3"
   ]
 }
