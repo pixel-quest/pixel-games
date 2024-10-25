@@ -248,7 +248,7 @@ CGameMode.PlayerClick = function(iX, iY)
         end
     end)
 
-    if CUnits.IsUnitOnPosition(iX, iY) then
+    if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_TRAP or CUnits.IsUnitOnPosition(iX, iY) then
         CUnits.DamagePlayer()
     elseif CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_EMPTY then
         CGameMode.tLastPlayerStep = {iX = iX, iY = iY}
@@ -452,12 +452,14 @@ CWorld.BLOCK_TYPE_EMPTY = 1
 CWorld.BLOCK_TYPE_TERRAIN = 2
 CWorld.BLOCK_TYPE_COIN = 3
 CWorld.BLOCK_TYPE_SAFEZONE = 4
+CWorld.BLOCK_TYPE_TRAP = 5
 
 CWorld.BLOCK_TYPE_TO_COLOR = {}
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_EMPTY] = CColors.NONE
-CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.CYAN
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TERRAIN] = CColors.GREEN
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_COIN] = CColors.YELLOW
 CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_SAFEZONE] = CColors.GREEN
+CWorld.BLOCK_TYPE_TO_COLOR[CWorld.BLOCK_TYPE_TRAP] = CColors.RED
 CWorld.FOG_COLOR = CColors.WHITE
 CWorld.FOG_BRIGHT = CColors.BRIGHT30
 
@@ -470,9 +472,11 @@ CWorld.Load = function()
         end
     end
 
-    for iStructureId = 1, math.random(2,4) do
+    CWorld.CreateStructure(math.random(math.floor(tGame.Cols/2.5), math.floor(tGame.Cols/1.5)), math.random(tGame.Rows/3, tGame.Rows/2), CWorld.BLOCK_TYPE_SAFEZONE) 
+
+    for iStructureId = 1, math.random(1,3) do
         local iBlockType = CWorld.BLOCK_TYPE_SAFEZONE
-        if iStructureId > 2 and math.random(1, 3) == 3 then iBlockType = CWorld.BLOCK_TYPE_TERRAIN end
+        if iStructureId > 1 and math.random(1, 3) == 3 then iBlockType = CWorld.BLOCK_TYPE_TERRAIN end
 
         CWorld.CreateStructure(math.random(1, tGame.Cols), math.random(1, tGame.Rows), iBlockType)       
     end
@@ -500,6 +504,18 @@ CWorld.Load = function()
 
         CUnits.CreateUnit(iX, iY)
     end
+
+    for iTrapCount = 1, math.random(2,3) do
+        local iX = 0
+        local iY = 0
+
+        repeat
+            iX = math.random(1, tGame.Cols)
+            iY = math.random(1, tGame.Rows)
+        until CWorld.tBlocks[iX] and CWorld.tBlocks[iX][iY] and CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_EMPTY and not tFloor[iX][iY].bDefect 
+        
+        CWorld.SetBlock(iX, iY, CWorld.BLOCK_TYPE_TRAP)      
+    end
 end
 
 CWorld.SetBlock = function(iX, iY, iBlockType)
@@ -516,6 +532,10 @@ CWorld.Draw = function()
             if CWorld.tBlocks[iX][iY].bVisible or CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_SAFEZONE then
                 tFloor[iX][iY].iColor = CWorld.BLOCK_TYPE_TO_COLOR[CWorld.tBlocks[iX][iY].iBlockType]
                 tFloor[iX][iY].iBright = tConfig.Bright
+
+                if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_TRAP and CUnits.bDamageCooldown then
+                    tFloor[iX][iY].iColor = CColors.MAGENTA
+                end
             else
                 tFloor[iX][iY].iColor = CWorld.FOG_COLOR
                 tFloor[iX][iY].iBright = CWorld.FOG_BRIGHT
