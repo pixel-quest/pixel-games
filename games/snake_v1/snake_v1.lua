@@ -111,6 +111,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = #tGame.StartPositions
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -197,9 +199,6 @@ function GameSetupTick()
     if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
         bCountDownStarted = true
         bAnyButtonClick = false
-
-        tGameResults.PlayersCount = iPlayersReady
-
         CGameMode.StartCountDown(tConfig.GameCountdown)
     end
 end
@@ -417,13 +416,14 @@ CGameMode.EndGame = function(bVictory)
         end
 
         CAudio.PlaySync(CAudio.VICTORY)
+        tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
+        tGameResults.Score = tGameStats.TargetScore - tGameStats.Players[6].Score
     else
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
 
     tGameResults.Won = bVictory
-    tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
-    tGameResults.Score = tGameStats.TargetScore - tGameStats.Players[6].Score
 
     iGameState = GAMESTATE_POSTGAME
 
