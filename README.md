@@ -52,13 +52,14 @@
   - **Классики** – *классики 3х6* [classics_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/classics_v1/classics_v1.lua)
   - **Проводник** – *игра на двоих по выводу пикселя из лабиринта* [maze_guide_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/maze_guide_v1/maze_guide_v1.lua)
   - **Рефлекс** – *игра на реакцию* [reflex_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/reflex_v1/reflex_v1.lua)
+  - **Туман** – *игра к Хэллоуину: поле покрыто туманом, надо искать конфеты* [fog_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/fog_v1/fog_v1.lua)
   - **Рисовалка** – *рисовалка* [сoloring_book_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
 Коммерческое использование запрещено.  
 Обязательно указание первоисточника.  
-Pixel Quest © 2023−2024  
+**Pixel Quest** © 2023−2024  
   
 ООО "Пиксель Квест"  
 ОГРН: 1235000071371  
