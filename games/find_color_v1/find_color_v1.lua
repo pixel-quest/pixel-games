@@ -424,6 +424,10 @@ function DefectPixel(defect)
 
     if defect.Defect then
         FloorMatrix[defect.X][defect.Y].Click = false
+
+        if FloorMatrix[defect.X][defect.Y].Color == GameStats.TargetColor then
+            switchStage(GameStats.StageNum)
+        end
     end
 end
 
@@ -557,6 +561,8 @@ function switchStage(newStage)
             if y+2 <= GameObj.Rows and FloorMatrix[x][y+2].Color == GameStats.TargetColor then
                 goto continue
             end
+
+            if FloorMatrix[x][y].Defect then goto continue end
 
             FloorMatrix[x][y].Color = GameStats.TargetColor
             FloorMatrix[x][y].Bright = GameConfigObj.Bright
