@@ -68,6 +68,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -107,6 +111,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = #tGame.StartPositions
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -122,6 +128,12 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if tGameResults.AfterDelay then
+            local tReturn = tGameResults
+            tGameResults.AfterDelay = false
+            return tReturn
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
@@ -345,6 +357,8 @@ CGameMode.PlayerClickPixel = function(iPixelID)
 
     CAudio.PlayAsync(CAudio.CLICK)
 
+    tGameResults.Score = tGameResults.Score + tGameStats.TargetScore - tGameStats.Players[6].Score
+
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
     if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
         CGameMode.iWinnerID = iPlayerID
@@ -404,9 +418,13 @@ CGameMode.EndGame = function(bVictory)
         end
 
         CAudio.PlaySync(CAudio.VICTORY)
+        tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
     else
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
+
+    tGameResults.Won = bVictory
 
     iGameState = GAMESTATE_POSTGAME
 
