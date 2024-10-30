@@ -357,6 +357,8 @@ CGameMode.PlayerClickPixel = function(iPixelID)
 
     CAudio.PlayAsync(CAudio.CLICK)
 
+    tGameResults.Score = tGameResults.Score + tGameStats.TargetScore - tGameStats.Players[6].Score
+
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
     if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
         CGameMode.iWinnerID = iPlayerID
@@ -417,7 +419,6 @@ CGameMode.EndGame = function(bVictory)
 
         CAudio.PlaySync(CAudio.VICTORY)
         tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
-        tGameResults.Score = tGameStats.TargetScore - tGameStats.Players[6].Score
     else
         CAudio.PlaySync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
