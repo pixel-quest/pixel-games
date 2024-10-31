@@ -325,6 +325,9 @@ function ResumeGame()
 end
 
 function PixelClick(click)
+    if not click.X or click.X < 1 or click.X > tGame.Rows then return end
+    if not click.Y or click.Y < 1 or click.Y > tGame.Cols then return end
+
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
