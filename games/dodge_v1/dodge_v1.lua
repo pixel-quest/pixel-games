@@ -1690,8 +1690,8 @@ end
 function DefectPixel(defect)
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
-        CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, defect.X, defect.Y)
+    if defect.Defect and CEffect.bEffectOn and tFloor[defect.X][defect.Y].iCoinId > 0 then
+        CEffect.SpecialEndingCollectCoin(tFloor[defect.X][defect.Y].iCoinId, defect.X, defect.Y)
     end
 end
 
