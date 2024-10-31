@@ -67,6 +67,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -101,6 +105,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
@@ -117,9 +123,16 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if tGameResults.AfterDelay then
+            local tReturn = tGameResults
+            tGameResults.AfterDelay = false
+            return tReturn
+        end        
     end
 
     if iGameState == GAMESTATE_FINISH then
+        --CLog.print(CInspect(tGameResults))
         return tGameResults
     end    
 
@@ -351,8 +364,14 @@ CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
         if tGameStats.Players[1].Score > 0 then
             CAudio.PlaySync(CAudio.VICTORY)
+            SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
+            tGameResults.Won = true
+            tGameResults.Color = CColors.GREEN
         else
             CAudio.PlaySync(CAudio.DEFEAT)
+            SetGlobalColorBright(CColors.RED, tConfig.Bright)
+            tGameResults.Won = false
+            tGameResults.Color = CColors.RED
         end
     else
         local iMaxScore = -999
@@ -368,17 +387,23 @@ CGameMode.EndGame = function()
 
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         CAudio.PlaySync(CAudio.VICTORY)
+        SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
+        tGameResults.Won = true
+        tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
     end
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
-
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 
 CGameMode.PlayerTouchedGround = function(iPlayerID)
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
+
+    if CGameMode.iPlayerCount == 1 then
+        tGameResults.Score = tGameResults.Score + 2
+    end
 
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] == nil then CGameMode.tPlayerCoinsThisRound[iPlayerID] = 0 end
     CGameMode.tPlayerCoinsThisRound[iPlayerID] = CGameMode.tPlayerCoinsThisRound[iPlayerID] + 1
@@ -412,6 +437,10 @@ end
 CGameMode.PlayerTouchedMine = function(iPlayerID)
     if CGameMode.iPlayerCount > 1 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - 1
+    end
+
+    if CGameMode.iPlayerCount == 1 then
+        tGameResults.Score = tGameResults.Score - 1
     end
 
     CAudio.PlayAsync(CAudio.MISCLICK)
