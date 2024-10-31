@@ -182,7 +182,7 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalStars = GameConfigObj.StagesQty
     GameStats.TotalStages=GameConfigObj.StagesQty
 
-    GameResults.PlayersCount = #GameObj.StartPositions
+    GameResults.PlayersCount = GameConfigObj.PlayerCount
 
     audio.PlaySyncFromScratch("games/find-color-game.mp3") -- Игра "Найди цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
