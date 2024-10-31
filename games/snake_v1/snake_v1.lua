@@ -111,7 +111,7 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGameResults.PlayersCount = #tGame.StartPositions
+    tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()
