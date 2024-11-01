@@ -255,10 +255,9 @@ function NextTick()
             end
         end
     elseif GameStats.StageNum == CONST_STAGE_FINISH then
-        if GameResults.AfterDelay then
-            local tReturn = GameResults
-            GameResults.AfterDelay = false
-            return tReturn
+        if not GameResults.AfterDelay then
+            GameResults.AfterDelay = true
+            return GameResults
         end
 
         local timeSinceStageStart = time.unix() - StageStartTime
@@ -266,6 +265,7 @@ function NextTick()
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
+            GameResults.AfterDelay = false
             return GameResults
         end
 
@@ -357,7 +357,7 @@ function NextTick()
             end
             switchStage(CONST_STAGE_FINISH)
 
-            log.print(inspect(GameResults))
+            --log.print(inspect(GameResults))
         end
 
     end
