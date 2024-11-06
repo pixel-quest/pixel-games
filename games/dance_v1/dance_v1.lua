@@ -58,6 +58,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {}
@@ -157,12 +161,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end
-
+    end  
     CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000 - tConfig.SongStartDelayMS)
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
@@ -228,6 +237,8 @@ function TutorialTick()
             end
         end
     end
+
+    tGameResults.PlayersCount = iPlayersReady
 
     if bAnyButtonClick then
         if tGame.ArenaMode then
@@ -455,13 +466,13 @@ CGameMode.CountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     CAudio.PlaySyncFromScratch("")
-    CTimer.New(1000, function()
+    CTimer.New(1, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-        if tGame.ArenaMode and not bAnyButtonClick then
+        --[[if tGame.ArenaMode and not bAnyButtonClick then
             bCountDownStarted = false
             return nil
-        end
+        end]]
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
@@ -690,6 +701,9 @@ CGameMode.EndGame = function()
             CGameMode.iWinnerID = i
         end
     end
+
+    tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
+    tGameResults.Won = true
 
     CPaint.ClearAnimations()
     --CPaint.AnimateEnd(tGameStats.Players[CGameMode.iWinnerID].Color)
