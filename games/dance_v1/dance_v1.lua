@@ -210,7 +210,7 @@ function TutorialTick()
 
                 if tPlayerInGame[iPos] and tGame.ArenaMode then
                     local iCenterX = tPos.X + math.floor(tGame.StartPositionSize/3)
-                    local iCenterY = tPos.Y + math.floor(tGame.StartPositionSize/2)
+                    local iCenterY = tPos.Y + math.floor(tGame.StartPositionSize/2)-1
 
                     local bArenaClick = false
                     for iX = iCenterX, iCenterX+1 do
