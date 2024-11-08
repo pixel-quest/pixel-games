@@ -36,7 +36,7 @@
   "SnakeLength_Min": 2,
   "SnakeLength_Max": 10,
   "SnakeLength_Step": 1,
-  "SnakeLength_ru": "Начальная длинна змейки",
+  "SnakeLength_ru": "Начальная длина змейки",
   "SnakeLength_en": "Snake starting size",
 
   "SnakeDamagePlayerOnStep": true,
