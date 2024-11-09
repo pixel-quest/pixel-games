@@ -138,6 +138,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {}
@@ -175,6 +179,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.PrepareGame()
 end
 
@@ -191,9 +197,16 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            --CLog.print(CInspect(tGameResults))
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end
 
@@ -329,6 +342,9 @@ CGameMode.Victory = function()
     CGameMode.bVictory = true
     iGameState = GAMESTATE_POSTGAME
 
+    tGameResults.Won = true
+    tGameResults.Color = CColors.GREEN
+
     CTimer.New(tConfig.WinDurationMS, function()
         tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
@@ -344,6 +360,9 @@ CGameMode.Defeat = function()
     CGameMode.bVictory = false
     CGameMode.tBase.iColor = CColors.RED
     iGameState = GAMESTATE_POSTGAME
+
+    tGameResults.Won = false
+    tGameResults.Color = CColors.RED
 
     CTimer.New(tConfig.WinDurationMS, function()
         tGameResults.Won = false
@@ -472,6 +491,8 @@ end
 
 CBuffs.PlayerCollectBuff = function()
     CBuffs.ApplyBuff(CBuffs.RandomBuffType())
+
+    tGameResults.Score = tGameResults.Score + 10
 end
 --//
 
@@ -875,6 +896,8 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
                 if tGameStats.CurrentStars >= tGameStats.TotalStars and CGameMode.tBase.iHealth > 0 then
                     CGameMode.Victory()
                 end
+
+                tGameResults.Score = tGameResults.Score + 100 + (CGameMode.tBase.iHealth - CGameMode.tSettings.BaseHealth)
 
                 if not CBuffs.bBuffDropped and CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
                     CBuffs.DropBuffForPlayers()
