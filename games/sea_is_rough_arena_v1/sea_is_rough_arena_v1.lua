@@ -256,17 +256,19 @@ function NextTick()
             end
         end
 
-        if bAnyPlayerClick then
-            StartPlayersCount = countActivePlayers()
+        if GameObj.ArenaMode then
+            if bAnyPlayerClick then
+                StartPlayersCount = countActivePlayers()
 
-            if StageStartTime == 0 then
-                StageStartTime = time.unix()
-            end     
-        else
-            CountDownStarted = false
-            StartPlayersCount = 0
-            StageStartTime = 0
-            resetCountdown()
+                if StageStartTime == 0 then
+                    StageStartTime = time.unix()
+                end     
+            else
+                CountDownStarted = false
+                StartPlayersCount = 0
+                StageStartTime = 0
+                resetCountdown()
+            end
         end
 
         local currentPlayersCount = countActivePlayers()
@@ -274,7 +276,9 @@ function NextTick()
         --        or currentPlayersCount < 2 then -- если менее двух игроков
         if currentPlayersCount < 2 then
             -- нельзя стартовать
+            CountDownStarted = false
             StartPlayersCount = 0
+            StageStartTime = 0
             resetCountdown()
         end
 
@@ -293,7 +297,7 @@ function NextTick()
             end
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
-                switchStage(GameStats.StageNum + 1)
+                switchStage(GameStats.StageNum + 2)
             end
         end
     elseif GameStats.StageNum >= CONST_STAGE_GAME then -- этап игры
