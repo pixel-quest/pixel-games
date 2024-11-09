@@ -111,9 +111,14 @@ function StartGame(gameJson, gameConfigJson)
     
     if tGame.ArenaMode then 
         CAudio.PlaySync("press-zone-for-start.mp3")
+
+        iPrevTickTime = CTime.unix()
+        CTimer.New(5000, function()
+            CGameMode.bArenaCanStart = true
+        end)
     else
         CAudio.PlaySync("voices/press-button-for-start.mp3")
-    end
+    end    
 end
 
 function NextTick()
@@ -142,12 +147,6 @@ function NextTick()
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     CAnimate.Tick((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
-
-    if tGame.ArenaMode then
-        CTimer.New(5000, function()
-            CGameMode.bArenaCanStart = true
-        end)
-    end
 end
 
 function GameSetupTick()
