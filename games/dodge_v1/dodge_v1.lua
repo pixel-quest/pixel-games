@@ -113,10 +113,6 @@ function NextTick()
         GameTick()
     end
 
-    if iGameState == GAMESTATE_GAME then
-        GameTick()
-    end
-
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
 
@@ -125,6 +121,11 @@ function NextTick()
             return tGameResults
         end
     end
+
+    if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
+        return tGameResults
+    end   
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
