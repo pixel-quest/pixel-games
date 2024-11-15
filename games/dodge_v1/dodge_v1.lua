@@ -61,8 +61,11 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
-
 local tFloor = {} 
 local tButtons = {}
 
@@ -72,7 +75,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    iCoinId = 0
+    iCoinId = 0,
+    bAnimated = false,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -94,6 +98,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -107,13 +113,18 @@ function NextTick()
         GameTick()
     end
 
-    if iGameState == GAMESTATE_POSTGAME then
-        PostGameTick()
+    if iGameState == GAMESTATE_GAME then
+        GameTick()
     end
 
-    if iGameState == GAMESTATE_FINISH then
-        return tGameResults
-    end    
+    if iGameState == GAMESTATE_POSTGAME then
+        PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
+    end
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -217,6 +228,8 @@ end
 CGameMode.DamagePlayer = function(iDamage)
     if CGameMode.bDamageCooldown then return; end
 
+    tGameResults.Score = tGameResults.Score - 10
+
     if not tConfig.EliminationMode then 
         tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
         if tGameStats.CurrentLives <= 0 then
@@ -243,6 +256,8 @@ CGameMode.DamagePlayerCheck = function(iX, iY, iDamage)
     if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 then
         if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
             CGameMode.DamagePlayer(iDamage)
+
+            CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
         end
     end
 end
@@ -251,13 +266,16 @@ CGameMode.EndGame = function(bVictory)
     CGameMode.bVictory = bVictory
     iGameState = GAMESTATE_POSTGAME
     CAudio.StopBackground()
+    tGameResults.Won = bVictory
 
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
+        tGameResults.Color = CColors.GREEN
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
 
     CTimer.New(tConfig.WinDurationMS, function()
@@ -336,7 +354,7 @@ CEffect.NextEffectTimer = function()
     while iEffectId == CEffect.iLastEffect do
         iEffectId = math.random(1, #CEffect.tEffects)
     end
-    CLog.print("next effect: "..iEffectId)
+    --CLog.print("next effect: "..iEffectId)
     --iEffectId = 10
 
     CAudio.PlaySync("next_effect.mp3")
@@ -420,6 +438,8 @@ CEffect.EndCurrentEffect = function()
         CEffect.bEffectOn = false
         CCross.AiNewDest()
 
+        tGameResults.Score = tGameResults.Score + 100
+
         tGameStats.StageNum = tGameStats.StageNum + 1
         CEffect.NextEffectTimer()
     else
@@ -438,7 +458,7 @@ CEffect.LoadEffect = function(iEffectId)
 end
 
 CEffect.PaintEffectPixel = function(iX, iY)
-    if tFloor[iX] and tFloor[iX][iY] then
+    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
         tFloor[iX][iY].iColor = CEffect.iColor
         tFloor[iX][iY].iBright = tConfig.Bright
         CGameMode.DamagePlayerCheck(iX, iY, 1)
@@ -489,6 +509,8 @@ CEffect.SpecialEndingCollectCoin = function(iCoinId, iX, iY)
     if CEffect.tCurrentEffectData.tCoins[iCoinId] == nil then return end
 
     CEffect.tCurrentEffectData.tCoins[iCoinId] = nil
+
+    tGameResults.Score = tGameResults.Score + 5
 
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
@@ -666,7 +688,7 @@ end
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_DRAW] = function()
     local function PaintCirclePixel(iX, iY)
         for iX2 = iX-1, iX+1 do
-            if tFloor[iX2] and tFloor[iX2][iY] then
+            if tFloor[iX2] and tFloor[iX2][iY] and not tFloor[iX2][iY].bAnimated then
                 tFloor[iX2][iY].iColor = CEffect.iColor
                 
                 tFloor[iX2][iY].iBright = tConfig.Bright-2
@@ -760,7 +782,7 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_DRAW] = function()
         if CEffect.tCurrentEffectData.tUnits[iUnitID] then
             for iX = CEffect.tCurrentEffectData.tUnits[iUnitID].iX, CEffect.tCurrentEffectData.tUnits[iUnitID].iX-1 + CEffect.tCurrentEffectData.iUnitSize do
                 for iY = CEffect.tCurrentEffectData.tUnits[iUnitID].iY, CEffect.tCurrentEffectData.tUnits[iUnitID].iY-1 + CEffect.tCurrentEffectData.iUnitSize do
-                    if tFloor[iX] and tFloor[iX][iY] then
+                    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
                         tFloor[iX][iY].iColor = CEffect.iColor
                         tFloor[iX][iY].iBright = tConfig.Bright
                         CGameMode.DamagePlayerCheck(iX, iY, 1)
@@ -1503,6 +1525,7 @@ end
 
 --paint
 CPaint = {}
+CPaint.ANIMATION_DELAY = 100
 
 CPaint.Cross = function()
     if CCross.bHidden then return end
@@ -1520,6 +1543,36 @@ CPaint.Cross = function()
             tFloor[CCross.iX][iY].iBright = CCross.iBright
         end
     end     
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return CPaint.ANIMATION_DELAY*3
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 --//
 
@@ -1634,8 +1687,10 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
 
             if CEffect.bEffectOn == false then
                 tFloor[iX][iY].iCoinId = 0
@@ -1679,7 +1734,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].iWeight = click.Weight
 
     if not tFloor[click.X][click.Y].bDefect and click.Click and tFloor[click.X][click.Y].iColor == CColors.RED then
-        CGameMode.DamagePlayer(1)
+        CGameMode.DamagePlayerCheck(click.X, click.Y, 1)
     end
 
     if click.Click and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then

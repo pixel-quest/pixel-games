@@ -129,14 +129,14 @@ function NextTick()
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
 
-        if tGameResults.AfterDelay then
-            local tReturn = tGameResults
-            tGameResults.AfterDelay = false
-            return tReturn
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
         end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end    
 

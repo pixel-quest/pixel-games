@@ -54,6 +54,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -66,7 +70,8 @@ local tFloorStruct = {
     bDefect = false,
     iWeight = 0,
     iObjectId = 0,
-    tSafeZoneButton = nil
+    tSafeZoneButton = nil,
+    bAnimated = false
 }
 local tButtonStruct = { 
     bClick = false,
@@ -118,6 +123,8 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()    
 end
@@ -133,9 +140,15 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end    
 
@@ -371,18 +384,20 @@ CGameMode.EndGame = function(bVictory)
     CGameMode.bVictory = bVictory
     CAudio.StopBackground()
     iGameState = GAMESTATE_POSTGAME
+    tGameResults.Won = bVictory
 
     CTimer.New(tConfig.WinDurationMS, function()
-        tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
     end)
 
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)    
+        tGameResults.Color = CColors.GREEN
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
 end
 --//
@@ -506,6 +521,8 @@ CLava.PlayerStepDelay = function(iX, iY)
     CTimer.New(tConfig.LavaLag, function()
         if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
             CLava.PlayerStep()
+
+            CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
         end
         tFloor[iX][iY].bDelayed = false
     end)
@@ -533,7 +550,7 @@ CPaint.LavaObject = function(iObjectId)
         end
 
         for iX = iXStart, CLava.tMapObjects[iObjectId].iSizeX + iXStart -1 do
-            if tFloor[iX] and tFloor[iX][iY] then
+            if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
                 tFloor[iX][iY].iColor = CLava.iColor
                 tFloor[iX][iY].iBright = tConfig.Bright
                 tFloor[iX][iY].iObjectId = iObjectId
@@ -577,6 +594,36 @@ CPaint.SafeZone = function(tButton, iBright)
             tFloor[iX][iY].tSafeZoneButton = tButton
         end
     end
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return CPaint.ANIMATION_DELAY*3
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 --//
 
@@ -659,9 +706,11 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iObjectId = 0
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iObjectId = 0
+            end
         end
     end
 
@@ -701,7 +750,7 @@ function PixelClick(click)
     tFloor[click.X][click.Y].iWeight = click.Weight
 
     if click.Click and iGameState == GAMESTATE_GAME and tFloor[click.X][click.Y].iColor == CColors.RED then
-        CLava.PlayerStep()
+        CLava.PlayerStepDelay(click.X, click.Y)
     end
 end
 

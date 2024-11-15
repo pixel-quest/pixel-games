@@ -110,6 +110,13 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
+
+    iPrevTickTime = CTime.unix()
+    if tGame.ArenaMode then
+        CTimer.New(5000, function()
+            CGameMode.bArenaCanStart = true
+        end)
+    end    
 end
 
 function NextTick()
@@ -124,15 +131,14 @@ function NextTick()
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
 
-        if tGameResults.AfterDelay then
-            local tReturn = tGameResults
-            tGameResults.AfterDelay = false
-            return tReturn
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
         end        
     end
 
     if iGameState == GAMESTATE_FINISH then
-        --CLog.print(CInspect(tGameResults))
+        tGameResults.AfterDelay = false
         return tGameResults
     end    
 
@@ -201,7 +207,7 @@ function GameSetupTickMultiPlayer()
                     end
                 end
 
-                if bArenaClick then
+                if bArenaClick and CGameMode.bArenaCanStart then
                     bAnyButtonClick = true 
                 end
             end            
@@ -261,6 +267,7 @@ CGameMode.iAlivePlayerCount = 0
 CGameMode.tPlayerCoinsThisRound = {}
 CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
+CGameMode.bArenaCanStart = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
