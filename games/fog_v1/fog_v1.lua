@@ -58,6 +58,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -90,6 +94,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -105,9 +111,15 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end    
 
@@ -259,6 +271,8 @@ CGameMode.PlayerAddScore = function(iAmount)
     CAudio.PlayAsync(CAudio.CLICK)
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
 
+    tGameResults.Score = tGameResults.Score + (10 * tGameStats.CurrentLives * tConfig.UnitCount)
+
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
         CGameMode.EndGame(true)
     end
@@ -271,10 +285,14 @@ CGameMode.EndGame = function(bVictory)
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
+        tGameResults.Color = CColors.GREEN
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
+
+    tGameResults.Won = bVictory
 
     iGameState = GAMESTATE_POSTGAME
 
@@ -418,6 +436,7 @@ CUnits.DamagePlayer = function()
     if CUnits.bDamageCooldown then return; end
 
     tGameStats.CurrentLives = tGameStats.CurrentLives - CUnits.UNIT_DAMAGE
+    tGameResults.Score = tGameResults.Score - 10
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false)
     else
