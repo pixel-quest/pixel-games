@@ -104,7 +104,11 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false, -- в этой игре не используется, победа ноунейма не имеет смысла
+    Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -178,6 +182,8 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalStars = GameConfigObj.StagesQty
     GameStats.TotalStages=GameConfigObj.StagesQty
 
+    GameResults.PlayersCount = GameConfigObj.PlayerCount
+
     audio.PlaySyncFromScratch("games/find-color-game.mp3") -- Игра "Найди цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
@@ -249,11 +255,17 @@ function NextTick()
             end
         end
     elseif GameStats.StageNum == CONST_STAGE_FINISH then
+        if not GameResults.AfterDelay then
+            GameResults.AfterDelay = true
+            return GameResults
+        end
+
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
+            GameResults.AfterDelay = false
             return GameResults
         end
 
@@ -302,6 +314,8 @@ function NextTick()
             if not StageDonePlayed then
                 audio.PlayAsync(audio.STAGE_DONE)
                 StageDonePlayed = true
+
+                GameResults.Score = GameResults.Score + (10 * GameStats.StageLeftDuration)
             end
             Circle = {
                 X0 = TargetPositions[LastClickedPos].X,
@@ -332,12 +346,18 @@ function NextTick()
                 setGlobalColorBright(colors.GREEN, GameConfigObj.Bright)
                 audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
                 audio.PlaySync(audio.VICTORY)
+                GameResults.Won = true
+                GameResults.Color = colors.GREEN
             else
                 setGlobalColorBright(colors.RED, GameConfigObj.Bright)
                 audio.PlaySync(audio.GAME_OVER)
                 audio.PlaySync(audio.DEFEAT)
+                GameResults.Won = false
+                GameResults.Color = colors.RED
             end
             switchStage(CONST_STAGE_FINISH)
+
+            --log.print(inspect(GameResults))
         end
 
     end
@@ -424,6 +444,10 @@ function DefectPixel(defect)
 
     if defect.Defect then
         FloorMatrix[defect.X][defect.Y].Click = false
+
+        if FloorMatrix[defect.X][defect.Y].Color == GameStats.TargetColor then
+            switchStage(GameStats.StageNum)
+        end
     end
 end
 
@@ -557,6 +581,8 @@ function switchStage(newStage)
             if y+2 <= GameObj.Rows and FloorMatrix[x][y+2].Color == GameStats.TargetColor then
                 goto continue
             end
+
+            if FloorMatrix[x][y].Defect then goto continue end
 
             FloorMatrix[x][y].Color = GameStats.TargetColor
             FloorMatrix[x][y].Bright = GameConfigObj.Bright

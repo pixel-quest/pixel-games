@@ -5,6 +5,13 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
 
+  "PlayerCount": 0,
+  "PlayerCount_Min": 0,
+  "PlayerCount_Max": 6,
+  "PlayerCount_Step": 1,
+  "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
+  "PlayerCount_en": "Player Count",
+
   "BlockSize": 2,
   "BlockSize_Min": 1,
   "BlockSize_Max": 2,
