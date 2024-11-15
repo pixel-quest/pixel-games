@@ -61,6 +61,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -97,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
 
     CBlock.iColor = tGame.PreviewColor
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
@@ -113,11 +119,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end    
+    end  
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -188,7 +200,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -324,8 +336,13 @@ CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
         if tGameStats.Players[1].Score > 0 then
             CAudio.PlaySync(CAudio.VICTORY)
+            tGameResults.Won = true
+            tGameResults.Color = CColors.GREEN
+            CGameMode.iWinnerID = 1
         else
             CAudio.PlaySync(CAudio.DEFEAT)
+            tGameResults.Won = false
+            tGameResults.Color = CColors.RED
         end
     else
         local iMaxScore = -999
@@ -337,15 +354,20 @@ CGameMode.EndGame = function()
             end
         end
 
-        iGameState = GAMESTATE_POSTGAME
-
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         CAudio.PlaySync(CAudio.VICTORY)
+
+        tGameResults.Won = true
+        tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
     end
+
+    iGameState = GAMESTATE_POSTGAME
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 
 CGameMode.PlayerTouchedGround = function(iPlayerID, iX, iY)
@@ -426,7 +448,7 @@ CMaps.GetRandomMap = function()
         CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
     end
 
-    CLog.print("random map #"..CMaps.iRandomMapID)
+    --CLog.print("random map #"..CMaps.iRandomMapID)
 
     return tGame.Maps[CMaps.iRandomMapID]
 end
