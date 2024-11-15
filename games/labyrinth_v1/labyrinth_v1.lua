@@ -63,6 +63,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {}
@@ -97,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.InitGameMode()
 
     CAudio.PlaySync("games/labyrinth.mp3")
@@ -114,11 +120,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end
+    end   
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -144,12 +156,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    local iColor = CColors.GREEN
-    if CGameMode.bVictory == false then
-        iColor = CColors.RED
-    end
 
-    SetGlobalColorBright(iColor, tConfig.Bright)
 end
 
 function RangeFloor(setPixel, setButton)
@@ -272,10 +279,15 @@ CGameMode.Victory = function()
     CGameMode.bVictory = true
     iGameState = GAMESTATE_POSTGAME
 
+    tGameResults.Won = true
+    tGameResults.Color = CColors.GREEN
+
     CTimer.New(tConfig.WinDurationMS, function()
         tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
     end)
+
+    SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
 end
 
 CGameMode.Defeat = function()
@@ -285,14 +297,21 @@ CGameMode.Defeat = function()
     CGameMode.bVictory = false
     iGameState = GAMESTATE_POSTGAME
 
+    tGameResults.Won = false
+    tGameResults.Color = CColors.RED
+
     CTimer.New(tConfig.WinDurationMS, function()
         tGameResults.Won = false
         iGameState = GAMESTATE_FINISH
     end)
+
+    SetGlobalColorBright(CColors.RED, tConfig.Bright)
 end
 
 CGameMode.RoundScoreAdd = function(iScore)
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
+
+    tGameResults.Score = tGameResults.Score + 25 * math.abs(tGameStats.CurrentLives - tGameStats.TotalLives)
 
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
         CGameMode.EndRound()
@@ -303,6 +322,8 @@ end
 
 CGameMode.PlayerTouchedLava = function()
     tGameStats.CurrentLives = tGameStats.CurrentLives - 1
+
+    tGameResults.Score = tGameResults.Score - 10
 
     if tGameStats.CurrentLives <= 0 then
         CGameMode.Defeat()
