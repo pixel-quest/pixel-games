@@ -65,6 +65,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -107,9 +111,14 @@ function StartGame(gameJson, gameConfigJson)
     
     if tGame.ArenaMode then 
         CAudio.PlaySync("press-zone-for-start.mp3")
+
+        iPrevTickTime = CTime.unix()
+        CTimer.New(5000, function()
+            CGameMode.bArenaCanStart = true
+        end)
     else
         CAudio.PlaySync("voices/press-button-for-start.mp3")
-    end
+    end    
 end
 
 function NextTick()
@@ -123,9 +132,15 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end     
 
@@ -170,7 +185,7 @@ function GameSetupTick()
                     end
                 end
 
-                if bArenaClick then
+                if CGameMode.bArenaCanStart and bArenaClick then
                     bAnyButtonClick = true 
                 end
             end 
@@ -178,6 +193,8 @@ function GameSetupTick()
     end
 
     if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) then
+        tGameResults.PlayersCount = iPlayersReady
+
         bAnyButtonClick = false
         iPlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
@@ -192,7 +209,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+    
 end
 
 function RangeFloor(setPixel, setButton)
@@ -224,6 +241,7 @@ CGameMode.tPlayerScoreThisRound = {}
 CGameMode.iPlayersFinished = 0
 CGameMode.tPlayersCoinCollected = {}
 CGameMode.iMapCoinCount = 0
+CGameMode.bArenaCanStart = false
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
@@ -248,7 +266,7 @@ CGameMode.CountDownNextRound = function()
 
     --tGameStats.TargetScore = iPlayerCount * tConfig.RoundCount
 
-    CAudio.PlaySync("voices/zone-edge.mp3")
+    CAudio.PlaySyncFromScratch("voices/zone-edge.mp3")
 
     CTimer.New(6000, function()
         CAudio.PlaySyncFromScratch("")
@@ -341,6 +359,11 @@ CGameMode.EndGame = function()
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
+    tGameResults.Won = true
+    tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
