@@ -86,6 +86,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -121,6 +125,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.init()
     CAnnouncer.GameLoad()
 end
@@ -136,9 +142,16 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            CLog.print(CInspect(tGameResults))
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
     end    
 
@@ -332,10 +345,15 @@ CGameMode.EndGame = function(bVictory)
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync("td2_victory.mp3")
+        tGameResults.Color = CColors.GREEN
+        tGameResults.Score = tGameResults.Score + (10000 * CGameMode.iDifficulty)
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync("td2_defeat.mp3")
+        tGameResults.Color = CColors.RED
     end
+
+    tGameResults.Won = bVictory
 
     CTimer.New(10000, function()
         iGameState = GAMESTATE_FINISH
@@ -380,6 +398,8 @@ CGameMode.PlayerTakeBonus = function(iX, iY)
 
     if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_BONUS then
         CWorld.tBlocks[iX][iY].iBlockType = CWorld.BLOCK_TYPE_EMPTY
+
+        tGameResults.Score = tGameResults.Score + 500
 
         for iUnitID = 1, #CUnits.tUnits do
             if CUnits.tUnits[iUnitID] and CUnits.tUnits[iUnitID].bAlive and CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then
@@ -775,6 +795,12 @@ CUnits.DamageUnit = function(iUnitID, iDamage, iPossibleDeathReason)
     if CUnits.tUnits[iUnitID] and CUnits.tUnits[iUnitID].bAlive and not CUnits.tUnits[iUnitID].bRecieveDamageCooldown then
         CUnits.tUnits[iUnitID].iHealth = CUnits.tUnits[iUnitID].iHealth - iDamage
 
+        if iPossibleDeathReason == CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER then
+            tGameResults.Score = tGameResults.Score + 100
+        else
+            tGameResults.Score = tGameResults.Score + 25
+        end
+
         if CUnits.tUnits[iUnitID].iHealth <= 0 then
             CUnits.UnitKilled(iUnitID, iPossibleDeathReason)
         else
@@ -815,11 +841,11 @@ CUnits.BounceUnit = function(iUnitID, iVelX, iVelY)
         end
 
         local iDistanceIncrease = 0
-        if iVelX ~= 0 and CWorld.IsValidPositionForUnit(CUnits.tUnits[iUnitID].iX + iVelX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize) then
+        if iVelX ~= 0 and CWorld.IsValidPositionForUnit(CUnits.tUnits[iUnitID].iX + iVelX, CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iSize) and CUnits.tUnits[iUnitID].iX + iVelX > 0 and CUnits.tUnits[iUnitID].iX + iVelX < tGame.Cols then
             CUnits.tUnits[iUnitID].iX = CUnits.tUnits[iUnitID].iX + iVelX
             iDistanceIncrease = 1
         end
-        if iVelY ~= 0 and CWorld.IsValidPositionForUnit(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY + iVelY, CUnits.tUnits[iUnitID].iSize) then
+        if iVelY ~= 0 and CWorld.IsValidPositionForUnit(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY + iVelY, CUnits.tUnits[iUnitID].iSize) and CUnits.tUnits[iUnitID].iY + iVelX > 0 and CUnits.tUnits[iUnitID].iY + iVelY < tGame.Rows then
             CUnits.tUnits[iUnitID].iY = CUnits.tUnits[iUnitID].iY + iVelY
             iDistanceIncrease = iDistanceIncrease + 1
         end        
@@ -841,11 +867,15 @@ CUnits.UnitKilled = function(iUnitID, iUnitDeathReason)
             CGameMode.EndGame(true)
         end
 
+        tGameResults.Score = tGameResults.Score + (tGameStats.CurrentLives*3)
+
         if iUnitDeathReason == CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER or iUnitDeathReason == CUnits.UNIT_DEATH_REASON_KILLED_BY_UNIT then
             CAudio.PlayAsync(CAudio.CLICK)
         end
     elseif CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then
         CUnits.iAliveAlliesCount = CUnits.iAliveAlliesCount - 1
+
+        tGameResults.Score = tGameResults.Score - 1000
 
         CAudio.PlayAsync(CAudio.MISCLICK)
         CAnnouncer.AnnounceEvent(CAnnouncer.EVENT_ALLY_DEATH, CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY)
@@ -1014,6 +1044,8 @@ end
 
 CWorld.DestroyStructure = function(iX, iY)
     tGameStats.CurrentLives = tGameStats.CurrentLives - 1
+
+    tGameResults.Score = tGameResults.Score - 250
 
     if not CWorld.bEndGame and tGameStats.CurrentLives < tGameStats.TotalLives/2 then
         CWorld.BeginEndGameStage()
@@ -1482,7 +1514,7 @@ end
 
 --DEBUG
 CDebug = {}
-CDebug.bPrintsOn = true
+CDebug.bPrintsOn = false
 
 CDebug.Print = function(sString)
     if CDebug.bPrintsOn then
