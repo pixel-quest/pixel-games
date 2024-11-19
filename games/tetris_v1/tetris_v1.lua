@@ -202,6 +202,11 @@ CGameMode.InitGameMode = function()
     CBlocks.iStartSeed = math.random(1, 99999)
 end
 
+CGameMode.Announcer = function()
+    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlaySync("voices/press-button-for-start.mp3")    
+end
+
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
