@@ -1,0 +1,14 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+  	    
+	"MoveDownTickRate": 1000,
+	"MoveDownTickRate_Min": 100,
+	"MoveDownTickRate_Max": 3000,
+	"MoveDownTickRate_Step": 100,
+  	"MoveDownTickRate_Ru": "Частота движения блоков",  	    	
+  	"MoveDownTickRate_En": "Block movement tick rate"   	    	
+}
