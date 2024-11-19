@@ -92,6 +92,7 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     CGameMode.InitGameMode()
+    CGameMode.Announcer()
 end
 
 function NextTick()
