@@ -5,10 +5,17 @@
 	"Bright_Step": 1,
   	"Bright_Ru": "Яркость",
   	    
-	"MoveDownTickRate": 1000,
+	"MoveDownTickRate": 750,
 	"MoveDownTickRate_Min": 100,
 	"MoveDownTickRate_Max": 3000,
 	"MoveDownTickRate_Step": 100,
   	"MoveDownTickRate_Ru": "Частота движения блоков",  	    	
-  	"MoveDownTickRate_En": "Block movement tick rate"   	    	
+  	"MoveDownTickRate_En": "Block movement tick rate",	  
+
+	"MoveDownTickRateDecreasePerClearedLine": 20,
+	"MoveDownTickRateDecreasePerClearedLine_Min": 0,
+	"MoveDownTickRateDecreasePerClearedLine_Max": 50,
+	"MoveDownTickRateDecreasePerClearedLine_Step": 5,
+  	"MoveDownTickRateDecreasePerClearedLine_Ru": "Ускорение частоты движения блоков за каждое закрытие линии",  	    	
+  	"MoveDownTickRateDecreasePerClearedLine_En": "Block movement tick rate increase per cleared line"	  	
 }

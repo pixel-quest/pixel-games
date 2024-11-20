@@ -2,7 +2,20 @@
     Название: тетрис
     Автор: Avondale, дискорд - avonda
     Описание механики:
+        обычный тетрис, только играется ногами
+        управление фигурами - нажатия по полю с цветом игрока(желтый/фиолетовый)
+        нажатие на зеленую линию переворачивает фигуру
+        за закрытие линий даются очки, чем больше линий за одну фигуру закрыто - тем больше очков
+        за комбо даётся бонус, чем больше комбо подряд тем больше бонус
+        у кого больше очков тот и победил(не обязательно тот кто дольше продержался)
+        после каждой закрытой линии игра ускоряется
+
     Идеи по доработке:
+        цветов мало для фигур
+        перевороты фигур так себе работают, нужно писать смещение по X/Y для каждого отдельного вращения каждой фигуры
+
+        функция хард дропа(моментального опускания фигуры) есть в коде, но непонятно как реализовывать кнопку под неё, чтобы всегда был доступ
+        превью следующей фигуры, было бы круто сделать но просто нету места под это, так же как сохранение фигуры в слот(и кнопка нужна так что с этим двойная проблема)
 ]]
 math.randomseed(os.time())
 
@@ -55,7 +68,7 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
-    AfterDelay = true,
+    AfterDelay = false,
     PlayersCount = 0,
     Score = 0,
     Color = CColors.NONE,
@@ -157,7 +170,7 @@ function GameSetupTick()
 end
 
 function GameTick()
-    SetGlobalColorBright(CColors.WHITE, tConfig.Bright-2) -- красим всё поле в один цвет
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
 
     for iPlayerID = 1, #tGame.StartPositions do
         if CGameMode.tPlayerInGame[iPlayerID] then
@@ -204,6 +217,7 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
+    CAudio.PlaySync("tetris_intro_voice.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")    
 end
@@ -232,7 +246,7 @@ end
 
 CGameMode.StartGame = function()
     CAudio.PlaySync(CAudio.START_GAME)
-    CAudio.PlayRandomBackground()
+    CAudio.PlayBackground("tetris_bgsong.mp3")
 
     CTetris.FirstBlock()
 
@@ -254,16 +268,12 @@ end
 CGameMode.PlayerClearedLines = function(iPlayerID, iLinesCleared)
     if iLinesCleared == 1 then
         CGameMode.PlayerAddScore(iPlayerID, 100)
-        CAudio.PlayAsync(CAudio.CLICK)
     elseif iLinesCleared == 2 then
         CGameMode.PlayerAddScore(iPlayerID, 300)
-        CAudio.PlayAsync(CAudio.CLICK)
     elseif iLinesCleared == 3 then
         CGameMode.PlayerAddScore(iPlayerID, 500)
-        CAudio.PlayAsync(CAudio.STAGE_DONE)
     else
         CGameMode.PlayerAddScore(iPlayerID, 800)
-        CAudio.PlayAsync(CAudio.STAGE_DONE)
     end
 end
 
@@ -278,6 +288,8 @@ CGameMode.PlayerOut = function(iPlayerID)
 
     if CGameMode.iPlayerLostCount == CGameMode.iRealPlayerCount then
         CGameMode.EndGame()
+    else
+        CAudio.PlayAsync(CAudio.GAME_OVER)
     end
 end
 
@@ -450,8 +462,12 @@ CTetris.PlaceActiveBlock = function(iPlayerID)
         if CTetris.tPlayerLineClearCombo[iPlayerID] > 1 then
             CGameMode.PlayerAddScore(iPlayerID, CTetris.tPlayerLineClearCombo[iPlayerID]-1 * 50)
         end
+
+        CAudio.PlayAsync(CAudio.STAGE_DONE)
     else
         CTetris.tPlayerLineClearCombo[iPlayerID] = 0
+
+        CAudio.PlayAsync(CAudio.CLICK)
     end
 
     if CTetris.tPlayerActiveBlock[iPlayerID].iY <= 1 then
@@ -475,6 +491,8 @@ CTetris.ClearLine = function(iPlayerID, iY)
             CTetris.tPlayerField[iPlayerID][iLocalX][iLocalY-1] = 0
         end
     end
+
+    CGameMode.iMoveDownTickRate = CGameMode.iMoveDownTickRate - tConfig.MoveDownTickRateDecreasePerClearedLine
 end
 
 CTetris.tButtonRotateCD = {}
@@ -528,10 +546,10 @@ CBlocks.tBlockColor = {}
 CBlocks.tBlockColor[CBlocks.TB_O] = CColors.YELLOW
 CBlocks.tBlockColor[CBlocks.TB_I] = CColors.CYAN
 CBlocks.tBlockColor[CBlocks.TB_J] = CColors.BLUE
-CBlocks.tBlockColor[CBlocks.TB_L] = CColors.YELLOW
+CBlocks.tBlockColor[CBlocks.TB_L] = CColors.RED
 CBlocks.tBlockColor[CBlocks.TB_T] = CColors.MAGENTA
 CBlocks.tBlockColor[CBlocks.TB_S] = CColors.BLUE
-CBlocks.tBlockColor[CBlocks.TB_Z] = CColors.YELLOW
+CBlocks.tBlockColor[CBlocks.TB_Z] = CColors.RED
 
 CBlocks.tBlocks[CBlocks.TB_O] = {}
 CBlocks.tBlocks[CBlocks.TB_O].iBlockWidth = 2
@@ -659,6 +677,10 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     else
         CPaint.TetrisPlayerZone(iPlayerID, iBright)
         CPaint.TetrisPlayerCurrentBlock(iPlayerID, iBright)
+
+        if CGameMode.tPlayerInGame[iPlayerID] then
+            CPaint.PlayerZoneBorders(iPlayerID, iBright, CColors.WHITE)
+        end
     end
 end
 
@@ -679,13 +701,14 @@ end
 CPaint.TetrisPlayerZone = function(iPlayerID, iBright)
     local iLocalX = 1
     local iLocalY = 1
+    local iMaxWeight = 5
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do
             if iY < tGame.StartPositionControlsY then
                 tFloor[iX][iY].iColor = CTetris.tPlayerField[iPlayerID][iLocalX][iLocalY]
             elseif iY == tGame.StartPositionControlsY then
-                if iX < tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2) and not CGameMode.tPlayerLost[iPlayerID] then
+                if --[[iX < tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2) and]] not CGameMode.tPlayerLost[iPlayerID] then
                     tFloor[iX][iY].iColor = CColors.GREEN
 
                     if not tFloor[iX][iY].fFunction then 
@@ -698,6 +721,7 @@ CPaint.TetrisPlayerZone = function(iPlayerID, iBright)
                 else
                     tFloor[iX][iY].iColor = CColors.RED
 
+                    --[[
                     if not tFloor[iX][iY].fFunction then 
                         tFloor[iX][iY].fFunction = function()
                             if iGameState == GAMESTATE_GAME then
@@ -705,13 +729,15 @@ CPaint.TetrisPlayerZone = function(iPlayerID, iBright)
                             end
                         end
                     end
+                    ]]
                 end
             else
                 if not CGameMode.tPlayerLost[iPlayerID] then
                     tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
 
-                    if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick then 
+                    if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > iMaxWeight then 
                         CTetris.ButtonMove(iPlayerID, iLocalX)
+                        iMaxWeight = tFloor[iX][iY].iWeight
                     end
                 else
                     tFloor[iX][iY].iColor = CColors.RED
@@ -748,6 +774,16 @@ CPaint.TetrisPlayerCurrentBlock = function(iPlayerID, iBright)
             end
         end
     end
+end
+
+CPaint.PlayerZoneBorders = function(iPlayerID, iBright, iColor)
+    if tGame.StartPositions[iPlayerID].X-1 > 0 then
+       SetRectColorBright(tGame.StartPositions[iPlayerID].X-1, 1, 0, tGame.StartPositionSizeY, iColor, iBright) 
+    end
+
+    if tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX <= tGame.Cols then
+       SetRectColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, 1, 0, tGame.StartPositionSizeY, iColor, iBright) 
+    end    
 end
 --//
 
