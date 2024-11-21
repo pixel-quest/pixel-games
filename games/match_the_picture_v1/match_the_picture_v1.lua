@@ -231,6 +231,7 @@ CGameMode.tPlayerCoinsThisRound = {}
 CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
 CGameMode.tPlayerFieldScore = {}
+CGameMode.bPlayerMovesCount = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -321,6 +322,7 @@ end
 CGameMode.EndRound = function()
     CAudio.StopBackground()
     CGameMode.bRoundStarted = false
+    CGameMode.bPlayerMovesCount = false
 
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.EndGame()
@@ -401,6 +403,8 @@ CGameMode.AddPlayerFieldScore = function(iPlayerID, iScorePlus)
 end
 
 CGameMode.CalculatePlayerField = function(iPlayerID)
+    --CLog.print("Player #"..iPlayerID.." Score: "..CGameMode.tPlayerFieldScore[iPlayerID]..", Target: "..CGameMode.iMapCoinCount)
+
     if CGameMode.tPlayerFieldScore[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinish(iPlayerID)
     else
@@ -513,7 +517,9 @@ end
 
 CBlock.RegisterBlockClick = function(iX, iY)
     if not CGameMode.bRoundStarted then return; end
+    if tFloor[iX][iY].bDefect then return; end
     if CBlock.tBlocks[iX][iY].bCooldown then return; end
+    if not CGameMode.bPlayerMovesCount then return; end
 
     local iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
 
@@ -541,7 +547,7 @@ CBlock.AnimateVisibility = function(bVisible)
                     CBlock.tBlocks[iX][iY].bVisible = bVisible
 
                     if bVisible == false and tFloor[iX][iY].bDefect and CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
-                        CBlock.RegisterBlockClick(iX, iY)
+                        CGameMode.PlayerTouchedGround(CBlock.tBlocks[iX][iY].iPlayerID, iX, iY)
                     end
                 end
             end
@@ -550,6 +556,7 @@ CBlock.AnimateVisibility = function(bVisible)
                 iY = iY + 1
                 return CPaint.ANIMATION_DELAY
             end
+            CGameMode.bPlayerMovesCount = not bVisible
             return nil
         end)
     end
@@ -850,7 +857,7 @@ function DefectPixel(defect)
 
     if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and not CBlock.tBlocks[defect.X][defect.Y].bVisible 
     and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_GROUND then    
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        CGameMode.PlayerTouchedGround(CBlock.tBlocks[defect.X][defect.Y].iPlayerID, defect.X, defect.Y)
     end
 end
 
