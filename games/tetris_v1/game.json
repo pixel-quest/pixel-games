@@ -1,0 +1,22 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
+
+  "StartPositions": [
+    {
+      "X": 2,
+      "Y": 1,
+      "Color": 3
+    },
+    {
+      "X": 14,
+      "Y": 1,
+      "Color": 5
+    }
+  ],
+
+  "StartPositionSizeX": 10,
+  "StartPositionSizeY": 15,
+  "StartPositionControlsY": 13
+}
