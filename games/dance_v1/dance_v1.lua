@@ -627,17 +627,19 @@ CGameMode.ScorePixel = function(iPixelID)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
-        if tGame.Direction == 1 then
-            for iY = 1, tGame.StartPositions[iPlayerID].Y do
-                tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+        CTimer.New(tConfig.PixelMoveDelayMS*2, function()
+            if tGame.Direction == 1 then
+                for iY = 1, tGame.StartPositions[iPlayerID].Y do
+                    tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+                end
+            elseif tGame.Direction == 2 then
+                for iY = tGame.Rows, tGame.StartPositions[1].Y, -1 do
+                    tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
+                end
             end
-        elseif tGame.Direction == 2 then
-            for iY = tGame.Rows, tGame.StartPositions[1].Y, -1 do
-                tFloor[CGameMode.tPixels[iPixelID].iPointX][iY].iPixelID = 0
-            end
-        end
 
-        CGameMode.tPixels[iPixelID] = nil
+            CGameMode.tPixels[iPixelID] = nil
+        end)
     end
 end
 

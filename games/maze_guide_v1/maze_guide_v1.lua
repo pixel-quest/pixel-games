@@ -64,6 +64,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -97,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGameResults.PlayersCount = 2
+
     CGameMode.init()
     CGameMode.Announcer()
 end
@@ -112,11 +118,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end    
+    end  
 
     AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -278,10 +290,16 @@ CGameMode.EndGame = function(bVictory)
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
+        tGameResults.Color = CColors.GREEN
+
+        tGameResults.Score = (tConfig.Difficulty * 100 + tGameStats.StageLeftDuration) * 2 * tConfig.Difficulty
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
+
+    tGameResults.Won = bVictory
 
     AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH

@@ -61,6 +61,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -97,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
 
     CBlock.iColor = tGame.PreviewColor
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
@@ -113,11 +119,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end    
+    end  
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -188,7 +200,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -219,6 +231,7 @@ CGameMode.tPlayerCoinsThisRound = {}
 CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
 CGameMode.tPlayerFieldScore = {}
+CGameMode.bPlayerMovesCount = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -309,6 +322,7 @@ end
 CGameMode.EndRound = function()
     CAudio.StopBackground()
     CGameMode.bRoundStarted = false
+    CGameMode.bPlayerMovesCount = false
 
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.EndGame()
@@ -324,8 +338,13 @@ CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
         if tGameStats.Players[1].Score > 0 then
             CAudio.PlaySync(CAudio.VICTORY)
+            tGameResults.Won = true
+            tGameResults.Color = CColors.GREEN
+            CGameMode.iWinnerID = 1
         else
             CAudio.PlaySync(CAudio.DEFEAT)
+            tGameResults.Won = false
+            tGameResults.Color = CColors.RED
         end
     else
         local iMaxScore = -999
@@ -337,15 +356,20 @@ CGameMode.EndGame = function()
             end
         end
 
-        iGameState = GAMESTATE_POSTGAME
-
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         CAudio.PlaySync(CAudio.VICTORY)
+
+        tGameResults.Won = true
+        tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
     end
+
+    iGameState = GAMESTATE_POSTGAME
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 
 CGameMode.PlayerTouchedGround = function(iPlayerID, iX, iY)
@@ -379,6 +403,8 @@ CGameMode.AddPlayerFieldScore = function(iPlayerID, iScorePlus)
 end
 
 CGameMode.CalculatePlayerField = function(iPlayerID)
+    --CLog.print("Player #"..iPlayerID.." Score: "..CGameMode.tPlayerFieldScore[iPlayerID]..", Target: "..CGameMode.iMapCoinCount)
+
     if CGameMode.tPlayerFieldScore[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinish(iPlayerID)
     else
@@ -426,7 +452,7 @@ CMaps.GetRandomMap = function()
         CMaps.iRandomMapID = #tGame.Maps + (CMaps.iRandomMapID)
     end
 
-    CLog.print("random map #"..CMaps.iRandomMapID)
+    --CLog.print("random map #"..CMaps.iRandomMapID)
 
     return tGame.Maps[CMaps.iRandomMapID]
 end
@@ -491,7 +517,9 @@ end
 
 CBlock.RegisterBlockClick = function(iX, iY)
     if not CGameMode.bRoundStarted then return; end
+    if tFloor[iX][iY].bDefect then return; end
     if CBlock.tBlocks[iX][iY].bCooldown then return; end
+    if not CGameMode.bPlayerMovesCount then return; end
 
     local iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
 
@@ -519,7 +547,7 @@ CBlock.AnimateVisibility = function(bVisible)
                     CBlock.tBlocks[iX][iY].bVisible = bVisible
 
                     if bVisible == false and tFloor[iX][iY].bDefect and CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
-                        CBlock.RegisterBlockClick(iX, iY)
+                        CGameMode.PlayerTouchedGround(CBlock.tBlocks[iX][iY].iPlayerID, iX, iY)
                     end
                 end
             end
@@ -528,6 +556,7 @@ CBlock.AnimateVisibility = function(bVisible)
                 iY = iY + 1
                 return CPaint.ANIMATION_DELAY
             end
+            CGameMode.bPlayerMovesCount = not bVisible
             return nil
         end)
     end
@@ -828,7 +857,7 @@ function DefectPixel(defect)
 
     if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and not CBlock.tBlocks[defect.X][defect.Y].bVisible 
     and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_GROUND then    
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        CGameMode.PlayerTouchedGround(CBlock.tBlocks[defect.X][defect.Y].iPlayerID, defect.X, defect.Y)
     end
 end
 
