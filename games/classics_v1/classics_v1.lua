@@ -59,6 +59,10 @@ local tGameStats = {
 
 local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = CColors.NONE,
 }
 
 local tFloor = {} 
@@ -100,6 +104,8 @@ function StartGame(gameJson, gameConfigJson)
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
     end
 
+    tGameResults.PlayersCount = tConfig.PlayerCount
+
     CGameMode.InitGameMode()
 
     tGameStats.TargetScore = 1
@@ -119,11 +125,17 @@ function NextTick()
 
     if iGameState == GAMESTATE_POSTGAME then
         PostGameTick()
+
+        if not tGameResults.AfterDelay then
+            tGameResults.AfterDelay = true
+            return tGameResults
+        end
     end
 
     if iGameState == GAMESTATE_FINISH then
+        tGameResults.AfterDelay = false
         return tGameResults
-    end    
+    end   
 
     CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -178,7 +190,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -325,9 +337,14 @@ CGameMode.EndGame = function()
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 
+    tGameResults.Won = true
+    tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
+
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)    
+    
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 --//
 
