@@ -205,11 +205,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    if CGameMode.bVictory then
-        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
-    else
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
-    end
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -280,8 +276,10 @@ CGameMode.StartGame = function()
     end
 
     tGameStats.TotalStars = #tGame.LavaObjects*CGameMode.iRealPlayerCount
-    tGameStats.TotalLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
-    tGameStats.CurrentLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
+    tGameStats.TotalLives = tConfig.Lives
+    tGameStats.CurrentLives = tConfig.Lives
+    --tGameStats.TotalLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
+    --tGameStats.CurrentLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
 
     for i = 1, CGameMode.iRealPlayerCount do
         CGameMode.AssignRandomGoal()
@@ -370,7 +368,11 @@ CGameMode.NextStage = function()
       
     if tGameStats.StageNum < tGameStats.TotalStages then
         tGameStats.StageNum = tGameStats.StageNum + 1
-        CLava.iMapId = tGameStats.StageNum
+        if tConfig.RandomLevels then
+            CLava.iMapId = math.random(1, #tGame.LavaObjects)
+        else
+            CLava.iMapId = tGameStats.StageNum
+        end
         CLava.LoadMap()
 
         CLava.bCooldown = true
@@ -394,10 +396,12 @@ CGameMode.EndGame = function(bVictory)
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)    
         tGameResults.Color = CColors.GREEN
+        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
+        SetGlobalColorBright(CColors.RED, tConfig.Bright)
     end
 end
 --//
