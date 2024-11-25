@@ -384,14 +384,16 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
     end  
 end
 
-CGameMode.PlayerTouchedLava = function(iPlayerID)
+CGameMode.PlayerTouchedLava = function(iPlayerID, iX, iY)
+    if CGameMode.tPlayerFinished[iPlayerID] or not CGameMode.bRoundStarted then return false; end
+
     if tGameStats.Players[iPlayerID].Score > 0 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + tConfig.LavaScorePenalty
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK);
+    CAudio.PlayAsync(CAudio.MISCLICK)
+    return true;
 end
-
 --//
 
 --MAPS
@@ -521,9 +523,10 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and CBlock.tBlocks[iX][iY].bCollected == false then
-        CBlock.tBlocks[iX][iY].bCollected = true
-        CGameMode.PlayerTouchedLava(iPlayerID)
-        CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
+        if CGameMode.PlayerTouchedLava(iPlayerID, iX, iY) then
+            CBlock.tBlocks[iX][iY].bCollected = true
+            CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
+        end
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
         CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
@@ -656,13 +659,13 @@ end
 CAnimate.RegisterBlockClick = function(iX, iY)
     if CAnimate.tBlocks[iX][iY] then
         if CAnimate.tBlocks[iX][iY].iBlockType == CAnimate.ANIMATE_BLOCK_LAVA and not CAnimate.tBlocks[iX][iY].bCollected then
-            CAnimate.tBlocks[iX][iY].bCollected = true
-            CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID)
-
-            CPaint.AnimatePixelFlicker(iX, iY, 3, CAnimate.tBLOCK_TYPE_TO_COLOR[CAnimate.tBlocks[iX][iY].iBlockType])
+            if CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID, iX, iY) then
+                CAnimate.tBlocks[iX][iY].bCollected = true
+                CPaint.AnimatePixelFlicker(iX, iY, 3, CAnimate.tBLOCK_TYPE_TO_COLOR[CAnimate.tBlocks[iX][iY].iBlockType])
+            end
         elseif CAnimate.tBlocks[iX][iY].iBlockType == CAnimate.ANIMATE_BLOCK_COIN and not CAnimate.tBlocks[iX][iY].bCollected then
             CAnimate.tBlocks[iX][iY].bCollected = true
-            CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
+            CGameMode.PlayerRoundScoreAdd(CAnimate.tBlocks[iX][iY].iPlayerID, 1)
         end
     end
 end
