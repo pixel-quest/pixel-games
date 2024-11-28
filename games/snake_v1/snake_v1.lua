@@ -499,6 +499,8 @@ CSnake.Think = function()
     if tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID ~= 0 then
         local iSnakePixelID = tFloor[CSnake.iHeadX][CSnake.iHeadY].iPixelID
         if CGameMode.tPixels[iSnakePixelID] and CGameMode.tPixels[iSnakePixelID].iX then 
+            tFloor[CGameMode.tPixels[iSnakePixelID].iX][CGameMode.tPixels[iSnakePixelID].iY].iPixelID = 0
+
             CSnake.SnakeCollectPixel(iSnakePixelID)
             CSnake.NewDestination()
         end
