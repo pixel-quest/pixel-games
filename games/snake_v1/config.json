@@ -39,6 +39,10 @@
   "SnakeLength_ru": "Начальная длина змейки",
   "SnakeLength_en": "Snake starting size",
 
+  "FixedSnakeSize": false,
+  "FixedSnakeSize_ru": "Змейка не увеличивается в размере",
+  "FixedSnakeSize_en": "Fixed snake's size(doesnt increase)",
+
   "SnakeDamagePlayerOnStep": true,
   "SnakeDamagePlayerOnStep_ru": "Змейка наносит урон при наступании",
   "SnakeDamagePlayerOnStep_en": "Snake damages players on step",

@@ -652,10 +652,12 @@ CSnake.SnakeCollectPixel = function(iPixelID)
 
     CAudio.PlayAsync(CAudio.MISCLICK)
 
-    CSnake.iLength = CSnake.iLength + 1
-    CSnake.tTail[CSnake.iLength] = {}
-    CSnake.tTail[CSnake.iLength].iX = 0
-    CSnake.tTail[CSnake.iLength].iY = 0
+    if not tConfig.FixedSnakeSize then
+        CSnake.iLength = CSnake.iLength + 1
+        CSnake.tTail[CSnake.iLength] = {}
+        CSnake.tTail[CSnake.iLength].iX = 0
+        CSnake.tTail[CSnake.iLength].iY = 0
+    end
 
     CSnake.DamagePlayer()
 end
@@ -1121,6 +1123,7 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
