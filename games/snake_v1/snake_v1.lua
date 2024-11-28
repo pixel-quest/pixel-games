@@ -245,7 +245,7 @@ CGameMode.bArenaMode = false
 CGameMode.InitGameMode = function()
     tGameStats.TargetScore = tConfig.TargetScore
 
-    if tGameStats.TargetScore > tGame.Cols*tGame.Rows*0.4 then
+    if not tConfig.FixedSnakeSize and tGameStats.TargetScore > tGame.Cols*tGame.Rows*0.4 then
         tGameStats.TargetScore = tGame.Cols*tGame.Rows*0.4
     end
 
