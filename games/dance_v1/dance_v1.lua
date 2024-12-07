@@ -571,7 +571,7 @@ CGameMode.CalculatePixel = function(iPixelID)
                     CGameMode.tPixels[iPixelID].iPointY = tGame.Rows+2
                 end
             else
-                CPaint.AnimateHit(iPlayerID, false)
+                CPaint.AnimateHit(iPlayerID, false, CGameMode.tPixels[iPixelID].iPointX)
                 CGameMode.tPixels[iPixelID] = nil
             end
         else
@@ -642,7 +642,7 @@ CGameMode.ScorePixel = function(iPixelID)
     --end
     if not CGameMode.tPixels[iPixelID].bProlong then
         --CPaint.AnimateRow(CGameMode.tPixels[iPixelID].iPointX, CGameMode.tPixels[iPixelID].iColor)
-        CPaint.AnimateHit(iPlayerID, true)
+        CPaint.AnimateHit(iPlayerID, true, CGameMode.tPixels[iPixelID].iPointX)
     end
 
     if not CGameMode.tPixels[iPixelID].bProlong then
@@ -850,7 +850,7 @@ CPaint.AnimateRow = function(iX, iColor)
     end
 end
 
-CPaint.AnimateHit = function(iPlayerID, bHit)
+CPaint.AnimateHit = function(iPlayerID, bHit, iPixelX)
     if CPaint.tHitAnimatedForPlayerID[iPlayerID] then return; end
     CPaint.tHitAnimatedForPlayerID[iPlayerID] = true
 
@@ -864,6 +864,11 @@ CPaint.AnimateHit = function(iPlayerID, bHit)
         tFloor[iX][iY].bAnimated = true
         tFloor[iX][iY].iAnimationPriority = 1
         tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].iBright = tConfig.Bright
+
+        if iX == iPixelX then
+            tFloor[iX][iY].iBright = 7
+        end
     end    
 
     CTimer.New(tConfig.PixelMoveDelayMS, function()
