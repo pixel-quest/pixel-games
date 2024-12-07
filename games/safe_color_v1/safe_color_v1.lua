@@ -116,7 +116,11 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false, -- победили или проиграли
+    Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -133,6 +137,7 @@ local StartPlayersCount = 0 -- количество игроков в момен
 
 local CountDownStarted = false
 local PlayerInGame = {}
+local GameStarted = false
 
 -- Этапы игры
 local CONST_STAGE_START = 0 -- выбор мест
@@ -176,6 +181,8 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalStars = GameConfigObj.StagesQty
     GameStats.TotalLives = GameConfigObj.StartLives
     GameStats.CurrentLives = GameConfigObj.StartLives
+
+    GameResults.PlayersCount = GameConfigObj.PlayerCount
 
     audio.PlaySyncFromScratch("games/safe-color-game.mp3") -- Игра "Безопасный цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
@@ -229,7 +236,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 0 then
+        if StartPlayersCount > 0 and not GameStarted then
             CountDownStarted = true
 
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
@@ -244,6 +251,7 @@ function NextTick()
             end
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
+                GameStarted = true
                 switchStage(GameStats.StageNum+1)
             end
         end
@@ -268,6 +276,9 @@ function NextTick()
                 audio.PlaySync(audio.VICTORY)
                 setGlobalColorBrightExceptColor(colors.GREEN, GameConfigObj.Bright, colors.NONE)
                 switchStage(GameStats.StageNum+1)
+
+                GameResults.Won = false
+                GameResults.Color = colors.GREEN
             elseif not StageDonePlayed then
                 audio.PlayAsync(audio.STAGE_DONE)
                 StageDonePlayed = true
@@ -285,11 +296,17 @@ function NextTick()
     else -- этап финиша
         processClicksAndEffects()
 
+        if not GameResults.AfterDelay then
+            GameResults.AfterDelay = true
+            return GameResults
+        end
+
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
+            GameResults.AfterDelay = false
             return GameResults
         end
     end
@@ -634,6 +651,9 @@ function minusLive()
             audio.PlaySync(audio.DEFEAT)
             setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, colors.NONE)
             switchStage(GameConfigObj.StagesQty+1)
+            
+            GameResults.Won = false
+            GameResults.Color = colors.RED
         end
     end
 end
