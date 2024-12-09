@@ -334,6 +334,7 @@ CTutorial.bStarted = false
 CTutorial.bSkipDelayOn = true
 CTutorial.bPreStarted = false
 CTutorial.bTrueStarted = false
+CTutorial.bDisableErrorSound = true
 
 CTutorial.PreStart = function()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
@@ -345,6 +346,7 @@ CTutorial.PreStart = function()
     end)
 
     CTimer.New(13000, function()
+        CTutorial.bDisableErrorSound = false
         CTutorial.bPreStarted = true
     end)
 
@@ -363,6 +365,10 @@ CTutorial.Start = function()
 
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
+
+    CTimer.New(5000, function()
+        CTutorial.bDisableErrorSound = false
+    end)
 end
 
 CTutorial.Skip = function()
@@ -374,6 +380,8 @@ CTutorial.Skip = function()
 
     CAudio.PlaySync("voices/choose-color.mp3")
     CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    CTutorial.bDisableErrorSound = false
 
     CTimer.tTimers = {}
     bCountDownStarted = true
@@ -584,7 +592,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
     if iGameState ~= GAMESTATE_TUTORIAL and iGameState ~= GAMESTATE_GAME then return; end
 
     if tGame.Direction == 1 then
-        if iY <= tGame.StartPositions[1].Y and iY > 0 then
+        if (not (iGameState == GAMESTATE_TUTORIAL and iY == tGame.StartPositionSize) or CTutorial.bTrueStarted) and (iY <= tGame.StartPositions[1].Y and iY > 0) then
             local bClickAny = false
             for iY1 = 1, tGame.StartPositions[1].Y do
                 if tFloor[iX][iY1].bClick then
@@ -881,14 +889,16 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
     tFloor[iX][iY].iAnimationPriority = 1
 
-    if iGameState == GAMESTATE_TUTORIAL and CTutorial.bPreStarted and CTutorial.bStarted then
-        CTimer.New(500, function()
-            CTutorial.Start()
-        end)
+    if not CTutorial.bDisableErrorSound and (tConfig.OutOfZoneSound or iGameState == GAMESTATE_TUTORIAL) then
+        CAudio.PlayAsync(CAudio.MISCLICK)
     end
 
-    if tConfig.OutOfZoneSound then
-        CAudio.PlayAsync(CAudio.MISCLICK)
+    if iGameState == GAMESTATE_TUTORIAL and CTutorial.bPreStarted and CTutorial.bStarted and not CTutorial.bTrueStarted then
+        CTutorial.bDisableErrorSound = true
+
+        CTimer.New(1500, function()
+            CTutorial.Start()
+        end)
     end
 
     local iCount = 0
