@@ -1,0 +1,35 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+
+  "StartPositions": [
+    {
+      "X": 2,
+      "Y": 2
+    },
+    {
+      "X": 2,
+      "Y": 10
+    }
+  ],
+  "StartPositionSizeX": 2,
+  "StartPositionSizeY": 5,
+
+  "FinishX": 23,
+
+  "SquareRows":
+  [
+    {
+      "X": 5,
+      "Y": 2
+    },
+    {
+      "X": 5,
+      "Y": 10
+    }
+  ],
+  "SquareRowLength": 6,
+  "SquareRowHeight": 2,
+
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77]
+}
