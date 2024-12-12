@@ -135,6 +135,7 @@ local CONST_STAGE_GAME = 1 -- игра
 local CONST_STAGE_WIN = 2 -- победа
 local Stage = CONST_STAGE_CHOOSE_COLOR -- текущий этап
 local StageStartTime = 0 -- время начала текущего этапа
+local GameStartTime = time.unix() -- время начала игры
 
 -- Звуки оставшихся очков, проигрываются только один раз
 local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
@@ -175,7 +176,7 @@ function StartGame(gameJson, gameConfigJson)
     audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
     audio.PlaySync("voices/get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
-    audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
@@ -186,6 +187,8 @@ end
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
     audio.PlaySyncFromScratch(audio.START_GAME)
+    CountDownStarted = false
+    resetCountdown()
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -226,7 +229,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 then
+        if StartPlayersCount > 1 and time.unix() - GameStartTime > 10 then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
@@ -235,7 +238,7 @@ function NextTick()
 
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
-            GameStats.StageTotalDuration = 10 -- сек обратный отсчет
+            GameStats.StageTotalDuration = 5 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
 
             local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
@@ -250,6 +253,7 @@ function NextTick()
             end
         else
             CountDownStarted = false
+            resetCountdown()
         end
     elseif Stage == CONST_STAGE_GAME then -- этап игры
         GameStats.StageTotalDuration = 0
