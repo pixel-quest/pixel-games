@@ -12,6 +12,13 @@
   "StartLives_ru": "Начальное количество жизней",
   "StartLives_en": "Player lives count",
   
+  "PlayerCount": 0,
+  "PlayerCount_Min": 0,
+  "PlayerCount_Max": 6,
+  "PlayerCount_Step": 1,
+  "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
+  "PlayerCount_en": "Player Count",
+  
   "StagesQty": 10,
   "StagesQty_Min": 5,
   "StagesQty_Max": 20,

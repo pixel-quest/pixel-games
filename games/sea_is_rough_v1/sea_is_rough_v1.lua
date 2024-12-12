@@ -117,7 +117,11 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false, -- в этой игре не используется, победа ноунейма не имеет смысла
+    Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -235,6 +239,8 @@ function NextTick()
         if StartPlayersCount > 1 then
             CountDownStarted = true
 
+            GameResults.PlayersCount = StartPlayersCount
+
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
@@ -270,12 +276,17 @@ function NextTick()
             end
         end
     elseif GameStats.StageNum == CONST_STAGE_WIN then -- этап победы
+        if not GameResults.AfterDelay then
+            GameResults.AfterDelay = true
+            return GameResults
+        end
+
         local timeSinceStageStart = time.unix() - StageStartTime
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
-            -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
+            GameResults.AfterDelay = false
             return GameResults
         end
     end
@@ -336,6 +347,9 @@ function PixelClick(click)
                     audio.PlaySync(audio.VICTORY)
                     switchStage(CONST_STAGE_WIN)
                     setGlobalColorBright(clickedColor, GameConfigObj.Bright)
+
+                    GameResults.Won = true
+                    GameResults.Color = player.Color
                     return
                 else -- еще не победил
                     local leftScores = GameConfigObj.PointsToWin - player.Score
