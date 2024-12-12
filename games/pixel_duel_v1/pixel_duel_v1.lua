@@ -108,7 +108,11 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false, -- в этой игре не используется, победа ноунейма не имеет смысла
+    Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -162,8 +166,8 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
-        ButtonsList[num].Color = colors.BLUE
-        ButtonsList[num].Bright = colors.BRIGHT70
+        --ButtonsList[num].Color = colors.BLUE
+        --ButtonsList[num].Bright = colors.BRIGHT70
     end
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
@@ -196,13 +200,15 @@ end
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
     if Stage == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
+        StartPlayersCount = 0
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
+                StartPlayersCount = StartPlayersCount + 1
             else
                 GameStats.Players[positionIndex].Color = colors.NONE
                 PlayerInGame[positionIndex] = false
@@ -220,12 +226,16 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 0 then
+        if StartPlayersCount > 1 then
+            if not CountDownStarted then
+               StageStartTime = time.unix()
+            end
+
             CountDownStarted = true
 
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
-            GameStats.StageTotalDuration = 3 -- сек обратный отсчет
+            GameStats.StageTotalDuration = 10 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
 
             local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
@@ -235,8 +245,11 @@ function NextTick()
             end
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
+                GameResults.PlayersCount = StartPlayersCount
                 switchStage(Stage+1)
             end
+        else
+            CountDownStarted = false
         end
     elseif Stage == CONST_STAGE_GAME then -- этап игры
         GameStats.StageTotalDuration = 0
@@ -246,8 +259,14 @@ function NextTick()
         GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
+        if not GameResults.AfterDelay then
+            GameResults.AfterDelay = true
+            return GameResults
+        end
+
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
             -- в этой игре никакие флаги результата не используются, победа ноунейма не имеет смысла
+            GameResults.AfterDelay = false
             return GameResults
         end
     end
@@ -304,11 +323,16 @@ function PixelClick(click)
     audio.PlayAsync(audio.CLICK)
     player.Score = player.Score + 1
 
+    GameResults.Score = GameResults.Score + 1
+
     -- игрок набрал нужное количесто очков для победы
     if player.Score >= GameConfigObj.PointsToWin then
         audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
         audio.PlaySyncColorSound(player.Color)
         audio.PlaySync(audio.VICTORY)
+
+        GameResults.Won = true
+        GameResults.Color = player.Color
 
         switchStage(CONST_STAGE_WIN)
         setGlobalColorBright(player.Color, GameConfigObj.Bright)
@@ -350,10 +374,10 @@ function ButtonClick(click)
     ButtonsList[click.Button].Click = click.Click
 
     -- нажали кнопку, стартуем обратный отсчет
-    if StartPlayersCount == 0 and click.Click then
-        StartPlayersCount = countActivePlayers()
-        StageStartTime = time.unix()
-    end
+    --if StartPlayersCount == 0 and click.Click then
+    --    StartPlayersCount = countActivePlayers()
+    --    StageStartTime = time.unix()
+    --end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
