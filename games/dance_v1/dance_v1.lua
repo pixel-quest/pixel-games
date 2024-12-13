@@ -263,6 +263,8 @@ function TutorialTick()
     if CTutorial.bStarted and CSongSync.bOn then
         GameTick()
         SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
+    else
+        CPaint.Borders()
     end
 end
 
@@ -592,7 +594,7 @@ CGameMode.PlayerHitRow = function(iX, iY, bEvent)
     if iGameState ~= GAMESTATE_TUTORIAL and iGameState ~= GAMESTATE_GAME then return; end
 
     if tGame.Direction == 1 then
-        if (not (iGameState == GAMESTATE_TUTORIAL and iY == tGame.StartPositionSize) or CTutorial.bTrueStarted) and (iY <= tGame.StartPositions[1].Y and iY > 0) then
+        if (not (iGameState == GAMESTATE_TUTORIAL and iY == tConfig.StartPositionSize_Max) or CTutorial.bTrueStarted) and (iY <= tGame.StartPositions[1].Y and iY > 0) then
             local bClickAny = false
             for iY1 = 1, tGame.StartPositions[1].Y do
                 if tFloor[iX][iY1].bClick then
