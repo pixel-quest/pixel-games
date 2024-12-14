@@ -158,7 +158,7 @@ function NextTick()
     if gameState.State == -1 then 
         for i, num in pairs(GameObj.Buttons) do
             if ButtonsList[num].Defect == false then
-                 ButtonsList[num].Color = colors.RED
+                 ButtonsList[num].Color = colors.BLUE
                  ButtonsList[num].Bright = GameConfigObj.bright
             end
         end
@@ -358,10 +358,9 @@ function ButtonClick(click)
         return
     end
 
-
     ButtonsList[click.Button].Click = time.unix()
     
-    if ButtonsList[click.Button].Color == colors.RED then
+    if not ButtonsList[click.Button].Defect then
         gameState.State = 1
         ButtonsList[click.Button].Color = colors.NONE
         audio.PlayRandomBackground()
