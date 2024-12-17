@@ -272,7 +272,7 @@ CGameMode.PlayerTouchSquare = function(tSquareObject, bTouch)
             --AL.NewTimer(4000, function()
             --    CAudio.PlayBackground("glassbridge_music_background.mp3")
             --end)
-        else
+        elseif not tSquareObject.bBad then
             CAudio.PlayAsync("glassbridge_effect_glassstep.mp3")
 
             if not tSquareObject.bClaimed then
