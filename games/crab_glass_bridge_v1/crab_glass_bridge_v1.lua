@@ -3,6 +3,16 @@
     Автор: Avondale, дискорд - avonda
 
     Описание механики: 
+        Стеклянный мост из игры в кальмара.
+        Игроки прыгают по стёклам, каждый прыжок выбор из двух стёкл - одно закалённое, второе обычное.
+        Закалённое(зелёное) безопасно, обычное(красное) выбивает игрока из игры.
+
+        Игрокам нужно дойти от маленькой зелёной зоны до большой зёленой, развернуться и до финальной жёлтой. 
+        Жёлтая зона загорится только после того как будут выполнены условия для честного прохождения(на все зелёные плиты наступят хотябы один раз)
+
+        Игроку для победы нужно обязательно пройти по всем зелёным плитам, срезать нельзя.
+
+        После окончания времени(5 минут по стандартным настройкам) все оставшиеся стёкла разбиваются пулями(становятся красными) и все кто не дошёл до жёлтой зоны - проигрывают.
 
     Идеи по доработке: 
 
@@ -94,8 +104,7 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    --audio gamename and guide
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlaySync("glassbridge_voice_guide.mp3")
 end
 
 function NextTick()
@@ -148,7 +157,10 @@ function GameTick()
 end
 
 function PostGameTick()
-
+    SetAllFloorColorBright(CColors.WHITE, 2) -- красим всё поле в один цвет  
+    CPaint.PlayerZones()
+    CPaint.Squares()
+    CPaint.Finish()
 end
 
 function RangeFloor(setPixel, setButton)
@@ -165,7 +177,7 @@ end
 
 function SwitchStage()
     if iGameState == GAMESTATE_GAME then
-        CGameMode.EndGame(true)
+        CGameMode.EndGame()
     end
 end
 
@@ -175,6 +187,9 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.tSquares = {}
 CGameMode.bVictory = false
+
+CGameMode.iTotalSquares = 0
+CGameMode.iClaimedSquares = 0
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
@@ -198,8 +213,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
-    CAudio.PlayRandomBackground()
+    CAudio.PlayBackground("glassbridge_music_background.mp3")
     iGameState = GAMESTATE_GAME
     CGameMode.LoadSquares()
 
@@ -211,7 +225,7 @@ CGameMode.StartGame = function()
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
             if tGameStats.StageLeftDuration <= 0 then
-                CGameMode.EndGame(false)
+                CGameMode.EndGame()
                 return nil
             end
 
@@ -232,8 +246,11 @@ CGameMode.LoadSquares = function()
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY] = {}
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY].bTouch = false
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad = false
+                CGameMode.tSquares[iRowId][iSquareX][iSquareY].bClaimed = false
 
-                if not bTaken and math.random(1, 100) > 50 then
+                CGameMode.iTotalSquares = CGameMode.iTotalSquares + 1
+
+                if (not bTaken and math.random(1, 100) > 50) or (not bTaken and iSquareY == tGame.SquareRowHeight) then
                     bTaken = true
                     CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad = true
                 end
@@ -246,31 +263,46 @@ CGameMode.PlayerTouchSquare = function(tSquareObject, bTouch)
     if not tSquareObject.bBad or bTouch then
         tSquareObject.bTouch = bTouch
 
-        if tSquareObject.bBad then
-            --audio fall
-        else
-            --audio land
+        if tSquareObject.bBad and not tSquareObject.bClaimed then
+            tSquareObject.bClaimed = true
+
+            CAudio.PlayAsync("glassbridge_effect_glassbreak.mp3")
+
+            --CAudio.StopBackground()
+            --AL.NewTimer(4000, function()
+            --    CAudio.PlayBackground("glassbridge_music_background.mp3")
+            --end)
+        elseif not tSquareObject.bBad then
+            CAudio.PlayAsync("glassbridge_effect_glassstep.mp3")
+
+            if not tSquareObject.bClaimed then
+                tSquareObject.bClaimed = true
+                CGameMode.iClaimedSquares = CGameMode.iClaimedSquares + 1
+            end
         end
     end
 end
 
 CGameMode.EndGame = function(bVictory)
-    CGameMode.bVictory = bVictory
-    iGameState = GAMESTATE_POSTGAME
     CAudio.StopBackground()
-    tGameResults.Won = bVictory
 
-    if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)
-        tGameResults.Color = CColors.GREEN
-        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
-    else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync(CAudio.DEFEAT)
-        tGameResults.Color = CColors.RED
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    CAudio.PlaySyncFromScratch("glassbridge_voice_endgame.mp3")
+
+    tGameResults.Color = CColors.MAGENTA
+
+    for iRowId = 1, #tGame.SquareRows do
+        for iSquareX = 1, tGame.SquareRowLength do
+            for iSquareY = 1, tGame.SquareRowHeight do
+                if CGameMode.tSquares[iRowId][iSquareX][iSquareY] then
+                    CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad = true
+                    CGameMode.tSquares[iRowId][iSquareX][iSquareY].bTouch = true
+                    CGameMode.tSquares[iRowId][iSquareX][iSquareY].bClaimed = true
+                end 
+            end
+        end
     end
+
+    iGameState = GAMESTATE_POSTGAME
 
     AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH
@@ -282,20 +314,35 @@ CPaint = {}
 
 CPaint.PlayerZones = function()
     for iPlayerId = 1, #tGame.StartPositions do
-        for iX = tGame.StartPositions[iPlayerId].X, tGame.StartPositions[iPlayerId].X + tGame.StartPositionSizeX-1 do
-            for iY = tGame.StartPositions[iPlayerId].Y, tGame.StartPositions[iPlayerId].Y + tGame.StartPositionSizeY-1 do
-                tFloor[iX][iY].iColor = CColors.GREEN
-                tFloor[iX][iY].iBright = tConfig.Bright
+        if iGameState >= GAMESTATE_GAME or tGame.StartPositions[iPlayerId].PreStartDraw then
+            for iX = tGame.StartPositions[iPlayerId].X, tGame.StartPositions[iPlayerId].X + tGame.StartPositionSizeX-1 do
+                for iY = tGame.StartPositions[iPlayerId].Y, tGame.StartPositions[iPlayerId].Y + tGame.StartPositionSizeY-1 do
+                    tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerId].Color
+                    tFloor[iX][iY].iBright = tConfig.Bright
+
+                    if not tGame.StartPositions[iPlayerId].PreStartDraw and CGameMode.iClaimedSquares < CGameMode.iTotalSquares/2 then
+                        tFloor[iX][iY].iBright = tConfig.Bright-3
+                    end
+                end
             end
         end
     end
 end
 
 CPaint.Finish = function()
-    for iX = tGame.FinishX, tGame.FinishX+1 do
-        for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = CColors.GREEN
-            tFloor[iX][iY].iBright = tConfig.Bright            
+    if iGameState == GAMESTATE_GAME then
+        for iX = tGame.FinishX, tGame.FinishX+1 do
+            for iY = 1, tGame.Rows do
+                tFloor[iX][iY].iColor = CColors.GREEN
+                tFloor[iX][iY].iBright = tConfig.Bright            
+            end
+        end
+    end
+
+    local iY = math.ceil(tGame.Rows/2)
+    for iX = 1, tGame.Cols do
+        if tFloor[iX][iY].iColor == CColors.WHITE then
+            tFloor[iX][iY].iColor = CColors.RED
         end
     end
 end
