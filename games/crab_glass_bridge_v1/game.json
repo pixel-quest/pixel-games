@@ -4,15 +4,19 @@
 
   "StartPositions": [
     {
-      "X": 2,
-      "Y": 2
+      "X": 1,
+      "Y": 2,
+      "Color": 2,
+      "PreStartDraw": true
     },
     {
-      "X": 2,
-      "Y": 10
+      "X": 1,
+      "Y": 10,
+      "Color": 3,
+      "PreStartDraw": false
     }
   ],
-  "StartPositionSizeX": 2,
+  "StartPositionSizeX": 3,
   "StartPositionSizeY": 5,
 
   "FinishX": 23,
