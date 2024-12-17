@@ -186,6 +186,8 @@ CGameMode.InitGameMode = function()
     tGameStats.StageNum = 1
 
     CCross.iBright = tConfig.Bright-2
+
+    CCross.MovementDelay = tConfig.CrossMovementSpeed_Max - tConfig.CrossMovementSpeed
 end
 
 CGameMode.Announcer = function()
@@ -1433,6 +1435,7 @@ CCross.iAiDestY = 0
 CCross.bBlockMovement = false
 CCross.bHidden = false
 CCross.iTicksNewDest = 0
+CCross.MovementDelay = 200
 
 CCross.Move = function(iXPlus, iYPlus)
     if CCross.bBlockMovement then return; end
@@ -1450,7 +1453,7 @@ CCross.Move = function(iXPlus, iYPlus)
 end
     
 CCross.Thinker = function()
-    CTimer.New(tConfig.CrossMovementDelay, function()
+    CTimer.New(CCross.MovementDelay, function()
         if CCross.IsAiOn() then
             CCross.iTicksNewDest = CCross.iTicksNewDest + 1
 
@@ -1472,7 +1475,7 @@ CCross.Thinker = function()
             end
         end
 
-        return tConfig.CrossMovementDelay
+        return CCross.MovementDelay
     end) 
 end
 

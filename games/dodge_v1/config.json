@@ -12,12 +12,12 @@
 	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
 	"PlayerCount_en": "Player Count",
 
-	"CrossMovementDelay": 200,
-	"CrossMovementDelay_Min": 50,
-	"CrossMovementDelay_Max": 1000,
-	"CrossMovementDelay_Step": 50,
-	"CrossMovementDelay_ru": "Частота Движения Прицела",
-	"CrossMovementDelay_en": "Crosshair Movement Tick Rate",
+	"CrossMovementSpeed": 800,
+	"CrossMovementSpeed_Min": 50,
+	"CrossMovementSpeed_Max": 1000,
+	"CrossMovementSpeed_Step": 50,
+	"CrossMovementSpeed_ru": "Скорость Движения Прицела и эффектов (чем больше тем быстрее)",
+	"CrossMovementSpeed_en": "Crosshair and effects movespeed",
 
 	"EliminationMode": false,
 	"EliminationMode_ru": "Режим 'Выбывание' (Здоровье команды отуствует, при попадании на красный пиксель ведущий просит игрока покинуть комнату)",
