@@ -284,6 +284,8 @@ CGameMode.PlayerClearedLines = function(iPlayerID, iLinesCleared)
     else
         CGameMode.PlayerAddScore(iPlayerID, 800)
     end
+
+    CAudio.PlayAsync("tetris_clear_"..iLinesCleared.."_line.mp3")
 end
 
 CGameMode.PlayerAddScore = function(iPlayerID, iScorePlus)
@@ -316,7 +318,8 @@ CGameMode.EndGame = function()
     end
 
     iGameState = GAMESTATE_POSTGAME
-
+    
+    CAudio.PlaySyncFromScratch("")
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 
@@ -390,6 +393,8 @@ CTetris.MoveAllActiveDown = function()
             CTetris.MovePlayerActiveDown(iPlayerID)
         end
     end
+
+    CAudio.PlayAsync("tetris_movedown.mp3")
 end
 
 CTetris.MovePlayerActiveDown = function(iPlayerID)
@@ -480,12 +485,10 @@ CTetris.PlaceActiveBlock = function(iPlayerID)
         if CTetris.tPlayerLineClearCombo[iPlayerID] > 1 then
             CGameMode.PlayerAddScore(iPlayerID, (CTetris.tPlayerLineClearCombo[iPlayerID]-1) * 50)
         end
-
-        CAudio.PlayAsync(CAudio.STAGE_DONE)
     else
         CTetris.tPlayerLineClearCombo[iPlayerID] = 0
 
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlayAsync("tetris_place.mp3")
     end
 
     if CTetris.tPlayerActiveBlock[iPlayerID].iY <= 1 then
@@ -520,6 +523,7 @@ CTetris.ButtonRotateActive = function(iPlayerID)
     if CTetris.CheckActiveCanMove(iPlayerID, 0, 0, 1) then
         CTetris.tPlayerActiveBlock[iPlayerID].iRotation = CTetris.tPlayerActiveBlock[iPlayerID].iRotation + 1
         if #CBlocks.tBlocks[CTetris.tPlayerActiveBlock[iPlayerID].iBlockType] < CTetris.tPlayerActiveBlock[iPlayerID].iRotation then CTetris.tPlayerActiveBlock[iPlayerID].iRotation = 1 end
+        CAudio.PlayAsync("tetris_rotate.mp3")
     end
 
     CTetris.tButtonRotateCD[iPlayerID]  = true
