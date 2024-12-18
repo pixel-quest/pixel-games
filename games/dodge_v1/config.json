@@ -9,14 +9,14 @@
 	"PlayerCount_Min": 0,
 	"PlayerCount_Max": 6,
 	"PlayerCount_Step": 1,
-	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
+	"PlayerCount_ru": "Количество игроков (для статистики, на игру не влияет)",
 	"PlayerCount_en": "Player Count",
 
 	"CrossMovementSpeed": 800,
 	"CrossMovementSpeed_Min": 50,
 	"CrossMovementSpeed_Max": 1000,
 	"CrossMovementSpeed_Step": 50,
-	"CrossMovementSpeed_ru": "Скорость Движения Прицела и эффектов (чем больше тем быстрее)",
+	"CrossMovementSpeed_ru": "Скорость Движения Прицела и эффектов",
 	"CrossMovementSpeed_en": "Crosshair and effects movespeed",
 
 	"EliminationMode": false,
