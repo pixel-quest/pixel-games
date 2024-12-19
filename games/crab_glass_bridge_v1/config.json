@@ -10,5 +10,9 @@
   	"TimeLimit_Max": 600,
   	"TimeLimit_Step": 30,
   	"TimeLimit_Ru": "Ограничение времени в секундах (если 0 то время бесконечное)",
-  	"TimeLimit_En": "Time limit in seconds (set 0 for infinite time)"
+  	"TimeLimit_En": "Time limit in seconds (set 0 for infinite time)",
+
+  	"HardMode": false,
+  	"HardMode_Ru": "Сложный режим, разбитые стёкла не остаются видимыми",
+  	"HardMode_Ru": "Hard Mode, broken windows are not visible"
 }
