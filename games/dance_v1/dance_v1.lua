@@ -311,7 +311,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -744,6 +744,8 @@ CGameMode.EndGame = function()
     CAudio.PlaySyncFromScratch("")
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
     CTimer.New(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
