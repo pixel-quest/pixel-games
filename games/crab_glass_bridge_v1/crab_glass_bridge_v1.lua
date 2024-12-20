@@ -83,6 +83,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    bAnimated = false
 }
 local tButtonStruct = { 
     bClick = false,
@@ -191,6 +192,8 @@ CGameMode.bVictory = false
 CGameMode.iTotalSquares = 0
 CGameMode.iClaimedSquares = 0
 
+CGameMode.bAntiSpamSwitch = false
+
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.bCountDownStarted = true
@@ -244,9 +247,11 @@ CGameMode.LoadSquares = function()
             local bTaken = false
             for iSquareY = 1, tGame.SquareRowHeight do
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY] = {}
-                CGameMode.tSquares[iRowId][iSquareX][iSquareY].bTouch = false
+                CGameMode.tSquares[iRowId][iSquareX][iSquareY].iTouch = 0
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad = false
                 CGameMode.tSquares[iRowId][iSquareX][iSquareY].bClaimed = false
+                CGameMode.tSquares[iRowId][iSquareX][iSquareY].iRealX = (tGame.SquareRows[iRowId].X + (iSquareX-1)*3)
+                CGameMode.tSquares[iRowId][iSquareX][iSquareY].iRealY = (tGame.SquareRows[iRowId].Y + (iSquareY-1)*3)
 
                 CGameMode.iTotalSquares = CGameMode.iTotalSquares + 1
 
@@ -260,27 +265,33 @@ CGameMode.LoadSquares = function()
 end
 
 CGameMode.PlayerTouchSquare = function(tSquareObject, bTouch)
-    if not tSquareObject.bBad or bTouch then
-        tSquareObject.bTouch = bTouch
+    if not bTouch then return; end
 
-        if tSquareObject.bBad and not tSquareObject.bClaimed then
+    if tSquareObject.bBad then
+        if not tSquareObject.bClaimed then
             tSquareObject.bClaimed = true
-
             CAudio.PlayAsync("glassbridge_effect_glassbreak.mp3")
+        end
+    else
+        CGameMode.PlaySoundAntiSpam("glassbridge_effect_glassstep.mp3")
 
-            --CAudio.StopBackground()
-            --AL.NewTimer(4000, function()
-            --    CAudio.PlayBackground("glassbridge_music_background.mp3")
-            --end)
-        elseif not tSquareObject.bBad then
-            CAudio.PlayAsync("glassbridge_effect_glassstep.mp3")
+        if not tSquareObject.bClaimed then
+            tSquareObject.bClaimed = true
+            CGameMode.iClaimedSquares = CGameMode.iClaimedSquares + 1
+        end
+    end
+end
 
-            if not tSquareObject.bClaimed then
-                tSquareObject.bClaimed = true
-                CGameMode.iClaimedSquares = CGameMode.iClaimedSquares + 1
+CGameMode.IsSquareTouched = function(tSquareObject)
+    for iX = tSquareObject.iRealX, tSquareObject.iRealX + 1 do
+        for iY = tSquareObject.iRealY, tSquareObject.iRealY + 1 do
+            if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                return true
             end
         end
     end
+
+    return false
 end
 
 CGameMode.EndGame = function(bVictory)
@@ -295,7 +306,7 @@ CGameMode.EndGame = function(bVictory)
             for iSquareY = 1, tGame.SquareRowHeight do
                 if CGameMode.tSquares[iRowId][iSquareX][iSquareY] then
                     CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad = true
-                    CGameMode.tSquares[iRowId][iSquareX][iSquareY].bTouch = true
+                    CGameMode.tSquares[iRowId][iSquareX][iSquareY].iTouch = 4
                     CGameMode.tSquares[iRowId][iSquareX][iSquareY].bClaimed = true
                 end 
             end
@@ -306,6 +317,17 @@ CGameMode.EndGame = function(bVictory)
 
     AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH
+    end)
+end
+
+CGameMode.PlaySoundAntiSpam = function(sSoundName)
+    if CGameMode.bAntiSpamSwitch then return; end
+
+    CAudio.PlayAsync(sSoundName)
+
+    CGameMode.bAntiSpamSwitch = true
+    AL.NewTimer(250, function()
+        CGameMode.bAntiSpamSwitch = false
     end)
 end
 --//
@@ -334,7 +356,11 @@ CPaint.Finish = function()
         for iX = tGame.FinishX, tGame.FinishX+1 do
             for iY = 1, tGame.Rows do
                 tFloor[iX][iY].iColor = CColors.GREEN
-                tFloor[iX][iY].iBright = tConfig.Bright            
+                if CGameMode.iClaimedSquares >= tGame.SquareRowLength then
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                else
+                    tFloor[iX][iY].iBright = tConfig.Bright-3
+                end            
             end
         end
     end
@@ -355,11 +381,14 @@ CPaint.Squares = function()
             for iSquareY = 1, tGame.SquareRowHeight do
                 local iColor = CColors.NONE
                 local iBright = tConfig.Bright
+                local bTouch = CGameMode.IsSquareTouched(CGameMode.tSquares[iRowId][iSquareX][iSquareY])
 
-                if CGameMode.tSquares[iRowId][iSquareX][iSquareY].bTouch then
-                    if CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad then
+                if CGameMode.tSquares[iRowId][iSquareX][iSquareY].bBad then
+                    if CGameMode.tSquares[iRowId][iSquareX][iSquareY].bClaimed and (not tConfig.HardMode or bTouch or iGameState > GAMESTATE_GAME) then
                         iColor = CColors.RED
-                    else
+                    end
+                else
+                    if bTouch then
                         iColor = CColors.GREEN
                     end
                 end
@@ -372,6 +401,36 @@ CPaint.Squares = function()
             iX = iX + 3
         end
     end
+end
+
+CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    AL.NewTimer(60, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = CColors.RED
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = 2
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return 200
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 
 ------------------------------AVONLIB
@@ -483,8 +542,10 @@ end
 function SetAllFloorColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
         end
     end
 end
@@ -492,8 +553,14 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
+
+            if CEffect.bEffectOn == false then
+                tFloor[iX][iY].iCoinId = 0
+            end
         end
     end
 
@@ -533,8 +600,13 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if not tFloor[click.X][click.Y].bDefect and iGameState == GAMESTATE_GAME and tFloor[click.X][click.Y].tSquareObject then
-            CGameMode.PlayerTouchSquare(tFloor[click.X][click.Y].tSquareObject, click.Click)
+        if not tFloor[click.X][click.Y].bDefect and iGameState == GAMESTATE_GAME then
+            if tFloor[click.X][click.Y].tSquareObject then
+                CGameMode.PlayerTouchSquare(tFloor[click.X][click.Y].tSquareObject, click.Click)
+            elseif click.Click and tFloor[click.X][click.Y].iColor == CColors.WHITE then
+                CPaint.AnimatePixelFlicker(click.X, click.Y, 3, CColors.WHITE)
+                CGameMode.PlaySoundAntiSpam(CAudio.MISCLICK)
+            end
         end
     end
 end
