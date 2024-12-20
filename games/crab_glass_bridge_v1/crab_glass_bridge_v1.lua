@@ -278,6 +278,7 @@ CGameMode.PlayerTouchSquare = function(tSquareObject, bTouch)
         if not tSquareObject.bClaimed then
             tSquareObject.bClaimed = true
             CGameMode.iClaimedSquares = CGameMode.iClaimedSquares + 1
+            CAudio.PlaySync(CAudio.CLICK)
         end
     end
 end
