@@ -144,7 +144,7 @@ function GameSetupTick()
     if bAnyButtonClick then
         bAnyButtonClick = false
 
-        if CGameMode.iCountdown == 0 then
+        if not CGameMode.bCountDownStarted then
             CGameMode.StartCountDown(5)
         end
     end
@@ -181,6 +181,7 @@ CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 CGameMode.bRoundOn = false
 CGameMode.iRound = 1
+CGameMode.bCountDownStarted = false
 
 CGameMode.InitGameMode = function()
     tGameStats.CurrentLives = tConfig.Health
@@ -194,6 +195,8 @@ end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
+
+    CGameMode.bCountDownStarted = true
 
     CTimer.New(1000, function()
         CAudio.PlaySyncFromScratch("")
