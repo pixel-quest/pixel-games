@@ -152,23 +152,30 @@ function GameSetupTick()
     local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
-        local iBright = CColors.BRIGHT15
-        if CheckPositionClick(tPos, tGame.StartPositionSize) then
-            tGameStats.Players[iPos].Color = tPos.Color
-            iBright = tConfig.Bright
-            iPlayersReady = iPlayersReady + 1
-        end
+        if iPos == 1 or not tConfig.SoloGame then
+            local iBright = CColors.BRIGHT15
+            if CheckPositionClick(tPos, tGame.StartPositionSize) then
+                tGameStats.Players[iPos].Color = tPos.Color
+                iBright = tConfig.Bright
+                iPlayersReady = iPlayersReady + 1
+            end
 
-        SetPositionColorBright(tPos, tGame.StartPositionSize, tPos.Color, iBright)
+            SetPositionColorBright(tPos, tGame.StartPositionSize, tPos.Color, iBright)
+        end
     end
 
-    if iPlayersReady == 2 then
+    if iPlayersReady == 2 or (tConfig.SoloGame and iPlayersReady == 1) then
         iGameState = GAMESTATE_GAME
         CPod.ResetPods()
         CBall.NewBall()
         CGameMode.RoundStartedAt = CTime.unix()
         tGameStats.StageLeftDuration = 0
         CGameMode.NextRoundCountDown(5, true)
+
+        if tConfig.SoloGame then
+            tGameStats.Players[2].Color = tGame.StartPositions[2].Color
+            CAI.Think()
+        end
     end
 end
 
@@ -403,6 +410,7 @@ CPod.UpdatePodPositions = function(clickX)
         if clickX < math.floor(tGame.Cols/2) then
             tPod = CPod.tPods[1]
         else
+            if tConfig.SoloGame then return; end
             tPod = CPod.tPods[2]
         end
 
@@ -466,6 +474,89 @@ CPod.Collision = function(iVel, iX, iY)
     end
 
     return 0
+end
+--//
+
+--AI
+CAI = {}
+
+CAI.GoalY = 0
+
+CAI.Think = function()
+    CTimer.New(200, function()
+        if iGameState ~= GAMESTATE_GAME then return; end
+
+        if CPad.AFK() then
+            CAI.AIMove()
+        else
+            CAI.PadMove()
+        end
+
+        return 200
+    end)
+end
+
+CAI.AIMove = function()
+    if CAI.GoalY == 0 or CAI.GoalY == CPod.tPods[2].iPosY then
+        CAI.GoalY = math.random(1, tGame.Rows)
+    end 
+
+    if CPod.tPods[2].iPosY < CAI.GoalY then
+        CPod.tPods[2].iPosY = CPod.tPods[2].iPosY + 1
+    else
+        CPod.tPods[2].iPosY = CPod.tPods[2].iPosY - 1
+    end
+end
+
+CAI.PadMove = function()
+    local iNewY = CPod.tPods[2].iPosY + -CPad.iXPlus
+
+    if iNewY > 0 and iNewY < tGame.Rows then
+        CPod.tPods[2].iPosY = iNewY
+    end
+
+    CPad.iXPlus = 0
+end
+--//
+
+--Pad
+CPad = {}
+CPad.LastInteractionTime = -1
+
+CPad.iXPlus = 0
+CPad.iYPlus = 0
+CPad.bTrigger = false
+
+CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
+
+    CPad.bTrigger = bTrigger
+
+    if bUp then 
+        CPad.iYPlus = -1
+        CPad.iXPlus = 0
+    end
+
+    if bDown then 
+        CPad.iYPlus = 1
+        CPad.iXPlus = 0
+    end
+
+    if bLeft then
+        CPad.iXPlus = -1
+        CPad.iYPlus = 0
+    end
+
+    if bRight then 
+        CPad.iXPlus = 1 
+        CPad.iYPlus = 0
+    end
+end
+
+CPad.AFK = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
 end
 --//
 
@@ -565,8 +656,12 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return; end
-    tButtons[click.Button].bClick = click.Click
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tButtons[click.Button] == nil then return; end
+        tButtons[click.Button].bClick = click.Click
+    end
 end
 
 function DefectButton(defect)
