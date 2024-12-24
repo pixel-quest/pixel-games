@@ -180,6 +180,7 @@ function GameTick()
     SetFloorColorBright(CColors.RED, 2) -- красим всё поле в один цвет
     SetAllButtonColorBright(CColors.NONE, 0, false) 
     CPaint.PlayerGameZones()
+    CPaint.Animations()
 end
 
 function PostGameTick()
@@ -304,7 +305,7 @@ CGameMode.PlayerCollectCoin = function(iPlayerID, iX, iY)
     if not CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) then
         CAudio.PlayAsync(CAudio.CLICK)
         CGameMode.PlayerAddScore(iPlayerID, tConfig.PixelPoints)
-        --animation
+        CPaint.AnimatePixelDrop(iX, iY, -1, tGameStats.Players[iPlayerID].Color)
     end
 end
 
@@ -365,6 +366,34 @@ CPaint.PlayerGameZone = function(iPlayerID)
             tFloor[iX][iY].iColor = iColor
         end
     end        
+end
+
+CPaint.tAnimatedPixels = {}
+CPaint.Animations = function()
+    for iPixelID = 1, #CPaint.tAnimatedPixels do
+        if CPaint.tAnimatedPixels[iPixelID] and tFloor[CPaint.tAnimatedPixels[iPixelID].iX][CPaint.tAnimatedPixels[iPixelID].iY].iColor == CColors.NONE then
+            tFloor[CPaint.tAnimatedPixels[iPixelID].iX][CPaint.tAnimatedPixels[iPixelID].iY].iColor = CPaint.tAnimatedPixels[iPixelID].iColor
+        end
+    end
+end
+
+CPaint.AnimatePixelDrop = function(iX, iY, iVelX, iColor)
+    local iPixelID = #CPaint.tAnimatedPixels+1
+    CPaint.tAnimatedPixels[iPixelID] = {}
+    CPaint.tAnimatedPixels[iPixelID].iX = iX
+    CPaint.tAnimatedPixels[iPixelID].iY = iY
+    CPaint.tAnimatedPixels[iPixelID].iVelX = iVelX
+    CPaint.tAnimatedPixels[iPixelID].iColor = iColor
+
+    AL.NewTimer(50, function()
+        CPaint.tAnimatedPixels[iPixelID].iX = CPaint.tAnimatedPixels[iPixelID].iX + CPaint.tAnimatedPixels[iPixelID].iVelX
+        if CPaint.tAnimatedPixels[iPixelID].iX < 1 or CPaint.tAnimatedPixels[iPixelID].iVelX > tGame.Cols or tFloor[CPaint.tAnimatedPixels[iPixelID].iX][CPaint.tAnimatedPixels[iPixelID].iY].iColor == CColors.RED then
+            CPaint.tAnimatedPixels[iPixelID] = nil
+            return nil
+        end
+
+        return 50
+    end)
 end
 --//
 
