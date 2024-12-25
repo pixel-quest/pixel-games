@@ -1,8 +1,10 @@
 --[[
-    Название: Название механики
+    Название: Пиксель битва
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики: 
+        Игроки собирают пиксели заполняя свою зону, кто быстрее соберет все тот выиграл
+    Идеи по доработке: 
+
 ]]
 math.randomseed(os.time())
 
@@ -93,9 +95,9 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGameResults.PlayersCount = tConfig.PlayerCount
-
-    tGameStats.TargetScore = tGame.StartPositionSizeX * tGame.StartPositionSizeY
+    iPrevTickTime = CTime.unix()
+    CGameMode.InitGameMode()
+    CGameMode.Announcer()
 end
 
 function NextTick()
@@ -154,6 +156,7 @@ function GameSetupTick()
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
                         tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iBright = tConfig.Bright
 
                         if tFloor[iX][iY].bClick then 
                             bArenaClick = true
@@ -208,6 +211,32 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.iWinnerID = 0
 CGameMode.tPlayerFieldInfo = {}
+CGameMode.bArenaCanStart = false
+
+CGameMode.InitGameMode = function()
+    tGameResults.PlayersCount = tConfig.PlayerCount
+    tGameStats.TargetScore = tGame.StartPositionSizeX * tGame.StartPositionSizeY    
+
+    if tGame.ArenaMode then
+        AL.NewTimer(5000, function()
+            CGameMode.bArenaCanStart = true
+        end)
+    end
+end
+
+CGameMode.Announcer = function()
+    CAudio.PlaySync("voice_pixel_battle.mp3")
+
+    if #tGame.StartPositions > 1 then
+        CAudio.PlaySync("voices/choose-color.mp3")
+    end
+
+    if tGame.ArenaMode then 
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
+end
 
 CGameMode.PrepareGame = function()
     for iPlayerID = 1, #tGame.StartPositions do
@@ -293,10 +322,18 @@ CGameMode.SpawnCoinForPlayer = function(iPlayerID)
 
         iAttemptCount = iAttemptCount + 1
         if iAttemptCount > 25 then return false end
-    until tFloor[iX][iY].iCoinPlayerID == 0 and not tFloor[iX][iY].bDefect 
+    until tFloor[iX][iY].iCoinPlayerID == 0 and (not tFloor[iX][iY].bDefect or tGame.StartPositions[iPlayerID].X + CGameMode.tPlayerFieldInfo[iPlayerID].iFillX >= tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX-2)
     and (iX ~= tGame.StartPositions[iPlayerID].X + CGameMode.tPlayerFieldInfo[iPlayerID].iFillX or iY >= tGame.StartPositions[iPlayerID].Y + CGameMode.tPlayerFieldInfo[iPlayerID].iFillY)
 
     tFloor[iX][iY].iCoinPlayerID = iPlayerID
+
+    if tFloor[iX][iY].bDefect then
+        AL.NewTimer(500, function()
+            if iGameState == GAMESTATE_GAME then
+                CGameMode.PlayerCollectCoin(iPlayerID, iX, iY)
+            end
+        end)
+    end
 end
 
 CGameMode.PlayerCollectCoin = function(iPlayerID, iX, iY)
@@ -305,7 +342,7 @@ CGameMode.PlayerCollectCoin = function(iPlayerID, iX, iY)
     if not CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) then
         CAudio.PlayAsync(CAudio.CLICK)
         CGameMode.PlayerAddScore(iPlayerID, tConfig.PixelPoints)
-        CPaint.AnimatePixelDrop(iX, iY, -1, tGameStats.Players[iPlayerID].Color)
+        CPaint.AnimatePixelDrop(iX, iY, -1, tGameStats.Players[iPlayerID].Color, tGame.StartPositions[iPlayerID].X)
     end
 end
 
@@ -377,17 +414,18 @@ CPaint.Animations = function()
     end
 end
 
-CPaint.AnimatePixelDrop = function(iX, iY, iVelX, iColor)
+CPaint.AnimatePixelDrop = function(iX, iY, iVelX, iColor, iTargetX)
     local iPixelID = #CPaint.tAnimatedPixels+1
     CPaint.tAnimatedPixels[iPixelID] = {}
     CPaint.tAnimatedPixels[iPixelID].iX = iX
     CPaint.tAnimatedPixels[iPixelID].iY = iY
     CPaint.tAnimatedPixels[iPixelID].iVelX = iVelX
     CPaint.tAnimatedPixels[iPixelID].iColor = iColor
+    CPaint.tAnimatedPixels[iPixelID].iPlayerID = iPlayerID
 
     AL.NewTimer(50, function()
         CPaint.tAnimatedPixels[iPixelID].iX = CPaint.tAnimatedPixels[iPixelID].iX + CPaint.tAnimatedPixels[iPixelID].iVelX
-        if CPaint.tAnimatedPixels[iPixelID].iX < 1 or CPaint.tAnimatedPixels[iPixelID].iVelX > tGame.Cols or tFloor[CPaint.tAnimatedPixels[iPixelID].iX][CPaint.tAnimatedPixels[iPixelID].iY].iColor == CColors.RED then
+        if CPaint.tAnimatedPixels[iPixelID].iX < 1 or CPaint.tAnimatedPixels[iPixelID].iVelX > tGame.Cols or CPaint.tAnimatedPixels[iPixelID].iX < iTargetX then
             CPaint.tAnimatedPixels[iPixelID] = nil
             return nil
         end
@@ -555,7 +593,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if click.Click and not tFloor[click.X][click.Y].bDefect then
+        if click.Click and not tFloor[click.X][click.Y].bDefect and iGameState == GAMESTATE_GAME then
             if tFloor[click.X][click.Y].iCoinPlayerID > 0 then
                 CGameMode.PlayerCollectCoin(tFloor[click.X][click.Y].iCoinPlayerID, click.X, click.Y)
             end

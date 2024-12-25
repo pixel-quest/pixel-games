@@ -1,0 +1,17 @@
+{
+  "Cols": 6,
+  "Rows": 6,
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
+
+  "ArenaMode": true,
+
+  "StartPositions": [
+    {
+      "X": 1,
+      "Y": 1,
+      "Color": 2
+    }
+  ],
+  "StartPositionSizeX": 6,
+  "StartPositionSizeY": 6  
+}
