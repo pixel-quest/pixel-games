@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_Ru": "Яркость",
+  	    	
+	"PlayerCount": 0,
+	"PlayerCount_Min": 0,
+	"PlayerCount_Max": 6,
+	"PlayerCount_Step": 1,
+	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
+	"PlayerCount_en": "Player Count",
+
+	"PixelPoints": 1,
+	"PixelPoints_Min": 1,
+	"PixelPoints_Max": 3,
+	"PixelPoints_Step": 1,
+	"PixelPoints_ru": "Количество очков за монету",
+	"PixelPoints_en": "Points per coin",
+
+	"CoinSpawnTime": 1,
+	"CoinSpawnTime_Min": 0.5,
+	"CoinSpawnTime_Max": 2.5,
+	"CoinSpawnTime_Step": 0.5,
+	"CoinSpawnTime_ru": "Частота появления монет(в секундах)",
+	"CoinSpawnTime_en": "Coin spawn time"
+}
