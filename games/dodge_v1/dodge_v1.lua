@@ -147,11 +147,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    if CGameMode.bVictory then
-        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
-    else
-        SetGlobalColorBright(CCross.iColor, tConfig.Bright)
-    end
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -275,10 +271,12 @@ CGameMode.EndGame = function(bVictory)
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
+        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
+        SetGlobalColorBright(CColors.RED, tConfig.Bright)
     end
 
     CTimer.New(tConfig.WinDurationMS, function()

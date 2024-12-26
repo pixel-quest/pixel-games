@@ -210,11 +210,7 @@ function GameTick()
 end
 
 function PostGameTick()
-    if CGameMode.bVictory then
-        SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
-    else
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
-    end
+
 end
 
 function RangeFloor(setPixel, setButton)
@@ -427,6 +423,12 @@ CGameMode.EndGame = function(bVictory)
     tGameResults.Won = bVictory
 
     iGameState = GAMESTATE_POSTGAME
+
+    if CGameMode.bVictory then
+        SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+    else
+        SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    end
 
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
