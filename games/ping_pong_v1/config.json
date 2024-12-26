@@ -5,6 +5,17 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",  
 
+  "SoloGame": false,
+  "SoloGame_ru": "Одиночная игра против компьютера/джойстика",
+  "SoloGame_ru": "Single player vs AI or controller",
+
+  "PadAFKTimer": 10,
+  "PadAFKTimer_Min": 5,
+  "PadAFKTimer_Max": 30,
+  "PadAFKTimer_Step": 1,
+  "PadAFKTimer_ru": "Длительность Отсутсвия Геймпада (Через сколько времени неиспользования геймпада передовать управление ИИ)",
+  "PadAFKTimer_en": "GamePad Afk Timer (When no inputs are coming from Pad for this long - give the controls to AI)",
+
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true,
 
