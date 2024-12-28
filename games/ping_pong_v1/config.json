@@ -7,7 +7,7 @@
 
   "SoloGame": false,
   "SoloGame_ru": "Одиночная игра против компьютера/джойстика",
-  "SoloGame_ru": "Single player vs AI or controller",
+  "SoloGame_en": "Single player vs AI or controller",
 
   "PadAFKTimer": 10,
   "PadAFKTimer_Min": 5,
