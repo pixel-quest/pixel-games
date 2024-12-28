@@ -152,7 +152,7 @@ function GameSetupTick()
     local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
-        if iPos == 1 or not tConfig.SoloGame then
+        if iPos == 2 or not tConfig.SoloGame then
             local iBright = CColors.BRIGHT15
             if CheckPositionClick(tPos, tGame.StartPositionSize) then
                 tGameStats.Players[iPos].Color = tPos.Color
@@ -173,7 +173,7 @@ function GameSetupTick()
         CGameMode.NextRoundCountDown(5, true)
 
         if tConfig.SoloGame then
-            tGameStats.Players[2].Color = tGame.StartPositions[2].Color
+            tGameStats.Players[1].Color = tGame.StartPositions[1].Color
             CAI.Think()
         end
     end
@@ -408,9 +408,9 @@ CPod.UpdatePodPositions = function(clickX)
     if iGameState == GAMESTATE_GAME then
         local tPod
         if clickX < math.floor(tGame.Cols/2) then
+            if tConfig.SoloGame then return; end
             tPod = CPod.tPods[1]
         else
-            if tConfig.SoloGame then return; end
             tPod = CPod.tPods[2]
         end
 
@@ -497,22 +497,22 @@ CAI.Think = function()
 end
 
 CAI.AIMove = function()
-    if CAI.GoalY == 0 or CAI.GoalY == CPod.tPods[2].iPosY then
+    if CAI.GoalY == 0 or CAI.GoalY == CPod.tPods[1].iPosY then
         CAI.GoalY = math.random(1, tGame.Rows)
     end 
 
-    if CPod.tPods[2].iPosY < CAI.GoalY then
-        CPod.tPods[2].iPosY = CPod.tPods[2].iPosY + 1
+    if CPod.tPods[1].iPosY < CAI.GoalY then
+        CPod.tPods[1].iPosY = CPod.tPods[1].iPosY + 1
     else
-        CPod.tPods[2].iPosY = CPod.tPods[2].iPosY - 1
+        CPod.tPods[1].iPosY = CPod.tPods[1].iPosY - 1
     end
 end
 
 CAI.PadMove = function()
-    local iNewY = CPod.tPods[2].iPosY + -CPad.iXPlus
+    local iNewY = CPod.tPods[1].iPosY + CPad.iXPlus
 
     if iNewY > 0 and iNewY < tGame.Rows then
-        CPod.tPods[2].iPosY = iNewY
+        CPod.tPods[1].iPosY = iNewY
     end
 
     CPad.iXPlus = 0
