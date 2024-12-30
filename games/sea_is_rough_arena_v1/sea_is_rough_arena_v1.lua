@@ -204,6 +204,7 @@ end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
 function SwitchStage()
+    if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR then return; end
     switchStage(GameStats.StageNum+1)
 end
 
