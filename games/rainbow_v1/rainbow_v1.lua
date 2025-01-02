@@ -66,6 +66,8 @@ local GameObj = {
 -- Объект конфига игры, см. файл config.json
 local GameConfigObj = {
     Delay = 100, -- задержка отрисовки в мс
+    NoSound = false,
+    DarkClicks = false,
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -102,6 +104,7 @@ local ButtonsList = {} -- список кнопок
 local Pixel = { -- пиксель тип
     Color = colors.NONE,
     Bright = colors.BRIGHT0,
+    Click = false,
 }
 local GradientLength = 0
 local GradientOffset = 0
@@ -159,7 +162,8 @@ function NextTick()
 
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y]=GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1]
+            FloorMatrix[x][y].Color = GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1].Color
+            FloorMatrix[x][y].Bright = GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1].Bright
         end
     end
 
@@ -183,7 +187,11 @@ end
 function RangeFloor(setPixel, setButton)
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            setPixel(x,y,FloorMatrix[x][y].Color,FloorMatrix[x][y].Bright)
+            if GameConfigObj.DarkClicks and FloorMatrix[x][y].Click then
+                setPixel(x,y,colors.NONE,colors.BRIGHT0)
+            else
+                setPixel(x,y,FloorMatrix[x][y].Color,FloorMatrix[x][y].Bright)
+            end
         end
     end
 
@@ -209,6 +217,9 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
+    if GameConfigObj.DarkClicks then
+        FloorMatrix[click.X][click.Y].Click = click.Click
+    end
 end
 
 -- ButtonClick (служебный): метод нажатия/отпускания кнопки
