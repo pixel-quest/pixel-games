@@ -193,7 +193,7 @@ end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
 function SwitchStage()
-    switchStage(Stage+1)
+    --switchStage(Stage+1)
 end
 
 -- NextTick (служебный): метод игрового тика
