@@ -55,6 +55,7 @@
   - **Туман** – *игра к Хэллоуину: поле покрыто туманом, надо искать конфеты* [fog_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/fog_v1/fog_v1.lua)
   - **Тетрис** – *классический Тетрис* [tetris_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/tetris_v1/tetris_v1.lua)
   - **Рисовалка** – *рисовалка* [сoloring_book_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
+  - **Стеклянный Мост** – *испытание Стеклянный Мост из Игры в кальмара* [crab_glass_bridge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/crab_glass_bridge_v1/crab_glass_bridge_v1.lua)
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
