@@ -225,7 +225,7 @@ CGameMode.StartGame = function()
 end
 
 CGameMode.DamagePlayer = function(iDamage)
-    if CGameMode.bDamageCooldown then return; end
+    if CGameMode.bDamageCooldown or iGameState ~= GAMESTATE_GAME then return; end
 
     tGameResults.Score = tGameResults.Score - 10
 
@@ -250,7 +250,7 @@ CGameMode.DamagePlayer = function(iDamage)
 end
 
 CGameMode.DamagePlayerCheck = function(iX, iY, iDamage)
-    if CGameMode.bDamageCooldown then return; end
+    if CGameMode.bDamageCooldown or iGameState ~= GAMESTATE_GAME then return; end
 
     if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 then
         if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
@@ -262,6 +262,8 @@ CGameMode.DamagePlayerCheck = function(iX, iY, iDamage)
 end
 
 CGameMode.EndGame = function(bVictory)
+    if iGameState ~= GAMESTATE_GAME then return; end
+
     CGameMode.bVictory = bVictory
     iGameState = GAMESTATE_POSTGAME
     CAudio.StopBackground()

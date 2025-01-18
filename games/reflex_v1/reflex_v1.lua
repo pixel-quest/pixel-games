@@ -191,7 +191,7 @@ function GameSetupTick()
         if iPlayersReady > 0 and not CGameMode.bCountDownStarted then
             CGameMode.iPlayerCount = iPlayersReady
             tGameResults.PlayersCount = iPlayersReady
-            CGameMode.StartCountDown(5)
+            CGameMode.StartCountDown(1)
         end
     end
 end
@@ -288,7 +288,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            --CAudio.PlayLeftAudio(CGameMode.iCountdown)
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
