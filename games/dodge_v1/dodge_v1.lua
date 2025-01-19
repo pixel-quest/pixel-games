@@ -11,6 +11,7 @@
         Больше эффектов
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -127,7 +128,7 @@ function NextTick()
         return tGameResults
     end   
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -195,7 +196,7 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -243,7 +244,7 @@ CGameMode.DamagePlayer = function(iDamage)
 
     CGameMode.bDamageCooldown = true
     CEffect.iColor = CColors.MAGENTA
-    CTimer.New(tConfig.DamageCooldown, function()
+    AL.NewTimer(tConfig.DamageCooldown, function()
         CGameMode.bDamageCooldown = false
         CEffect.iColor = CColors.RED
     end)
@@ -269,21 +270,34 @@ CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
     tGameResults.Won = bVictory
 
+    CEffect.iCurrentEffect = 0
+    CPaint.ClearAnimation()
+    CCross.bHidden = true
+
     if bVictory then
         CAudio.PlaySync(CAudio.GAME_SUCCESS)
         CAudio.PlaySync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
-        SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
+        CGameMode.GlobalColor(CColors.GREEN)
     else
         CAudio.PlaySync(CAudio.GAME_OVER)
         CAudio.PlaySync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
+        CGameMode.GlobalColor(CColors.RED)
     end
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = bVictory
         iGameState = GAMESTATE_FINISH
+    end)
+end
+
+CGameMode.GlobalColor = function(iColor)
+    local iRepeat = 0
+    AL.NewTimer(0, function()
+        SetGlobalColorBright(iColor, tConfig.Bright)
+        iRepeat = iRepeat + 1
+        if iRepeat < 3 then return 100; end
     end)
 end
 --//
@@ -321,7 +335,7 @@ CEffect.SPECIAL_ENDING_TYPE_BUTTON = 1
 CEffect.SPECIAL_ENDING_TYPE_COINS = 2
 
 CEffect.Thinker = function()
-    CTimer.New(100, function()
+    AL.NewTimer(100, function()
         if iGameState > GAMESTATE_GAME then return; end
 
         if CEffect.iCurrentEffect ~= 0 then
@@ -368,7 +382,9 @@ CEffect.NextEffectTimer = function()
     end
 
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
+        if iGameState > GAMESTATE_GAME then return nil; end
+
         if tGameStats.StageLeftDuration <= 1 then
             CEffect.iNextEffect = iEffectId
             CEffect.bCanCast = true
@@ -399,7 +415,7 @@ CEffect.EffectTimer = function()
     end
 
     tGameStats.StageLeftDuration = CEffect.tEffects[CEffect.iCurrentEffect][CEffect.CONST_LENGTH]
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         if tGameStats.StageLeftDuration <= 0 then
             if iGameState > GAMESTATE_GAME then return nil end
 
@@ -525,7 +541,7 @@ CEffect.SpecialEndingCollectCoin = function(iCoinId, iX, iY)
         CAudio.PlayAsync(CAudio.CLICK)
     end
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tFloor[iX][iY].iCoinId = 0
     end)
 end
@@ -1378,7 +1394,7 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_TICK] = function()
             CAudio.PlayAsync("plasma.mp3")
 
             CEffect.tCurrentEffectData.bCooldown = true
-            CTimer.New(500, function()
+            AL.NewTimer(500, function()
                 CEffect.tCurrentEffectData.bCooldown = false
             end)
         end
@@ -1453,7 +1469,7 @@ CCross.Move = function(iXPlus, iYPlus)
 end
     
 CCross.Thinker = function()
-    CTimer.New(CCross.MovementDelay, function()
+    AL.NewTimer(CCross.MovementDelay, function()
         if CCross.IsAiOn() then
             CCross.iTicksNewDest = CCross.iTicksNewDest + 1
 
@@ -1554,8 +1570,8 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
-        if not tFloor[iX][iY].bAnimated then return; end
+    AL.NewTimer(CPaint.ANIMATION_DELAY*3, function()
+        if not tFloor[iX][iY].bAnimated or iGameState > GAMESTATE_GAME then return; end
 
         if tFloor[iX][iY].iColor == iColor then
             tFloor[iX][iY].iBright = tConfig.Bright + 1
@@ -1577,6 +1593,14 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
 
         return nil
     end)
+end
+
+CPaint.ClearAnimation = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do 
+            tFloor[iX][iY].bAnimated = false
+        end
+    end
 end
 --//
 
@@ -1608,34 +1632,6 @@ CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
 
     if CPad.iXPlus ~= 0 or CPad.iYPlus ~= 0 then
         CCross.Move(CPad.iXPlus, CPad.iYPlus)
-    end
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
     end
 end
 --//
@@ -1734,23 +1730,27 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if not tFloor[click.X][click.Y].bDefect and click.Click and tFloor[click.X][click.Y].iColor == CColors.RED then
-        CGameMode.DamagePlayerCheck(click.X, click.Y, 1)
-    end
+        if not tFloor[click.X][click.Y].bDefect and click.Click and tFloor[click.X][click.Y].iColor == CColors.RED then
+            CGameMode.DamagePlayerCheck(click.X, click.Y, 1)
+        end
 
-    if click.Click and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
-        CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, click.X, click.Y)
+        if click.Click and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
+            CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, click.X, click.Y)
+        end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CEffect.bEffectOn and tFloor[defect.X][defect.Y].iCoinId > 0 then
-        CEffect.SpecialEndingCollectCoin(tFloor[defect.X][defect.Y].iCoinId, defect.X, defect.Y)
+        if defect.Defect and CEffect.bEffectOn and tFloor[defect.X][defect.Y].iCoinId > 0 then
+            CEffect.SpecialEndingCollectCoin(tFloor[defect.X][defect.Y].iCoinId, defect.X, defect.Y)
+        end
     end
 end
 
