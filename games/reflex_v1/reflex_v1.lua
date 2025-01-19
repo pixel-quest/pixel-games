@@ -234,7 +234,7 @@ CGameMode.bRoundOn = false
 CGameMode.bCountDownStarted = false
 
 CGameMode.iBestScore = 0
-CGameMode.iWinnerID = 0
+CGameMode.iWinnerID = 1
 
 CGameMode.iFinishedPlayerCount = 0
 CGameMode.iCorrectlyFinishedPlayerCount = 0
