@@ -385,7 +385,7 @@ end
 CGameMode.EndGame = function()
     CAudio.StopBackground()
 
-    CAudio.PlaySync(tGame.StartPositions[CGameMode.iWinnerID].Color)
+    CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 
     iGameState = GAMESTATE_POSTGAME
