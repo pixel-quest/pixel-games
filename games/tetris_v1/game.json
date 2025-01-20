@@ -7,12 +7,12 @@
     {
       "X": 2,
       "Y": 1,
-      "Color": 3
+      "Color": "0xFFFF00"
     },
     {
       "X": 14,
       "Y": 1,
-      "Color": 5
+      "Color": "0xFF00FF"
     }
   ],
 
