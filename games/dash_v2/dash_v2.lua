@@ -5,6 +5,7 @@
     Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -152,7 +153,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -243,7 +244,7 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -286,7 +287,7 @@ CGameMode.StartGame = function()
     end
 
     CLava.LoadMap()
-    CTimer.New(tConfig.LavaFrameDelay, function()
+    AL.NewTimer(tConfig.LavaFrameDelay, function()
         if iGameState == GAMESTATE_GAME then
             CLava.UpdateObjects()
             return tConfig.LavaFrameDelay
@@ -344,7 +345,7 @@ end
 CGameMode.ResetSafeZoneTimer = function(tButton)
     local iTime = tConfig.SafeZoneResetTimer
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         if tConfig.HardZoneDespawn or not CGameMode.SafeZoneClicked(tButton) then
             iTime = iTime - 1
             if tButton.iSafeZoneBright > 1 then
@@ -376,7 +377,7 @@ CGameMode.NextStage = function()
         CLava.LoadMap()
 
         CLava.bCooldown = true
-        CTimer.New(tConfig.StageSwitchHitRegDelay, function()
+        AL.NewTimer(tConfig.StageSwitchHitRegDelay, function()
             CLava.bCooldown = false
         end)
     end
@@ -388,7 +389,7 @@ CGameMode.EndGame = function(bVictory)
     iGameState = GAMESTATE_POSTGAME
     tGameResults.Won = bVictory
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 
@@ -511,7 +512,7 @@ CLava.PlayerStep = function()
         CGameMode.EndGame(false)
     else
         CAudio.PlayAsync(CAudio.MISCLICK)
-        CTimer.New(tConfig.LavaCooldown, function()
+        AL.NewTimer(tConfig.LavaCooldown, function()
             CLava.bCooldown = false
             CLava.iColor = CColors.RED
         end)
@@ -522,7 +523,7 @@ CLava.PlayerStepDelay = function(iX, iY)
     if CLava.bCooldown or tFloor[iX][iY].bDelayed then return end
     tFloor[iX][iY].bDelayed = true
 
-    CTimer.New(tConfig.LavaLag, function()
+    AL.NewTimer(tConfig.LavaLag, function()
         if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
             CLava.PlayerStep()
 
@@ -605,7 +606,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY*3, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -628,34 +629,6 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
 
         return nil
     end)
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 
