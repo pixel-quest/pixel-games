@@ -11,6 +11,7 @@
 
 -- Для каждой игры случайный сид, ставится один раз
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -117,6 +118,10 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    end    
+
     CAudio.PlaySyncFromScratch("games/ping-pong-game.mp3") -- Игра "Пинг-понг"
     CAudio.PlaySync(CAudio.CHOOSE_COLOR) -- Выберите цвет
 end
@@ -142,7 +147,7 @@ function NextTick()
         return tGameResults
     end   
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -215,7 +220,7 @@ CGameMode.GameWinner = -1
 
 CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
     CGameMode.iCountdown = iCountDownTime
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
 
         tGameStats.StageLeftDuration = CGameMode.iCountdown
@@ -249,7 +254,7 @@ CGameMode.LaunchBall = function()
     CBall.tBall.iVelocityY = math.random(0,1)
     if CBall.tBall.iVelocityY == 0 then CBall.tBall.iVelocityY = -1 end
 
-    CTimer.New(CBall.UpdateDelay, function()
+    AL.NewTimer(CBall.UpdateDelay, function()
         if CGameMode.iCountdown ~= -1 then
             return nil
         end
@@ -273,7 +278,7 @@ CGameMode.EndGame = function(iWinnerID)
 
     iGameState = GAMESTATE_POSTGAME
 
-    CTimer.New(tConfig.WinDurationSec*1000, function()
+    AL.NewTimer(tConfig.WinDurationSec*1000, function()
         iGameState = GAMESTATE_FINISH
         return nil
     end)
@@ -483,7 +488,7 @@ CAI = {}
 CAI.GoalY = 0
 
 CAI.Think = function()
-    CTimer.New(200, function()
+    AL.NewTimer(200, function()
         if iGameState ~= GAMESTATE_GAME then return; end
 
         if CPad.AFK() then
@@ -557,35 +562,6 @@ end
 
 CPad.AFK = function()
     return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
-end
---//
-
--- TIMER класс отвечает за таймеры, очень полезная штука.
--- Можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- Просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 
