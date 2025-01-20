@@ -27,32 +27,32 @@
     {
       "X": 8,
       "Y": 6,
-      "Color": 1
+      "Color": "0xFF0000"
     },
     {
       "X": 12,
       "Y": 6,
-      "Color": 2
+      "Color": "0x00FF00"
     },
     {
       "X": 16,
       "Y": 6,
-      "Color": 3
+      "Color": "0xFFFF00"
     },
     {
       "X": 8,
       "Y": 10,
-      "Color": 4
+      "Color": "0x0000FF"
     },
     {
       "X": 12,
       "Y": 10,
-      "Color": 5
+      "Color": "0xFF00FF"
     },
     {
       "X": 16,
       "Y": 10,
-      "Color": 6
+      "Color": "0x00FFFF"
     }
   ]
 }
