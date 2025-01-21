@@ -34,6 +34,7 @@
             либо команде игрока, но например для этого нужно нажать кнопку на стене
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -147,7 +148,7 @@ function NextTick()
         return tGameResults
     end 
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -196,6 +197,15 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.iWinner = 0
 
+CGameMode.tTeamIDToColor = {}
+CGameMode.tTeamIDToColor[1] = CColors.GREEN
+CGameMode.tTeamIDToColor[2] = CColors.RED
+CGameMode.tTeamIDToColor[3] = CColors.YELLOW
+CGameMode.tTeamIDToColor[4] = CColors.MAGENTA
+CGameMode.tTeamIDToColor[5] = CColors.CYAN
+CGameMode.tTeamIDToColor[6] = CColors.BLUE
+
+
 CGameMode.Init = function()
     CField.SetupField()
     CGameMode.SetupUnits()
@@ -211,7 +221,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.bCountDownStarted = true
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -236,7 +246,7 @@ CGameMode.StartGame = function()
     tGameStats.StageTotalDuration = tConfig.GameLength
     tGameStats.StageLeftDuration = tConfig.GameLength
 
-    CTimer.New(tConfig.UnitThinkDelay, function()
+    AL.NewTimer(tConfig.UnitThinkDelay, function()
         if iGameState == GAMESTATE_GAME then
             CUnits.ProcessUnits()
             return tConfig.UnitThinkDelay
@@ -245,7 +255,7 @@ CGameMode.StartGame = function()
         return nil
     end)    
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         if iGameState == GAMESTATE_GAME then
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
@@ -297,7 +307,7 @@ CGameMode.EndGame = function()
 
     tGameResults.Score = tGameStats.Players[1].Score
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = CGameMode.iWinner == 1
         iGameState = GAMESTATE_FINISH
     end)
@@ -308,8 +318,7 @@ end
 
 CGameMode.SetupUnits = function()
     for iTeamId = 2, tConfig.TeamCount+1 do
-        tGameStats.Players[iTeamId].Color = iTeamId
-        if iTeamId == 2 then tGameStats.Players[iTeamId].Color = 1 end
+        tGameStats.Players[iTeamId].Color = CGameMode.tTeamIDToColor[iTeamId]
 
         for iUnit = 1, tConfig.UnitCountPerTeam do
             CUnits.NewUnit(math.random( 1, tGame.Cols ), math.random( 1, tGame.Rows ), iTeamId)
@@ -541,34 +550,6 @@ CPaint.Unit = function(iUnitID)
             if tFloor[iX] and tFloor[iX][iY] then
                 tFloor[iX][iY].iColor = tGameStats.Players[CUnits.tUnits[iUnitID].iTeamId].Color
                 tFloor[iX][iY].iBright = tConfig.Bright+1
-            end
-        end
-    end
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
             end
         end
     end
