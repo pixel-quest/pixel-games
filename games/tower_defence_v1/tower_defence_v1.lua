@@ -88,6 +88,7 @@
         только для хардкорной сложности наверное можно сделать
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -210,7 +211,7 @@ function NextTick()
         return tGameResults
     end
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -271,7 +272,7 @@ CGameMode.PrepareGame = function()
     CGameMode.tBase.iX = math.floor(tGame.Cols/2)
     CGameMode.tBase.iY = math.floor(tGame.Rows/2)
     CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
-    CGameMode.tBase.iColor = tConfig.BaseColor
+    CGameMode.tBase.iColor = tonumber(tConfig.BaseColor)
 
     tGameStats.TotalLives = CGameMode.tBase.iHealth
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
@@ -285,7 +286,7 @@ end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         
         tGameStats.StageLeftDuration = CGameMode.iCountdown
@@ -307,7 +308,7 @@ end
 CGameMode.StartGame = function()
     --CLog.print("Game Started!")
 
-    CTimer.New(1, function()
+    AL.NewTimer(1, function()
         if iGameState == GAMESTATE_GAME then
             CGameMode.SpawnUnits()
             return tConfig.UnitSpawnDelay
@@ -316,7 +317,7 @@ CGameMode.StartGame = function()
         end
     end)
 
-    CTimer.New(tConfig.UnitThinkDelay, function()
+    AL.NewTimer(tConfig.UnitThinkDelay, function()
         if iGameState < GAMESTATE_FINISH then
             CUnits.ProcessUnits()
             return tConfig.UnitThinkDelay
@@ -325,7 +326,7 @@ CGameMode.StartGame = function()
         return nil
     end)
 
-    CTimer.New(tConfig.ProjectileDelay, function()
+    AL.NewTimer(tConfig.ProjectileDelay, function()
         if iGameState == GAMESTATE_GAME then
             CProjectile.CalculateProjectiles()
             return tConfig.ProjectileDelay
@@ -345,7 +346,7 @@ CGameMode.Victory = function()
     tGameResults.Won = true
     tGameResults.Color = CColors.GREEN
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
     end)
@@ -364,7 +365,7 @@ CGameMode.Defeat = function()
     tGameResults.Won = false
     tGameResults.Color = CColors.RED
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = false
         iGameState = GAMESTATE_FINISH
     end)
@@ -1043,7 +1044,7 @@ CAnimation.EndGameFill = function(iColor)
     local iStartY = CGameMode.tBase.iY
     local iSize = CGameMode.tBase.iSize
 
-    CTimer.New(CAnimation.iAnimationDelay, function()
+    AL.NewTimer(CAnimation.iAnimationDelay, function()
         for iX = iStartX, iStartX + iSize-1 do
             for iY = iStartY, iStartY + iSize-1 do
                 local iAnimationID = #CAnimation.tAnimated+1
@@ -1091,7 +1092,7 @@ CAnimation.Death = function(iStartX, iStartY, iSize, iColor)
                 iYVel = 1
             end
 
-            CTimer.New(CAnimation.iAnimationDelay, function()
+            AL.NewTimer(CAnimation.iAnimationDelay, function()
                 iIters = iIters + 1
 
                 CAnimation.tAnimated[iAnimationID].iX = CAnimation.tAnimated[iAnimationID].iX + iXVel
@@ -1230,34 +1231,6 @@ CPaint.Buffs = function()
         end
     end
     ]]
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                local iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 
