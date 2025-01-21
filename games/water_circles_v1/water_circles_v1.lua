@@ -5,6 +5,7 @@
     Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -144,6 +145,15 @@ CCircles.bSpawnDelayOn = false
 CCircles.LastClickX = 0
 CCircles.LastClickY = 0
 
+CCircles.tColors = {}
+CCircles.tColors[1] = CColors.GREEN
+CCircles.tColors[2] = CColors.RED
+CCircles.tColors[3] = CColors.YELLOW
+CCircles.tColors[4] = CColors.MAGENTA
+CCircles.tColors[5] = CColors.CYAN
+CCircles.tColors[6] = CColors.BLUE
+CCircles.tColors[7] = CColors.WHITE
+
 CCircles.New = function(iX, iY)
     if CCircles.bSpawnDelayOn or (iX == CCircles.LastClickX and iY == CCircles.LastClickY) then return; end
 
@@ -153,7 +163,7 @@ CCircles.New = function(iX, iY)
     CCircles.tCircles[iCircleId].iX = iX
     CCircles.tCircles[iCircleId].iY = iY
     CCircles.tCircles[iCircleId].iSize = 1
-    CCircles.tCircles[iCircleId].iColor = math.random(1,7)
+    CCircles.tCircles[iCircleId].iColor = CCircles.tColors[math.random(1,7)]
 
     CCircles.LastClickX = iX
     CCircles.LastClickY = iY
@@ -221,77 +231,6 @@ CCircles.PaintCirclePixel = function(iCircleId, iX, iY)
 end
 --//
 
---LIB
-_G.AL = {}
-local LOC = {}
-
---STACK
-AL.Stack = function()
-    local tStack = {}
-    tStack.tTable = {}
-
-    tStack.Push = function(item)
-        table.insert(tStack.tTable, item)
-    end
-
-    tStack.Pop = function()
-        return table.remove(tStack.tTable, 1)
-    end
-
-    tStack.PopLast = function()
-        return table.remove(tStack.tTable, #tStack.tTable)
-    end
-
-    tStack.Size = function()
-        return #tStack.tTable
-    end
-
-    return tStack
-end
---//
-
---TIMER
-local tTimers = AL.Stack()
-
-AL.NewTimer = function(iSetTime, fCallback)
-    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
-end
-
-AL.CountTimers = function(iTimePassed)
-    for i = 1, tTimers.Size() do
-        local tTimer = tTimers.Pop()
-
-        tTimer.iTime = tTimer.iTime - iTimePassed
-
-        if tTimer.iTime <= 0 then
-            local iNewTime = tTimer.fCallback()
-            if iNewTime then
-                tTimer.iTime = tTimer.iTime + iNewTime
-            else
-                tTimer = nil
-            end
-        end
-
-        if tTimer then
-            tTimers.Push(tTimer)
-        end
-    end
-end
---//
-
---RECT
-function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
-    if iSize1 == 0 or iSize2 == 0 then return false; end
-
-    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
-
-    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
-
-    return true
-end
---//
------
-
 --UTIL прочие утилиты
 
 function SetGlobalColorBright(iColor, iBright)
@@ -325,19 +264,20 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if not click.X or click.X < 1 or click.X > tGame.Rows then return end
-    if not click.Y or click.Y < 1 or click.Y > tGame.Cols then return end
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
-
-    if click.Click and not tFloor[click.X][click.Y].bDefect then
-        CCircles.New(click.X, click.Y)
+        if click.Click and not tFloor[click.X][click.Y].bDefect then
+            CCircles.New(click.X, click.Y)
+        end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)
