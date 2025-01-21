@@ -3,6 +3,8 @@
 -- Описание механики: танцуй, нажимая набегающие пиксели
 -- Идеи по доработке:
 --    1. Сейчас пиксели ловятся, если просто стоять. Хотелось бы наказывать за пустые нажатия, но есть сложность с инертностью датчиков
+math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -84,6 +86,14 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tPlayerIDtoColor = {}
+tPlayerIDtoColor[1] = CColors.RED
+tPlayerIDtoColor[2] = CColors.BLUE
+tPlayerIDtoColor[3] = CColors.MAGENTA
+tPlayerIDtoColor[4] = CColors.CYAN
+tPlayerIDtoColor[5] = CColors.WHITE
+tPlayerIDtoColor[6] = CColors.YELLOW
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -137,7 +147,7 @@ function SetupPlayerPositions()
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = iPlayerID
+            tGame.StartPositions[iPlayerID].Color = tPlayerIDtoColor[iPlayerID]
         end
 
         iX = iX + tGame.StartPositionSize + 1
@@ -174,7 +184,7 @@ function NextTick()
     end  
     CSongSync.Count((CTime.unix() - iSongStartedTime) * 1000 - tConfig.SongStartDelayMS)
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
 
     iPrevTickTime = CTime.unix()
 end
@@ -337,22 +347,26 @@ CTutorial.bSkipDelayOn = true
 CTutorial.bPreStarted = false
 CTutorial.bTrueStarted = false
 CTutorial.bDisableErrorSound = true
+CTutorial.bKillTutorialTimers = false
 
 CTutorial.PreStart = function()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
     CAudio.PlaySync("dance_tutorial_part1.mp3")
     CTutorial.bStarted = true
 
-    CTimer.New(5000, function()
+    AL.NewTimer(5000, function()
+        if CTutorial.bKillTutorialTimers then return nil; end
         CTutorial.bSkipDelayOn = false
     end)
 
-    CTimer.New(13000, function()
+    AL.NewTimer(13000, function()
+        if CTutorial.bKillTutorialTimers then return nil; end
         CTutorial.bDisableErrorSound = false
         CTutorial.bPreStarted = true
     end)
 
-    CTimer.New(24000, function()
+    AL.NewTimer(24000, function()
+        if CTutorial.bKillTutorialTimers then return nil; end
         CTutorial.Start()
     end)
 end
@@ -368,7 +382,8 @@ CTutorial.Start = function()
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
 
-    CTimer.New(5000, function()
+    AL.NewTimer(5000, function()
+        if CTutorial.bKillTutorialTimers then return nil; end
         CTutorial.bDisableErrorSound = false
     end)
 end
@@ -385,7 +400,7 @@ CTutorial.Skip = function()
 
     CTutorial.bDisableErrorSound = false
 
-    CTimer.tTimers = {}
+    CTutorial.bKillTutorialTimers = true
     bCountDownStarted = true
     CGameMode.CountDown(5)
 end
@@ -433,7 +448,7 @@ CSongSync.Clear = function()
 end
 
 CSongSync.Count = function(iTimePassed)
-    if (not CSongSync.bOn) or (iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL) then return; end
+    if (not CSongSync.bOn) or (iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL) or (iGameState == GAMESTATE_TUTORIAL and CTutorial.bKillTutorialTimers) then return; end
     for i = 1, #CSongSync.tSong do
         if CSongSync.tSong[i] ~= nil then
             if CSongSync.tSong[i][1] - iTimePassed <= 0 then
@@ -446,11 +461,11 @@ CSongSync.Count = function(iTimePassed)
 
                 if i == #CSongSync.tSong then
                     if iGameState == GAMESTATE_TUTORIAL then
-                        --CTimer.New(5000, function()
+                        --AL.NewTimer(5000, function()
                         --    CTutorial.Skip()
                         --end)
                     else
-                        CTimer.New(5000, function()
+                        AL.NewTimer(5000, function()
                             CGameMode.EndGame()
                         end)
                     end
@@ -495,7 +510,7 @@ CGameMode.CountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     CAudio.PlaySyncFromScratch("")
-    CTimer.New(1, function()
+    AL.NewTimer(1, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         --[[if tGame.ArenaMode and not bAnyButtonClick then
@@ -524,8 +539,8 @@ CGameMode.CountDown = function(iCountDownTime)
 end
 
 CGameMode.PixelMovement = function()
-    CTimer.New(tConfig.PixelMoveDelayMS, function()
-        if iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL then return nil end
+    AL.NewTimer(tConfig.PixelMoveDelayMS, function()
+        if (iGameState ~= GAMESTATE_GAME and iGameState ~= GAMESTATE_TUTORIAL) or (iGameState == GAMESTATE_TUTORIAL and CTutorial.bKillTutorialTimers) then return nil end
 
         for i = 1, #CGameMode.tPixels do
             if CGameMode.tPixels[i] ~= nil then
@@ -655,8 +670,13 @@ CGameMode.ScorePixel = function(iPixelID)
         CPaint.AnimateHit(iPlayerID, true, CGameMode.tPixels[iPixelID].iPointX)
     end
 
-    if not CGameMode.tPixels[iPixelID].bProlong then
-        CTimer.New(tConfig.PixelMoveDelayMS*2, function()
+    CGameMode.tPixels[iPixelID].iColor = tGame.StartPositions[iPlayerID].Color
+
+    if not CGameMode.tPixels[iPixelID].bProlong then 
+        CGameMode.tPixels[iPixelID].bVisual = true
+        CGameMode.tPixels[iPixelID].bClickable = false   
+
+        AL.NewTimer(tConfig.PixelMoveDelayMS*2, function()
             if CGameMode.tPixels[iPixelID] and CGameMode.tPixels[iPixelID].iPointX then
                 if tGame.Direction == 1 then
                     for iY = 1, tGame.StartPositions[iPlayerID].Y do
@@ -668,8 +688,6 @@ CGameMode.ScorePixel = function(iPixelID)
                     end
                 end
             end
-
-            CGameMode.tPixels[iPixelID] = nil
         end)
     end
 end
@@ -747,7 +765,7 @@ CGameMode.EndGame = function()
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
@@ -768,7 +786,7 @@ CGameMode.SongTimer = function()
     tGameStats.StageLeftDuration = CSongSync.tSong[#CSongSync.tSong][1]/1000
     tGameStats.StageTotalDuration = CSongSync.tSong[#CSongSync.tSong][1]/1000
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
         if tGameStats.StageLeftDuration > 0 then
@@ -854,7 +872,7 @@ CPaint.AnimateRow = function(iX, iColor)
     end
 
     if tConfig.RowColorSwitch then
-        CTimer.New(tConfig.PixelMoveDelayMS, function()
+        AL.NewTimer(tConfig.PixelMoveDelayMS, function()
             for iY = 1, tGame.Rows do
                 tFloor[iX][iY].bAnimated = false
             end
@@ -883,7 +901,7 @@ CPaint.AnimateHit = function(iPlayerID, bHit, iPixelX)
         end
     end    
 
-    CTimer.New(tConfig.PixelMoveDelayMS, function()
+    AL.NewTimer(tConfig.PixelMoveDelayMS, function()
         CPaint.tHitAnimatedForPlayerID[iPlayerID] = false     
     end)
 end
@@ -900,13 +918,13 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     if iGameState == GAMESTATE_TUTORIAL and CTutorial.bPreStarted and CTutorial.bStarted and not CTutorial.bTrueStarted then
         CTutorial.bDisableErrorSound = true
 
-        CTimer.New(1500, function()
+        AL.NewTimer(1500, function()
             CTutorial.Start()
         end)
     end
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATE_DELAY*3, function()
+    AL.NewTimer(CPaint.ANIMATE_DELAY*3, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -937,34 +955,6 @@ CPaint.ClearAnimations = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             tFloor[iX][iY].bAnimated = false
-        end
-    end
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
         end
     end
 end
