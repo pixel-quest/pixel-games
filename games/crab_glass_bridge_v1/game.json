@@ -6,13 +6,13 @@
     {
       "X": 1,
       "Y": 2,
-      "Color": 2,
+      "Color": "0x00FF00",
       "PreStartDraw": true
     },
     {
       "X": 1,
       "Y": 10,
-      "Color": 3,
+      "Color": "0xFFFF00",
       "PreStartDraw": false
     }
   ],
