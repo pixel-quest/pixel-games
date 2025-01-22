@@ -145,6 +145,15 @@ local StageDonePlayed = false
 
 local tArenaPlayerReady = {}
 
+local tColors = {}
+tColors[1] = colors.GREEN
+tColors[2] = colors.RED
+tColors[3] = colors.YELLOW
+tColors[4] = colors.MAGENTA
+tColors[5] = colors.CYAN
+tColors[6] = colors.BLUE
+tColors[7] = colors.WHITE
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -168,6 +177,10 @@ function StartGame(gameJson, gameConfigJson)
             FloorMatrix[x][y] = help.ShallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
+
+    for iPlayerID = 1, #GameObj.StartPositions do
+        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+    end    
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
@@ -553,7 +566,7 @@ function switchStage(newStage)
     for y = GameObj.YOffset+1, GameObj.Rows, GameConfigObj.BlockSize do
         for x = 1, GameObj.Cols, GameConfigObj.BlockSize do
             for randomAttempt = 0, 50 do
-                NewColor = math.random(1, colors.WHITE)
+                NewColor = tColors[math.random(1, 7)]
                 if NewColor==TargetColor then
                     goto continue
                 end
@@ -714,7 +727,7 @@ function targetColor(stage)
     if stage < CONST_STAGE_FIRST then
         return 0
     end
-    return stage%colors.WHITE+1
+    return tColors[stage%7+1]
 end
 
 function drawCircle(x0, y0, radius, color, bright)
