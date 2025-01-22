@@ -10,13 +10,13 @@
     {
       "X": 1,
       "Y": 2,
-      "Color": 1,
+      "Color": "0xFF0000",
       "PixelsY": 2
     },
     {
       "X": 7,
       "Y": 2,
-      "Color": 2,
+      "Color": "0x00FF00",
       "PixelsY": 2
     }
   ],

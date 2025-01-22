@@ -12,6 +12,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -102,6 +103,10 @@ function StartGame(gameJson, gameConfigJson)
     for _, iId in pairs(tGame.Buttons) do
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
+
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    end  
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()
@@ -245,6 +250,15 @@ CGameMode.tPlayerPosition = {}
 
 CGameMode.tTargetPixelColor = {}
 
+CGameMode.tColors = {}
+CGameMode.tColors[1] = CColors.RED
+CGameMode.tColors[2] = CColors.GREEN
+CGameMode.tColors[3] = CColors.YELLOW
+CGameMode.tColors[4] = CColors.BLUE
+CGameMode.tColors[5] = CColors.MAGENTA
+CGameMode.tColors[6] = CColors.CYAN
+CGameMode.tColors[7] = CColors.WHITE
+
 CGameMode.InitGameMode = function()
     tGameStats.TotalStages = tConfig.RoundCount
 end
@@ -318,7 +332,7 @@ CGameMode.StartNextRound = function()
 
     CAudio.PlaySync("reflex_warning.mp3")
 
-    AL.NewTimer(math.random(2,8)*1000, function()
+    AL.NewTimer(math.random(1,5)*1000, function()
         if CGameMode.bRoundOn then
             CGameMode.NewTargetPixelColor(math.random(1, tGame.PreviewHeight))
         end
@@ -327,7 +341,7 @@ end
 
 CGameMode.NewTargetPixelColor = function(iColorCount)
     for i = 1, iColorCount do
-        repeat CGameMode.tTargetPixelColor[i] = math.random(1,CGameMode.MAX_COLOR_COUNT)
+        repeat CGameMode.tTargetPixelColor[i] = CGameMode.tColors[math.random(1,CGameMode.MAX_COLOR_COUNT)]
         until i == 1 or CGameMode.tTargetPixelColor[i] ~= CGameMode.tTargetPixelColor[i-1] 
         CAudio.PlaySyncColorSound(CGameMode.tTargetPixelColor[i])   
     end
@@ -513,7 +527,7 @@ CPaint.PlayerZonePixels = function(iPlayerID, iBright)
                     iColorBright = 2
                 end
 
-                tFloor[iX][iY].iColor = iColorOff
+                tFloor[iX][iY].iColor = CGameMode.tColors[iColorOff]
                 tFloor[iX][iY].iBright = iColorBright
                 tFloor[iX][iY].iPlayerID = iPlayerID
             end
@@ -536,73 +550,6 @@ CPaint.TargetColor = function()
     end
 end
 --//
-
-------------------------------AVONLIB
-_G.AL = {}
-local LOC = {}
-
---STACK
-AL.Stack = function()
-    local tStack = {}
-    tStack.tTable = {}
-
-    tStack.Push = function(item)
-        table.insert(tStack.tTable, item)
-    end
-
-    tStack.Pop = function()
-        return table.remove(tStack.tTable, 1)
-    end
-
-    tStack.Size = function()
-        return #tStack.tTable
-    end
-
-    return tStack
-end
---//
-
---TIMER
-local tTimers = AL.Stack()
-
-AL.NewTimer = function(iSetTime, fCallback)
-    tTimers.Push({iTime = iSetTime, fCallback = fCallback})
-end
-
-AL.CountTimers = function(iTimePassed)
-    for i = 1, tTimers.Size() do
-        local tTimer = tTimers.Pop()
-
-        tTimer.iTime = tTimer.iTime - iTimePassed
-
-        if tTimer.iTime <= 0 then
-            local iNewTime = tTimer.fCallback()
-            if iNewTime then
-                tTimer.iTime = tTimer.iTime + iNewTime
-            else
-                tTimer = nil
-            end
-        end
-
-        if tTimer then
-            tTimers.Push(tTimer)
-        end
-    end
-end
---//
-
---RECT
-function AL.RectIntersects(iX1, iY1, iSize1, iX2, iY2, iSize2)
-    if iSize1 == 0 or iSize2 == 0 then return false; end
-
-    if iX1 > iX2+iSize2-1 or iX2 > iX1+iSize1-1 then return false; end
-
-    if iY1+iSize1-1 < iY2 or iY2+iSize2-1 < iY1 then return false; end
-
-    return true
-end
---//
-------------------------------------
 
 --UTIL прочие утилиты
 function CheckPositionClick(tStart, iSizeX, iSizeY)
