@@ -131,8 +131,8 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
     end
-    ButtonsList[GameConfigObj.saveButton].Color = colors.RED
-    ButtonsList[GameConfigObj.saveButton].Bright = colors.BRIGHT70
+    ButtonsList[GameObj.SaveButton].Color = colors.GREEN
+    ButtonsList[GameObj.SaveButton].Bright = colors.BRIGHT70
 
     GradientLength = table.getn(GameObj.Colors)
     audio.PlaySyncFromScratch("voices/coloring-book-tutorial.mp3") -- just reset audio player on start new game
@@ -163,11 +163,21 @@ function SwitchStage()
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
     end
-    ButtonsList[GameConfigObj.saveButton].Color = colors.RED
-    ButtonsList[GameConfigObj.saveButton].Bright = colors.BRIGHT70
+    ButtonsList[GameObj.SaveButton].Color = colors.GREEN
+    ButtonsList[GameObj.SaveButton].Bright = colors.BRIGHT70
     gameState.Color = -1
 
 end
+
+local tColors = {}
+tColors[0] = colors.NONE
+tColors[1] = colors.RED
+tColors[2] = colors.GREEN
+tColors[3] = colors.YELLOW
+tColors[4] = colors.MAGENTA
+tColors[5] = colors.CYAN
+tColors[6] = colors.BLUE
+tColors[7] = colors.WHITE
 
 -- NextTick (служебный): метод игрового тика
 -- Вызывается ПРИМЕРНО каждые ~35мс (28 кадров в секунду)
@@ -205,7 +215,7 @@ function NextTick()
             return
         end
     end
-    FloorMatrix[xColor][yColor].Color = math.floor(drawColor / 3) + 1
+    FloorMatrix[xColor][yColor].Color = tColors[math.floor(drawColor / 3) + 1]
     FloorMatrix[xColor][yColor].Bright = math.floor( GameConfigObj.bright / (math.fmod(drawColor,3) + 1))
     if stateDraw == 0 then
         xColor = xColor + 1

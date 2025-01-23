@@ -1,6 +1,3 @@
 {
-    "delay": 10,
-    "bright": 75,
-    "saveButton": 30,
-    "clearButton": 34
+    "bright": 75
 }
