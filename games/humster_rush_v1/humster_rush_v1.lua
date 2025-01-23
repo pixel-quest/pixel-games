@@ -185,7 +185,7 @@ function NextTick()
         GameStats.TotalStars = GameConfigObj.level1
         for x,mass in pairs(GameObj.level1) do
             for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = state
+                FloorMatrix[y][x].Color = tonumber(state)
                 FloorMatrix[y][x].Bright = GameConfigObj.bright
                 
             end
@@ -213,7 +213,7 @@ function NextTick()
     if gameState.State == 3 then
         for x,mass in pairs(GameObj.level2) do
             for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = state
+                FloorMatrix[y][x].Color = tonumber(state)
                 FloorMatrix[y][x].Bright = GameConfigObj.bright
                 
             end
@@ -223,7 +223,7 @@ function NextTick()
     if gameState.State == 5 then
         for x,mass in pairs(GameObj.level3) do
             for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = state
+                FloorMatrix[y][x].Color = tonumber(state)
                 FloorMatrix[y][x].Bright = GameConfigObj.bright
                 
             end
@@ -233,7 +233,7 @@ function NextTick()
     if gameState.State == 7 then
         for x,mass in pairs(GameObj.level4) do
             for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = state
+                FloorMatrix[y][x].Color = tonumber(state)
                 FloorMatrix[y][x].Bright = GameConfigObj.bright
                 
             end

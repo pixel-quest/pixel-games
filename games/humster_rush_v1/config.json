@@ -1,10 +1,27 @@
 {
   "delay": 5,
   "bright": 75,
+
   "level1": 100,
-  "level2": 300,
-  "level3": 450,
-  "level4": 1200,
+  "level1_ru": "Лимит очков первого уровня",
+  "level1_en": "Level 1 points limit",
+
+  "level2": 200,
+  "level2_ru": "Лимит очков второго уровня",
+  "level2_en": "Level 2 points limit",  
+
+  "level3": 400,
+  "level3_ru": "Лимит очков третьего уровня",
+  "level3_en": "Level 3 points limit",  
+
+  "level4": 800,
+  "level4_ru": "Лимит очков четвертого уровня",
+  "level4_en": "Level 4 points limit",  
+
+  "greenPoint": 1,
+  "greenPoint_ru": "Очки за зеленые монеты",
+  "greenPoint_en": "Green coin reward",
   "cyanPoint": 5,
-  "greenPoint": 1
+  "cyanPoint_ru": "Очки за голубые монеты",
+  "cyanPoint_en": "Cyan coin reward"
 }
