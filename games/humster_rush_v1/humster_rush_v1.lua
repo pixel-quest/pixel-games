@@ -1,58 +1,18 @@
 -- Название: Хомяк накопитель
 -- Автор: @ProAlgebra (телеграм)
 -- Описание механики: Дети кликают на пиксели, в зависимости от цвета начисляется разное количество очков. Красный даёт 3, зелёный 1
+math.randomseed(os.time())
+require("avonlib")
+local iPrevTickTime = 0
 
--- Логгер в консоль
---      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
-
--- Библиотека github.com/kikito/inspect.lua
--- для человекочитаемого вывода
 local inspect = require("inspect")
-
--- Вспомогательные методы
---      .ShallowCopy(table) - неглубокое копирования таблицы
---      .DeepCopy(table) - глубокое копирования таблицы
 local help = require("help")
-
--- Методы работы с JSON
---      .decode(jsonString) - декодирование строки в объект
---      .encode(jsonObject) - кодирование объекта в строку
 local json = require("json")
-
--- Имплементация некоторых функций работы с временем
---      .unix() - возвращает текущее время в секундах (с дробной частью)
 local time = require("time")
-
--- Методы работы с аудио
---      .PlayRandomBackground() - проигрывает случайную фоновую музыку
---      .PlayBackground(name) - проигрывает фоновую музыку по названию
---      .StopBackground() - останавливает фоновую музыку
---      .PlaySync(name) - проигрывает звук синхронно
---      .PlaySyncFromScratch(name) - проигрывает звук синхронно, очищая существующую очередь звуков
---      .PlaySyncColorSound(color) - проигрывает название цвета по его номеру
---      .PlayLeftAudio(num) - проигрывает голос "остатка" по числу (22, 12, 5 ... 0)
---      .PlayAsync(name) - проигрывает звук асинхронно
---      .PreloadFile(name) - зарянее подгрузить тяжелый файл в память
--- Станданртные звуки: CLICK, MISCLICK, GAME_OVER, GAME_SUCCESS, STAGE_DONE
--- Стандартные голоса: START_GAME, PAUSE, DEFEAT, VICTORY, CHOOSE_COLOR, LEFT_10SEC, LEFT_20SEC, BUTTONS
---              числа: ZERO, ONE, TWO, THREE, FOUR, FIVE
---              цвета: RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
 local audio = require("audio")
-
--- Константы цветов (0 - 7): NONE, RED, GREEN, YELLOW, BLUE, MAGENTA, CYAN, WHITE
--- Константы яркости (0 - 7): BRIGHT0, BRIGHT15, BRIGHT30, BRIGHT45, BRIGHT60, BRIGHT70, BRIGHT85, BRIGHT100
 local colors = require("colors")
 
--- Полезные стандартные функции
---      math.floor() – отбрасывает дробную часть и переводит значение в целочисленный тип
---      math.random(upper) – генерирует целое число в диапазоне [1..upper]
---      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
---      math.random(lower, upper) – генерирует целое число в диапазоне [lower..upper]
-
--- Импортированные конфиги (ниже приведен лишь ПРИМЕР структуры,
---  сами объекты будут переопределены в StartGame() при декодировании json)
--- Объект игры, см. файл game.json
 local GameObj = {
     Cols = 24, -- пикселей по горизонтали (X), обязательные параметр для всех игр
     Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
@@ -60,14 +20,11 @@ local GameObj = {
     Colors = { -- массив градиента цветов для радуги
     }
 }
--- Насторойки, которые может подкручивать админ при запуске игры
--- Объект конфига игры, см. файл config.json
+
 local GameConfigObj = {
     Delay = 100, -- задержка отрисовки в мс
 }
 
--- Структура статистики игры (служебная): используется для отображения информации на табло
--- Переодически запрашивается через метод GetStats()
 local GameStats = {
     StageLeftDuration = 0, -- seconds
     StageTotalDuration = 0, -- seconds
@@ -76,21 +33,22 @@ local GameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = colors.RED },
+        { Score = 0, Lives = 0, Color = colors.GREEN },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 0,
-    TotalStages = 0,
+    TotalStages = 4,
     TargetColor = colors.NONE,
 }
 
--- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
--- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
-local GameResults = {
+local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
 }
 
--- Локальные переменные для внутриигровой логики
 local FloorMatrix = {} -- матрица пола
 local ButtonsList = {} -- список кнопок
 local Pixel = { -- пиксель тип
@@ -103,7 +61,9 @@ local GradientLength = 0
 local GradientOffset = 0
 local LastChangesTimestamp = 0
 
--- StartGame (служебный): инициализация и старт игры
+local bGamePaused = false
+local bGameOver = false
+
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
     GameConfigObj = json.decode(gameConfigJson)
@@ -121,45 +81,42 @@ function StartGame(gameJson, gameConfigJson)
     audio.PlaySyncFromScratch("hamster-guide.mp3") -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
 end
 
--- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
 end
 
--- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    bGamePaused = false
+    iPrevTickTime = time.unix()
 end
+
 gameState = {
     State = -1,
     Tick = 0,
 }
--- SwitchStage (служебный): может быть использован для принудительного переключению этапа
---  Бывает полезно, чтобы отснять краткое превью игры для каталога
+
 function SwitchStage()
     gameState.State = gameState.State + 1
     if gameState.State == 3 then
-        GameStats.TotalStars = GameConfigObj.level2
+        GameStats.TargetScore = GameConfigObj.level2
     end
     if gameState.State == 5 then
-        GameStats.TotalStars = GameConfigObj.level3
+        GameStats.TargetScore = GameConfigObj.level3
     end
     if gameState.State >= 6 then
-        GameStats.TotalStars = GameConfigObj.level4
+        GameStats.TargetScore = GameConfigObj.level4
     end
 end
 
--- NextTick (служебный): метод игрового тика
--- Вызывается ПРИМЕРНО каждые ~35мс (28 кадров в секунду)
--- Ориентироваться на время периода нельзя, вместо этого нужно использовать абсолютное время time.unix()
--- Не вызывается, когда игра на паузе или завершена
--- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
-
-
 function NextTick()
+    AL.CountTimers((time.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = time.unix()
+
     if gameState.State == -1 then 
         for i, num in pairs(GameObj.Buttons) do
             if ButtonsList[num].Defect == false then
                  ButtonsList[num].Color = colors.BLUE
-                 ButtonsList[num].Bright = GameConfigObj.bright
+                 ButtonsList[num].Bright = GameConfigObj.Bright
             end
         end
         gameState.State = 0
@@ -172,121 +129,109 @@ function NextTick()
             end
         end
     end
-    GameStats.StageLeftDuration = GameStats.CurrentStars
-    GameStats.StageTotalDuration = GameStats.TotalStars
-    if gameState.State == 1 then
+    if gameState.State >= 1 then
         for i, num in pairs(GameObj.Buttons) do
-            if ButtonsList[num].Defect == false then
-                 ButtonsList[num].Color = colors.NONE
-                 ButtonsList[num].Bright = GameConfigObj.bright
-            end
-        end
-        GameStats.CurrentStars = 0
-        GameStats.TotalStars = GameConfigObj.level1
-        for x,mass in pairs(GameObj.level1) do
-            for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = tonumber(state)
-                FloorMatrix[y][x].Bright = GameConfigObj.bright
-                
-            end
-        end
-        gameState.State = gameState.State + 1
-    end
-    if gameState.State == 2 then
-        if GameStats.CurrentStars >= GameConfigObj.level1 then
-            gameState.State = 3
-            GameStats.TotalStars = GameConfigObj.level2
+            ButtonsList[num].Color = colors.NONE
+            ButtonsList[num].Bright = GameConfigObj.Bright
         end
     end
-    if gameState.State == 4 then
-        if GameStats.CurrentStars >= GameConfigObj.level2 then
-            gameState.State = 5
-            GameStats.TotalStars = GameConfigObj.level3
-        end
-    end
-    if gameState.State == 6 then
-        if GameStats.CurrentStars >= GameConfigObj.level3 then
-            gameState.State = 7
-            GameStats.TotalStars = GameConfigObj.level4
-        end
-    end
-    if gameState.State == 3 then
-        for x,mass in pairs(GameObj.level2) do
-            for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = tonumber(state)
-                FloorMatrix[y][x].Bright = GameConfigObj.bright
-                
-            end
-        end
-        gameState.State = 4
-    end
-    if gameState.State == 5 then
-        for x,mass in pairs(GameObj.level3) do
-            for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = tonumber(state)
-                FloorMatrix[y][x].Bright = GameConfigObj.bright
-                
-            end
-        end
-        gameState.State = gameState.State + 1
-    end
-    if gameState.State == 7 then
-        for x,mass in pairs(GameObj.level4) do
-            for y,state in pairs(mass) do
-                FloorMatrix[y][x].Color = tonumber(state)
-                FloorMatrix[y][x].Bright = GameConfigObj.bright
-                
-            end
-        end
-        gameState.State = gameState.State + 1
-    end
-    if gameState.Tick < time.unix() then
+
+    if not bGameOver and gameState.Tick < time.unix() then
         gameState.Tick = time.unix() + GameConfigObj.delay
-        for y = 1,15 do
-            for x = 19,24 do
-                if FloorMatrix[x][y].Color == colors.GREEN then
-                    FloorMatrix[x][y].Color = colors.NONE
-                end
-                if gameState.State >= 4 then
-                    if FloorMatrix[x][y].Color == colors.CYAN then
-                        FloorMatrix[x][y].Color = colors.NONE
+        ReloadField()
+    end
+
+    if not bGameOver and GameStats.StageNum > 0 and GameStats.Players[1].Score >= GameConfigObj["level"..GameStats.StageNum] then
+        if GameStats.StageNum < 4 then
+            LoadNextLevel()
+            audio.PlayAsync(audio.STAGE_DONE)
+        elseif GameStats.StageNum == 4 then
+            WinGame()
+        end
+    end
+
+    if gameState.State == 100 then
+        tGameResults.AfterDelay = true
+        return tGameResults 
+    end
+
+    if gameState.State == 1000 then
+        tGameResults.AfterDelay = false
+        return tGameResults
+    end    
+end
+
+function PlayerStartGame()
+    gameState.State = 1
+    audio.PlayRandomBackground()
+    LoadNextLevel()
+end
+
+function LoadNextLevel()
+    GameStats.StageNum = GameStats.StageNum + 1
+    local iLevel = GameStats.StageNum
+    GameStats.Players[1].Score = 0
+    GameStats.TargetScore = GameConfigObj["level"..iLevel]
+    LoadLevelPainting(iLevel)
+    ReloadField()   
+end
+
+function LoadLevelPainting(iLevel)
+    for x,mass in pairs(GameObj["level"..iLevel]) do
+        for y,state in pairs(mass) do
+            FloorMatrix[y][x].Color = tonumber(state)
+            FloorMatrix[y][x].Bright = GameConfigObj.Bright
+        end
+    end
+end
+
+function WinGame()
+    bGameOver = true
+    tGameResults.Won = true 
+    tGameResults.Color = colors.GREEN
+
+    audio.StopBackground()
+    audio.PlaySync(audio.VICTORY)
+
+    LoadLevelPainting(5)
+
+    gameState.State = 100
+    AL.NewTimer(10000, function()
+        gameState.State = 1000
+    end)
+end
+
+function ReloadField()
+    for y = 1, GameObj.Rows do
+        for x = GameObj.Cols-5,GameObj.Cols do
+            if FloorMatrix[x][y].Color == colors.GREEN or FloorMatrix[x][y].Color == colors.CYAN then
+                FloorMatrix[x][y].Color = colors.NONE
+            end
+
+            if not FloorMatrix[x][y].Defect  and FloorMatrix[x][y].Color == colors.NONE then
+                if GameStats.StageNum >= 1 then
+                    if math.random(0,100) < 20 then
+                        FloorMatrix[x][y].Color = colors.GREEN
+                        FloorMatrix[x][y].Bright = GameConfigObj.Bright
                     end
                 end
-                if FloorMatrix[x][y].Defect == false then
-                if FloorMatrix[x][y].Color == colors.NONE then
-                    if gameState.State == 2 then
-                        if math.random(0,100) < 20 then
-                            FloorMatrix[x][y].Color = colors.GREEN
-                            FloorMatrix[x][y].Bright = GameConfigObj.bright
-                        end
+                if GameStats.StageNum >= 3 then
+                    random = math.random(0,100)
+                    if random < 10 + (gameState.State * 2) then
+                        FloorMatrix[x][y].Color = colors.GREEN
+                        FloorMatrix[x][y].Bright = GameConfigObj.Bright
                     end
-                    if gameState.State >= 4 then
-                        random = math.random(0,100)
-                        if random < 10 + (gameState.State * 2) then
-                            FloorMatrix[x][y].Color = colors.GREEN
-                            FloorMatrix[x][y].Bright = GameConfigObj.bright
-                        end
-                        if random > 90 - (gameState.State * 3) then
-                            FloorMatrix[x][y].Color = colors.CYAN
-                            FloorMatrix[x][y].Bright = GameConfigObj.bright
-                        end
+                    if random > 90 - (gameState.State * 3) then
+                        FloorMatrix[x][y].Color = colors.CYAN
+                        FloorMatrix[x][y].Bright = GameConfigObj.Bright
                     end
                 end
-                end
-                
             end
         end
     end
 end
 
--- RangeFloor (служебный): метод для снятия снапшота пола
--- Вызывается в тот же игровой тик следом за методом NextTick()
---
--- Параметры:
---  setPixel = func(x int, y int, color int, bright int)
---  setButton = func(button int, color int, bright int)
 function RangeFloor(setPixel, setButton)
-    
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
             setPixel(x,y,FloorMatrix[x][y].Color,FloorMatrix[x][y].Bright)
@@ -298,28 +243,14 @@ function RangeFloor(setPixel, setButton)
     end
 end
 
--- GetStats (служебный): отдает текущую статистику игры (время, жизни, очки) для отображения на табло
--- Вызывается в тот же игровой тик следом за методом RangeFloor()
 function GetStats()
     return GameStats
 end
 
-
--- PixelClick (служебный): метод нажатия/отпускания пикселя
---
--- Параметры:
---  click = {
---      X: int,
---      Y: int,
---      Click: bool,
---      Weight: int,
---  }
-
 function PixelClick(click)
-    if click.Click == false or click.Weight < 3 then
-        return
-    end
-    if time.unix() < FloorMatrix[click.X][click.Y].Click   + 1  then
+    if not FloorMatrix[click.X] or not FloorMatrix[click.X][click.y] or bGamePaused or not click.Click or click.Weight < 3 or FloorMatrix[click.X][click.y].Defect or bGameOver then return; end
+
+    if time.unix() < FloorMatrix[click.X][click.Y].Click + 1  then
         FloorMatrix[click.X][click.Y].click = time.unix()
         return
     end
@@ -327,68 +258,27 @@ function PixelClick(click)
     if FloorMatrix[click.X][click.Y].Color == colors.GREEN then
         FloorMatrix[click.X][click.Y].Color = colors.NONE
         audio.PlayAsync(audio.CLICK)
-        GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.greenPoint
+        GameStats.Players[1].Score = GameStats.Players[1].Score + GameConfigObj.greenPoint
+        tGameResults.Score = tGameResults.Score + GameConfigObj.greenPoint
     end
-    if gameState.State >= 4 then
-        if FloorMatrix[click.X][click.Y].Color == colors.CYAN then
-            FloorMatrix[click.X][click.Y].Color = colors.NONE
-            audio.PlayAsync(audio.CLICK)
-            GameStats.CurrentStars = GameStats.CurrentStars + GameConfigObj.cyanPoint
-        end
-    end
-    
+    if FloorMatrix[click.X][click.Y].Color == colors.CYAN then
+        FloorMatrix[click.X][click.Y].Color = colors.NONE
+        audio.PlayAsync(audio.CLICK)
+        GameStats.Players[1].Score = GameStats.Players[1].Score + GameConfigObj.cyanPoint
+        tGameResults.Score = tGameResults.Score + GameConfigObj.cyanPoint
+    end 
 end
 
--- ButtonClick (служебный): метод нажатия/отпускания кнопки
---
--- Параметры:
---  click = {
---      Button: int,
---      Click: bool,
---  }
 function ButtonClick(click)
-    if click.Click == false then
-        return
-    end
-    if gameState.State >= 1 then
-        return
-    end
-    if time.unix() < ButtonsList[click.Button].Click + 1  then
-        ButtonsList[click.Button].click = time.unix()
-        return
-    end
+    if not ButtonsList[click.Button] or not click.Click or gameState.State >= 1 or ButtonsList[click.Button].Defect then return; end
 
-    ButtonsList[click.Button].Click = time.unix()
-    
-    if not ButtonsList[click.Button].Defect then
-        gameState.State = 1
-        ButtonsList[click.Button].Color = colors.NONE
-        audio.PlayRandomBackground()
-    end
-
+    PlayerStartGame()
 end
 
--- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
--- Используется для исключения плохих пикселей из игры
---
--- Параметры:
---  defect = {
---      X: int,
---      Y: int,
---      Defect: bool,
---  }
 function DefectPixel(defect)
     FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
 end
 
--- DefectButton (служебный): метод дефектовки/раздефектовки кнопки
--- Используется для исключения плохих кнопок из игры
---
--- Параметры:
---  defect = {
---      Button: int,
---      Defect: bool,
--- }
 function DefectButton(defect)
     ButtonsList[defect.Button].Defect = defect.Defect
 end

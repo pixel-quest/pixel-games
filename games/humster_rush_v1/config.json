@@ -1,6 +1,16 @@
 {
+  "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+  "Bright_ru": "Яркость",
+
   "delay": 5,
-  "bright": 75,
+  "delay_Min": 3,
+  "delay_Max": 15,
+  "delay_Step": 1,
+  "delay_ru": "Задержка перемешивания монет",
+  "delay_en": "Coin shuffle delay",
 
   "level1": 100,
   "level1_ru": "Лимит очков первого уровня",
@@ -21,7 +31,9 @@
   "greenPoint": 1,
   "greenPoint_ru": "Очки за зеленые монеты",
   "greenPoint_en": "Green coin reward",
+  "greenPoint_Hidden": true,
   "cyanPoint": 5,
   "cyanPoint_ru": "Очки за голубые монеты",
-  "cyanPoint_en": "Cyan coin reward"
+  "cyanPoint_en": "Cyan coin reward",
+  "cyanPoint_Hidden": true
 }
