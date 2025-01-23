@@ -154,6 +154,16 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
 local CountDownStarted = false
 local PlayerInGame = {}
 
+local tColors = {}
+tColors[0] = colors.NONE
+tColors[1] = colors.RED
+tColors[2] = colors.GREEN
+tColors[3] = colors.YELLOW
+tColors[4] = colors.MAGENTA
+tColors[5] = colors.CYAN
+tColors[6] = colors.BLUE
+tColors[7] = colors.WHITE
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson) -- старт игры
     GameObj = json.decode(gameJson)
@@ -172,7 +182,9 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
         end
     end
 
-
+    for iPlayerID = 1, #GameObj.StartPositions do
+        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+    end    
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
@@ -515,10 +527,10 @@ function switchStage(newStage)
     local color = colors.RED -- будем поочередно расставлять цвета
     for filled = 1,GameObj.Cols*GameObj.Rows*GameConfigObj.FillingPercentage/100 do
         color = color + 1
-        if color == colors.NONE or color >= colors.WHITE then
-            color = colors.RED
+        if tColors[color] == nil or tColors[color] == colors.NONE or tColors[color] >= colors.WHITE then
+            color = 1
         end
-        placePixel(color)
+        placePixel(tColors[color])
     end
 
     -- пропустим занятые старт позиции
