@@ -6,17 +6,17 @@
     {
       "X": 1,
       "Y": 1,
-      "Color": 1
+      "Color": "0xFF0000"
     },
     {
       "X": 6,
       "Y": 1,
-      "Color": 3
+      "Color": "0xFFFF00"
     },
     {
       "X": 11,
       "Y": 1,
-      "Color": 4
+      "Color": "0xFF00FF"
     }
   ],
   "StartPositionSizeX": 4,
