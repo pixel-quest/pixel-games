@@ -153,6 +153,15 @@ local LeftAudioPlayed = { -- 3... 2... 1...
 }
 local StageDonePlayed = false
 
+local tColors = {}
+tColors[1] = colors.RED
+tColors[2] = colors.GREEN
+tColors[3] = colors.YELLOW
+tColors[4] = colors.MAGENTA
+tColors[5] = colors.CYAN
+tColors[6] = colors.BLUE
+tColors[7] = colors.WHITE
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -170,6 +179,10 @@ function StartGame(gameJson, gameConfigJson)
             FloorMatrix[x][y] = help.ShallowCopy(Pixel) -- заполняем нулевыми пикселями
         end
     end
+
+    for iPlayerID = 1, #GameObj.StartPositions do
+        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+    end    
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
@@ -451,7 +464,7 @@ function switchStage(newStage)
     for x = 1, GameObj.Cols, 2 do
         for y = 1+GameObj.YOffset, GameObj.Rows, 2 do
             for randomAttempt = 0, 50 do
-                newColor = math.random(1, 6)
+                newColor = tColors[math.random(1, 6)]
                 if newColor == GameStats.TargetColor then
                     goto continue
                 end
@@ -586,7 +599,7 @@ function targetColor(stageNum)
     if stageNum < CONST_STAGE_GAME or stageNum > GameConfigObj.StagesQty then
         return colors.NONE
     end
-    return stageNum%colors.WHITE + 1
+    return tColors[stageNum%7 + 1]
 end
 
 -- Залить всё поле цветом, пропуская exceptColor

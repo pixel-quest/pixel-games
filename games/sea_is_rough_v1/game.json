@@ -32,32 +32,32 @@
     {
       "X": 2,
       "Y": 2,
-      "Color": 1
+      "Color": "0x00FF00"
     },
     {
       "X": 6,
       "Y": 2,
-      "Color": 2
+      "Color": "0xFF0000"
     },
     {
       "X": 10,
       "Y": 2,
-      "Color": 3
+      "Color": "0xFFFF00"
     },
     {
       "X": 14,
       "Y": 2,
-      "Color": 4
+      "Color": "0x0000FF"
     },
     {
       "X": 18,
       "Y": 2,
-      "Color": 5
+      "Color": "0xFF00FF"
     },
     {
       "X": 22,
       "Y": 2,
-      "Color": 6
+      "Color": "0x00FFFF"
     }
   ],
   "StartPositionSize": 2

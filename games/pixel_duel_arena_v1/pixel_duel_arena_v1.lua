@@ -167,6 +167,10 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num].Bright = colors.BRIGHT70
     end
 
+    for iPlayerID = 1, #GameObj.StartPositions do
+        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+    end
+
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
     audio.PlaySyncFromScratch("games/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"

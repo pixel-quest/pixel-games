@@ -24,6 +24,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -90,6 +91,15 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tColors = {}
+tColors[1] = CColors.RED
+tColors[2] = CColors.GREEN
+tColors[3] = CColors.YELLOW
+tColors[4] = CColors.MAGENTA
+tColors[5] = CColors.CYAN
+tColors[6] = CColors.BLUE
+tColors[7] = CColors.WHITE
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -108,7 +118,7 @@ function StartGame(gameJson, gameConfigJson)
     iPrevTickTime = CTime.unix()
 
     CPaint.sBackgroundName = tConfig.BackgroundName
-    CPaint.iTextColor = tConfig.TextColor
+    CPaint.iTextColor = tColors[tConfig.TextColor]
     CPaint.bAnimateText = tConfig.TextAnimation == 1
 
     CPaint.BackgroundFrameTimerStart()
@@ -129,7 +139,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -171,7 +181,7 @@ CPaint.PaintBG = function()
 
     for iY = 1, tGame.Rows do
         for iX = 1, tGame.Cols do
-            tFloor[iX][iY].iColor = tBg[iY][iX]
+            tFloor[iX][iY].iColor = tonumber(tBg[iY][iX])
             tFloor[iX][iY].iBright = tConfig.Bright
         end
     end
@@ -180,7 +190,7 @@ end
 CPaint.BackgroundFrameTimerStart = function()
     if CPaint.sBackgroundName == "" then return end
 
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         CPaint.iBackgroundFrameId = CPaint.iBackgroundFrameId + 1
 
         if CPaint.iBackgroundFrameId > #tGame.Backgrounds[CPaint.sBackgroundName] then
@@ -196,7 +206,7 @@ CPaint.BackgroundFrameTimerStart = function()
 end
 
 CPaint.AnimateTextTimerStart = function()
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         CPaint.iTextAnimationFrame = CPaint.iTextAnimationFrame + 1
         if CPaint.iTextAnimationFrame == 5 then CPaint.iTextAnimationFrame = 1 end
 
@@ -249,34 +259,6 @@ CPaint.Text = function()
             if (iX + 4) > tGame.Cols then
                 iX = 0
                 iY = iY + 7
-            end
-        end
-    end
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
             end
         end
     end

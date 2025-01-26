@@ -13,6 +13,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -104,6 +105,8 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
         CGameMode.tPlayerCanFinish[iPlayerID] = true
     end
@@ -146,7 +149,7 @@ function NextTick()
         return tGameResults
     end     
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -213,12 +216,12 @@ CTutorial.MAX_FINISH = 4
 CTutorial.Start = function()
     CAudio.PlaySyncFromScratch("voices/classics-race-tutorial.mp3")
 
-    CTimer.New(20000, function()
+    AL.NewTimer(20000, function()
         CTutorial.LoadMaps()
         CAudio.PlayRandomBackground()
     end)
 
-    CTimer.New(5000, function()
+    AL.NewTimer(5000, function()
         CTutorial.bSkipDelayOn = false
     end)    
 end
@@ -239,7 +242,7 @@ CTutorial.PlayerFinished = function(iPlayerID)
         CAudio.StopBackground()
         CAudio.PlaySyncFromScratch("voices/tutorial-end.mp3")
 
-        CTimer.New(3000, function()
+        AL.NewTimer(3000, function()
             CTutorial.End()
         end)
     end
@@ -280,7 +283,7 @@ CGameMode.CountDownNextRound = function()
     CGameMode.iCountdown = tConfig.GameCountdown
     tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
         
@@ -306,7 +309,7 @@ CGameMode.Start = function()
     CGameMode.bGameStarted = true
     CGameMode.LoadMapsForPlayers()
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
         if tGameStats.StageLeftDuration <= 0 then
@@ -357,7 +360,7 @@ CGameMode.PlayerFinished = function(iPlayerID)
     CMaps.LoadMapForPlayer(iPlayerID)
     CBlock.AnimateVisibility(iPlayerID)
 
-    CTimer.New(3000, function()
+    AL.NewTimer(3000, function()
         CGameMode.tPlayerCanFinish[iPlayerID] = true
     end)
 end
@@ -384,7 +387,7 @@ CGameMode.EndGame = function()
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)    
 end
@@ -547,7 +550,7 @@ CBlock.AnimateVisibility = function(iPlayerID)
         iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1
     end
 
-    CTimer.New(CPaint.ANIMATION_DELAY, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY, function()
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY do
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                 CBlock.tBlocks[iX][iY].bVisible = true
@@ -656,7 +659,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -679,34 +682,6 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
 
         return nil
     end)
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 

@@ -12,7 +12,7 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
-  "BaseColor": 2,
+  "BaseColor": "0x00FF00",
   "BaseColor_Hidden": true,
 
   "WinDurationMS": 10000,

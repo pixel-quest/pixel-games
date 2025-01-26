@@ -1,6 +1,7 @@
 {
   "Cols": 6,
   "Rows": 6,
+  "ArenaMode": true,
   "Buttons": [
     2,
     6,
@@ -27,7 +28,7 @@
     {
       "X": 3,
       "Y": 1,
-      "Color": 2
+      "Color": "0x00FF00"
     }
   ],
   "StartPositionSizeX": 3,

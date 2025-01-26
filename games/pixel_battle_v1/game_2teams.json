@@ -7,12 +7,12 @@
     {
       "X": 1,
       "Y": 1,
-      "Color": 2
+      "Color": "0x00FF00"
     },
     {
       "X": 1,
       "Y": 9,
-      "Color": 3
+      "Color": "0xFFFF00"
     }
   ],
   "StartPositionSizeX": 24,

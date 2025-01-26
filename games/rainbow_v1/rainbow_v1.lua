@@ -162,13 +162,13 @@ function NextTick()
 
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
-            FloorMatrix[x][y].Color = GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1].Color
+            FloorMatrix[x][y].Color = tonumber(GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1].Color)
             FloorMatrix[x][y].Bright = GameObj.Colors[(x+y+GradientOffset) % GradientLength + 1].Bright
         end
     end
 
     for num, button in pairs(ButtonsList) do
-        ButtonsList[num]=GameObj.Colors[(num+GradientOffset) % GradientLength + 1]
+        ButtonsList[num]=tonumber(GameObj.Colors[(num+GradientOffset) % GradientLength + 1])
     end
 
     GradientOffset = GradientOffset + 1

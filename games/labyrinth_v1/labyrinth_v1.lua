@@ -13,6 +13,7 @@
         Доделать генератор карт
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -132,7 +133,7 @@ function NextTick()
         return tGameResults
     end   
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -198,7 +199,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
     CGameMode.bCountDownStarted = true
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -224,7 +225,7 @@ CGameMode.StartGame = function()
 
     CAudio.PlaySync(CAudio.START_GAME)
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         if iGameState == GAMESTATE_GAME then
             if not bGamePaused and CGameMode.bRoundOn then
                 CUnits.ProcessUnits()
@@ -269,7 +270,7 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.PreloadMap = function()
-    if tConfig.GenerateRandomMap then
+    if tConfig.GenerateRandomMap and tGame.UnitSize == 1 then
         CMaps.LoadMap(CMaps.GenerateRandomMap())
     else
         CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
@@ -285,7 +286,7 @@ CGameMode.Victory = function()
     tGameResults.Won = true
     tGameResults.Color = CColors.GREEN
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = true
         iGameState = GAMESTATE_FINISH
     end)
@@ -303,7 +304,7 @@ CGameMode.Defeat = function()
     tGameResults.Won = false
     tGameResults.Color = CColors.RED
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         tGameResults.Won = false
         iGameState = GAMESTATE_FINISH
     end)
@@ -340,6 +341,7 @@ end
 CMaps = {}
 CMaps.iRandomMapID = 0
 CMaps.iRandomMapIDIncrement = math.random(-2,2)
+CMaps.tRandomGenMap = {}
 
 CMaps.GetRandomMapID = function()
     if CMaps.iRandomMapID == 0 then
@@ -397,106 +399,86 @@ CMaps.LoadMap = function(tMap)
 end
 
 CMaps.GenerateRandomMap = function()
-    local tMap = {}
-    local tMapTaken = {}
+    local function spawnSafeZone(iStartX, iStartY, iSize)
+        for iX = iStartX, iStartX + iSize-1 do
+            for iY = iStartY, iStartY + iSize-1 do
+                CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_START
+            end
+        end
+    end
+    --
+
+    CMaps.tRandomGenMap = {}
     for iY = 1, tGame.Rows do
-        tMap[iY] = {}
-        tMapTaken[iY] = {}
+        CMaps.tRandomGenMap[iY] = {}
         for iX = 1, tGame.Cols do
-            tMap[iY][iX] = CBlock.BLOCK_TYPE_LAVA
-            tMapTaken[iY][iX] = false
+            CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_LAVA
         end
     end
 
-    local LIMIT = tGame.Cols*tGame.Rows
-    local MAX_WALK_STEPS = math.floor(LIMIT/5)
-    local MAX_WALK_ITERS = 8
-    local iWalkCount = 0
-    local iStartsCount = 0
-    local bWalkStartCreated = false
+    CMaps.CarveRandomGenMap(1,1)
 
-    --Вложенные функции генерации
-    local function NextWalk(iY, iX)
-        local iPlus = math.random(-1,1)
-        if iPlus == 0 then iPlus = 1 end
+    spawnSafeZone(1, 1, 3)
+    spawnSafeZone(tGame.Cols-2, tGame.Rows-2, 3)
 
-        if math.random(0,1) == 1 then
-            return iY + iPlus, iX
-        end
-        return iY, iX + iPlus
+    for iSafeZoneId = 1, math.random(1,2) do
+        local iSize = 2
+        local iStartX = math.random(1, tGame.Cols-iSize)
+        local iStartY = math.random(1, tGame.Rows-iSize)
+        spawnSafeZone(iStartX, iStartY, iSize)
     end
 
-    local function OnEdge(iY, iX)
-        return iY == 1 or iY == tGame.Rows or iX == 1 or iX == tGame.Cols
-    end
+    local iCoinId = 1
+    local iEnemySpawns = 0
+    while iCoinId <= tGame.Cols+tConfig.RandomMapUnitCount do
+        local iX = math.random(1, tGame.Cols)
+        local iY = math.random(1, tGame.Rows)
 
-    local function CanWalk(iY, iX, iYChange, iXChange, iStepsCount)
-        if tMapTaken[iY][iX] == true then return false end
-        if tMapTaken[iY+iYChange] and tMapTaken[iY+iYChange][iX+iXChange] == true then return false end
-
-        if OnEdge(iY, iX) then
-            -- ставим стартовые точки
-            if not bWalkStartCreated and iStartsCount < tConfig.RandomMapStartCount then
-                tMap[iY][iX] = CBlock.BLOCK_TYPE_START
-                tMapTaken[iY][iX] = true
-
-                bWalkStartCreated = true
-                iStartsCount = iStartsCount + 1
+        if CMaps.tRandomGenMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND and not tFloor[iX][iY].bDefect then
+            if iEnemySpawns < tConfig.RandomMapUnitCount and math.random(1,100) <= 25 then
+                CMaps.tRandomGenMap[iY][iX] = 9
+                iEnemySpawns = iEnemySpawns + 1
+            else
+                CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_COIN
             end
 
-            return false
+            iCoinId = iCoinId + 1
         end
-
-        return true
     end
 
-    local function Walk()
-        local iWalkY = math.random(2, tGame.Rows-1)
-        local iWalkX = math.random(2, tGame.Cols-1)
-        bWalkStartCreated = false
+    return CMaps.tRandomGenMap
+end
 
-        for i = 1, MAX_WALK_STEPS do
-            local iTempY, iTempX = 0, 0
-            local iWalkIters = 0
+CMaps.CarveRandomGenMap = function(iX, iY)
+    CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_GROUND
 
-            repeat
-                iTempY, iTempX = NextWalk(iWalkY, iWalkX)
-                iWalkIters = iWalkIters + 1
+    local iR = math.random(0,3)
+    for i = 0, 3 do
+        local iD = (i + iR) % 4
+        local iDX = 0
+        local iDY = 0
+        
+        if iD == 0 then
+            iDX = 1
+        elseif iD == 1 then
+            iDX = -1
+        elseif iD == 2 then
+            iDY = 1
+        else
+            iDY = -1
+        end
 
-                if iWalkIters >= MAX_WALK_ITERS then return; end
-            until CanWalk(iTempY, iTempX, iTempY-iWalkY, iTempX-iWalkX, i)
-
-            iWalkY, iWalkX = iTempY, iTempX
-
-            tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_GROUND
-            tMapTaken[iWalkY][iWalkX] = true
-            iWalkCount = iWalkCount + 1
-
-            if math.random(1,10) == 5 then
-                tMap[iWalkY][iWalkX] = CBlock.BLOCK_TYPE_COIN
+        local iNX = iX + iDX
+        local iNY = iY + iDY
+        if CMaps.tRandomGenMap[iNY] and CMaps.tRandomGenMap[iNY][iNX] and CMaps.tRandomGenMap[iNY][iNX] == CBlock.BLOCK_TYPE_LAVA then
+            local iNX2 = iNX + iDX
+            local iNY2 = iNY + iDY            
+            if CMaps.tRandomGenMap[iNY2] and CMaps.tRandomGenMap[iNY2][iNX2] and CMaps.tRandomGenMap[iNY2][iNX2] == CBlock.BLOCK_TYPE_LAVA then
+                CMaps.tRandomGenMap[iNY][iNX] = CBlock.BLOCK_TYPE_GROUND
+                CMaps.CarveRandomGenMap(iNX2, iNY2)
             end
         end
     end
-    --//
-
-    --Генерация
-    --while iWalkCount < LIMIT or (iWalkCount < (LIMIT/1.8) and iStartsCount > tConfig.RandomMapStartCount) do
-    while iWalkCount < (LIMIT/1.8) do
-        Walk()
-    end
-
-    local iUnitCount = 0
-    while iUnitCount < tConfig.RandomMapUnitCount do
-        local iY, iX = math.random(2, tGame.Rows-1), math.random(2, tGame.Cols-1)
-
-        if tMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND then
-            tMap[iY][iX] = 9
-            iUnitCount = iUnitCount + 1
-        end
-    end
-    --//
-
-    return tMap
 end
 --//
 
@@ -557,7 +539,7 @@ end
 CBlock.AnimateVisibility = function(bVisible, fCallback)
     local iY = 1
 
-    CTimer.New(CPaint.ANIMATION_DELAY, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY, function()
         for iX = 1, tGame.Cols do
             if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                 CBlock.tBlocks[iX][iY].bVisible = bVisible
@@ -763,7 +745,7 @@ CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
 
     CUnits.tUnits[iUnitID].bCanDamage = false
     CUnits.tUnits[iUnitID].iColor = CColors.MAGENTA
-    CTimer.New(2000, function()
+    AL.NewTimer(2000, function()
         CUnits.tUnits[iUnitID].bCanDamage = true
         CUnits.tUnits[iUnitID].iColor = CColors.YELLOW
         return nil;
@@ -1017,7 +999,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY*3, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -1040,34 +1022,6 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
 
         return nil
     end)
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 

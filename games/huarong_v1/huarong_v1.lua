@@ -14,6 +14,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -107,6 +108,10 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    end 
+
     CGameMode.bOneAxisMoveMode = tGame.OneAxisMoveMode
 
     CAudio.PlaySync("games/huarong.mp3")
@@ -138,7 +143,7 @@ function NextTick()
         return tGameResults
     end      
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -149,7 +154,7 @@ function GameSetupTick()
     local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
-        if iPos <= #tGame.StartPositions then
+        if iPos <= #tGame.StartPositions and not CheckPositionDefect(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
 
             local iBright = CColors.BRIGHT15
             if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (bCountDownStarted and tPlayerInGame[iPos]) then
@@ -219,7 +224,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     bCountDownStarted = true
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -311,7 +316,7 @@ CGameMode.EndGame = function(iPlayerID)
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)     
 end
@@ -322,6 +327,16 @@ CPieces = {}
 CPieces.tPieces = {}
 CPieces.tBlocked = {}
 CPieces.tPlayerSelectedPiece = {}
+
+CPieces.tColors = {}
+
+CPieces.tColors[1] = CColors.GREEN
+CPieces.tColors[2] = CColors.RED
+CPieces.tColors[3] = CColors.YELLOW
+CPieces.tColors[4] = CColors.MAGENTA
+CPieces.tColors[5] = CColors.CYAN
+CPieces.tColors[6] = CColors.BLUE
+CPieces.tColors[7] = CColors.WHITE
 
 CPieces.Init = function()
     for iX = 1, tGame.Cols do
@@ -342,7 +357,7 @@ CPieces.NewPiece = function(iPlayerID, iX, iY, iSizeX, iSizeY, iColor, bScoreabl
     CPieces.tPieces[iPieceID].iY = iY
     CPieces.tPieces[iPieceID].iSizeX = iSizeX
     CPieces.tPieces[iPieceID].iSizeY = iSizeY
-    CPieces.tPieces[iPieceID].iColor = iColor --CPieces.RandomColor()
+    CPieces.tPieces[iPieceID].iColor = CPieces.tColors[iColor]
     CPieces.tPieces[iPieceID].bSelected = false
     CPieces.tPieces[iPieceID].bScoreable = bScoreable
 
@@ -571,40 +586,26 @@ CPaint.PlayerZones = function()
 end
 --//
 
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
-end
---//
-
 --UTIL прочие утилиты
 function CheckPositionClick(tStart, iSizeX, iSizeY)
     for iX = tStart.X, tStart.X + iSizeX - 1 do
         for iY = tStart.Y, tStart.Y + iSizeY - 1 do
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].bClick then
+                    return true
+                end 
+            end
+        end
+    end
+
+    return false
+end
+
+function CheckPositionDefect(tStart, iSizeX, iSizeY)
+    for iX = tStart.X, tStart.X + iSizeX - 1 do
+        for iY = tStart.Y, tStart.Y + iSizeY - 1 do
+            if tFloor[iX] and tFloor[iX][iY] then
+                if tFloor[iX][iY].bDefect then
                     return true
                 end 
             end

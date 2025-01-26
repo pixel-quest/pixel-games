@@ -60,22 +60,22 @@
     {
       "X": 1,
       "Y": 2,
-      "Color": 1
+      "Color": "0xFF0000"
     },
     {
       "X": 9,
       "Y": 2,
-      "Color": 3
+      "Color": "0xFFFF00"
     },
     {
       "X": 1,
       "Y": 11,
-      "Color": 4
+      "Color": "0xFF00FF"
     },
     {
       "X": 9,
       "Y": 11,
-      "Color": 5
+      "Color": "0x0000FF"
     }      
   ],
   "StartPositionSizeX": 6,

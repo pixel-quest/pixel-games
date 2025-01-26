@@ -36,6 +36,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -155,7 +156,7 @@ function NextTick()
         return tGameResults
     end    
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -246,7 +247,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -267,7 +268,7 @@ CGameMode.StartGame = function()
     --CAudio.PlaySync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
-    CTimer.New(CGameMode.DIFFICULTY_ENEMY_SPAWN_DELAY[CGameMode.iDifficulty], function()
+    AL.NewTimer(CGameMode.DIFFICULTY_ENEMY_SPAWN_DELAY[CGameMode.iDifficulty], function()
         if iGameState ~= GAMESTATE_GAME then return nil end
 
         if CUnits.iAliveUnitCount < CUnits.MAX_UNIT_COUNT then
@@ -278,7 +279,7 @@ CGameMode.StartGame = function()
         return CGameMode.DIFFICULTY_ENEMY_SPAWN_DELAY[CGameMode.iDifficulty]
     end)
 
-    CTimer.New(CGameMode.DIFFICULTY_UNIT_THINK_DELAY[CGameMode.iDifficulty], function()
+    AL.NewTimer(CGameMode.DIFFICULTY_UNIT_THINK_DELAY[CGameMode.iDifficulty], function()
         if iGameState ~= GAMESTATE_GAME then return nil end
         CUnits.Think()
 
@@ -287,7 +288,7 @@ CGameMode.StartGame = function()
 
     local iAnnouncerWarnTime = 0
     local iBonusTime = 0
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration + 1
 
         iAnnouncerWarnTime = iAnnouncerWarnTime + 1
@@ -307,7 +308,7 @@ CGameMode.StartGame = function()
     end)
 
     --PAD TIMER
-    CTimer.New(100, function()
+    AL.NewTimer(100, function()
         if CPad.LastInteractionTime ~= -1 and not CWorld.bEndGame then
             if CPad.AFK() then
                 if CCamera.bFreeView then
@@ -355,12 +356,12 @@ CGameMode.EndGame = function(bVictory)
 
     tGameResults.Won = bVictory
 
-    CTimer.New(10000, function()
+    AL.NewTimer(10000, function()
         iGameState = GAMESTATE_FINISH
     end)
 
     local iY = 1
-    CTimer.New(tConfig.AnimationDelay*2, function()
+    AL.NewTimer(tConfig.AnimationDelay*2, function()
         for iX = 1, tGame.Cols do
             if bVictory then
                 tFloor[iX][iY].iColor = CColors.GREEN
@@ -807,7 +808,7 @@ CUnits.DamageUnit = function(iUnitID, iDamage, iPossibleDeathReason)
             CAnnouncer.PlaySoundAtPosition("td2_punch.mp3", CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY)
 
             CUnits.tUnits[iUnitID].bRecieveDamageCooldown = true
-            CTimer.New(300, function()
+            AL.NewTimer(300, function()
                 CUnits.tUnits[iUnitID].bRecieveDamageCooldown = false
             end)
         end
@@ -822,7 +823,7 @@ CUnits.StunUnit = function(iUnitID, iDuration)
             iDuration = iDuration * 0.25
         end
 
-        CTimer.New(iDuration*1000, function()
+        AL.NewTimer(iDuration*1000, function()
             if CUnits.tUnits[iUnitID] then
                 CUnits.tUnits[iUnitID].bCanMove = true
             end
@@ -833,7 +834,7 @@ end
 CUnits.BounceUnit = function(iUnitID, iVelX, iVelY)
     local iDistance = 0
 
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         if iDistance > 3 or not CUnits.tUnits[iUnitID] or CUnits.tUnits[iUnitID].bCanMove then return nil end
 
         if iDistance == 2 then
@@ -888,7 +889,7 @@ CUnits.UnitKilled = function(iUnitID, iUnitDeathReason)
 
     CUnits.iAliveUnitCount = CUnits.iAliveUnitCount - 1
 
-    CTimer.New(100, function()
+    AL.NewTimer(100, function()
         CUnits.tUnits[iUnitID] = nil
     end)
 end
@@ -1072,7 +1073,7 @@ CWorld.BeginEndGameStage = function()
     CCamera.DeactivateAllButtons()
     CCamera.AnimateMovementTo(CCamera.VIEW_X[CCamera.VIEW_CENTER], CCamera.VIEW_Y[CCamera.VIEW_CENTER], function()
         CWorld.bPlayerActionsPaused = true
-        CTimer.New(1500, function()
+        AL.NewTimer(1500, function()
             CWorld.bPlayerActionsPaused = false
         end)
     end)
@@ -1207,7 +1208,7 @@ end
 CCamera.AnimateMovementTo = function(iX, iY, fCallback)
     CWorld.bPlayerActionsPaused = true
 
-    CTimer.New(tConfig.AnimationDelay, function()
+    AL.NewTimer(tConfig.AnimationDelay, function()
         local iPlusX = 0
         local iPlusY = 0
 
@@ -1481,34 +1482,6 @@ CPath.Path = function(iUnitSize, iStartX, iStartY, iTargetX, iTargetY, tBlocks, 
     end
 
     return tResPath
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
 end
 --//
 

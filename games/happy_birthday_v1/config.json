@@ -26,7 +26,8 @@
 	"TextColor_ru": "Цвет текста",
 	"TextColor_en": "Text Color",
 
-	"BackgroundName": "test",
+	"BackgroundName": "old_cake",
+	"BackgroundName_List": ["old_cake", "new_cake", "minecraft_cake"],
 	"BackgroundName_ru": "Название Заднего Фона",
 	"BackgroundName_en": "Back Ground Name",
 

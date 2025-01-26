@@ -36,10 +36,11 @@
   "UnitThinkDelay_ru": "Частота Движения Юнита",
   "UnitThinkDelay_en": "Unit Movement Tick Rate",
 
-  "GenerateRandomMap": false,
-  "GenerateRandomMap_Hidden": true,
-  "RandomMapStartCount": 4,
-  "RandomMapStartCount_Hidden": true,
+  "GenerateRandomMap": true,
+  "GenerateRandom_ru": "Случайная генерация лабиринта (работает только при размере юнита 1)",
+  "GenerateRandom_en": "Maze generation (unit size 1 only)",
+
   "RandomMapUnitCount": 2,
-  "RandomMapUnitCount_Hidden": true
+  "RandomMapUnitCount_ru": "Количество врагов при случайной генерации",
+  "RandomMapUnitCount_en": "Maze generation enemy unit count"
 }

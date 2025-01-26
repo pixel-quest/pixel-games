@@ -19,6 +19,7 @@
         Больше мини игр
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -109,6 +110,10 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    end    
+
     tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
     CAudio.PlaySync("games/olympics.mp3")
@@ -139,7 +144,7 @@ function NextTick()
         return tGameResults
     end
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -228,7 +233,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.PrepareNextRound()
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -311,7 +316,7 @@ CGameMode.EndRound = function()
         CGameMode.EndGame()
     else
         CAudio.PlayAsync("voices/get-back.mp3")
-        CTimer.New(5000, function()
+        AL.NewTimer(5000, function()
             CGameMode.StartCountDown(tConfig.RoundCountdown)
         end)
     end
@@ -336,7 +341,7 @@ CGameMode.EndGame = function()
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
 
@@ -856,7 +861,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].bAnimated = true
 
     local iCount = 0
-    CTimer.New(CPaint.ANIMATION_DELAY*3, function()
+    AL.NewTimer(CPaint.ANIMATION_DELAY*3, function()
         if not tFloor[iX][iY].bAnimated then return; end
 
         if tFloor[iX][iY].iColor == iColor then
@@ -885,34 +890,6 @@ CPaint.ResetAnimation = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             tFloor[iX][iY].bAnimated = false
-        end
-    end
-end
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
         end
     end
 end

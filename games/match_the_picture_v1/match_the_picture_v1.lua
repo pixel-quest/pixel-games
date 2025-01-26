@@ -12,6 +12,7 @@
 
 ]]
 math.randomseed(os.time())
+require("avonlib")
 
 local CLog = require("log")
 local CInspect = require("inspect")
@@ -99,6 +100,10 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    for iPlayerID = 1, #tGame.StartPositions do
+        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    end    
+
     CBlock.iColor = tGame.PreviewColor
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -131,7 +136,7 @@ function NextTick()
         return tGameResults
     end  
 
-    CTimer.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
+    AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
 
@@ -259,7 +264,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 
     CGameMode.iCountdown = iCountDownTime
 
-    CTimer.New(1000, function()
+    AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -365,7 +370,7 @@ CGameMode.EndGame = function()
 
     iGameState = GAMESTATE_POSTGAME
 
-    CTimer.New(tConfig.WinDurationMS, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
 
@@ -532,7 +537,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
     end
 
     CBlock.tBlocks[iX][iY].bCooldown = true
-    CTimer.New(tConfig.PixelClickCooldown, function()
+    AL.NewTimer(tConfig.PixelClickCooldown, function()
         CBlock.tBlocks[iX][iY].bCooldown = false 
     end)
 end
@@ -541,7 +546,7 @@ CBlock.AnimateVisibility = function(bVisible)
     for iPlayerID = 1, CGameMode.iPlayerCount do
         local iY = tGame.StartPositions[iPlayerID].Y
 
-        CTimer.New(CPaint.ANIMATION_DELAY, function()
+        AL.NewTimer(CPaint.ANIMATION_DELAY, function()
             for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX do
                 if CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
                     CBlock.tBlocks[iX][iY].bVisible = bVisible
@@ -697,34 +702,6 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     end)
 end
 ]]
---//
-
---TIMER класс отвечает за таймеры, очень полезная штука. можно вернуть время нового таймера с тем же колбеком
-CTimer = {}
-CTimer.tTimers = {}
-
-CTimer.New = function(iSetTime, fCallback)
-    CTimer.tTimers[#CTimer.tTimers+1] = {iTime = iSetTime, fCallback = fCallback}
-end
-
--- просчёт таймеров каждый тик
-CTimer.CountTimers = function(iTimePassed)
-    for i = 1, #CTimer.tTimers do
-        if CTimer.tTimers[i] ~= nil then
-            CTimer.tTimers[i].iTime = CTimer.tTimers[i].iTime - iTimePassed
-
-            if CTimer.tTimers[i].iTime <= 0 then
-                iNewTime = CTimer.tTimers[i].fCallback()
-                if iNewTime and iNewTime ~= nil then -- если в return было число то создаём новый таймер с тем же колбеком
-                    iNewTime = iNewTime + CTimer.tTimers[i].iTime
-                    CTimer.New(iNewTime, CTimer.tTimers[i].fCallback)
-                end
-
-                CTimer.tTimers[i] = nil
-            end
-        end
-    end
-end
 --//
 
 --UTIL прочие утилиты
