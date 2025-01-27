@@ -12,10 +12,16 @@
 	"RoundCount_ru": "Количество Раундов",
 	"RoundCount_en": "Round Count",
 
-	"RoundTimeLimit": 60,
+	"RoundTimeLimit": 100,
 	"RoundTimeLimit_Min": 30,
 	"RoundTimeLimit_Max": 300,
 	"RoundTimeLimit_Step": 15,
 	"RoundTimeLimit_ru": "Длительность раунда",
-	"RoundTimeLimit_en": "Round time length"
+	"RoundTimeLimit_en": "Round time length",
+
+	"Seed": 0,
+	"Seed_Min": 0,
+	"Seed_Max": 9999999,
+	"Seed_ru": "Номер уровня(0 = полностью случайный)",
+	"Seed_ru": "Generation seed(0 = fully random)"
 }
