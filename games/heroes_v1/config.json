@@ -12,17 +12,21 @@
 	"AnimationDelay_ru": "Частота анимации",
 	"AnimationDelay_en": "Animation tick rate",
 
+	"BackgroundName": "mario",
+	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin","hellokitty","elka","arrow1","arrow2","arrow3"],
+	"BackgroundName_ru": "Картинка",
+	"BackgroundName_en": "Image",
+
 	"MirrorImage": false,
 	"MirrorImage_ru": "Отзеркалить картинку",
 	"MirrorImage_en": "Mirror the image",
 
-	"BackgroundName": "mario",
-	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin","hellokitty","elka","arrow1","arrow2","arrow3","arrow4","arrow5"],
-	"BackgroundName_ru": "Картинка",
-	"BackgroundName_en": "Image",
-
 	"ColorGroundName": "default",
 	"ColorGroundName_List": ["default", "rainbow"],
 	"ColorGroundName_ru": "Цветовой задний фон",
-	"ColorGroundName_en": "Color background"
+	"ColorGroundName_en": "Color background",
+
+	"ColorGroundReverseDirection": true,
+	"ColorGroundReverseDirection_ru": "Движение заднего фона в обратную сторону",
+	"ColorGroundReverseDirection_en": "Color background reverse"
 }

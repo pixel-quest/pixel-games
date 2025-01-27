@@ -226,7 +226,11 @@ end
 
 CPaint.OffsetTimer = function()
     AL.NewTimer(tConfig.AnimationDelay, function()
-        CPaint.iOffset = CPaint.iOffset + 1
+        if not tConfig.ColorGroundReverseDirection then
+            CPaint.iOffset = CPaint.iOffset + 1
+        else
+            CPaint.iOffset = CPaint.iOffset - 1
+        end
 
         return tConfig.AnimationDelay
     end)
