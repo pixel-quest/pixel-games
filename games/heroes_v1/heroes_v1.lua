@@ -233,11 +233,11 @@ CPaint.OffsetTimer = function()
 end
 
 CPaint.GetBackgroundColor = function(iX, iY)
-    local iId = math.floor((iX + iY + CPaint.iOffset) %(#tGame.Colors))
+    local iId = math.floor((iX + iY + CPaint.iOffset) %(#tGame.ColorsGrounds[tConfig.ColorGroundName]))
 
     if iId == 0 then iId = 1 end
 
-    return tGame.Colors[iId]
+    return tGame.ColorsGrounds[tConfig.ColorGroundName][iId]
 end
 --//
 
