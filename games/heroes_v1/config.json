@@ -17,7 +17,12 @@
 	"MirrorImage_en": "Mirror the image",
 
 	"BackgroundName": "mario",
-	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin","hellokitty","elka"],
+	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin","hellokitty","elka","arrow1","arrow2","arrow3","arrow4","arrow5"],
 	"BackgroundName_ru": "Картинка",
-	"BackgroundName_en": "Image"
+	"BackgroundName_en": "Image",
+
+	"ColorGroundName": "default",
+	"ColorGroundName_List": ["default", "rainbow"],
+	"ColorGroundName_ru": "Цветовой задний фон",
+	"ColorGroundName_en": "Color background"
 }
