@@ -1,27 +1,30 @@
-{
-	"Bright": 5,
-	"Bright_Min": 1,
-	"Bright_Max": 7,
-	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
-  	    	
-	"RoundCount": 5,
-	"RoundCount_Min": 1,
-	"RoundCount_Max": 25,
-	"RoundCount_Step": 1,
-	"RoundCount_ru": "Количество Раундов",
-	"RoundCount_en": "Round Count",
+	{
+		"Bright": 5,
+		"Bright_Min": 1,
+		"Bright_Max": 7,
+		"Bright_Step": 1,
+	  	"Bright_Ru": "Яркость",
+	  	    	
+		"RoundCount": 5,
+		"RoundCount_Min": 1,
+		"RoundCount_Max": 25,
+		"RoundCount_Step": 1,
+		"RoundCount_ru": "Количество Раундов",
+		"RoundCount_en": "Round Count",
 
-	"RoundTimeLimit": 100,
-	"RoundTimeLimit_Min": 30,
-	"RoundTimeLimit_Max": 300,
-	"RoundTimeLimit_Step": 15,
-	"RoundTimeLimit_ru": "Длительность раунда",
-	"RoundTimeLimit_en": "Round time length",
+		"RoundTimeLimit": 100,
+		"RoundTimeLimit_Min": 30,
+		"RoundTimeLimit_Max": 300,
+		"RoundTimeLimit_Step": 15,
+		"RoundTimeLimit_ru": "Длительность раунда",
+		"RoundTimeLimit_en": "Round time length",
 
-	"Seed": 0,
-	"Seed_Min": 0,
-	"Seed_Max": 9999999,
-	"Seed_ru": "Номер уровня(0 = полностью случайный)",
-	"Seed_ru": "Generation seed(0 = fully random)"
-}
+		"Seed": 0,
+		"Seed_Min": 0,
+		"Seed_Max": 9999999,
+		"Seed_ru": "Номер уровня(0 = случайный)",
+		"Seed_en": "Generation seed(0 = random)",
+
+		"RoundCountdown": 8,
+		"RoundCountdown_Hidden": true
+	}
