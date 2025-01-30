@@ -226,18 +226,22 @@ end
 
 CPaint.OffsetTimer = function()
     AL.NewTimer(tConfig.AnimationDelay, function()
-        CPaint.iOffset = CPaint.iOffset + 1
+        if not tConfig.ColorGroundReverseDirection then
+            CPaint.iOffset = CPaint.iOffset + 1
+        else
+            CPaint.iOffset = CPaint.iOffset - 1
+        end
 
         return tConfig.AnimationDelay
     end)
 end
 
 CPaint.GetBackgroundColor = function(iX, iY)
-    local iId = math.floor((iX + iY + CPaint.iOffset) %(#tGame.Colors))
+    local iId = math.floor((iX + iY + CPaint.iOffset) %(#tGame.ColorsGrounds[tConfig.ColorGroundName]))
 
     if iId == 0 then iId = 1 end
 
-    return tGame.Colors[iId]
+    return tGame.ColorsGrounds[tConfig.ColorGroundName][iId]
 end
 --//
 

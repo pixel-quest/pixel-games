@@ -22,7 +22,7 @@
 
 ### Список текущих механик Pixel Quest
 - **Go**
-  - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется конструктор уровней)*
+  - **Пол – это лава** – *собираем синие, избегая лавы (самая жирная и тяжёлая механика, под неё имеется визуальный конструктор уровней)*
 - **Lua**
   - Заставка **Радуга** – *переливающийся пол* [rainbow_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/rainbow_v1/rainbow_v1.lua)
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном* [mario_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/mario_v1/mario_v1.lua)
@@ -56,6 +56,8 @@
   - **Тетрис** – *классический Тетрис* [tetris_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/tetris_v1/tetris_v1.lua)
   - **Рисовалка** – *рисовалка* [сoloring_book_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/сoloring_book_v1/сoloring_book_v1.lua)
   - **Стеклянный Мост** – *испытание Стеклянный Мост из Игры в кальмара* [crab_glass_bridge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/crab_glass_bridge_v1/crab_glass_bridge_v1.lua)
+  - **Генеративная Пол – это лава** – *Пол – это лава с генеративными эффектами* [lava_floor_random_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/lava_floor_random_v1/lava_floor_random_v1.lua)
+  - **Сапёр V2** – *соревновательный Сапёр с пересечением зон игроков* [minesweeper_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v2/minesweeper_v2.lua)
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
