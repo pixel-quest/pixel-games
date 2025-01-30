@@ -356,8 +356,8 @@ CGameMode.PlayerHitPixelColor = function(iPlayerID, iColor)
 
     for i = 1, #CGameMode.tTargetPixelColor do
         if iColor == CGameMode.tTargetPixelColor[i] then
-            if CGameMode.tPlayerCorrectColor[iPlayerID][iColor] == nil then
-                CGameMode.tPlayerCorrectColor[iPlayerID][iColor] = true
+            if CGameMode.tPlayerCorrectColor[iPlayerID][tostring(iColor)] == nil then
+                CGameMode.tPlayerCorrectColor[iPlayerID][tostring(iColor)] = true
                 CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount = CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount + 1
 
                 if CGameMode.tPlayerCorrectColor[iPlayerID].iColorCount == #CGameMode.tTargetPixelColor then
@@ -523,7 +523,7 @@ CPaint.PlayerZonePixels = function(iPlayerID, iBright)
             local iX = tGame.StartPositions[iPlayerID].X + iColor-1
             if not tFloor[iX][iY].bDefect then
                 local iColorBright = iBright
-                if CGameMode.tPlayerCorrectColor[iPlayerID] and CGameMode.tPlayerCorrectColor[iPlayerID][iColorOff] == true then
+                if CGameMode.tPlayerCorrectColor[iPlayerID] and CGameMode.tPlayerCorrectColor[iPlayerID][tostring(CGameMode.tColors[iColorOff])] == true then
                     iColorBright = 2
                 end
 
