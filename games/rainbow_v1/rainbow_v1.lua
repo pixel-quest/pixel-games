@@ -168,7 +168,8 @@ function NextTick()
     end
 
     for num, button in pairs(ButtonsList) do
-        ButtonsList[num]=tonumber(GameObj.Colors[(num+GradientOffset) % GradientLength + 1])
+        ButtonsList[num].Color = tonumber(GameObj.Colors[(num+GradientOffset) % GradientLength + 1].Color)
+        ButtonsList[num].Bright = GameObj.Colors[(num+GradientOffset) % GradientLength + 1].Bright
     end
 
     GradientOffset = GradientOffset + 1
