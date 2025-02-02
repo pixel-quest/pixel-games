@@ -5,6 +5,8 @@
   "PreviewY": 8,
   "PreviewHeight": 2,
 
+  "NewStart": false,
+
   "StartPositions": [
     {
       "X": 2,
