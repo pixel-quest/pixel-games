@@ -267,10 +267,14 @@ CGameMode.Announcer = function()
         CAudio.PlaySync("voices/choose-color.mp3")
     end
 
-    if tGame.ArenaMode or (tGame.NewStart and #tGame.StartPositions == 1) then 
+    if tGame.ArenaMode then 
         CAudio.PlaySync("press-zone-for-start.mp3")
     elseif not tGame.NewStart then
         CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
+
+    if (tGame.NewStart and #tGame.StartPositions == 1) then
+        CAudio.PlaySync("press-center-for-start.mp3")
     end
 end
 
