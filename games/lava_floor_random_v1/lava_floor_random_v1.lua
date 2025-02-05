@@ -405,11 +405,13 @@ CMap.GenerateRandomMap = function()
 
     CMap.GeneateSafeGround()
 
+    --[[
     if CMap.tGenerationRules.bFullLavaGround or math.random(1,100) <= 40 then
         CMap.GenerateRandomShapeChunks()
     else
         CBlock.NewBlockFormationFromShape(CBlock.LAYER_GROUND, math.random(1, tGame.Cols), math.random(1, tGame.Rows), CBlock.BLOCK_TYPE_LAVA, CShapes.GetRandomMediumShape())
     end
+    ]]
 
     CMap.tGenerationRules.iMovingGenType = math.random(CMap.tGenerationConsts.MOVINGGEN_TYPE_RANDOM, CMap.tGenerationConsts.MOVINGGEN_TYPE_PATH)
     if (CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_SAFEGROUND] < (tGame.Cols*6)) and CMap.tGenerationRules.bFullLavaGround or math.random(1, 100) > 50 then
@@ -731,13 +733,12 @@ CBlock.tObjectStructure = {
 CBlock.tPaths = {}
 
 CBlock.LAYER_GROUND = 1
-CBlock.LAYER_MOVING_LAVA = 2
-CBlock.LAYER_SAFEGROUND = 3
-CBlock.LAYER_MOVING_SAFEGROUND = 4
-CBlock.LAYER_COINS = 5
-CBlock.LAYER_MOVING_COINS = 6
+CBlock.LAYER_COINS = 2
+CBlock.LAYER_MOVING_LAVA = 3
+CBlock.LAYER_SAFEGROUND = 4
+CBlock.LAYER_MOVING_SAFEGROUND = 5
 
-CBlock.MAX_LAYER = 6
+CBlock.MAX_LAYER = 5
 
 CBlock.BLOCK_TYPE_GROUND = 1
 CBlock.BLOCK_TYPE_LAVA = 2
@@ -813,28 +814,30 @@ CBlock.RegisterBlockClick = function(iX, iY)
 
     for iLayer = CBlock.MAX_LAYER, 1, -1 do 
         if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
-            if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
-                CBlock.tBlocks[iLayer][iX][iY].bCollected = true
-                CGameMode.PlayerCollectCoin()
-
-                tFloor[iX][iY].bProtectedFromLava = true
-                AL.NewTimer(CPaint.ANIMATION_DELAY*10, function()
-                    tFloor[iX][iY].bProtectedFromLava = false  
-                end)
-                break;
-            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
-                break;
-            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
+            if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
                 CGameMode.PlayerCollectLava()
                 CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iLayer][iX][iY].iBlockType])
+
+                break;
+            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
+                CBlock.tBlocks[iLayer][iX][iY].bCollected = true
+                CGameMode.PlayerCollectCoin()
+
+                --[[tFloor[iX][iY].bProtectedFromLava = true
+                AL.NewTimer(CPaint.ANIMATION_DELAY*10, function()
+                    tFloor[iX][iY].bProtectedFromLava = false  
+                end)]]
+                break;
+            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
+                break;
             end
         end
     end
 end
 
 CBlock.LavaObjectClick = function(iX, iY)
-    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected) then return; end
+    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava --[[or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected)]] then return; end
 
     CGameMode.PlayerCollectLava()
     CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA])    
@@ -979,7 +982,7 @@ CPaint.BlocksLayer = function(iLayer, iBrightOffset)
             for iY = 1, tGame.Rows do
                 if not tFloor[iX][iY].bAnimated and CBlock.IsValidPosition(iX, iY) and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
                     local iBright = CBlock.tBlocks[iLayer][iX][iY].iBright + (iBrightOffset or 0)
-                    if tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_LAVA then iBright = iBright - 2 end
+                    --if tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_LAVA then iBright = iBright - 2 end
 
                     tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iLayer][iX][iY].iBlockType]
                     tFloor[iX][iY].iBright = iBright
