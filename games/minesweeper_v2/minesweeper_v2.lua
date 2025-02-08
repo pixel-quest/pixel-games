@@ -33,7 +33,10 @@ local iGameState = GAMESTATE_SETUP
 local iPrevTickTime = 0
 
 local tPlayerInGame = {}
+local iPlayersReady = 0
 local bAnyButtonClick = false
+local bAutoStartTimerStarted = false
+local iAutoStartTimerTime = 0
 
 local tGameStats = {
     StageLeftDuration = 0, 
@@ -136,7 +139,7 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
-    local iPlayersReady = 0
+    iPlayersReady = 0
 
     for iPlayerID = 1, #tGame.StartPositions do
         local iBright = CColors.BRIGHT15
@@ -159,6 +162,25 @@ function GameSetupTick()
         iGameState = GAMESTATE_GAME
 
         CGameMode.StartNextRoundCountDown(5)
+    elseif iPlayersReady >= tConfig.AutoStartPlayerCount and not bAutoStartTimerStarted then
+        bAutoStartTimerStarted = true
+        iAutoStartTimerTime = 9
+        AL.NewTimer(1000, function()
+            if iPlayersReady <= 1 or bAnyButtonClick or iGameState ~= GAMESTATE_SETUP then
+                bAutoStartTimerStarted = false
+                return nil;
+            end
+
+            iAutoStartTimerTime = iAutoStartTimerTime - 1
+            tGameStats.StageLeftDuration = iAutoStartTimerTime
+
+            if iAutoStartTimerTime <= 0 then
+                bAnyButtonClick = true
+                return nil;
+            else
+                return 1000
+            end
+        end)
     end
 end
 

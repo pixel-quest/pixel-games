@@ -12,6 +12,10 @@
 	"RoundCount_ru": "Количество Раундов",
 	"RoundCount_en": "Round Count",
 
+	"AutoStartPlayerCount": 2,
+	"AutoStartPlayerCount_ru": "Количество игроков для авто-старта",
+	"AutoStartPlayerCount_en": "Players needed for auto-start",
+
 	"LavaAlwaysVisible": false,
 	"LavaAlwaysVisible_ru": "Лаву всегда видно"
 }
