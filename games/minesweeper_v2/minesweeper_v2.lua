@@ -1,5 +1,5 @@
 --[[
-    Название: Название механики
+    Название: Сапер 2
     Автор: Avondale, дискорд - avonda
     Описание механики: в общих словах, что происходит в механике
     Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
@@ -101,8 +101,8 @@ function StartGame(gameJson, gameConfigJson)
     CGameMode.InitGameMode()
 
     CAudio.PlaySync("games/minesweeper.mp3")
+    --CAudio.PlaySync("voices/minesweeper-guide.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/minesweeper-guide.mp3")
 end
 
 function NextTick()
@@ -205,6 +205,7 @@ CGameMode.iAlivePlayerCount = 0
 CGameMode.tPlayerCoinsThisRound = {}
 CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
+CGameMode.iMinesClicked = 0
 
 CGameMode.tMap = {}
 CGameMode.tMapCoinCount = {}
@@ -256,6 +257,7 @@ CGameMode.PrepareNextRound = function()
     CGameMode.iFinishedCount = 0
     CGameMode.tPlayerFinished = {}
     CGameMode.tMapCoinCount = {}
+    CGameMode.iMinesClicked = 0
 
     CBlock.tBlocks = {}
     CGameMode.tMap = CMaps.GetRandomMap()
@@ -274,6 +276,7 @@ end
 CGameMode.EndRound = function()
     CAudio.StopBackground()
     CGameMode.bRoundStarted = false
+    CBlock.bAnimationOn = false
 
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.EndGame()
@@ -438,6 +441,16 @@ CBlock.RegisterBlockClick = function(iX, iY)
         CBlock.tBlocks[iX][iY].bVisible = true
         CAudio.PlayAsync(CAudio.MISCLICK)
 
+        CGameMode.iMinesClicked = CGameMode.iMinesClicked + 1
+        if CGameMode.iMinesClicked % 4 == 0 and not CBlock.bAnimationOn then
+            CBlock.AnimateVisibility(true)
+            AL.NewTimer(2000, function()
+                if CGameMode.bRoundStarted then
+                    CBlock.AnimateVisibility(false)
+                end
+            end)
+        end
+
     elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
         CBlock.tBlocks[iX][iY].bVisible = true
@@ -477,9 +490,9 @@ CPaint.Blocks = function()
         if CBlock.tBlocks[iX] then
             for iY = 1, tGame.Rows do
                 if not tFloor[iX][iY].bAnimated and CBlock.tBlocks[iX] and CBlock.tBlocks[iX][iY] then
-                    if CBlock.bAnimationOn then
+                    if CBlock.bAnimationOn and not CGameMode.bRoundStarted then
                         tFloor[iX][iY].iColor = CColors.NONE
-                        if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and CBlock.bAnimSwitch then
+                        if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND --[[and CBlock.bAnimSwitch]] then
                             tFloor[iX][iY].iColor = tGameStats.Players[CBlock.tBlocks[iX][iY].iPlayerID].Color                        
                         elseif CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_MINE and not CBlock.bAnimSwitch then
                             tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType]
@@ -487,6 +500,16 @@ CPaint.Blocks = function()
                     else
                         if not CBlock.tBlocks[iX][iY].bVisible then
                             tFloor[iX][iY].iColor = CColors.NONE
+
+                            if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_MINE and ((CBlock.bAnimationOn and not CBlock.bAnimSwitch) or tConfig.LavaAlwaysVisible) then
+                                tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType]
+                            end
+
+                            if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
+                                if tFloor[iX][iY].bDefect then
+                                    CBlock.RegisterBlockClick(iX, iY)
+                                end
+                            end
                         else
                             if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
                                 if CGameMode.tPlayerFinished[CBlock.tBlocks[iX][iY].iPlayerID] then
