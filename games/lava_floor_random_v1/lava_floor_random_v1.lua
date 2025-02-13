@@ -75,6 +75,7 @@ local tFloorStruct = {
     iWeight = 0,
     bAnimated = false,
     bProtectedFromLava = false,
+    iCoinId = 0,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -129,7 +130,8 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    CPaint.GameSetup()
 end
 
 function GameTick()
@@ -166,6 +168,11 @@ CGameMode.iMapCoinCount = 0
 CGameMode.iMapCoinReq = 0
 CGameMode.iMapCoinCollected = 0
 
+CGameMode.tGameSetupCoins = {}
+CGameMode.iGameSetupCollectedCoins = 0
+
+CGameMode.iRoundTimeLimit = 60
+
 CGameMode.InitGameMode = function()
     if tConfig.Seed ~= 0 then 
         math.randomseed(tonumber(tConfig.Seed))
@@ -176,6 +183,7 @@ CGameMode.InitGameMode = function()
     end
 
     CMap.LoadGenConsts()
+    CGameMode.GameSetupRandomCoins()
 
     tGameStats.TotalStages = tConfig.RoundCount
 end
@@ -183,6 +191,38 @@ end
 CGameMode.Announcer = function()
     --voice gamename and guide
     CAudio.PlaySync("voices/press-button-for-start.mp3")
+end
+
+CGameMode.GameSetupRandomCoins = function()
+    for iCoin = 1, math.random(5,6) do
+        local iX = math.random(1, tGame.Cols)
+        local iY = math.random(1, tGame.Rows)
+
+        if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 then
+            local iCoinId = #CGameMode.tGameSetupCoins+1
+            CGameMode.tGameSetupCoins[iCoinId] = {}
+            CGameMode.tGameSetupCoins[iCoinId].iX = iX
+            CGameMode.tGameSetupCoins[iCoinId].iY = iY
+            CGameMode.tGameSetupCoins[iCoinId].bCollected = false
+            tFloor[iX][iY].iCoinId = iCoinId
+        end
+    end
+
+    tGameStats.TargetScore = #CGameMode.tGameSetupCoins
+end
+
+CGameMode.PlayerCollectGameSetupCoin = function(iCoinId)
+    CGameMode.tGameSetupCoins[iCoinId].bCollected = true
+    CGameMode.iGameSetupCollectedCoins = CGameMode.iGameSetupCollectedCoins + 1
+
+    tGameStats.Players[1].Score = tGameStats.Players[1].Score + 1
+
+    if CGameMode.iGameSetupCollectedCoins == #CGameMode.tGameSetupCoins then
+        CGameMode.EndGameSetup()
+        CAudio.PlaySync(CAudio.STAGE_DONE)
+    else
+        CAudio.PlaySync(CAudio.CLICK)
+    end
 end
 
 CGameMode.EndGameSetup = function()
@@ -247,7 +287,7 @@ CGameMode.StartRound = function()
     tGameStats.Players[1].Score = 0
     tGameStats.TargetScore = CGameMode.iMapCoinReq
 
-    tGameStats.StageLeftDuration = tConfig.RoundTimeLimit
+    tGameStats.StageLeftDuration = CGameMode.iRoundTimeLimit
     AL.NewTimer(1000, function()
         if CGameMode.bRoundStarted then
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
@@ -278,7 +318,7 @@ CGameMode.EndRound = function()
     CAudio.StopBackground()
     CGameMode.bRoundStarted = false
 
-    tGameResults.Score = tGameResults.Score + (tGameStats.StageLeftDuration*10) + ((tConfig.RoundTimeLimit_Max - tConfig.RoundTimeLimit)*4)
+    tGameResults.Score = tGameResults.Score + (tGameStats.StageLeftDuration*10) --+ ((tConfig.RoundTimeLimit_Max - tConfig.RoundTimeLimit)*4)
 
     tGameStats.StageLeftDuration = 0
 
@@ -327,20 +367,20 @@ CMap.LoadGenConsts = function()
     CMap.tGenerationConsts.SAFEZONE_TYPE_PATTERN = 2
     CMap.tGenerationConsts.SAFEZONE_TYPE_MAX = 2
 
-    CMap.tGenerationConsts.MAX_COIN_COUNT = (tGame.Cols + tGame.Rows)*2
+    CMap.tGenerationConsts.MAX_COIN_COUNT = math.ceil((tGame.Cols + tGame.Rows)*1.6)
     CMap.tGenerationConsts.COINGEN_TYPE_RANDOM = 1
     CMap.tGenerationConsts.COINGEN_TYPE_PATTERN = 2
     CMap.tGenerationConsts.COINGEN_TYPE_MAX = 2
 
-    CMap.tGenerationConsts.MOVINGGEN_TYPE_RANDOM = 1
-    CMap.tGenerationConsts.MOVINGGEN_TYPE_PATH = 2
-    CMap.tGenerationConsts.MOVINGGEN_TYPE_WALL = 3
-    CMap.tGenerationConsts.MOVINGGEN_TYPE_MAX = 3
+    CMap.tGenerationConsts.LAVAGEN_TYPE_FILL = 1
+    CMap.tGenerationConsts.LAVAGEN_TYPE_RAND = 2
+    CMap.tGenerationConsts.LAVAGEN_TYPE_PATH = 3
+    CMap.tGenerationConsts.LAVAGEN_TYPE_WALL = 4
+    CMap.tGenerationConsts.LAVAGEN_TYPE_MAX = 4
 end
 
 CMap.DefaultGenerationRules = function()
     CMap.tGenerationRules = {}
-    CMap.tGenerationRules.bFullLavaGround = false
     CMap.tGenerationRules.bBigEdge = false
 
     CMap.tGenerationRules.iSmallSafeZoneMinCount = 2
@@ -353,12 +393,15 @@ CMap.DefaultGenerationRules = function()
 
     CMap.tGenerationRules.iSafeZoneType = 1
 
-    CMap.tGenerationRules.iMovingGenType = 1
+    CMap.tGenerationRules.iLavaGenType = 1
 
     CMap.tGenerationRules.iMovingBlocksMinCount = 1
     CMap.tGenerationRules.iMovingBlocksMaxCount = 2
 
     CMap.tGenerationRules.iCoinGenType = 1
+
+    CMap.tGenerationRules.iSmallShapeFrom = 1
+    CMap.tGenerationRules.iSmallShapeTo = #CShapes.tSmall
 end
 
 CMap.GenerateRules = function()
@@ -366,6 +409,8 @@ CMap.GenerateRules = function()
         CMap.tGenerationRules.iSafeZoneType = math.random(1, CMap.tGenerationConsts.SAFEZONE_TYPE_MAX)
         CMap.tGenerationRules.iCoinGenType = math.random(1, CMap.tGenerationConsts.COINGEN_TYPE_MAX)
     end
+
+    CMap.tGenerationRules.iLavaGenType = math.random(1, CMap.tGenerationConsts.LAVAGEN_TYPE_MAX)
 
     if math.random(1, 100) >= 60 then
         CMap.tGenerationRules.bBigEdge = true
@@ -375,18 +420,22 @@ CMap.GenerateRules = function()
         CMap.tGenerationRules.iMediumSafeZoneMaxCount = 1
     end
 
-    if math.random(1,4) == 3 then
-        CMap.tGenerationRules.bFullLavaGround = true
+    if CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_FILL then
         CMap.tGenerationRules.iSmallSafeZoneMinCount = CMap.tGenerationRules.iSmallSafeZoneMinCount * 2
         CMap.tGenerationRules.iSmallSafeZoneMaxCount = CMap.tGenerationRules.iSmallSafeZoneMaxCount * 2
         CMap.tGenerationRules.iMediumSafeZoneMinCount = CMap.tGenerationRules.iMediumSafeZoneMinCount * 2
         CMap.tGenerationRules.iMediumSafeZoneMaxCount = CMap.tGenerationRules.iMediumSafeZoneMaxCount * 2
+        CMap.tGenerationRules.iMovingBlocksMinCount = 2
+        CMap.tGenerationRules.iMovingBlocksMaxCount = 4
     end
 
     if CMap.tGenerationRules.iSafeZoneType == CMap.tGenerationConsts.SAFEZONE_TYPE_PATTERN then
         CMap.tGenerationRules.iEdgeMinSize = 0
         CMap.tGenerationRules.iEdgeMaxSize = 1        
     end
+
+    CMap.tGenerationRules.iSmallShapeFrom = math.random(1, #CShapes.tSmall-1)
+    CMap.tGenerationRules.iSmallShapeTo = CMap.tGenerationRules.iSmallShapeFrom + 1
 end
 
 CMap.GenerateRandomMap = function()
@@ -394,44 +443,29 @@ CMap.GenerateRandomMap = function()
     CMap.GenerateRules()
 
     for iX = 1, tGame.Cols do
+        CBlock.tBlockMovement[iX] = {}
         for iY = 1, tGame.Rows do
-            if CMap.tGenerationRules.bFullLavaGround then
+            if CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_FILL then
                 CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_LAVA)
             else
                 CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
             end
+
+            CBlock.tBlockMovement[iX][iY] = false
         end
     end
 
     CMap.GeneateSafeGround()
 
-    if CMap.tGenerationRules.bFullLavaGround or math.random(1,100) <= 40 then
-        CMap.GenerateRandomShapeChunks()
-    else
-        CBlock.NewBlockFormationFromShape(CBlock.LAYER_GROUND, math.random(1, tGame.Cols), math.random(1, tGame.Rows), CBlock.BLOCK_TYPE_LAVA, CShapes.GetRandomMediumShape())
-    end
-
-    CMap.tGenerationRules.iMovingGenType = math.random(CMap.tGenerationConsts.MOVINGGEN_TYPE_RANDOM, CMap.tGenerationConsts.MOVINGGEN_TYPE_PATH)
-    if (CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_SAFEGROUND] < (tGame.Cols*6)) and CMap.tGenerationRules.bFullLavaGround or math.random(1, 100) > 50 then
-        if CMap.tGenerationRules.iMovingGenType == CMap.tGenerationConsts.MOVINGGEN_TYPE_RANDOM then
-            if (CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_LAVA] or 0) < 100 then
-                CMap.tGenerationRules.iMovingBlocksMaxCount = 5
-            end
-            CMap.GenerateRandomMovingObjects(CMap.tGenerationRules.bFullLavaGround)
-        else
-            CMap.GenerateMainPath()
-            CMap.GeneratePathMovingObjects(CMap.tGenerationRules.bFullLavaGround)
-        end
-    elseif not CMap.tGenerationRules.bFullLavaGround and (CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_LAVA] or 0) < (tGame.Cols*5) then
-        CMap.tGenerationRules.iMovingGenType = CMap.tGenerationConsts.MOVINGGEN_TYPE_WALL
-        CMap.GenerateMovingLavaWall()
-    end 
+    CMap.GenerateLava()
 
     CMap.GenerateCoins()
     if CGameMode.iMapCoinCount < tGame.Cols then
         CMap.tGenerationRules.iCoinGenType = 1
         CMap.GenerateCoins()
     end
+
+    CGameMode.iRoundTimeLimit = math.floor(CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_COIN] * tConfig.RoundTimePerCoin)
 
     --CLog.print("Total lavablocks: "..CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_LAVA])
     --CLog.print("Total safeblocks: "..CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_SAFEGROUND])
@@ -458,6 +492,9 @@ CMap.GeneateSafeGround = function()
             for iY = iStartY, iStartY + iSizeY-1 do
                 if CBlock.IsValidPosition(iX, iY) then
                     CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+                    --if iStartY > 1 and ((iSizeX > 1 and iSizeX < 5) or (iSizeY > 1 and iSizeY < 5)) then
+                    --    CBlock.tBlockMovement[iX][iY] = true
+                    --end
                 end
             end
         end
@@ -465,7 +502,7 @@ CMap.GeneateSafeGround = function()
 
     if CMap.tGenerationRules.iSafeZoneType == CMap.tGenerationConsts.SAFEZONE_TYPE_RANDOM then
         for iSmallShapeId = 1, math.random(CMap.tGenerationRules.iSmallSafeZoneMinCount, CMap.tGenerationRules.iSmallSafeZoneMaxCount) do
-            local tShape = CShapes.GetRandomSmallShape()
+            local tShape = CShapes.GetRandomSmallShape(CMap.tGenerationRules.iSmallShapeFrom, CMap.tGenerationRules.iSmallShapeTo)
             local iShapeSizeX = #tShape
             local iShapeSizeY = #tShape[1]
 
@@ -473,14 +510,14 @@ CMap.GeneateSafeGround = function()
         end
 
         for iMediumShapeId = 1, math.random(CMap.tGenerationRules.iMediumSafeZoneMinCount,CMap.tGenerationRules.iMediumSafeZoneMaxCount) do
-            local tShape = CShapes.GetRandomSmallShape()
+            local tShape = CShapes.GetRandomSmallShape(CMap.tGenerationRules.iSmallShapeFrom, CMap.tGenerationRules.iSmallShapeTo)
             local iShapeSizeX = #tShape
             local iShapeSizeY = #tShape[1]
 
             safeformation(math.random(1, tGame.Cols-iShapeSizeX), math.random(1, tGame.Rows-iShapeSizeY), tShape)       
         end
     elseif CMap.tGenerationRules.iSafeZoneType == CMap.tGenerationConsts.SAFEZONE_TYPE_PATTERN then
-        local tShape = CShapes.GetRandomSmallShape()
+        local tShape = CShapes.GetRandomSmallShape(CMap.tGenerationRules.iSmallShapeFrom, CMap.tGenerationRules.iSmallShapeTo)
         local iXInc = #tShape + math.random(1,#tShape)
         local iYInc = #tShape + math.random(1,#tShape[1])
 
@@ -516,10 +553,43 @@ CMap.GeneateSafeGround = function()
     end
 end
 
+CMap.GenerateLava = function()
+    if CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_FILL then
+        if CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_LAVA] - CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_SAFEGROUND] > tGame.Cols+tGame.Rows then
+            CMap.GenerateRandomMovingObjects(true)
+        end
+    elseif CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_RAND then
+        CMap.GenerateRandomMovingObjects(false)
+    elseif CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_PATH then
+        CMap.GenerateMainPath()
+        CMap.GeneratePathMovingObjects(false)
+    elseif CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_WALL then
+        if math.random(1,100) <= 40 then
+            CMap.GenerateMovingLavaWall(math.random(1,2), false)
+        elseif math.random(1,100) <= 50 then
+            CMap.GenerateMovingLavaWall(1, false)
+            CMap.GenerateMovingLavaWall(2, false)
+        else
+            local iWall1, iWallSize1 = CMap.GenerateMovingLavaWall(1, true)
+            local iWall2, iWallSize2 = CMap.GenerateMovingLavaWall(1, true)
+
+            if math.random(1,100) >= 70 then
+                if #CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iWall1].tShape == iWallSize1 then
+                    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iWall1].iX = 1
+                    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iWall2].iX = tGame.Cols - iWallSize2
+                else
+                    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iWall1].iY = 1
+                    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iWall2].iY = tGame.Rows - iWallSize2
+                end
+            end
+        end
+    end
+end
+
 CMap.GenerateRandomShapeChunks = function()
     local iBlockType = CBlock.BLOCK_TYPE_LAVA
 
-    if CMap.tGenerationRules.bFullLavaGround then
+    if CMap.tGenerationRules.iLavaGenType == CMap.tGenerationConsts.LAVAGEN_TYPE_FILL then
         iBlockType = CBlock.BLOCK_TYPE_GROUND
     end
 
@@ -551,7 +621,7 @@ CMap.GenerateRandomMovingObjects = function(bSafeground)
     end
 
     for iMovingId = 1, math.random(CMap.tGenerationRules.iMovingBlocksMinCount, CMap.tGenerationRules.iMovingBlocksMaxCount) do
-        local tShape = CShapes.GetRandomSmallShape(iLimit)
+        local tShape = CShapes.GetRandomSmallShape(CMap.tGenerationRules.iSmallShapeFrom, CMap.tGenerationRules.iSmallShapeTo)
         local iX, iY = randXY(#tShape, #tShape[1])
         local iObjectId = CBlock.NewObject(iLayer, iX, iY, iBlockType, tShape)
 
@@ -566,6 +636,8 @@ CMap.GenerateRandomMovingObjects = function(bSafeground)
             CBlock.tObjects[iLayer][iObjectId].iVelY = math.random(-1,1)
         end
         if CBlock.tObjects[iLayer][iObjectId].iVelX == 0 and CBlock.tObjects[iLayer][iObjectId].iVelY == 0 then CBlock.tObjects[iLayer][iObjectId].iVelX = 1 end
+
+        CBlock.tObjects[iLayer][iObjectId].bCollision = (math.random(1,100) > 80)
     end
 end
 
@@ -608,7 +680,7 @@ CMap.GeneratePathMovingObjects = function(bSafeground)
     end
 end
 
-CMap.GenerateMovingLavaWall = function()
+CMap.GenerateMovingLavaWall = function(iDir, bCollision)
     local iWallSize = math.random(1,3)
 
     local iStartX = math.random(1,tGame.Cols-iWallSize)
@@ -620,7 +692,7 @@ CMap.GenerateMovingLavaWall = function()
     local iVelX = 0
     local iVelY = 0
 
-    if math.random(1,2) == 1 then
+    if iDir == 1 then
         iStartX = 1
         iSizeX = tGame.Cols
         while iVelY == 0 do iVelY = math.random(-1,1) end
@@ -641,6 +713,9 @@ CMap.GenerateMovingLavaWall = function()
     local iObjectId = CBlock.NewObject(CBlock.LAYER_MOVING_LAVA, iStartX, iStartY, CBlock.BLOCK_TYPE_LAVA, tShape)
     CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iVelX = iVelX
     CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iVelY = iVelY
+    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = bCollision
+
+    return iObjectId, iWallSize
 end
 
 CMap.GenerateCoins = function()
@@ -672,8 +747,8 @@ CMap.GenerateCoins = function()
         local iPatternX = 0
         local iPatternY = 0
 
-        local iStartX = math.random(1,math.floor(tGame.Cols/2))
-        local iStartY =  math.random(1,math.floor(tGame.Rows/2))
+        local iStartX = math.random(1,math.floor(tGame.Cols/4))
+        local iStartY =  math.random(1,math.floor(tGame.Rows/4))
 
         local iX = iStartX
         local iY = iStartY
@@ -725,19 +800,21 @@ CBlock.tObjectStructure = {
     iPathId = 0,
     iPathPoint = 1,
     iVelX = 0,
-    iVelY = 0
+    iVelY = 0,
+    bCollision = false,
 }
 
 CBlock.tPaths = {}
 
-CBlock.LAYER_GROUND = 1
-CBlock.LAYER_MOVING_LAVA = 2
-CBlock.LAYER_SAFEGROUND = 3
-CBlock.LAYER_MOVING_SAFEGROUND = 4
-CBlock.LAYER_COINS = 5
-CBlock.LAYER_MOVING_COINS = 6
+CBlock.tBlockMovement = {}
 
-CBlock.MAX_LAYER = 6
+CBlock.LAYER_GROUND = 1
+CBlock.LAYER_COINS = 2
+CBlock.LAYER_MOVING_LAVA = 3
+CBlock.LAYER_SAFEGROUND = 4
+CBlock.LAYER_MOVING_SAFEGROUND = 5
+
+CBlock.MAX_LAYER = 5
 
 CBlock.BLOCK_TYPE_GROUND = 1
 CBlock.BLOCK_TYPE_LAVA = 2
@@ -749,6 +826,7 @@ CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_GROUND]                   = CColor
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA]                     = CColors.RED
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]                     = CColors.BLUE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_SAFEGROUND]               = CColors.GREEN
+CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.LAYER_MOVING_SAFEGROUND]             = CColors.CYAN
 
 CBlock.tBlocksCountPerType = {}
 
@@ -813,28 +891,30 @@ CBlock.RegisterBlockClick = function(iX, iY)
 
     for iLayer = CBlock.MAX_LAYER, 1, -1 do 
         if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
-            if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
-                CBlock.tBlocks[iLayer][iX][iY].bCollected = true
-                CGameMode.PlayerCollectCoin()
-
-                tFloor[iX][iY].bProtectedFromLava = true
-                AL.NewTimer(CPaint.ANIMATION_DELAY*10, function()
-                    tFloor[iX][iY].bProtectedFromLava = false  
-                end)
-                break;
-            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
-                break;
-            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
+            if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
                 CGameMode.PlayerCollectLava()
                 CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iLayer][iX][iY].iBlockType])
+
+                break;
+            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
+                CBlock.tBlocks[iLayer][iX][iY].bCollected = true
+                CGameMode.PlayerCollectCoin()
+
+                --[[tFloor[iX][iY].bProtectedFromLava = true
+                AL.NewTimer(CPaint.ANIMATION_DELAY*10, function()
+                    tFloor[iX][iY].bProtectedFromLava = false  
+                end)]]
+                break;
+            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
+                break;
             end
         end
     end
 end
 
 CBlock.LavaObjectClick = function(iX, iY)
-    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected) then return; end
+    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava --[[or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected)]] then return; end
 
     CGameMode.PlayerCollectLava()
     CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA])    
@@ -875,12 +955,17 @@ CBlock.CalculateMovableObjects = function()
 
                         local iNextX = CBlock.tObjects[iLayer][iObjectId].iX + CBlock.tObjects[iLayer][iObjectId].iVelX
                         local iNextY = CBlock.tObjects[iLayer][iObjectId].iY + CBlock.tObjects[iLayer][iObjectId].iVelY
-                        if iNextX < 1 or iNextX + #CBlock.tObjects[iLayer][iObjectId].tShape-1 > tGame.Cols then
+                        if CBlock.tObjects[iLayer][iObjectId].bCollision and CBlock.CheckObjectCollision(iLayer, iNextX, iNextY, iObjectId) then
                             CBlock.tObjects[iLayer][iObjectId].iVelX = -CBlock.tObjects[iLayer][iObjectId].iVelX
-                        end
-                        if iNextY < 1 or iNextY + #CBlock.tObjects[iLayer][iObjectId].tShape[1]-1 > tGame.Rows then
                             CBlock.tObjects[iLayer][iObjectId].iVelY = -CBlock.tObjects[iLayer][iObjectId].iVelY
-                        end                        
+                        else
+                            if iNextX < 1 or iNextX + #CBlock.tObjects[iLayer][iObjectId].tShape-1 > tGame.Cols or (CBlock.tBlockMovement[iNextX] and CBlock.tBlockMovement[iNextX][iNextY]) then
+                                CBlock.tObjects[iLayer][iObjectId].iVelX = -CBlock.tObjects[iLayer][iObjectId].iVelX
+                            end
+                            if iNextY < 1 or iNextY + #CBlock.tObjects[iLayer][iObjectId].tShape[1]-1 > tGame.Rows or (CBlock.tBlockMovement[iNextX] and CBlock.tBlockMovement[iNextX][iNextY]) then
+                                CBlock.tObjects[iLayer][iObjectId].iVelY = -CBlock.tObjects[iLayer][iObjectId].iVelY
+                            end   
+                        end
                     end
                 end
             end
@@ -910,6 +995,21 @@ CBlock.IsEmptyOnAllLayers = function(iX, iY)
     return true
 end
 
+CBlock.CheckObjectCollision = function(iLayer, iX, iY, iSelfObjectId)
+    local iSizeX = #CBlock.tObjects[iLayer][iSelfObjectId].tShape
+    local iSizeY = #CBlock.tObjects[iLayer][iSelfObjectId].tShape[1]
+
+    for iObjectId = 1, #CBlock.tObjects[iLayer] do
+        if iObjectId ~= iSelfObjectId then
+            if CShapes.Intersects(iX, iY, iSizeX, iSizeY, CBlock.tObjects[iLayer][iObjectId].iX, CBlock.tObjects[iLayer][iObjectId].iY, #CBlock.tObjects[iLayer][iObjectId].tShape, #CBlock.tObjects[iLayer][iObjectId].tShape[1]) then
+                return true
+            end
+        end
+    end
+
+    return false
+end
+
 CBlock.Clear = function()
     CGameMode.iMapCoinCount = 0
     CGameMode.iMapCoinReq = 0
@@ -919,6 +1019,7 @@ CBlock.Clear = function()
     CBlock.tObjects = {} 
     CBlock.tPaths = {}
     CBlock.tBlocksCountPerType = {}
+    CBlock.tBlockMovement = {}
 end
 --//
 
@@ -932,6 +1033,16 @@ CPaint.GameField = function()
     else
         CPaint.SafeZonePreview()
         CPaint.CountDown()   
+    end
+end
+
+CPaint.GameSetup = function()
+    for iCoinId = 1, #CGameMode.tGameSetupCoins do
+        if not CGameMode.tGameSetupCoins[iCoinId].bCollected then
+            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]
+            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iBright = tConfig.Bright
+            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iCoinId = iCoinId
+        end
     end
 end
 
@@ -979,7 +1090,7 @@ CPaint.BlocksLayer = function(iLayer, iBrightOffset)
             for iY = 1, tGame.Rows do
                 if not tFloor[iX][iY].bAnimated and CBlock.IsValidPosition(iX, iY) and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
                     local iBright = CBlock.tBlocks[iLayer][iX][iY].iBright + (iBrightOffset or 0)
-                    if tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_LAVA then iBright = iBright - 2 end
+                    --if tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_LAVA then iBright = iBright - 2 end
 
                     tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iLayer][iX][iY].iBlockType]
                     tFloor[iX][iY].iBright = iBright
@@ -1019,6 +1130,7 @@ CPaint.ObjectsLayer = function(iLayer, iBrightOffset)
                     end
 
                     if tObject.iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
+                        tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.LAYER_MOVING_SAFEGROUND]
                         tFloor[iX][iY].bProtectedFromLava = true
                         AL.NewTimer(CPaint.ANIMATION_DELAY*4, function()
                             tFloor[iX][iY].bProtectedFromLava = false  
@@ -1091,22 +1203,35 @@ CShapes.RotateShape = function(tShapeIn)
     return tShapeOut
 end
 
-CShapes.GetRandomShapeFromTable = function(tTable, iLimitIn)
+function CShapes.Intersects(iX1, iY1, iSizeX1, iSizeY1, iX2, iY2, iSizeX2, iSizeY2)
+    if iSizeX1 == 0 or iSizeX2 == 0 then return false; end
+    if iSizeY1 == 0 or iSizeY2 == 0 then return false; end
+
+    if iX1 > iX2+iSizeX2-1 or iX2 > iX1+iSizeX1-1 then return false; end
+
+    if iY1+iSizeY1-1 < iY2 or iY2+iSizeY2-1 < iY1 then return false; end
+
+    return true
+end
+
+CShapes.GetRandomShapeFromTable = function(tTable, iFrom, iTo)
     local iLimit = iLimitIn
-    if iLimit == nil or iLimit > #tTable or iLimit < 1 then iLimit = #tTable end
-    return tTable[math.random(1, iLimit)]
+    if iFrom == nil or iFrom > #tTable or iFrom < 1 then iFrom = 1 end
+    if iTo == nil or iTo > #tTable or iTo < 1 then iTo = #tTable end
+    if iFrom > iTo then iFrom = 1 end
+    return tTable[math.random(iFrom, iTo)]
 end
 
-CShapes.GetRandomSmallShape = function(iLimit)
-    return CShapes.GetRandomShapeFromTable(CShapes.tSmall, iLimit)
+CShapes.GetRandomSmallShape = function(iFrom, iTo)
+    return CShapes.GetRandomShapeFromTable(CShapes.tSmall, iFrom, iTo)
 end
 
-CShapes.GetRandomMediumShape = function(iLimit)
-    return CShapes.GetRandomShapeFromTable(CShapes.tMedium, iLimit)
+CShapes.GetRandomMediumShape = function(iFrom, iTo)
+    return CShapes.GetRandomShapeFromTable(CShapes.tMedium, iFrom, iTo)
 end
 
 CShapes.GetRandomPattern = function(iLimit)
-    return CShapes.GetRandomShapeFromTable(CShapes.tPatterns, iLimit)
+    return CShapes.GetRandomShapeFromTable(CShapes.tPatterns, iFrom, iTo)
 end
 
 CShapes.tSmall = {}
@@ -1450,8 +1575,15 @@ function PixelClick(click)
         tFloor[click.X][click.Y].iWeight = click.Weight
 
         if click.Click and not tFloor[click.X][click.Y].bDefect and click.Weight > 10 then
-            CBlock.RegisterBlockClick(click.X, click.Y)
+            if iGameState == GAMESTATE_SETUP then
+                if tFloor[click.X][click.Y].iCoinId > 0 and not CGameMode.tGameSetupCoins[tFloor[click.X][click.Y].iCoinId].bCollected then
+                    CGameMode.PlayerCollectGameSetupCoin(tFloor[click.X][click.Y].iCoinId)
+                end
+            else
+                CBlock.RegisterBlockClick(click.X, click.Y)
+            end
         end
+
     end
 end
 
@@ -1459,7 +1591,14 @@ function DefectPixel(defect)
     if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
         tFloor[defect.X][defect.Y].bDefect = defect.Defect
         tFloor[defect.X][defect.Y].bProtectedFromLava = true
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+
+        if iGameState == GAMESTATE_SETUP then
+            if tFloor[click.X][click.Y].iCoinId > 0 and not CGameMode.tGameSetupCoins[tFloor[click.X][click.Y].iCoinId].bCollected then
+                CGameMode.PlayerCollectGameSetupCoin(tFloor[click.X][click.Y].iCoinId)
+            end
+        else
+            CBlock.RegisterBlockClick(defect.X, defect.Y)
+        end
     end
 end
 
@@ -1468,7 +1607,7 @@ function ButtonClick(click)
     tButtons[click.Button].bClick = click.Click
 
     if iGameState == GAMESTATE_SETUP then
-        CGameMode.EndGameSetup()
+        --CGameMode.EndGameSetup()
     end
 end
 
