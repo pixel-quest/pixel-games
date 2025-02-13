@@ -16,6 +16,8 @@
     }
   ],
 
+  "NewStart": true,
+
   "StartPositionSizeX": 10,
   "StartPositionSizeY": 15,
   "StartPositionControlsY": 3
