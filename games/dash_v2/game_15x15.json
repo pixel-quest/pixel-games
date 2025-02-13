@@ -19,6 +19,9 @@
     55,
     59
   ],
+
+  "DisableButtonsGameplay": false,
+  
   "SafeZoneOffsets": {
     "6": {
       "X": -1,
