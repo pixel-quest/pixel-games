@@ -122,7 +122,7 @@ function StartGame(gameJson, gameConfigJson)
             CGameMode.bArenaCanStart = true
         end)
     else
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        --CAudio.PlaySync("voices/press-button-for-start.mp3")
     end    
 end
 
@@ -197,7 +197,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) then
+    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
         tGameResults.PlayersCount = iPlayersReady
 
         bAnyButtonClick = false
