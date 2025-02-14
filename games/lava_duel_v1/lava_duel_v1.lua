@@ -197,7 +197,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
+    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount and tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
         tGameResults.PlayersCount = iPlayersReady
 
         bAnyButtonClick = false
