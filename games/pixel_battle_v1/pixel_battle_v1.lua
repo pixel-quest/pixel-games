@@ -176,7 +176,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) then
+    if (iPlayersReady > 0 and (bAnyButtonClick or tConfig.AutoStartEnable and iPlayersReady == #tGame.StartPositions)) then
         bAnyButtonClick = false
         iGameState = GAMESTATE_GAME
         CGameMode.PrepareGame()
