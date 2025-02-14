@@ -240,12 +240,12 @@ CGameMode.Announcer = function()
 
     if not tGame.DisableButtonsGameplay then
         --правала обычные
+        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
     else
         --правила без кнопок
+        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
     end
-
-    CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
