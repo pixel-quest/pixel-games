@@ -161,13 +161,18 @@ function GameSetupTick()
     if bAnyButtonClick then
         bAnyButtonClick = false
         iGameState = GAMESTATE_TUTORIAL
-        CTutorial.Start()
+
+        if tConfig.SkipTutorial then
+            CTutorial.End()
+        else
+            CTutorial.Start()
+        end
     end
 end
 
 function TutorialTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
+    if not CTutorial.bSkipDelayOn then SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) end
     CPaint.PlayerZones()
     CPaint.Blocks()
 
@@ -635,8 +640,15 @@ end
 CPaint.PlayerZones = function()
     --if CGameMode.bGameStarted then return; end
 
+    local iZonesClicked = 0
     for i = 1, #tGame.StartPositions do
-        CPaint.PlayerZone(i, tConfig.Bright)
+        if CPaint.PlayerZone(i, tConfig.Bright) then
+            iZonesClicked = iZonesClicked + 1
+        end
+    end
+
+    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and iZonesClicked == #tGame.StartPositions then
+        bAnyButtonClick = true
     end
 end
 
@@ -648,10 +660,18 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
         iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
     end
 
+    local bClick = false
+
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
         tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
         tFloor[iX][iY].iBright = iBright
+
+        if tFloor[iX][iY].bClick then
+            bClick = true
+        end
     end
+
+    return bClick
 end
 
 CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
