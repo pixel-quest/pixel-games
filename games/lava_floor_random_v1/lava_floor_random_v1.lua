@@ -156,7 +156,13 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    if iGameState == GAMESTATE_GAME then
+        if CGameMode.bRoundStarted then
+            CGameMode.EndRound()
+        else
+            CGameMode.iCountdown = 0
+        end
+    end
 end
 
 --GAMEMODE
