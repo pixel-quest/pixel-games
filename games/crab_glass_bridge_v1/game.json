@@ -19,6 +19,9 @@
   "StartPositionSizeX": 3,
   "StartPositionSizeY": 5,
 
+  "StartButtonFloorX":4,
+  "StartButtonFloorY":3,
+
   "FinishX": 23,
 
   "SquareRows":
