@@ -141,7 +141,9 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+    if not tGame.NewStart then
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+    end
 
     local iPlayersReady = 0
 
@@ -192,11 +194,11 @@ function GameSetupTick()
         end
     end
 
-    if bAnyButtonClick then
+    if tGame.NewStart or bAnyButtonClick then
         if iPlayersReady > 0 and not CGameMode.bCountDownStarted then
             CGameMode.iPlayerCount = iPlayersReady
             tGameResults.PlayersCount = iPlayersReady
-            CGameMode.StartCountDown(1)
+            CGameMode.StartCountDown(9)
         end
     end
 end
@@ -270,7 +272,7 @@ CGameMode.Announcer = function()
 
     if tGame.ArenaMode then 
         CAudio.PlaySync("press-zone-for-start.mp3")
-    else
+    elseif not tGame.NewStart then
         CAudio.PlaySync("voices/press-button-for-start.mp3")
     end
 end

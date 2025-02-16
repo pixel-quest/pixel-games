@@ -189,7 +189,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
+    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (tConfig.AutoStartPlayerCount > 0 and iPlayersReady >= tConfig.AutoStartPlayerCount)) then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -237,8 +237,15 @@ end
 
 CGameMode.Announcer = function()
     CAudio.PlaySync("games/perebejka-game.mp3") 
-    CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    if not tGame.DisableButtonsGameplay then
+        --правала обычные
+        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    else
+        --правила без кнопок
+        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -723,15 +730,23 @@ function ResumeGame()
 end
 
 function PixelClick(click)
+    if not tFloor[click.X] or not tFloor[click.X][click.Y] then return; end
+
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if click.Click and iGameState == GAMESTATE_GAME and tFloor[click.X][click.Y].iColor == CColors.RED then
-        CLava.PlayerStepDelay(click.X, click.Y)
+    if click.Click and iGameState == GAMESTATE_GAME then
+        if tFloor[click.X][click.Y].iColor == CColors.RED then
+            CLava.PlayerStepDelay(click.X, click.Y)
+        elseif tFloor[click.X][click.Y].tSafeZoneButton ~= nil and tGame.DisableButtonsGameplay then
+            CGameMode.ReachGoal(tFloor[click.X][click.Y].tSafeZoneButton)
+        end
     end
 end
 
 function DefectPixel(defect)
+    if not tFloor[defect.X] or not tFloor[defect.X][defect.Y] then return; end
+
     tFloor[defect.X][defect.Y].bDefect = defect.Defect
 end
 

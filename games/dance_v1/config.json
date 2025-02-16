@@ -15,6 +15,14 @@
   "StartPositionSize_ru": "Размер Игровых Позиций",
   "StartPositionSize_en": "Player Position Size",
 
+  "AutoStart": true,
+  "AutoStart_ru": "Автозапуск при всех занятых позициях",
+  "AutoStart_en": "Autostart on all positions occupied",
+
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "PixelMoveDelayMS": 150,
   "PixelMoveDelayMS_Min": 50,
   "PixelMoveDelayMS_Max": 1000,

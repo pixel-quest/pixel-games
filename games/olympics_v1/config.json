@@ -8,6 +8,10 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
+  "AutoStart": true,
+  "AutoStart_ru": "Автозапуск при всех занятых позициях",
+  "AutoStart_en": "Autostart on all positions occupied",
+
   "GameCountdown": 6,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
