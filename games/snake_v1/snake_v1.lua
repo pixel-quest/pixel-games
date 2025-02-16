@@ -415,7 +415,7 @@ CGameMode.EndGame = function(bVictory)
             end
             ]]
 
-            CAudio.PlaySync(tGame.StartPositions[CGameMode.iWinnerID].Color)
+            CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         end
 
         CAudio.PlaySync(CAudio.VICTORY)
