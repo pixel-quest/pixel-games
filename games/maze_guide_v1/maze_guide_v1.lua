@@ -374,28 +374,38 @@ CPaint.UI = function()
         tFloor[iX][iY].iColor = iColor
         tFloor[iX][iY].iBright = tConfig.Bright
         tFloor[iX][iY].iControlId = iControlId
+        local bActive = false
 
-        if iGameState == GAMESTATE_GAME then 
-            if iX == iHeroCamX or iY == iHeroCamY then
-                tFloor[iX][iY].iBright = tFloor[iX][iY].iBright - 3
-            end
-
-            if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
-                CGameMode.PlayerControl(iControlId, iX, iY)
-            end        
+        if iX == iHeroCamX or iY == iHeroCamY then
+            tFloor[iX][iY].iBright = tFloor[iX][iY].iBright - 3
         end
+
+        if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
+            if iGameState == GAMESTATE_GAME then
+                CGameMode.PlayerControl(iControlId, iX, iY)
+            end
+            bActive = true
+        end        
+
+        return bActive
     end
 
+    local bActive1 = false
+    local bActive2 = false
     for iX = 1, tGame.Cols-2 do
         for iY = tGame.Rows-(tConfig.ControlPanelWidth-1), tGame.Rows do
-            paintpixel(iX, iY, CColors.MAGENTA, 1)
+            if paintpixel(iX, iY, CColors.MAGENTA, 1) then bActive1 = true; end
         end
     end
 
     for iY = 1, tGame.Rows-2 do
         for iX = tGame.Cols-(tConfig.ControlPanelWidth-1), tGame.Cols do
-            paintpixel(iX, iY, CColors.YELLOW, 2)
+            if paintpixel(iX, iY, CColors.YELLOW, 2) then bActive2 = true; end
         end
+    end
+
+    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and bActive1 and bActive2 then
+        bAnyButtonClick = true
     end
 end
 --

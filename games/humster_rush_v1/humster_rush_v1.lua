@@ -119,6 +119,7 @@ function NextTick()
                  ButtonsList[num].Bright = GameConfigObj.Bright
             end
         end
+        AutoStartTimer()
         gameState.State = 0
     end
     if gameState.State == 0 then 
@@ -159,6 +160,16 @@ function NextTick()
         tGameResults.AfterDelay = false
         return tGameResults
     end    
+end
+
+function AutoStartTimer()
+    if GameObj.AutoStartTimer and GameObj.AutoStartTimer > 0 then
+        AL.NewTimer(GameObj.AutoStartTimer*1000, function()
+            if gameState.State < 1 then
+                PlayerStartGame()
+            end
+        end)
+    end
 end
 
 function PlayerStartGame()

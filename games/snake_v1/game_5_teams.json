@@ -24,6 +24,8 @@
     77
   ],
 
+  "NewStart": false,
+
   "StartPositions": [
     {
       "X": 1,

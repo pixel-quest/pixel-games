@@ -144,6 +144,16 @@ function GameSetupTick()
     SetAllFloorColorBright(CColors.WHITE, 1) -- красим всё поле в один цвет
     CPaint.PlayerZones()
 
+    if tGame.StartButtonFloorX then
+        for iX = tGame.StartButtonFloorX, tGame.StartButtonFloorX + 1 do
+            for iY = tGame.StartButtonFloorY, tGame.StartButtonFloorY + 2 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            end
+        end
+    end
+
     if bAnyButtonClick then
         if not CGameMode.bCountDownStarted then
             CAudio.PlaySyncFromScratch("")

@@ -250,7 +250,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if bAnyButtonClick then
+    if bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions) then
         if tGame.ArenaMode then
             if not bCountDownStarted then
                 CGameMode.CountDown(5)
@@ -264,6 +264,10 @@ function TutorialTick()
         if not CTutorial.bStarted then
             if iPlayersReady > 0 then
                 CTutorial.PreStart()
+                if tConfig.SkipTutorial then
+                    CTutorial.bSkipDelayOn = false
+                    CTutorial.Skip()
+                end
             end
         elseif not bCountDownStarted then
             CTutorial.Skip()

@@ -104,6 +104,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end    
 
+    tGame.PreviewColor = tonumber(tGame.PreviewColor)
     CBlock.iColor = tGame.PreviewColor
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -152,6 +153,14 @@ function GameSetupTick()
 end
 
 function GameSetupTickSinglePlayer()
+    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+            tFloor[iX][iY].iColor = CColors.BLUE
+            tFloor[iX][iY].iBright = tConfig.Bright
+            if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+        end
+    end
+
     if bAnyButtonClick then
         bAnyButtonClick = false
 
@@ -184,7 +193,7 @@ function GameSetupTickMultiPlayer()
         end
     end
 
-    if iPlayersReady > 1 and bAnyButtonClick then
+    if iPlayersReady > 1 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions)) then
         bAnyButtonClick = false
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
@@ -254,9 +263,9 @@ CGameMode.AnnounceGameStart = function()
 
     if #tGame.StartPositions > 1 then
         CAudio.PlaySync("voices/choose-color.mp3")
+    else
+        CAudio.PlaySync("press-center-for-start.mp3")
     end
-
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartNextRoundCountDown = function(iCountDownTime)

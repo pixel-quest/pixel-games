@@ -23,6 +23,10 @@
 	"ControlPanelWidth_ru": "Размер зоны управления пикселем",
 	"ControlPanelWidth_en": "Pixel control zone size",
 
+	"AutoStart": true,
+	"AutoStart_ru": "Авто запуск если обе зоны управления заняты игроками",
+	"AutoStart_en": "Auto Start on both control zones activated by players",
+
 	"MovementTick": 250,	
 	"MovementTick_Hidden": true	
 }
