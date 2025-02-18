@@ -161,7 +161,7 @@ function GameSetupTick()
             SetAllButtonColorBright(CColors.NONE, tConfig.Bright)
         end
     else
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     end
 end
 
