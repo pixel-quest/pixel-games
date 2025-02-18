@@ -8,6 +8,9 @@
 --		2. Вести счёт для серии коротких игр условно до 3х побед;
 --		3. Модификация с заполняющимся полем: таргет - яркий, а после нажатия тускнеет и остается до конца).
 
+math.randomseed(os.time())
+require("avonlib")
+
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
@@ -128,6 +131,7 @@ local StartPlayersCount = 0 -- количество игроков в момен
 
 local CountDownStarted = false
 local PlayerInGame = {}
+local iPrevTickTime = 0
 
 -- Этапы игры
 local CONST_STAGE_CHOOSE_COLOR = 0 -- выбор цвета
@@ -193,6 +197,7 @@ function ResumeGame()
     audio.PlaySyncFromScratch(audio.START_GAME)
     CountDownStarted = false
     resetCountdown()
+    iPrevTickTime = CTime.unix()
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -211,7 +216,7 @@ function NextTick()
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
@@ -278,6 +283,9 @@ function NextTick()
             return GameResults
         end
     end
+
+    AL.CountTimers((time.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = time.unix()    
 end
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
@@ -315,11 +323,19 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
-    FloorMatrix[click.X][click.Y].Click = click.Click
-
     if Stage ~= CONST_STAGE_GAME then
+        if click.Click then
+            FloorMatrix[click.X][click.Y].Click = true
+        else
+            AL.NewTimer(500, function()
+                FloorMatrix[click.X][click.Y].Click = false
+            end)
+        end
+
         return -- игнорируем клики вне этапа игры
     end
+
+    FloorMatrix[click.X][click.Y].Click = click.Click
 
     -- Если есть игрок с таким цветом, засчитываем очки
     local clickedColor = FloorMatrix[click.X][click.Y].Color
