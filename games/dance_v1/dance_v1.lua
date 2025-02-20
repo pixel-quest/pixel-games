@@ -1059,11 +1059,25 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_TUTORIAL then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click then
-        CGameMode.PlayerHitRow(click.X, click.Y, true)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click then
+            CGameMode.PlayerHitRow(click.X, click.Y, true)
+        end
     end
 end
 
