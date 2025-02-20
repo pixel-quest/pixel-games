@@ -182,7 +182,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
                         if tArenaPlayerReady[iPos] then
                             tFloor[iX][iY].iBright = tConfig.Bright+2
                         end
@@ -1072,15 +1072,28 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
+            return
+        end
 
-    if click.Click and iGameState == GAMESTATE_GAME then
-        if tFloor[click.X][click.Y].bBlocked or (click.X == CSnake.iHeadX and click.Y == CSnake.iHeadY) then
-            CSnake.PlayerStepOnSnake()
-        elseif tFloor[click.X][click.Y].iPixelID ~= 0 then
-            CGameMode.PlayerClickPixel(tFloor[click.X][click.Y].iPixelID)
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and iGameState == GAMESTATE_GAME then
+            if tFloor[click.X][click.Y].bBlocked or (click.X == CSnake.iHeadX and click.Y == CSnake.iHeadY) then
+                CSnake.PlayerStepOnSnake()
+            elseif tFloor[click.X][click.Y].iPixelID ~= 0 then
+                CGameMode.PlayerClickPixel(tFloor[click.X][click.Y].iPixelID)
+            end
         end
     end
 end
