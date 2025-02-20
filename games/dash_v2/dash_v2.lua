@@ -239,11 +239,11 @@ CGameMode.Announcer = function()
     CAudio.PlaySync("games/perebejka-game.mp3") 
 
     if not tGame.DisableButtonsGameplay then
-        --правала обычные
+        CAudio.PlaySync("dash_rules_default.mp3")
         CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
         CAudio.PlaySync("voices/press-button-for-start.mp3")
     else
-        --правила без кнопок
+        CAudio.PlaySync("dash_rules_nobuttons.mp3")
         CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
     end
 end
@@ -309,7 +309,7 @@ CGameMode.SafeZoneClicked = function(tButton)
 
     for iX = tButton.iSafeZoneX, tButton.iSafeZoneX + tGame.SafeZoneSizeX-1 do
         for iY = tButton.iSafeZoneY, tButton.iSafeZoneY + tGame.SafeZoneSizeY-1 do
-            if tFloor[iX][iY].bClick then
+            if tFloor[iX] and tFloor[iX][iY] and tFloor[iX][iY].bClick then
                 return true
             end
         end
@@ -604,6 +604,10 @@ CPaint.SafeZone = function(tButton, iBright)
             tFloor[iX][iY].iColor = CColors.GREEN
             tFloor[iX][iY].iBright = iBright
             tFloor[iX][iY].tSafeZoneButton = tButton
+
+            if tGame.DisableButtonsGameplay and tButton.bGoal then
+                tFloor[iX][iY].iColor = CColors.BLUE
+            end
         end
     end
 end
@@ -731,6 +735,17 @@ end
 
 function PixelClick(click)
     if not tFloor[click.X] or not tFloor[click.X][click.Y] then return; end
+
+    if iGameState == GAMESTATE_SETUP then
+        if click.Click then
+            tFloor[click.X][click.Y].bClick = true
+        else
+            AL.NewTimer(500, function()
+                tFloor[click.X][click.Y].bClick = false
+            end)
+        end
+        return;
+    end
 
     tFloor[click.X][click.Y].bClick = click.Click
     tFloor[click.X][click.Y].iWeight = click.Weight
