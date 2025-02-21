@@ -160,7 +160,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
                         tFloor[iX][iY].iBright = tConfig.Bright
 
                         if tFloor[iX][iY].bClick then 
@@ -528,6 +528,18 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
+
+            return
+        end
+
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 

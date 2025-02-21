@@ -621,14 +621,30 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    CPod.UpdatePodPositions(click.X)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        CPod.UpdatePodPositions(click.X)
+    end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)
