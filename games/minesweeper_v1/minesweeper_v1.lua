@@ -818,20 +818,36 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click and CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
-        CBlock.RegisterBlockClick(click.X, click.Y)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
+            CBlock.RegisterBlockClick(click.X, click.Y)
+        end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and not CBlock.tBlocks[defect.X][defect.Y].bVisible 
-    and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_GROUND then    
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and not CBlock.tBlocks[defect.X][defect.Y].bVisible 
+        and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_GROUND then    
+            CBlock.RegisterBlockClick(defect.X, defect.Y)
+        end
     end
 end
 
