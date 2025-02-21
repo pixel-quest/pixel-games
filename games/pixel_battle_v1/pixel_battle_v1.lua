@@ -160,7 +160,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
                         tFloor[iX][iY].iBright = tConfig.Bright
 
                         if tFloor[iX][iY].bClick then 
@@ -539,7 +539,7 @@ function PixelClick(click)
 
             return
         end
-        
+
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
