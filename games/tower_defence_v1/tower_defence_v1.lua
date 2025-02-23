@@ -283,6 +283,8 @@ CGameMode.PrepareGame = function()
     CAudio.PlaySync("games/tower-defence-tutorial.mp3")
     CAudio.PlaySync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -374,10 +376,10 @@ CGameMode.Defeat = function()
     CAnimation.EndGameFill(CColors.RED)
 end
 
-CGameMode.SpawnUnits = function()
+CGameMode.SpawnUnits = function(iUnitType)
     for i = 1, CGameMode.tSettings.UnitCountPerSpawn do
         --CGameMode.SpawnUnit(CUnits.UNIT_TYPE_DEFLT)
-        CGameMode.SpawnUnit(CUnits.RandomUnitType())
+        CGameMode.SpawnUnit(iUnitType or CUnits.RandomUnitType())
     end
 end
 
