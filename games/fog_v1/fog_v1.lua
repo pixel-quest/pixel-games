@@ -130,8 +130,18 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
+    --SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
     CWorld.Draw()
+
+    if not CGameMode.bCountDownStarted then
+        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            end
+        end
+    end
 
     if bAnyButtonClick and not CGameMode.bCountDownStarted then
         CGameMode.StartCountDown(5)
@@ -183,7 +193,7 @@ CGameMode.Announcer = function()
     CAudio.PlayBackground("fog_setup_song.mp3")
 
     CAudio.PlaySync("fog_halloween_guide.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlaySync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

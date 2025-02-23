@@ -148,7 +148,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionControlsY) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -163,9 +163,11 @@ function GameSetupTick()
     end
 
     if iPlayersReady > 0 then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+        if not tGame.NewStart then
+            SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+        end
 
-        if bAnyButtonClick then
+        if bAnyButtonClick or (tGame.NewStart and iPlayersReady == #tGame.StartPositions) then
             tGameResults.PlayersCount = iPlayersReady
             CGameMode.iRealPlayerCount = iPlayersReady
             iGameState = GAMESTATE_GAME
@@ -229,7 +231,9 @@ end
 CGameMode.Announcer = function()
     CAudio.PlaySync("tetris_intro_voice.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")    
+    if not tGame.NewStart then
+        CAudio.PlaySync("voices/press-button-for-start.mp3") 
+    end   
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -941,6 +945,18 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
+
+            return
+        end
+        
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 

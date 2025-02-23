@@ -187,7 +187,7 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
         -- и подсветим все кнопки по-умлочанию, чтобы потребовать нажатия для старта
-        ButtonsList[num].Color = colors.BLUE
+        ButtonsList[num].Color = colors.NONE
         ButtonsList[num].Bright = GameConfigObj.Bright
     end
 
@@ -200,7 +200,7 @@ function StartGame(gameJson, gameConfigJson)
     audio.PlaySyncFromScratch("games/safe-color-game.mp3") -- Игра "Безопасный цвет"
     audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     audio.PlaySync("voices/listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
-    audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
@@ -226,6 +226,7 @@ end
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
     if GameStats.StageNum == CONST_STAGE_START then -- этап старта
+        StartPlayersCount = 0
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
@@ -233,6 +234,7 @@ function NextTick()
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
+                StartPlayersCount = StartPlayersCount + 1
             else
                 GameStats.Players[positionIndex].Color = colors.NONE
                 PlayerInGame[positionIndex] = false
@@ -240,22 +242,13 @@ function NextTick()
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
-        --[[
-        local currentPlayersCount = countActivePlayers()
-        if currentPlayersCount ~= StartPlayersCount -- если с момента нажатия кнопки количество игроков изменилось
-                or currentPlayersCount < 1 then -- если менее одного игрока
-            -- нельзя стартовать
-            StartPlayersCount = 0
-            resetCountdown()
-        end
-        ]]
-
-        if StartPlayersCount > 0 and not GameStarted then
+        if StartPlayersCount > 1 and not GameStarted then
+            if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
             audio.PlaySyncFromScratch("") -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
-            GameStats.StageTotalDuration = 3 -- сек обратный отсчет
+            GameStats.StageTotalDuration = 5 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
 
             local alreadyPlayed = LeftAudioPlayed[GameStats.StageLeftDuration]
@@ -268,6 +261,8 @@ function NextTick()
                 GameStarted = true
                 switchStage(GameStats.StageNum+1)
             end
+        else
+            CountDownStarted = false
         end
     elseif GameStats.StageNum <= GameConfigObj.StagesQty then -- этап игры
         local timeSinceStageStart = time.unix() - StageStartTime

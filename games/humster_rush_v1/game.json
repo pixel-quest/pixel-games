@@ -1,6 +1,7 @@
 {
   "Cols": 24,
   "Rows": 15,
+  "AutoStartTimer": 15,
   "level1": [
     [
       "0x000000",

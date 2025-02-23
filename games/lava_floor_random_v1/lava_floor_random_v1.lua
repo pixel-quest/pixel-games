@@ -156,7 +156,13 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    if iGameState == GAMESTATE_GAME then
+        if CGameMode.bRoundStarted then
+            CGameMode.EndRound()
+        else
+            CGameMode.iCountdown = 0
+        end
+    end
 end
 
 --GAMEMODE
@@ -183,14 +189,22 @@ CGameMode.InitGameMode = function()
     end
 
     CMap.LoadGenConsts()
-    CGameMode.GameSetupRandomCoins()
+    --CGameMode.GameSetupRandomCoins()
+    CGameMode.tGameSetupCoins[1] = {}
+    CGameMode.tGameSetupCoins[1].bCollected = false
+    repeat
+        CGameMode.tGameSetupCoins[1].iX = math.random(math.floor(tGame.Cols/2)-3,math.floor(tGame.Cols/2)+3)
+        CGameMode.tGameSetupCoins[1].iY = math.random(math.floor(tGame.Rows/2)-3,math.floor(tGame.Rows/2)+3)
+    until not tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].bDefect 
+    tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].iCoinId = 1
+    tGameStats.TargetScore = 1
 
     tGameStats.TotalStages = tConfig.RoundCount
 end
 
 CGameMode.Announcer = function()
-    --voice gamename and guide
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlaySync("quest/quest-game.mp3")
+    CAudio.PlaySync("press-center-for-start.mp3")
 end
 
 CGameMode.GameSetupRandomCoins = function()
@@ -221,7 +235,7 @@ CGameMode.PlayerCollectGameSetupCoin = function(iCoinId)
         CGameMode.EndGameSetup()
         CAudio.PlaySync(CAudio.STAGE_DONE)
     else
-        CAudio.PlaySync(CAudio.CLICK)
+        CAudio.PlayAsync(CAudio.CLICK)
     end
 end
 
@@ -234,6 +248,8 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     CMap.GenerateRandomMap()
 
     CGameMode.iCountdown = iCountDownTime
+
+    CAudio.PlaySync("stand_on_green_zone_and_wait.mp3")
 
     AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
@@ -352,10 +368,19 @@ CGameMode.PlayerCollectCoin = function()
     end
 end
 
-CGameMode.PlayerCollectLava = function()
-    CAudio.PlayAsync(CAudio.MISCLICK)
-    tGameResults.Score = tGameResults.Score - 10 
-    tGameStats.CurrentStars = tGameResults.Score
+CGameMode.PlayerCollectLava = function(iX, iY)
+    if not CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown then
+        CAudio.PlayAsync(CAudio.MISCLICK)
+        tGameResults.Score = tGameResults.Score - 10 
+        tGameStats.CurrentStars = tGameResults.Score
+
+        CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
+
+        CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = true
+        AL.NewTimer(1000, function()
+            CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = false
+        end)
+    end
 end
 --//
 
@@ -802,6 +827,7 @@ CBlock.tObjectStructure = {
     iVelX = 0,
     iVelY = 0,
     bCollision = false,
+    bCooldown = false,
 }
 
 CBlock.tPaths = {}
@@ -893,8 +919,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
         if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
             if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
-                CGameMode.PlayerCollectLava()
-                CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iLayer][iX][iY].iBlockType])
+                CGameMode.PlayerCollectLava(iX, iY)
 
                 break;
             elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
@@ -916,8 +941,7 @@ end
 CBlock.LavaObjectClick = function(iX, iY)
     if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava --[[or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected)]] then return; end
 
-    CGameMode.PlayerCollectLava()
-    CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA])    
+    CGameMode.PlayerCollectLava(iX, iY)
 end
 
 CBlock.CalculateMovableObjects = function()

@@ -133,7 +133,16 @@ function NextTick()
 end
 
 function GameSetupTick()
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+    --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+
+    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+            tFloor[iX][iY].iColor = CColors.BLUE
+            tFloor[iX][iY].iBright = tConfig.Bright
+            if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+        end
+    end
 
     if bAnyButtonClick then
         CAudio.PlaySyncFromScratch("")
@@ -190,7 +199,7 @@ end
 CGameMode.Announcer = function()
     CAudio.PlaySync("dodge_gamename.mp3")
     CAudio.PlaySync("dodge_rules.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlaySync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

@@ -217,7 +217,7 @@ end
 
 function GameSetupTick()
     CPaint.Objects()
-    SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
+    --SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
 
     if bAnyButtonClick then
         CAudio.PlaySyncFromScratch("")
@@ -281,7 +281,8 @@ CGameMode.PrepareGame = function()
 
     CAudio.PlaySync("games/tower-defence-game.mp3")
     CAudio.PlaySync("games/tower-defence-tutorial.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlaySync("press-center-for-start.mp3")
+    --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -1316,12 +1317,18 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
-        if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
-            CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
+        if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
+            bAnyButtonClick = true
+        end
+
+        if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
+            if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
+                CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
+            end
         end
     end
 end

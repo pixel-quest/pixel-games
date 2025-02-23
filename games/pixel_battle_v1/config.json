@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
 	"Bright_Ru": "Яркость",
   	    	
+	"AutoStartEnable": true,
+	"AutoStartEnable_ru": "Авто запуск игры при всех занятых зонах",
+	"AutoStartEnable_en": "Game auto start on all players ready",
+
 	"PlayerCount": 0,
 	"PlayerCount_Min": 0,
 	"PlayerCount_Max": 6,

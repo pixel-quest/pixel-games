@@ -129,7 +129,7 @@ function StartGame(gameJson, gameConfigJson)
     if tGame.ArenaMode then 
         CAudio.PlaySync("press-zone-for-start.mp3")
     else
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        --CAudio.PlaySync("voices/press-button-for-start.mp3")
     end
 end
 
@@ -250,7 +250,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if bAnyButtonClick then
+    if bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions and not CTutorial.bStarted) then
         if tGame.ArenaMode then
             if not bCountDownStarted then
                 CGameMode.CountDown(5)
@@ -264,6 +264,10 @@ function TutorialTick()
         if not CTutorial.bStarted then
             if iPlayersReady > 0 then
                 CTutorial.PreStart()
+                if tConfig.SkipTutorial then
+                    CTutorial.bSkipDelayOn = false
+                    CTutorial.Skip()
+                end
             end
         elseif not bCountDownStarted then
             CTutorial.Skip()
@@ -1055,11 +1059,25 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_TUTORIAL and not CTutorial.bStarted then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click then
-        CGameMode.PlayerHitRow(click.X, click.Y, true)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click then
+            CGameMode.PlayerHitRow(click.X, click.Y, true)
+        end
     end
 end
 

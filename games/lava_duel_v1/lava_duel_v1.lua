@@ -122,7 +122,7 @@ function StartGame(gameJson, gameConfigJson)
             CGameMode.bArenaCanStart = true
         end)
     else
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        --CAudio.PlaySync("voices/press-button-for-start.mp3")
     end    
 end
 
@@ -163,7 +163,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bCountdownStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -197,7 +197,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) then
+    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount and tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
         tGameResults.PlayersCount = iPlayersReady
 
         bAnyButtonClick = false
@@ -247,6 +247,7 @@ CGameMode.iPlayersFinished = 0
 CGameMode.tPlayersCoinCollected = {}
 CGameMode.iMapCoinCount = 0
 CGameMode.bArenaCanStart = false
+CGameMode.bCountdownStarted = false
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
@@ -255,6 +256,7 @@ CGameMode.CountDownNextRound = function()
     CGameMode.iPlayersFinished = 0
     CGameMode.tPlayersCoinCollected = {}
     CGameMode.iMapCoinCount = 0
+    CGameMode.bCountdownStarted = true
 
     local iCountDownTime = tConfig.RoundCountdown
 
@@ -884,14 +886,28 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
-        if CAnimate.tBlocks[click.X] and CAnimate.tBlocks[click.X][click.Y] and CAnimate.tBlocks[click.X][click.Y].iBlockType > 0 then
-            CAnimate.RegisterBlockClick(click.X, click.Y)
-        elseif CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
-            CBlock.RegisterBlockClick(click.X, click.Y)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
+            if CAnimate.tBlocks[click.X] and CAnimate.tBlocks[click.X][click.Y] and CAnimate.tBlocks[click.X][click.Y].iBlockType > 0 then
+                CAnimate.RegisterBlockClick(click.X, click.Y)
+            elseif CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
+                CBlock.RegisterBlockClick(click.X, click.Y)
+            end
         end
     end
 end

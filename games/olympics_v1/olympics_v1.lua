@@ -169,7 +169,7 @@ function GameSetupTick()
         CPaint.PlayerZone(iPos, iBright)
     end
 
-    if not bCountDownStared and iPlayersReady > 1 and bAnyButtonClick then
+    if not bCountDownStared and iPlayersReady > 1 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions)) then
         bAnyButtonClick = false
         bCountDownStared = true
 

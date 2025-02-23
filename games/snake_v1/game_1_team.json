@@ -24,13 +24,15 @@
     77
   ],
 
+  "NewStart": true,
+
   "StartPositions": [
     {
-      "X": 1,
-      "Y": 1,
+      "X": 9,
+      "Y": 5,
       "Color": "0x00FF00"
     }
   ],
-  "StartPositionSizeX": 24,
-  "StartPositionSizeY": 15
+  "StartPositionSizeX": 7,
+  "StartPositionSizeY": 7
 }

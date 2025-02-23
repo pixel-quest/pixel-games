@@ -119,7 +119,7 @@ function StartGame(gameJson, gameConfigJson)
 
     CAudio.PlaySyncFromScratch("games/classics-race-game.mp3")
     CAudio.PlaySync("voices/classics-race-guide.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 function NextTick()
@@ -161,13 +161,18 @@ function GameSetupTick()
     if bAnyButtonClick then
         bAnyButtonClick = false
         iGameState = GAMESTATE_TUTORIAL
-        CTutorial.Start()
+
+        if tConfig.SkipTutorial then
+            CTutorial.End()
+        else
+            CTutorial.Start()
+        end
     end
 end
 
 function TutorialTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
+    if not CTutorial.bSkipDelayOn then SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) end
     CPaint.PlayerZones()
     CPaint.Blocks()
 
@@ -635,8 +640,15 @@ end
 CPaint.PlayerZones = function()
     --if CGameMode.bGameStarted then return; end
 
+    local iZonesClicked = 0
     for i = 1, #tGame.StartPositions do
-        CPaint.PlayerZone(i, tConfig.Bright)
+        if CPaint.PlayerZone(i, tConfig.Bright) then
+            iZonesClicked = iZonesClicked + 1
+        end
+    end
+
+    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and iZonesClicked == #tGame.StartPositions then
+        bAnyButtonClick = true
     end
 end
 
@@ -648,10 +660,18 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
         iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
     end
 
+    local bClick = false
+
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
         tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
         tFloor[iX][iY].iBright = iBright
+
+        if tFloor[iX][iY].bClick then
+            bClick = true
+        end
     end
+
+    return bClick
 end
 
 CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
@@ -753,21 +773,37 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click and (iGameState == GAMESTATE_GAME or iGameState == GAMESTATE_TUTORIAL) and CGameMode.bGameStarted then
-        if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
-            CBlock.RegisterBlockClick(click.X, click.Y)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and (iGameState == GAMESTATE_GAME or iGameState == GAMESTATE_TUTORIAL) and CGameMode.bGameStarted then
+            if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
+                CBlock.RegisterBlockClick(click.X, click.Y)
+            end
         end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
+            CBlock.RegisterBlockClick(defect.X, defect.Y)
+        end
     end
 end
 

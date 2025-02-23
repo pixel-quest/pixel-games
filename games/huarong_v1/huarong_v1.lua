@@ -171,7 +171,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and bAnyButtonClick then
+    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions)) then
         tGameResults.PlayersCount = iPlayersReady
         CGameMode.StartCountDown(5)
     end    
@@ -710,20 +710,36 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click and iGameState == GAMESTATE_GAME then
-        if CPieces.tBlocked[click.X] and CPieces.tBlocked[click.X][click.Y] and CPieces.tBlocked[click.X][click.Y].bBlocked then
-            CPieces.PlayerSelectPiece(CPieces.tBlocked[click.X][click.Y].iPieceID)
-        elseif tFloor[click.X][click.Y].bSelected then
-            CPieces.PlayerSelectHighlightedMove(tFloor[click.X][click.Y].iMovePieceID, tFloor[click.X][click.Y].iMoveX, tFloor[click.X][click.Y].iMoveY)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and iGameState == GAMESTATE_GAME then
+            if CPieces.tBlocked[click.X] and CPieces.tBlocked[click.X][click.Y] and CPieces.tBlocked[click.X][click.Y].bBlocked then
+                CPieces.PlayerSelectPiece(CPieces.tBlocked[click.X][click.Y].iPieceID)
+            elseif tFloor[click.X][click.Y].bSelected then
+                CPieces.PlayerSelectHighlightedMove(tFloor[click.X][click.Y].iMovePieceID, tFloor[click.X][click.Y].iMoveX, tFloor[click.X][click.Y].iMoveY)
+            end
         end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)

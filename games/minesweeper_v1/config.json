@@ -12,6 +12,10 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
+  "AutoStart": true,
+  "AutoStart_ru": "Автозапуск при всех занятых позициях",
+  "AutoStart_en": "Autostart on all positions occupied",
+
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 

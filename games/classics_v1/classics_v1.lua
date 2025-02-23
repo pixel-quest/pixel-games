@@ -113,7 +113,12 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 1
 
     CAudio.PlaySyncFromScratch("games/classics-game.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if tGame.ArenaMode then
+        CAudio.PlaySync("press-zone-for-start.mp3")
+    else
+        CAudio.PlaySync("press-center-for-start.mp3")
+    end
+    --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
 function NextTick()
@@ -146,7 +151,7 @@ end
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
     CPaint.PlayerZones()
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
+    --SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
 
     if tGame.ArenaMode then
         bAnyButtonClick = false
@@ -159,7 +164,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+2 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
                         if tArenaPlayerReady[iPos] then
                             tFloor[iX][iY].iBright = tConfig.Bright+2
                         end
@@ -176,6 +181,14 @@ function GameSetupTick()
                 else
                     tArenaPlayerReady[iPos] = false
                 end           
+            end
+        end
+    elseif not CGameMode.bCountDownStarted then
+        for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
+            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
             end
         end
     end
