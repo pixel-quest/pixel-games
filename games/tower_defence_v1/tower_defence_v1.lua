@@ -259,7 +259,7 @@ CGameMode.bVictory = false
 CGameMode.tBase = {
     iX = 0,
     iY = 0,
-    iSize = 3,
+    iSize = 2,
     iHealth = 0,
     iColor = 0,
 }
