@@ -156,31 +156,12 @@ function GameSetupTick()
         CPaint.PlayerZone(iPlayerID, iBright)           
     end
 
-    if iPlayersReady > 1 and bAnyButtonClick then
+    if (iPlayersReady > 1 and bAnyButtonClick) or (iPlayersReady >= tConfig.AutoStartPlayerCount) then
         bAnyButtonClick = false
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
         CGameMode.StartNextRoundCountDown(5)
-    elseif iPlayersReady >= tConfig.AutoStartPlayerCount and not bAutoStartTimerStarted then
-        bAutoStartTimerStarted = true
-        iAutoStartTimerTime = 9
-        AL.NewTimer(1000, function()
-            if iPlayersReady <= 1 or bAnyButtonClick or iGameState ~= GAMESTATE_SETUP then
-                bAutoStartTimerStarted = false
-                return nil;
-            end
-
-            iAutoStartTimerTime = iAutoStartTimerTime - 1
-            tGameStats.StageLeftDuration = iAutoStartTimerTime
-
-            if iAutoStartTimerTime <= 0 then
-                bAnyButtonClick = true
-                return nil;
-            else
-                return 1000
-            end
-        end)
     end
 end
 
