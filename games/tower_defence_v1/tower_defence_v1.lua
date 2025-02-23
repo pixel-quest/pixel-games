@@ -285,6 +285,19 @@ CGameMode.PrepareGame = function()
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 
     CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
+
+    AL.NewTimer(100, function()
+        if iGameState >= GAMESTATE_POSTGAME then return; end
+
+        if CPad.LastInteractionTime ~= -1  then
+            if not CPad.AFK() then
+                CGameMode.tBase.iX = CGameMode.tBase.iX + CPad.iXPlus
+                CGameMode.tBase.iY = CGameMode.tBase.iY + CPad.iYPlus
+            end
+        end
+
+        return 100
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -440,6 +453,7 @@ CBuffs = {}
 CBuffs.iBuffsDropped = 0
 CBuffs.iLastBuffType = 0
 CBuffs.bBuffDropped = false
+CBuffs.iNextBuffType = 1
 
 CBuffs.BUFF_TYPE_HEAL = 1
 CBuffs.BUFF_TYPE_KILLALL = 2
@@ -488,13 +502,15 @@ CBuffs.DropBuffForPlayers = function()
     CAudio.PlaySync("voices/towerdefence-new-buff.mp3")
     ]]
 
+    CBuffs.iNextBuffType = CBuffs.RandomBuffType()
+
     CBuffs.bBuffDropped = true
     CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
     CAudio.PlaySync("voices/towerdefence-new-buff.mp3")    
 end
 
 CBuffs.PlayerCollectBuff = function()
-    CBuffs.ApplyBuff(CBuffs.RandomBuffType())
+    CBuffs.ApplyBuff(CBuffs.iNextBuffType)
 
     tGameResults.Score = tGameResults.Score + 10
 end
@@ -870,7 +886,7 @@ end
 
 --UNIT EVENTS
 CUnits.UnitTakeDamage = function(iUnitID, iDamageAmount) -- игрок нанёс урон врагу
-    if CUnits.tUnits[iUnitID] == nil or CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
+    if CUnits.tUnits[iUnitID] == nil or iGameState ~= GAMESTATE_GAME or CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
 
     CUnits.tUnits[iUnitID].iHealth = CUnits.tUnits[iUnitID].iHealth - iDamageAmount
 
@@ -1114,6 +1130,36 @@ CAnimation.Death = function(iStartX, iStartY, iSize, iColor)
 end
 --//
 
+--Pad
+CPad = {}
+CPad.LastInteractionTime = -1
+
+CPad.iXPlus = 0
+CPad.iYPlus = 0
+CPad.bTrigger = false
+
+CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
+
+    CPad.bTrigger = bTrigger
+
+    CPad.iXPlus = 0
+    CPad.iYPlus = 0
+
+    if bUp then CPad.iYPlus = CPad.iYPlus - 1 end
+    if bDown then CPad.iYPlus = CPad.iYPlus + 1 end
+
+    if bLeft then CPad.iXPlus = CPad.iXPlus - 1 end
+    if bRight then CPad.iXPlus = CPad.iXPlus + 1 end
+end
+
+CPad.AFK = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
+end
+--//
+
 --Paint
 CPaint = {}
 
@@ -1223,7 +1269,13 @@ end
 
 CPaint.Buffs = function()
     if CBuffs.bBuffDropped then
-        SetAllButtonsColorBright(CColors.GREEN, tConfig.Bright)
+        if CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_KILLALL then
+            SetAllButtonsColorBright(CColors.RED, tConfig.Bright)
+        elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_ALLY then
+            SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
+        else
+            SetAllButtonsColorBright(CColors.GREEN, tConfig.Bright)
+        end
     end
 
     --[[
@@ -1319,17 +1371,21 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
-        tFloor[click.X][click.Y].bClick = click.Click
-        tFloor[click.X][click.Y].iWeight = click.Weight
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tFloor[click.X] and tFloor[click.X][click.Y] then
+            tFloor[click.X][click.Y].bClick = click.Click
+            tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
-            bAnyButtonClick = true
-        end
+            if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
+                bAnyButtonClick = true
+            end
 
-        if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
-            if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
-                CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
+            if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
+                if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
+                    CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
+                end
             end
         end
     end
