@@ -138,6 +138,7 @@ local StartPlayersCount = 0 -- количество игроков в момен
 local CountDownStarted = false
 local PlayerInGame = {}
 local GameStarted = false
+local iGameLoadTime = time.unix()
 local iGameSetupTimestamp = 0
 
 -- Этапы игры
@@ -249,7 +250,7 @@ function NextTick()
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
-        if StartPlayersCount == #GameObj.StartPositions and not GameStarted then
+        if StartPlayersCount > 1 and (time.unix() - 10) >= iGameLoadTime and not GameStarted then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
