@@ -104,7 +104,6 @@ function StartGame(gameJson, gameConfigJson)
     CGameMode.InitGameMode()
 
     CAudio.PlaySync("games/minesweeper.mp3")
-    --CAudio.PlaySync("voices/minesweeper-guide.mp3")
     CAudio.PlaySync("voices/choose-color.mp3")
 end
 
@@ -161,7 +160,8 @@ function GameSetupTick()
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
-        CGameMode.StartNextRoundCountDown(5)
+        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CGameMode.StartNextRoundCountDown(20)
     end
 end
 
