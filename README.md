@@ -20,9 +20,9 @@
 
 <img src="https://github.com/pixel-quest/pixel-games/raw/main/img/rainbow.jpg">
 
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/floor-is-lava.jpg">
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/floor-is-lava.png">
 
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/ping-pong.jpg">
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/ping-pong.png">
 
 ### Список текущих механик Pixel Quest
 - **Go**
