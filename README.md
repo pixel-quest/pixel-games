@@ -16,13 +16,7 @@
 ### Отладочная платформа
 Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить, вступив в группу телеграм [@pixel_quest_games](https://t.me/pixel_quest_games)
 
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/lua-ide.jpg">
-
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/rainbow.jpg">
-
 <img src="https://github.com/pixel-quest/pixel-games/raw/main/img/floor-is-lava.png">
-
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/ping-pong.png">
 
 ### Список текущих механик Pixel Quest
 - **Go**
@@ -62,6 +56,13 @@
   - **Стеклянный Мост** – *испытание Стеклянный Мост из Игры в кальмара* [crab_glass_bridge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/crab_glass_bridge_v1/crab_glass_bridge_v1.lua)
   - **Генеративная Пол – это лава** – *Пол – это лава с генеративными эффектами* [lava_floor_random_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/lava_floor_random_v1/lava_floor_random_v1.lua)
   - **Сапёр V2** – *соревновательный Сапёр с пересечением зон игроков* [minesweeper_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v2/minesweeper_v2.lua)
+
+## Ещё скриншоты
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/lua-ide.jpg">
+
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/rainbow.jpg">
+
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/ping-pong.png">
 
 ## Лицензия
 **Игры Pixel Quest** распространяются по лицензии [CC BY-NC-SA 4.0](https://github.com/pixel-quest/pixel-games/blob/main/LICENSE)  
