@@ -153,6 +153,8 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
 
 local CountDownStarted = false
 local PlayerInGame = {}
+local iGameLoadTime = time.unix()
+local iGameSetupTimestamp = 0
 
 local tColors = {}
 tColors[0] = colors.NONE
@@ -226,23 +228,29 @@ end
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
     if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR then -- этап выбора цвета
+        local bDisPos = false
+        if iGameSetupTimestamp == 0 or (time.unix() - 2) >= iGameSetupTimestamp then
+            iGameSetupTimestamp = time.unix()
+            bDisPos = true
+        end
+
         StartPlayersCount = 0
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) or (not bDisPos and PlayerInGame[positionIndex]) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
                 StartPlayersCount = StartPlayersCount + 1
-            else
+            elseif bDisPos then  
                 GameStats.Players[positionIndex].Color = colors.NONE
                 PlayerInGame[positionIndex] = false 
             end
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
-        if StartPlayersCount > 1 then
+        if StartPlayersCount > 1 and (time.unix() - 10) >= iGameLoadTime then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 

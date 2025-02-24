@@ -222,7 +222,9 @@ end
 CGameMode.Announcer = function()
     CAudio.PlaySync("mazeguide_gamename.mp3")
     CAudio.PlaySync("mazeguide_guide.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if not tConfig.AutoStart then
+        CAudio.PlaySync("voices/press-button-for-start.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -659,16 +661,33 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+                tFloor[click.X][click.Y].iWeight = click.Weight
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
 
-    if click.Click and iGameState == GAMESTATE_GAME and tFloor[click.X] and tFloor[click.X][click.Y] and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iControlId > 0 then
-        CGameMode.PlayerControl(tFloor[click.X][click.Y].iControlId, click.X, click.Y)
+            return
+        end
+
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click and iGameState == GAMESTATE_GAME and tFloor[click.X] and tFloor[click.X][click.Y] and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iControlId > 0 then
+            CGameMode.PlayerControl(tFloor[click.X][click.Y].iControlId, click.X, click.Y)
+        end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)
