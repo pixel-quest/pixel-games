@@ -16,9 +16,13 @@
 ### Отладочная платформа
 Для написания и отладки кода игр у нас есть специальная web-платформа, доступ к которой можно получить, вступив в группу телеграм [@pixel_quest_games](https://t.me/pixel_quest_games)
 
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/stand1.jpg">
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/lua-ide.jpg">
 
-<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/stand2.jpg">
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/rainbow.jpg">
+
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/floor-is-lava.jpg">
+
+<img src="https://github.com/pixel-quest/pixel-games/raw/main/img/ping-pong.jpg">
 
 ### Список текущих механик Pixel Quest
 - **Go**
