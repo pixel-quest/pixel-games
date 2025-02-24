@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.5
+Версия: 1.6
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -11,10 +11,15 @@
     У базы ограниченое колво здоровья, если здоровья нет - игра проиграна
     Для победы нужно раздавить определенное число врагов
 
-    После раздавливания врага, игроки могут получить бонус, чтобы его забрать нужно добежать до зеленой кнопки и нажать её
-    Бонусы могут быть разные, от повышения здоровья базы до появления союзного юнита, который сам будет давить врагов
+    После раздавливания врага, игроки могут получить бонус, чтобы его забрать нужно добежать до кнопки и нажать её
+    Цвет кнопки зависит от бонуса:
+    Красный - уничтожить всех врагов на поле
+    Синий - призвать союзного юнита
+    Зеленый - вылечить здоровье базы
 
-Чтобы начать игру нужно нажать на любую кнопку
+    Базу можно перемещать джостиком
+
+Чтобы начать игру нужно наступить на базу
 
 Сложности:
     Сложность выбирается в config.json, параметры сложностей настраиваются в game.json
@@ -291,8 +296,12 @@ CGameMode.PrepareGame = function()
 
         if CPad.LastInteractionTime ~= -1  then
             if not CPad.AFK() then
-                CGameMode.tBase.iX = CGameMode.tBase.iX + CPad.iXPlus
-                CGameMode.tBase.iY = CGameMode.tBase.iY + CPad.iYPlus
+                if CGameMode.tBase.iX + CPad.iXPlus > 1 and CGameMode.tBase.iX + CPad.iXPlus <= tGame.Cols and CGameMode.tBase.iY + CPad.iYPlus > 1 and CGameMode.tBase.iY + CPad.iYPlus <= tGame.Rows then
+                    CGameMode.tBase.iX = CGameMode.tBase.iX + CPad.iXPlus
+                    CGameMode.tBase.iY = CGameMode.tBase.iY + CPad.iYPlus
+                    CPad.iXPlus = 0
+                    CPad.iYPlus = 0
+                end
             end
         end
 
@@ -1156,7 +1165,7 @@ CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
 end
 
 CPad.AFK = function()
-    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > 10)
 end
 --//
 
@@ -1371,21 +1380,17 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if click.GamepadAddress and click.GamepadAddress > 0 then
-        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
-    else
-        if tFloor[click.X] and tFloor[click.X][click.Y] then
-            tFloor[click.X][click.Y].bClick = click.Click
-            tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-            if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
-                bAnyButtonClick = true
-            end
+        if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
+            bAnyButtonClick = true
+        end
 
-            if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
-                if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
-                    CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
-                end
+        if tFloor[click.X][click.Y].iUnitID > 0 and iGameState == GAMESTATE_GAME then
+            if CUnits.tUnits[tFloor[click.X][click.Y].iUnitID] then
+                CUnits.UnitTakeDamage(tFloor[click.X][click.Y].iUnitID, 1)
             end
         end
     end
@@ -1396,23 +1401,27 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return end
-    tButtons[click.Button].bClick = click.Click
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tButtons[click.Button] == nil then return end
+        tButtons[click.Button].bClick = click.Click
 
-    if click.Click then
-        bAnyButtonClick = true
+        if click.Click then
+            bAnyButtonClick = true
 
-        if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
-            CBuffs.bBuffDropped = false
-            CBuffs.PlayerCollectBuff()
+            if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
+                CBuffs.bBuffDropped = false
+                CBuffs.PlayerCollectBuff()
+            end
+
+            --[[
+            if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
+                tButtons[click.Button].bHasBuff = false
+                CBuffs.PlayerCollectBuff()
+            end
+            ]]
         end
-
-        --[[
-        if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
-            tButtons[click.Button].bHasBuff = false
-            CBuffs.PlayerCollectBuff()
-        end
-        ]]
     end
 end
 
