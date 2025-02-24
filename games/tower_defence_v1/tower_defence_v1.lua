@@ -1,6 +1,6 @@
 --[[
 Название: Защита Базы
-Версия: 1.5
+Версия: 1.6
 Автор: Avondale, дискорд - avonda
 
 Описание механики:
@@ -11,10 +11,15 @@
     У базы ограниченое колво здоровья, если здоровья нет - игра проиграна
     Для победы нужно раздавить определенное число врагов
 
-    После раздавливания врага, игроки могут получить бонус, чтобы его забрать нужно добежать до зеленой кнопки и нажать её
-    Бонусы могут быть разные, от повышения здоровья базы до появления союзного юнита, который сам будет давить врагов
+    После раздавливания врага, игроки могут получить бонус, чтобы его забрать нужно добежать до кнопки и нажать её
+    Цвет кнопки зависит от бонуса:
+    Красный - уничтожить всех врагов на поле
+    Синий - призвать союзного юнита
+    Зеленый - вылечить здоровье базы
 
-Чтобы начать игру нужно нажать на любую кнопку
+    Базу можно перемещать джостиком
+
+Чтобы начать игру нужно наступить на базу
 
 Сложности:
     Сложность выбирается в config.json, параметры сложностей настраиваются в game.json
@@ -283,6 +288,25 @@ CGameMode.PrepareGame = function()
     CAudio.PlaySync("games/tower-defence-tutorial.mp3")
     CAudio.PlaySync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
+
+    AL.NewTimer(100, function()
+        if iGameState >= GAMESTATE_POSTGAME then return; end
+
+        if CPad.LastInteractionTime ~= -1  then
+            if not CPad.AFK() then
+                if CGameMode.tBase.iX + CPad.iXPlus > 1 and CGameMode.tBase.iX + CPad.iXPlus <= tGame.Cols and CGameMode.tBase.iY + CPad.iYPlus > 1 and CGameMode.tBase.iY + CPad.iYPlus <= tGame.Rows then
+                    CGameMode.tBase.iX = CGameMode.tBase.iX + CPad.iXPlus
+                    CGameMode.tBase.iY = CGameMode.tBase.iY + CPad.iYPlus
+                    CPad.iXPlus = 0
+                    CPad.iYPlus = 0
+                end
+            end
+        end
+
+        return 100
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -374,10 +398,10 @@ CGameMode.Defeat = function()
     CAnimation.EndGameFill(CColors.RED)
 end
 
-CGameMode.SpawnUnits = function()
+CGameMode.SpawnUnits = function(iUnitType)
     for i = 1, CGameMode.tSettings.UnitCountPerSpawn do
         --CGameMode.SpawnUnit(CUnits.UNIT_TYPE_DEFLT)
-        CGameMode.SpawnUnit(CUnits.RandomUnitType())
+        CGameMode.SpawnUnit(iUnitType or CUnits.RandomUnitType())
     end
 end
 
@@ -438,6 +462,7 @@ CBuffs = {}
 CBuffs.iBuffsDropped = 0
 CBuffs.iLastBuffType = 0
 CBuffs.bBuffDropped = false
+CBuffs.iNextBuffType = 1
 
 CBuffs.BUFF_TYPE_HEAL = 1
 CBuffs.BUFF_TYPE_KILLALL = 2
@@ -486,13 +511,15 @@ CBuffs.DropBuffForPlayers = function()
     CAudio.PlaySync("voices/towerdefence-new-buff.mp3")
     ]]
 
+    CBuffs.iNextBuffType = CBuffs.RandomBuffType()
+
     CBuffs.bBuffDropped = true
     CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
     CAudio.PlaySync("voices/towerdefence-new-buff.mp3")    
 end
 
 CBuffs.PlayerCollectBuff = function()
-    CBuffs.ApplyBuff(CBuffs.RandomBuffType())
+    CBuffs.ApplyBuff(CBuffs.iNextBuffType)
 
     tGameResults.Score = tGameResults.Score + 10
 end
@@ -868,7 +895,7 @@ end
 
 --UNIT EVENTS
 CUnits.UnitTakeDamage = function(iUnitID, iDamageAmount) -- игрок нанёс урон врагу
-    if CUnits.tUnits[iUnitID] == nil or CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
+    if CUnits.tUnits[iUnitID] == nil or iGameState ~= GAMESTATE_GAME or CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then return; end
 
     CUnits.tUnits[iUnitID].iHealth = CUnits.tUnits[iUnitID].iHealth - iDamageAmount
 
@@ -1112,6 +1139,36 @@ CAnimation.Death = function(iStartX, iStartY, iSize, iColor)
 end
 --//
 
+--Pad
+CPad = {}
+CPad.LastInteractionTime = -1
+
+CPad.iXPlus = 0
+CPad.iYPlus = 0
+CPad.bTrigger = false
+
+CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
+
+    CPad.bTrigger = bTrigger
+
+    CPad.iXPlus = 0
+    CPad.iYPlus = 0
+
+    if bUp then CPad.iYPlus = CPad.iYPlus - 1 end
+    if bDown then CPad.iYPlus = CPad.iYPlus + 1 end
+
+    if bLeft then CPad.iXPlus = CPad.iXPlus - 1 end
+    if bRight then CPad.iXPlus = CPad.iXPlus + 1 end
+end
+
+CPad.AFK = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > 10)
+end
+--//
+
 --Paint
 CPaint = {}
 
@@ -1221,7 +1278,13 @@ end
 
 CPaint.Buffs = function()
     if CBuffs.bBuffDropped then
-        SetAllButtonsColorBright(CColors.GREEN, tConfig.Bright)
+        if CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_KILLALL then
+            SetAllButtonsColorBright(CColors.RED, tConfig.Bright)
+        elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_ALLY then
+            SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
+        else
+            SetAllButtonsColorBright(CColors.GREEN, tConfig.Bright)
+        end
     end
 
     --[[
@@ -1338,23 +1401,27 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return end
-    tButtons[click.Button].bClick = click.Click
+    if click.GamepadAddress and click.GamepadAddress > 0 then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tButtons[click.Button] == nil then return end
+        tButtons[click.Button].bClick = click.Click
 
-    if click.Click then
-        bAnyButtonClick = true
+        if click.Click then
+            bAnyButtonClick = true
 
-        if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
-            CBuffs.bBuffDropped = false
-            CBuffs.PlayerCollectBuff()
+            if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
+                CBuffs.bBuffDropped = false
+                CBuffs.PlayerCollectBuff()
+            end
+
+            --[[
+            if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
+                tButtons[click.Button].bHasBuff = false
+                CBuffs.PlayerCollectBuff()
+            end
+            ]]
         end
-
-        --[[
-        if iGameState == GAMESTATE_GAME and tButtons[click.Button].bHasBuff then
-            tButtons[click.Button].bHasBuff = false
-            CBuffs.PlayerCollectBuff()
-        end
-        ]]
     end
 end
 

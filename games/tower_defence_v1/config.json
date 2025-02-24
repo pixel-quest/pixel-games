@@ -27,6 +27,7 @@
   "UnitSpawnDelay_Step": 1000,
   "UnitSpawnDelay_ru": "Задержка между появлением юнитов",
   "UnitSpawnDelay_en": "Delay between unit spawns",
+  "UnitSpawnDelay_Hidden": true,
   
   "UnitThinkDelay": 500,
   "UnitThinkDelay_Min": 100,
@@ -34,6 +35,7 @@
   "UnitThinkDelay_Step": 100,
   "UnitThinkDelay_ru": "Частота передвижения юнитов",
   "UnitThinkDelay_en": "Unit movement tick rate",
+  "UnitThinkDelay_Hidden": true,
 
   "Difficulty": 2,
   "Difficulty_Min": 1,
