@@ -136,7 +136,7 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlaySyncFromScratch(audio.PAUSE)
+    audio.PlayVoicesSync(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы

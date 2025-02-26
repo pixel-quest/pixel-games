@@ -199,20 +199,20 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
-    audio.PlaySyncFromScratch("games/safe-color-game.mp3") -- Игра "Безопасный цвет"
-    audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
-    audio.PlaySync("voices/listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
+    audio.PlayVoicesSync("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+    audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+    audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlaySyncFromScratch(audio.PAUSE)
+    audio.PlayVoicesSync(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlaySyncFromScratch(audio.START_GAME)
+    audio.PlayVoicesSync(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -289,15 +289,15 @@ function NextTick()
 
             -- если это был последний этап
             if GameStats.StageNum == GameConfigObj.StagesQty then
-                audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
-                audio.PlaySync(audio.VICTORY)
+                audio.PlaySystemSync(audio.GAME_SUCCESS)
+                audio.PlayVoicesSync(audio.VICTORY)
                 setGlobalColorBrightExceptColor(colors.GREEN, GameConfigObj.Bright, colors.NONE)
                 switchStage(GameStats.StageNum+1)
 
                 GameResults.Won = false
                 GameResults.Color = colors.GREEN
             elseif not StageDonePlayed then
-                audio.PlayAsync(audio.STAGE_DONE)
+                audio.PlaySystemAsync(audio.STAGE_DONE)
                 StageDonePlayed = true
             end
         else
@@ -650,7 +650,7 @@ function processClicksAndEffects()
                     GameStats.StageNum <= GameConfigObj.StagesQty and -- это еще не финиш
                     LavaSpawnTime > 0 and (time.unix() - LavaSpawnTime)*1000 > GameConfigObj.LavaDelay then
                 -- минус жизнь, старт эффект
-                audio.PlayAsync(audio.MISCLICK)
+                audio.PlaySystemAsync(audio.MISCLICK)
                 minusLive()
                 pixel.EffectActivatedAt = time.unix()
             end
@@ -664,8 +664,8 @@ function minusLive()
     if GameConfigObj.StartLives > 0 then
         GameStats.CurrentLives = GameStats.CurrentLives - 1
         if GameStats.CurrentLives == 0 then -- game over
-            audio.PlaySync(audio.GAME_OVER)
-            audio.PlaySync(audio.DEFEAT)
+            audio.PlaySystemSync(audio.GAME_OVER)
+            audio.PlayVoicesSync(audio.DEFEAT)
             setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, colors.NONE)
             switchStage(GameConfigObj.StagesQty+1)
             

@@ -344,13 +344,13 @@ CGameMode.EndGame = function(bVictory)
     iGameState = GAMESTATE_POSTGAME
 
     if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync("td2_victory.mp3")
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync("tower-defence2/td2_victory.mp3")
         tGameResults.Color = CColors.GREEN
         tGameResults.Score = tGameResults.Score + (10000 * CGameMode.iDifficulty)
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync("td2_defeat.mp3")
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync("tower-defence2/td2_defeat.mp3")
         tGameResults.Color = CColors.RED
     end
 
@@ -394,7 +394,7 @@ CGameMode.DropBonus = function()
 end
 
 CGameMode.PlayerTakeBonus = function(iX, iY)
-    CAudio.PlaySync(CAudio.CLICK)
+    CAudio.PlaySystemSync(CAudio.CLICK)
     CAnnouncer.AnnounceEvent(CAnnouncer.EVENT_HEAL)
 
     if CWorld.tBlocks[iX][iY].iBlockType == CWorld.BLOCK_TYPE_BONUS then
@@ -453,23 +453,23 @@ CAnnouncer.AnnounceEvent = function(iEventID, iX, iY)
         local iView = CCamera.WorldPosToView(iX, iY)
 
         if iView > 0 and (CCamera.bFreeView or iView ~= CCamera.iCurrentView) then
-            CAudio.PlaySync("td2_view_"..iView..".mp3")
+            CAudio.PlayVoicesSync("tower-defence2/td2_view_"..iView..".mp3")
         end
     end
 
-    CAudio.PlaySync(CAnnouncer[iEventID].sSound)
+    CAudio.PlaySystemSync("tower-defence2/"..CAnnouncer[iEventID].sSound)
 end
 
 CAnnouncer.PlaySoundAtPosition = function(sSoundName, iX, iY)
     if CWorld.bEndGame or CCamera.bFreeView or CCamera.WorldPosToView(iX, iY) == CCamera.iCurrentView then
-        CAudio.PlayAsync(sSoundName)
+        CAudio.PlaySystemAsync("tower-defence2"..sSoundName)
     end  
 end
 
 CAnnouncer.GameLoad = function()
-    CAudio.PlaySync("td2_gamename.mp3")
-    CAudio.PlaySync("td2_difficulty_"..CGameMode.iDifficulty..".mp3")
-    CAudio.PlaySync("td2_guide.mp3")
+    CAudio.PlayVoicesSync("tower-defence2/td2_gamename.mp3")
+    CAudio.PlayVoicesSync("tower-defence2/td2_difficulty_"..CGameMode.iDifficulty..".mp3")
+    CAudio.PlayVoicesSync("tower-defence2/td2_guide.mp3")
 end
 
 CAnnouncer.CountEnemiesAndWarn = function()
@@ -871,14 +871,14 @@ CUnits.UnitKilled = function(iUnitID, iUnitDeathReason)
         tGameResults.Score = tGameResults.Score + (tGameStats.CurrentLives*3)
 
         if iUnitDeathReason == CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER or iUnitDeathReason == CUnits.UNIT_DEATH_REASON_KILLED_BY_UNIT then
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
         end
     elseif CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_ALLY then
         CUnits.iAliveAlliesCount = CUnits.iAliveAlliesCount - 1
 
         tGameResults.Score = tGameResults.Score - 1000
 
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         CAnnouncer.AnnounceEvent(CAnnouncer.EVENT_ALLY_DEATH, CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY)
         if not CWorld.bEndGame then
             if CUnits.iAliveAlliesCount < CUnits.iTotalAlliesCount/2 then
@@ -1055,7 +1055,7 @@ CWorld.DestroyStructure = function(iX, iY)
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false)
     else
-        CAudio.PlaySync(CAudio.MISCLICK)
+        CAudio.PlaySystemSync(CAudio.MISCLICK)
         CAnnouncer.AnnounceEvent(CAnnouncer.EVENT_STRUCTURE_DESTROYED, iX, iY)
     end
 

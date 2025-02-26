@@ -116,10 +116,10 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
-    CAudio.PlaySync("games/olympics.mp3")
-    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlayVoicesSync("olympics/olympics.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
     if not tConfig.AutoStart then
-        CAudio.PlaySync("voices/press-button-for-start.mp3")    
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 end
 
@@ -251,7 +251,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
                     CAudio.PlaySyncFromScratch("")
                     CAudio.PlayLeftAudio(CGameMode.iCountdown)
                 else
-                    CAudio.PlaySync("voices/get-back.mp3")
+                    CAudio.PlayVoicesSync("olympics/get-back.mp3")
                     return 3000
                 end
             end
@@ -274,7 +274,7 @@ end
 CGameMode.StartGame = function()
     CGameMode.CountRealPlayers()
     iGameState = GAMESTATE_GAME
-    CAudio.PlaySync(CAudio.START_GAME)   
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 end
 
 CGameMode.PrepareNextRound = function()
@@ -317,7 +317,7 @@ CGameMode.EndRound = function()
     if CGameMode.iRound == CGameMode.GAMEMODE_COUNT then
         CGameMode.EndGame()
     else
-        CAudio.PlayAsync("voices/get-back.mp3")
+        CAudio.PlayVoicesAsync("olympics/get-back.mp3")
         AL.NewTimer(5000, function()
             CGameMode.StartCountDown(tConfig.RoundCountdown)
         end)
@@ -339,9 +339,9 @@ CGameMode.EndGame = function()
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
-    CAudio.PlaySyncFromScratch(CAudio.GAME_SUCCESS)
+    CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
@@ -382,7 +382,7 @@ CGameMode.AddScoreToPlayer = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerFinished = function(iPlayerID)
-    CAudio.PlaySync(CAudio.STAGE_DONE)
+    CAudiSystemSync(CAudio.STAGE_DONE)
 
     CGameMode.tPlayerFinished[iPlayerID] = true
 
@@ -409,7 +409,7 @@ CGameMode.PositionInsidePlayZone = function(iX, iY)
 end
 
 CGameMode.OutSideZoneClick = function(iX, iY)
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
     CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
 end
 
@@ -418,7 +418,7 @@ CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LONGJUMP] = function()
     CGameMode.iStartHeight = 3
 
     CGameMode.iCountdown = CGameMode.iCountdown + 7
-    CAudio.PlaySync("voices/longjump-guide.mp3")
+    CAudio.PlayVoicesSync("olympics/longjump-guide.mp3")
 end
 
 CGameMode.tGameModeStart[CGameMode.GAMEMODE_LONGJUMP] = function()
@@ -502,7 +502,7 @@ end
 --SHUTTLE GAMEMODE
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_SHUTTLE_RACE] = function()
     CGameMode.iCountdown = CGameMode.iCountdown + 5
-    CAudio.PlaySync("voices/shuttle-guide.mp3")
+    CAudio.PlayVoicesSync("olympics/shuttle-guide.mp3")
 end
 
 CGameMode.tGameModeStart[CGameMode.GAMEMODE_SHUTTLE_RACE] = function()
@@ -566,7 +566,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_SHUTTLE_RACE] = function(iX, iY)
             CGameMode.PlayerData[iPlayerID].bFinished = true
             CGameMode.PlayerFinished(iPlayerID)
         else
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.ShuttleGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
     end
@@ -584,7 +584,7 @@ end
 --LAVA STRIPES
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
     CGameMode.iCountdown = CGameMode.iCountdown + 6
-    CAudio.PlaySync("voices/olympics-lava-guide.mp3")
+    CAudio.PlayVoicsSync("olympics/olympics-lava-guide.mp3")
 end
 
 CGameMode.tGameModeStart[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
@@ -666,13 +666,13 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
             CGameMode.PlayerData[iPlayerID].bFinished = true
             CGameMode.PlayerFinished(iPlayerID)
         else
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
     elseif CGameMode.LavaIsLavaY(iY, iPlayerID) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
         CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] = true
         CGameMode.AddScoreToPlayer(iPlayerID, -5)
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
     end
 end
@@ -691,7 +691,7 @@ end
 --CLASSICS
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_CLASSICS] = function()
     CGameMode.iCountdown = CGameMode.iCountdown + 5
-    CAudio.PlaySync("voices/olympics-classics-guide.mp3")
+    CAudio.PlayVoicesSync("olympics/olympics-classics-guide.mp3")
 end
 
 CGameMode.tGameModeStart[CGameMode.GAMEMODE_CLASSICS] = function()
@@ -786,12 +786,12 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_CLASSICS] = function(iX, iY)
             CGameMode.PlayerData[iPlayerID].bFinished = true
             CGameMode.PlayerFinished(iPlayerID)
         else
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.ClassicsGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
     elseif CGameMode.ClassicsIsLavaXY(iX, iY) then
         CGameMode.AddScoreToPlayer(iPlayerID, -5)
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
     end
 end

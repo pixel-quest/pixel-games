@@ -197,9 +197,9 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlaySyncFromScratch("games/statues-game.mp3") -- Игра "Море волнуется"
-    audio.PlaySync("voices/choose-color.mp3") -- Выберите цвет
-    audio.PlaySync("voices/get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    audio.PlayVoicesSync("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
+    audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
+    audio.PlayVoicesSync("get_ready_sea.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 
 end
@@ -207,12 +207,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlaySyncFromScratch(audio.PAUSE)
+    audio.PlayVoicesSync(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlaySyncFromScratch(audio.START_GAME)
+    audio.PlayVoicesSync(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -288,7 +288,7 @@ function NextTick()
 
         elseif timeSinceStageStart > GameConfigObj.StageDurationSec-2.5 then
             if not Freezing then
-                audio.PlaySync(audio.ONE_TWO_FREE_FREEZE)
+                audio.PlayVoicesSync("sea-is-rough/one-two-three-freeze.mp3")
                 Freezing = true
             end
         end
@@ -356,12 +356,12 @@ function PixelClick(click)
         if not Freezed then
             local player = getPlayerByColor(clickedColor)
             if player ~= nil then
-                audio.PlayAsync(audio.CLICK)
+                audio.PlaySystemAsync(audio.CLICK)
                 player.Score = player.Score + 1
                 -- игрок набрал нужное количесто очков для победы
                 if player.Score >= GameConfigObj.PointsToWin then
-                    audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
-                    audio.PlaySync(audio.VICTORY)
+                    audio.PlaySystemSync(audio.GAME_SUCCESS)
+                    audio.PlayVoicesSync(audio.VICTORY)
                     switchStage(CONST_STAGE_WIN)
                     setGlobalColorBright(clickedColor, GameConfigObj.Bright)
 
@@ -378,7 +378,7 @@ function PixelClick(click)
                 end
             end
         elseif clickedColor == colors.RED then
-            audio.PlayAsync(audio.MISCLICK)
+            audio.PlaySystemAsync(audio.MISCLICK)
             FloorMatrix[click.X][click.Y].EffectActivatedAt = time.unix()
         end
         -- и переместим пиксель в другое пустое место

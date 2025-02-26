@@ -135,7 +135,7 @@ function StartGame(gameJson, gameConfigJson)
     ButtonsList[GameObj.SaveButton].Bright = colors.BRIGHT70
 
     GradientLength = table.getn(GameObj.Colors)
-    audio.PlaySyncFromScratch("voices/coloring-book-tutorial.mp3") -- just reset audio player on start new game
+    audio.PlayVoicesSync("coloring-book/coloring-book-tutorial.mp3") -- just reset audio player on start new game
     audio.PlayRandomBackground()
 end
 

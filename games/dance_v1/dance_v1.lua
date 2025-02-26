@@ -125,9 +125,9 @@ function StartGame(gameJson, gameConfigJson)
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
 
-    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlayVoicesSync("dance/choose-color.mp3")
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
         --CAudio.PlaySync("voices/press-button-for-start.mp3")
     end
@@ -355,7 +355,7 @@ CTutorial.bKillTutorialTimers = false
 
 CTutorial.PreStart = function()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
-    CAudio.PlaySync("dance_tutorial_part1.mp3")
+    CAudio.PlayVoicesSync("dance/dance_tutorial_part1.mp3")
     CTutorial.bStarted = true
 
     AL.NewTimer(5000, function()
@@ -380,8 +380,8 @@ CTutorial.Start = function()
 
     CTutorial.bTrueStarted = true
     CAudio.PlaySyncFromScratch("") -- обрыв звука
-    CAudio.PlaySync("dance_tutorial_part2.mp3")
-    CAudio.PlaySync("dance_tutorial_part3.mp3")
+    CAudio.PlayVoicesSync("dance/dance_tutorial_part2.mp3")
+    CAudio.PlayVoicesSync("dance/dance_tutorial_part3.mp3")
 
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
@@ -399,8 +399,8 @@ CTutorial.Skip = function()
     CGameMode.Clear()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
 
-    CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
+    CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
     CTutorial.bDisableErrorSound = false
 
@@ -439,7 +439,7 @@ CSongSync.Start = function(tSong)
     end
 
     if iGameState == GAMESTATE_GAME then
-        CAudio.PlaySync(tGame["SongName"])
+        CAudio.PlayDanceSync(tGame["SongName"])
     end
     iSongStartedTime = CTime.unix()
 end
@@ -765,7 +765,7 @@ CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
     CAudio.PlaySyncFromScratch("")
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
@@ -916,7 +916,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
     tFloor[iX][iY].iAnimationPriority = 1
 
     if not CTutorial.bDisableErrorSound and (tConfig.OutOfZoneSound or iGameState == GAMESTATE_TUTORIAL) then
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
     end
 
     if iGameState == GAMESTATE_TUTORIAL and CTutorial.bPreStarted and CTutorial.bStarted and not CTutorial.bTrueStarted then

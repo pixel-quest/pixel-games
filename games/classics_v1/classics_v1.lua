@@ -112,11 +112,11 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlaySyncFromScratch("games/classics-game.mp3")
+    CAudio.PlayVoicesSync("classics/classics-game.mp3")
     if tGame.ArenaMode then
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
-        CAudio.PlaySync("press-center-for-start.mp3")
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
@@ -265,7 +265,7 @@ CGameMode.CountDownNextRound = function()
             CGameMode.iCountdown = -1
 
             CGameMode.Start()
-            CAudio.PlaySync(CAudio.START_GAME)
+            CAudio.PlayVoicesSync(CAudio.START_GAME)
 
             return nil
         else
@@ -317,7 +317,7 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
 
-    CAudio.PlayAsync(CAudio.CLICK);
+    CAudio.PlaySystemAsync(CAudio.CLICK);
 end
 
 CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
@@ -325,11 +325,11 @@ CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK);
+    CAudio.PlaySystemAsync(CAudio.MISCLICK);
 end
 
 CGameMode.PlayerFinished = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
     CBlock.ClearPlayerZone(iPlayerID)
     CMaps.LoadMapForPlayer(iPlayerID)
     CBlock.AnimateVisibility(iPlayerID)
@@ -350,7 +350,7 @@ CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color

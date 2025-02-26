@@ -122,8 +122,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end    
 
-    CAudio.PlaySyncFromScratch("games/ping-pong-game.mp3") -- Игра "Пинг-понг"
-    CAudio.PlaySync(CAudio.CHOOSE_COLOR) -- Выберите цвет
+    CAudio.PlayVoicesSync("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
+    CAudio.PlayVoicesSync(CAudio.CHOOSE_COLOR) -- Выберите цвет
 end
 
 function NextTick()
@@ -231,7 +231,7 @@ CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
             CAudio.PlayRandomBackground()
 
             if bFirstRound then
-                CAudio.PlaySync(CAudio.START_GAME)
+                CAudio.PlayVoicsSync(CAudio.START_GAME)
             end
 
             return nil
@@ -269,9 +269,9 @@ end
 CGameMode.EndGame = function(iWinnerID)
     CGameMode.GameWinner = iWinnerID
 
-    CAudio.PlaySyncFromScratch(CAudio.GAME_SUCCESS)
+    CAudio.PlayVoicesSync(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.GameWinner].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     tGameResults.Won = true
     tGameResults.Color = tGameStats.Players[CGameMode.GameWinner].Color
@@ -289,7 +289,7 @@ end
 -- Расчёт гола
 CGameMode.ScoreGoalPlayer = function(iPlayerID)
     CAudio.StopBackground()
-    CAudio.PlaySync(CAudio.MISCLICK)
+    CAudio.PlaySystemSync(CAudio.MISCLICK)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
 
@@ -341,7 +341,7 @@ CBall.Movement = function()
     local iPlayerCollision, iHitPosition = CPod.Collision(CBall.tBall.iVelocityY, CBall.tBall.iPosX, CBall.tBall.iPosY)
 
     if iPlayerCollision ~= 0 then
-        CAudio.PlaySync(CAudio.CLICK)
+        CAudio.PlaySystemSync(CAudio.CLICK)
 
         CBall.tBall.iVelocityX = CBall.tBall.iVelocityX * -1
 
