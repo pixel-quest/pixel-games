@@ -117,8 +117,8 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlaySyncFromScratch("games/classics-race-game.mp3")
-    CAudio.PlaySync("voices/classics-race-guide.mp3")
+    CAudio.PlayVoicesSync("classics-race/classics-race-game.mp3")
+    CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -219,7 +219,7 @@ CTutorial.bSkipDelayOn = true
 CTutorial.MAX_FINISH = 4
 
 CTutorial.Start = function()
-    CAudio.PlaySyncFromScratch("voices/classics-race-tutorial.mp3")
+    CAudio.PlayVoicesSync("classics-race/classics-race-tutorial.mp3")
 
     AL.NewTimer(20000, function()
         CTutorial.LoadMaps()
@@ -237,7 +237,7 @@ CTutorial.LoadMaps = function()
 end
 
 CTutorial.PlayerFinished = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
     CBlock.ClearPlayerZone(iPlayerID)
     CMaps.LoadMapForPlayer(iPlayerID)
     CBlock.AnimateVisibility(iPlayerID)
@@ -245,7 +245,7 @@ CTutorial.PlayerFinished = function(iPlayerID)
     CTutorial.iFinishCount = CTutorial.iFinishCount + 1
     if CTutorial.iFinishCount == CTutorial.MAX_FINISH then
         CAudio.StopBackground()
-        CAudio.PlaySyncFromScratch("voices/tutorial-end.mp3")
+        CAudio.PlayVoicesSync("classics-race/tutorial-end.mp3")
 
         AL.NewTimer(3000, function()
             CTutorial.End()
@@ -296,7 +296,7 @@ CGameMode.CountDownNextRound = function()
             CGameMode.iCountdown = -1
 
             CGameMode.Start()
-            CAudio.PlaySync(CAudio.START_GAME)
+            CAudio.PlayVoicesSync(CAudio.START_GAME)
 
             return nil
         else
@@ -345,7 +345,7 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
 
-    CAudio.PlayAsync(CAudio.CLICK);
+    CAudio.PlaySystemAsync(CAudio.CLICK);
 end
 
 CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
@@ -353,14 +353,14 @@ CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK);
+    CAudio.PlaySystemAsync(CAudio.MISCLICK);
 end
 
 CGameMode.PlayerFinished = function(iPlayerID)
     if not CGameMode.tPlayerCanFinish[iPlayerID] then return; end
     CGameMode.tPlayerCanFinish[iPlayerID] = false
 
-    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CAudio.PlaySystemSync(CAudio.STAGE_DONE)
     CBlock.ClearPlayerZone(iPlayerID)
     CMaps.LoadMapForPlayer(iPlayerID)
     CBlock.AnimateVisibility(iPlayerID)
@@ -385,7 +385,7 @@ CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
@@ -526,7 +526,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
         if iGameState == GAMESTATE_GAME then
             CGameMode.PlayerRoundScoreAdd(iPlayerID, 1)
         elseif iGameState == GAMESTATE_TUTORIAL then
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
         end
     elseif (CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND or CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_REDGROUND) and CBlock.tBlocks[iX][iY].bCollected == false and tConfig.EnableMissPenalty then
         CBlock.tBlocks[iX][iY].bCollected = true
@@ -534,7 +534,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
         if iGameState == GAMESTATE_GAME then
             CGameMode.PlayerScorePenalty(iPlayerID, 1)
         elseif iGameState == GAMESTATE_TUTORIAL then
-            CAudio.PlayAsync(CAudio.MISCLICK)
+            CAudio.PlaySystemAsync(CAudio.MISCLICK)
         end
 
         CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])

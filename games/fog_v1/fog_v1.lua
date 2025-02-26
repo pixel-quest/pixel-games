@@ -190,10 +190,10 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayBackground("fog_setup_song.mp3")
+    CAudio.PlayMusic("halloween/fog_setup_song.mp3")
 
-    CAudio.PlaySync("fog_halloween_guide.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("halloween/fog_halloween_guide.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -218,7 +218,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CGameMode.RandomBackGround()
     iGameState = GAMESTATE_GAME
 
@@ -243,15 +243,15 @@ end
 
 CGameMode.RandomBackGround = function()
     CAudio.StopBackground()
-    CAudio.PlayBackground(tGame.SongList[math.random(1, #tGame.SongList)])
+    CAudio.PlayMusic("halloween/"..tGame.SongList[math.random(1, #tGame.SongList)])
 end
 
 CGameMode.RandomScarySound = function()
-    CAudio.PlayAsync(tGame.ScarySoundsList[math.random(1, #tGame.ScarySoundsList)])
+    CAudio.PlaySystemAsync("halloween/"..tGame.ScarySoundsList[math.random(1, #tGame.ScarySoundsList)])
 end
 
 CGameMode.RandomDamageSound = function()
-    CAudio.PlayAsync(tGame.DamageSoundsList[math.random(1, #tGame.DamageSoundsList)])
+    CAudio.PlaySystemAsync("halloween/"..tGame.DamageSoundsList[math.random(1, #tGame.DamageSoundsList)])
 end
 
 CGameMode.PlayerClick = function(iX, iY)
@@ -279,7 +279,7 @@ CGameMode.PlayerClick = function(iX, iY)
 end
 
 CGameMode.PlayerAddScore = function(iAmount)
-    CAudio.PlayAsync(CAudio.CLICK)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
 
     tGameResults.Score = tGameResults.Score + (10 * tGameStats.CurrentLives * tConfig.UnitCount)
@@ -294,12 +294,12 @@ CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
 
     if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoiceSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
     end
 
