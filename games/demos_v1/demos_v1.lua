@@ -326,7 +326,7 @@ CPaint.tDemoList["derby"][CPaint.FUNC_THINK] = function()
 end
 --//
 
---MATRIX
+--RAINBOWWAVE
 CPaint.tDemoList["rainbowwave"] = {}
 CPaint.tDemoList["rainbowwave"].THINK_DELAY = 100
 CPaint.tDemoList["rainbowwave"].SIZE = 1
@@ -381,6 +381,62 @@ CPaint.tDemoList["rainbowwave"][CPaint.FUNC_THINK] = function()
             end
         end
     end
+
+    return true
+end
+--//
+
+--RAINBOWSNAKE
+CPaint.tDemoList["rainbowsnake"] = {}
+CPaint.tDemoList["rainbowsnake"].THINK_DELAY = 30
+CPaint.tDemoList["rainbowsnake"].START_COLORS = {"0x0088FF", "0xFFAA00", "0xFF7700", "0xFF0033", "0x9911AA", "0xAADD22"}
+CPaint.tDemoList["rainbowsnake"].tVars = {}
+CPaint.tDemoList["rainbowsnake"].tVars.iColor = tonumber(CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["rainbowsnake"].START_COLORS)])
+CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = 0
+CPaint.tDemoList["rainbowsnake"].tVars.iX = 0
+CPaint.tDemoList["rainbowsnake"].tVars.iY = 1
+CPaint.tDemoList["rainbowsnake"].tVars.tBlocks = {}
+CPaint.tDemoList["rainbowsnake"].tVars.tParticles = {}
+CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_LOAD] = function()
+    for iX = 1, tGame.Cols do
+        CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[iX] = {}
+        for iY = 1, tGame.Rows do
+            CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[iX][iY] = CColors.NONE
+        end
+    end
+
+    AL.NewTimer(10, function()
+        CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 1
+        CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = CPaint.tDemoList["rainbowsnake"].tVars.iColorCount + 1
+        if CPaint.tDemoList["rainbowsnake"].tVars.iColorCount >= 255 then 
+            if math.random(1,2) == 1 then
+                CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 1600256
+            else
+                CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 3200256
+            end
+            if CPaint.tDemoList["rainbowsnake"].tVars.iColor <= 0 then
+                CPaint.tDemoList["rainbowsnake"].tVars.iColor = tonumber(CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["rainbowsnake"].START_COLORS)])
+            end
+            CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = 0
+        end
+
+        if iGameState == GAMESTATE_GAME then return 10 end
+    end)
+end
+CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].iColor = CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[iX][iY]
+            tFloor[iX][iY].iBright = tConfig.Bright
+        end
+    end
+end
+CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_THINK] = function()
+    CPaint.tDemoList["rainbowsnake"].tVars.iX = CPaint.tDemoList["rainbowsnake"].tVars.iX + 1
+    if CPaint.tDemoList["rainbowsnake"].tVars.iX > tGame.Cols then CPaint.tDemoList["rainbowsnake"].tVars.iX = 1; CPaint.tDemoList["rainbowsnake"].tVars.iY = CPaint.tDemoList["rainbowsnake"].tVars.iY + 1; end    
+    if CPaint.tDemoList["rainbowsnake"].tVars.iY > tGame.Rows then CPaint.tDemoList["rainbowsnake"].tVars.iY = 1; end
+
+    CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[CPaint.tDemoList["rainbowsnake"].tVars.iX][CPaint.tDemoList["rainbowsnake"].tVars.iY] = CPaint.tDemoList["rainbowsnake"].tVars.iColor
 
     return true
 end
