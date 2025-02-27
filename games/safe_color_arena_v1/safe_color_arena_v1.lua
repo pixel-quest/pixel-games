@@ -191,7 +191,7 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalLives = GameConfigObj.StartLives
     GameStats.CurrentLives = GameConfigObj.StartLives
 
-    audio.PlayVoicesSync("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+    audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
     
@@ -204,12 +204,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoices(audio.START_GAME)
+    audio.PlayVoicesFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -322,7 +322,7 @@ function NextTick()
 
             -- если это был последний этап
             if GameStats.StageNum == GameConfigObj.StagesQty then
-                audio.PlaySystemSync(audio.GAME_SUCCESS)
+                audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
                 audio.PlayVoicesSync(audio.VICTORY)
                 setGlobalColorBrightExceptColor(colors.GREEN, GameConfigObj.Bright, colors.NONE)
                 switchStage(GameStats.StageNum+1)

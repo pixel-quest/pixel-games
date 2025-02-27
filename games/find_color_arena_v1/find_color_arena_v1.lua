@@ -192,7 +192,7 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalStars = GameConfigObj.StagesQty
     GameStats.TotalStages=GameConfigObj.StagesQty
 
-    audio.PlayVoicesSync("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+    audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
 
     if GameObj.ArenaMode then 
@@ -389,7 +389,7 @@ function NextTick()
         if timeSinceGameStart > GameConfigObj.GameDurationSec or GameStats.StageNum > GameConfigObj.StagesQty then
             if GameStats.StageNum > GameConfigObj.StagesQty then
                 setGlobalColorBright(colors.GREEN, GameConfigObj.Bright)
-                audio.PlaySystemSync(audio.GAME_SUCCESS)
+                audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
                 audio.PlayVoicesSync(audio.VICTORY)
             else
                 setGlobalColorBright(colors.RED, GameConfigObj.Bright)

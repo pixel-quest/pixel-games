@@ -313,7 +313,7 @@ end
 CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
 
-    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_endgame.mp3")
+    CAudio.PlayVoicesSyncFromScratch("glassbridge/glassbridge_voice_endgame.mp3")
 
     tGameResults.Color = CColors.MAGENTA
 

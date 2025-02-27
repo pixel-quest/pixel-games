@@ -192,7 +192,7 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlayVoicesSync("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
+    audio.PlayVoicesSyncFromScratch("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
     audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
 
@@ -206,12 +206,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesSync(audio.START_GAME)
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -395,7 +395,7 @@ function PixelClick(click)
                 player.Score = player.Score + 1
                 -- игрок набрал нужное количесто очков для победы
                 if player.Score >= GameConfigObj.PointsToWin then
-                    audio.PlaySystemSync(audio.GAME_SUCCESS)
+                    audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
                     audio.PlayVoicesSync(audio.VICTORY)
                     switchStage(CONST_STAGE_WIN)
                     setGlobalColorBright(clickedColor, GameConfigObj.Bright)

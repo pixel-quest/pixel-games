@@ -199,19 +199,19 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
-    audio.PlayVoicesSync("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+    audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesSync(audio.START_GAME)
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -361,7 +361,7 @@ function NextTick()
         if timeSinceGameStart > GameConfigObj.GameDurationSec or GameStats.StageNum > GameConfigObj.StagesQty then
             if GameStats.StageNum > GameConfigObj.StagesQty then
                 setGlobalColorBright(colors.GREEN, GameConfigObj.Bright)
-                audio.PlaySystemSync(audio.GAME_SUCCESS)
+                audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
                 audio.PlayVoicesSync(audio.VICTORY)
                 GameResults.Won = true
                 GameResults.Color = colors.GREEN

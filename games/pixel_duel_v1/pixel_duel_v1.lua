@@ -181,7 +181,7 @@ function StartGame(gameJson, gameConfigJson)
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlayVoicesSync("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+    audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
     audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
     -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
@@ -189,12 +189,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesStart(audio.START_GAME)
+    audio.PlayVoicesStartFromScratch(audio.START_GAME)
     CountDownStarted = false
     resetCountdown()
     iPrevTickTime = CTime.unix()
@@ -351,7 +351,7 @@ function PixelClick(click)
 
     -- игрок набрал нужное количесто очков для победы
     if player.Score >= GameConfigObj.PointsToWin then
-        audio.PlaySystemSync(audio.GAME_SUCCESS)
+        audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
         audio.PlaySyncColorSound(player.Color)
         audio.PlayVoicesSync(audio.VICTORY)
 

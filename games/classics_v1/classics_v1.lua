@@ -5,7 +5,7 @@
     Описание механики:
 
 
-    Идеи по доработке: 
+    Идеи по доработке:
 
 ]]
 math.randomseed(os.time())
@@ -21,13 +21,13 @@ local CColors = require("colors")
 
 local tGame = {
     Cols = 24,
-    Rows = 15, 
-    Buttons = {}, 
+    Rows = 15,
+    Buttons = {},
 }
 local tConfig = {}
 
 -- стейты или этапы игры
-local GAMESTATE_SETUP = 1 
+local GAMESTATE_SETUP = 1
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
@@ -38,8 +38,8 @@ local iPrevTickTime = 0
 local bAnyButtonClick = false
 
 local tGameStats = {
-    StageLeftDuration = 0, 
-    StageTotalDuration = 0, 
+    StageLeftDuration = 0,
+    StageTotalDuration = 0,
     CurrentStars = 0,
     TotalStars = 0,
     CurrentLives = 0,
@@ -66,10 +66,10 @@ local tGameResults = {
     Color = CColors.NONE,
 }
 
-local tFloor = {} 
+local tFloor = {}
 local tButtons = {}
 
-local tFloorStruct = { 
+local tFloorStruct = {
     iColor = CColors.NONE,
     iBright = CColors.BRIGHT0,
     bClick = false,
@@ -77,7 +77,7 @@ local tFloorStruct = {
     iWeight = 0,
     bAnimated = false,
 }
-local tButtonStruct = { 
+local tButtonStruct = {
     iColor = CColors.NONE,
     iBright = CColors.BRIGHT0,
     bClick = false,
@@ -91,9 +91,9 @@ function StartGame(gameJson, gameConfigJson)
     tConfig = CJson.decode(gameConfigJson)
 
     for iX = 1, tGame.Cols do
-        tFloor[iX] = {}    
+        tFloor[iX] = {}
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct) 
+            tFloor[iX][iY] = CHelp.ShallowCopy(tFloorStruct)
         end
     end
 
@@ -112,7 +112,7 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlayVoicesSync("classics/classics-game.mp3")
+    CAudio.PlayVoicesSyncFromScratch("classics/classics-game.mp3")
     if tGame.ArenaMode then
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
@@ -142,7 +142,7 @@ function NextTick()
     if iGameState == GAMESTATE_FINISH then
         tGameResults.AfterDelay = false
         return tGameResults
-    end   
+    end
 
     AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
@@ -169,18 +169,18 @@ function GameSetupTick()
                             tFloor[iX][iY].iBright = tConfig.Bright+2
                         end
 
-                        if tFloor[iX][iY].bClick then 
+                        if tFloor[iX][iY].bClick then
                             bArenaClick = true
                         end
                     end
                 end
 
                 if bArenaClick then
-                    bAnyButtonClick = true 
+                    bAnyButtonClick = true
                     tArenaPlayerReady[iPos] = true
                 else
                     tArenaPlayerReady[iPos] = false
-                end           
+                end
             end
         end
     elseif not CGameMode.bCountDownStarted then
@@ -260,7 +260,7 @@ CGameMode.CountDownNextRound = function()
             CGameMode.bCountDownStarted = false
             return nil
         end
-        
+
         if CGameMode.iCountdown <= 0 then
             CGameMode.iCountdown = -1
 
@@ -270,7 +270,7 @@ CGameMode.CountDownNextRound = function()
             return nil
         else
             CAudio.PlayLeftAudio(CGameMode.iCountdown)
-            CGameMode.iCountdown = CGameMode.iCountdown - 1 
+            CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
         end
@@ -321,7 +321,7 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerScorePenalty = function(iPlayerID, iPenalty)
-    if tGameStats.Players[iPlayerID].Score > 0 then 
+    if tGameStats.Players[iPlayerID].Score > 0 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score - iPenalty
     end
 
@@ -357,8 +357,8 @@ CGameMode.EndGame = function()
 
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
-    end)    
-    
+    end)
+
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 end
 --//
@@ -382,7 +382,7 @@ CMaps.LoadMapForPlayer = function(iPlayerID)
             iMapX = iMapX + 1
 
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
-            if not tFloor[iX][iY].bDefect and tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then 
+            if not tFloor[iX][iY].bDefect and tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then
                 iBlockType = tMap[iMapY][iMapX]
             end
 
@@ -402,7 +402,7 @@ CMaps.GenerateRandomMapFromSeed = function(fSeed)
     local iPrevZoneCoinCount = 1
 
     for iY = 1, tGame.StartPositionSizeY do
-        tMap[iY] = {} 
+        tMap[iY] = {}
 
         local iCoinCount = 0
         local iMaxCoinCount = 0
@@ -543,7 +543,7 @@ CPaint.Blocks = function()
                         tFloor[iX][iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType]
                         tFloor[iX][iY].iBright = CBlock.tBlocks[iX][iY].iBright
 
-                        if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then 
+                        if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
                             tFloor[iX][iY].iColor = tGameStats.Players[CBlock.tBlocks[iX][iY].iPlayerID].Color
 
                             if CBlock.tBlocks[iX][iY].bCollected then
@@ -591,7 +591,7 @@ CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
             tFloor[iX][iY].iColor = iColor
             iCount = iCount + 1
         end
-        
+
         if iCount <= iFlickerCount then
             return CPaint.ANIMATION_DELAY*3
         end
@@ -612,7 +612,7 @@ function CheckPositionClick(tStart, iSizeX, iSizeY)
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].bClick then
                     return true
-                end 
+                end
             end
         end
     end
@@ -625,9 +625,9 @@ function SetPositionColorBright(tStart, iSize, iColor, iBright)
         local iX = tStart.X + i % iSize
         local iY = tStart.Y + math.floor(i / iSize)
 
-        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then     
+        if not (iX < 1 or iX > tGame.Cols or iY < 1 or iY > tGame.Rows) then
             tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright            
+            tFloor[iX][iY].iBright = iBright
         end
     end
 end
@@ -697,7 +697,7 @@ function ButtonClick(click)
 
     if iGameState == GAMESTATE_SETUP and click.Click == true then
         bAnyButtonClick = true
-    end       
+    end
 end
 
 function DefectButton(defect)

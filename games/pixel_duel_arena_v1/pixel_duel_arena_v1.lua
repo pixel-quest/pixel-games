@@ -173,7 +173,7 @@ function StartGame(gameJson, gameConfigJson)
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlayVoicesSync("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+    audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
     audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
 
@@ -186,12 +186,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesSync(audio.START_GAME)
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа

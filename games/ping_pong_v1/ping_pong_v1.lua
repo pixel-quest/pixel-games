@@ -122,7 +122,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end    
 
-    CAudio.PlayVoicesSync("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
+    CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
     CAudio.PlayVoicesSync(CAudio.CHOOSE_COLOR) -- Выберите цвет
 end
 

@@ -117,7 +117,7 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlayVoicesSync("classics-race/classics-race-game.mp3")
+    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
     CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
@@ -219,7 +219,7 @@ CTutorial.bSkipDelayOn = true
 CTutorial.MAX_FINISH = 4
 
 CTutorial.Start = function()
-    CAudio.PlayVoicesSync("classics-race/classics-race-tutorial.mp3")
+    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-tutorial.mp3")
 
     AL.NewTimer(20000, function()
         CTutorial.LoadMaps()
@@ -245,7 +245,7 @@ CTutorial.PlayerFinished = function(iPlayerID)
     CTutorial.iFinishCount = CTutorial.iFinishCount + 1
     if CTutorial.iFinishCount == CTutorial.MAX_FINISH then
         CAudio.StopBackground()
-        CAudio.PlayVoicesSync("classics-race/tutorial-end.mp3")
+        CAudio.PlayVoicesSyncFromScratch("classics-race/tutorial-end.mp3")
 
         AL.NewTimer(3000, function()
             CTutorial.End()

@@ -339,7 +339,7 @@ CGameMode.EndGame = function()
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
-    CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
