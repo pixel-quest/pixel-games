@@ -92,7 +92,7 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
     CPaint.LoadDemo(tConfig.DemoName)
-    CPaint.DemoThinker(tConfig.DemoName)
+    CPaint.DemoThinker()
 end
 
 function NextTick()
@@ -120,7 +120,7 @@ end
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    CPaint.Demo(tConfig.DemoName)
+    CPaint.Demo()
 end
 
 function PostGameTick()
@@ -149,19 +149,27 @@ CPaint = {}
 CPaint.FUNC_LOAD = 1
 CPaint.FUNC_PAINT = 2
 CPaint.FUNC_THINK = 3
+CPaint.FUNC_CLICK = 4
+
+CPaint.sLoadedDemo = ""
 
 CPaint.LoadDemo = function(sDemoName)
-    CPaint.tDemoList[sDemoName][CPaint.FUNC_LOAD]()
+    CPaint.sLoadedDemo = sDemoName
+    CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_LOAD]()
 end
 
-CPaint.Demo = function(sDemoName)
-    CPaint.tDemoList[sDemoName][CPaint.FUNC_PAINT]()
+CPaint.Demo = function()
+    CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_PAINT]()
 end
 
-CPaint.DemoThinker = function(sDemoName)
-    AL.NewTimer(CPaint.tDemoList[sDemoName].THINK_DELAY, function()
-        if CPaint.tDemoList[sDemoName][CPaint.FUNC_THINK]() and iGameState == GAMESTATE_GAME then return CPaint.tDemoList[sDemoName].THINK_DELAY end 
+CPaint.DemoThinker = function()
+    AL.NewTimer(CPaint.tDemoList[CPaint.sLoadedDemo].THINK_DELAY, function()
+        if CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_THINK]() and iGameState == GAMESTATE_GAME then return CPaint.tDemoList[CPaint.sLoadedDemo].THINK_DELAY end 
     end)
+end
+
+CPaint.DemoClick = function(iX, iY)
+    CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_CLICK](iX, iY)
 end
 --//
 
@@ -224,6 +232,9 @@ CPaint.tDemoList["matrix"][CPaint.FUNC_THINK] = function()
     end
 
     return true
+end
+CPaint.tDemoList["matrix"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
 end
 --//
 
@@ -324,6 +335,9 @@ CPaint.tDemoList["derby"][CPaint.FUNC_THINK] = function()
 
     return true
 end
+CPaint.tDemoList["derby"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
 --//
 
 --RAINBOWWAVE
@@ -384,15 +398,17 @@ CPaint.tDemoList["rainbowwave"][CPaint.FUNC_THINK] = function()
 
     return true
 end
+CPaint.tDemoList["rainbowwave"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
 --//
 
 --RAINBOWSNAKE
 CPaint.tDemoList["rainbowsnake"] = {}
 CPaint.tDemoList["rainbowsnake"].THINK_DELAY = 30
-CPaint.tDemoList["rainbowsnake"].START_COLORS = {"0x0088FF", "0xFFAA00", "0xFF7700", "0xFF0033", "0x9911AA", "0xAADD22"}
+CPaint.tDemoList["rainbowsnake"].START_COLORS = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
 CPaint.tDemoList["rainbowsnake"].tVars = {}
-CPaint.tDemoList["rainbowsnake"].tVars.iColor = tonumber(CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["rainbowsnake"].START_COLORS)])
-CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = 0
+CPaint.tDemoList["rainbowsnake"].tVars.tColor = CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1,#CPaint.tDemoList["rainbowsnake"].START_COLORS)]
 CPaint.tDemoList["rainbowsnake"].tVars.iX = 0
 CPaint.tDemoList["rainbowsnake"].tVars.iY = 1
 CPaint.tDemoList["rainbowsnake"].tVars.tBlocks = {}
@@ -406,19 +422,7 @@ CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_LOAD] = function()
     end
 
     AL.NewTimer(10, function()
-        CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 1
-        CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = CPaint.tDemoList["rainbowsnake"].tVars.iColorCount + 1
-        if CPaint.tDemoList["rainbowsnake"].tVars.iColorCount >= 255 then 
-            if math.random(1,2) == 1 then
-                CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 1600256
-            else
-                CPaint.tDemoList["rainbowsnake"].tVars.iColor = CPaint.tDemoList["rainbowsnake"].tVars.iColor - 3200256
-            end
-            if CPaint.tDemoList["rainbowsnake"].tVars.iColor <= 0 then
-                CPaint.tDemoList["rainbowsnake"].tVars.iColor = tonumber(CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["rainbowsnake"].START_COLORS)])
-            end
-            CPaint.tDemoList["rainbowsnake"].tVars.iColorCount = 0
-        end
+        CPaint.tDemoList["rainbowsnake"].tVars.tColor = RGBRainbowNextColor(CPaint.tDemoList["rainbowsnake"].tVars.tColor,1)
 
         if iGameState == GAMESTATE_GAME then return 10 end
     end)
@@ -436,15 +440,169 @@ CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_THINK] = function()
     if CPaint.tDemoList["rainbowsnake"].tVars.iX > tGame.Cols then CPaint.tDemoList["rainbowsnake"].tVars.iX = 1; CPaint.tDemoList["rainbowsnake"].tVars.iY = CPaint.tDemoList["rainbowsnake"].tVars.iY + 1; end    
     if CPaint.tDemoList["rainbowsnake"].tVars.iY > tGame.Rows then CPaint.tDemoList["rainbowsnake"].tVars.iY = 1; end
 
-    CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[CPaint.tDemoList["rainbowsnake"].tVars.iX][CPaint.tDemoList["rainbowsnake"].tVars.iY] = CPaint.tDemoList["rainbowsnake"].tVars.iColor
+    CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[CPaint.tDemoList["rainbowsnake"].tVars.iX][CPaint.tDemoList["rainbowsnake"].tVars.iY] = tonumber(RGBTableToHex(CPaint.tDemoList["rainbowsnake"].tVars.tColor))
 
     return true
+end
+CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
+
+--COLORSNAKE
+CPaint.tDemoList["colorsnake"] = {}
+CPaint.tDemoList["colorsnake"].THINK_DELAY = 30
+CPaint.tDemoList["colorsnake"].START_COLORS = {"0x0088FF", "0xFFAA00", "0xFF7700", "0xFF0033", "0x9911AA", "0xAADD22"}
+CPaint.tDemoList["colorsnake"].tVars = {}
+CPaint.tDemoList["colorsnake"].tVars.iColor = tonumber(CPaint.tDemoList["colorsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["colorsnake"].START_COLORS)])
+CPaint.tDemoList["colorsnake"].tVars.iColorCount = 0
+CPaint.tDemoList["colorsnake"].tVars.iX = 0
+CPaint.tDemoList["colorsnake"].tVars.iY = 1
+CPaint.tDemoList["colorsnake"].tVars.tBlocks = {}
+CPaint.tDemoList["colorsnake"].tVars.tParticles = {}
+CPaint.tDemoList["colorsnake"][CPaint.FUNC_LOAD] = function()
+    for iX = 1, tGame.Cols do
+        CPaint.tDemoList["colorsnake"].tVars.tBlocks[iX] = {}
+        for iY = 1, tGame.Rows do
+            CPaint.tDemoList["colorsnake"].tVars.tBlocks[iX][iY] = CColors.NONE
+        end
+    end
+
+    AL.NewTimer(10, function()
+        CPaint.tDemoList["colorsnake"].tVars.iColor = CPaint.tDemoList["colorsnake"].tVars.iColor - 1
+        CPaint.tDemoList["colorsnake"].tVars.iColorCount = CPaint.tDemoList["colorsnake"].tVars.iColorCount + 1
+        if CPaint.tDemoList["colorsnake"].tVars.iColorCount >= 255 then 
+            if math.random(1,2) == 1 then
+                CPaint.tDemoList["colorsnake"].tVars.iColor = CPaint.tDemoList["colorsnake"].tVars.iColor - 1600255
+            else
+                CPaint.tDemoList["colorsnake"].tVars.iColor = CPaint.tDemoList["colorsnake"].tVars.iColor - 3200255
+            end
+            if CPaint.tDemoList["colorsnake"].tVars.iColor <= 0 then
+                CPaint.tDemoList["colorsnake"].tVars.iColor = tonumber(CPaint.tDemoList["colorsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["colorsnake"].START_COLORS)])
+            end
+            CPaint.tDemoList["colorsnake"].tVars.iColorCount = 0
+        end
+
+        if iGameState == GAMESTATE_GAME then return 10 end
+    end)
+end
+CPaint.tDemoList["colorsnake"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].iColor = CPaint.tDemoList["colorsnake"].tVars.tBlocks[iX][iY]
+            tFloor[iX][iY].iBright = tConfig.Bright
+        end
+    end
+end
+CPaint.tDemoList["colorsnake"][CPaint.FUNC_THINK] = function()
+    CPaint.tDemoList["colorsnake"].tVars.iX = CPaint.tDemoList["colorsnake"].tVars.iX + 1
+    if CPaint.tDemoList["colorsnake"].tVars.iX > tGame.Cols then CPaint.tDemoList["colorsnake"].tVars.iX = 1; CPaint.tDemoList["colorsnake"].tVars.iY = CPaint.tDemoList["colorsnake"].tVars.iY + 1; end    
+    if CPaint.tDemoList["colorsnake"].tVars.iY > tGame.Rows then CPaint.tDemoList["colorsnake"].tVars.iY = 1; end
+
+    CPaint.tDemoList["colorsnake"].tVars.tBlocks[CPaint.tDemoList["colorsnake"].tVars.iX][CPaint.tDemoList["colorsnake"].tVars.iY] = CPaint.tDemoList["colorsnake"].tVars.iColor
+
+    return true
+end
+--//
+
+--RAINBOWDEMO
+CPaint.tDemoList["rainbowdemo"] = {}
+CPaint.tDemoList["rainbowdemo"].THINK_DELAY = 120
+CPaint.tDemoList["rainbowdemo"].NEARTABLES = {{0,-1},{-1,0},{1,0},{0,1},} 
+CPaint.tDemoList["rainbowdemo"].START_COLORS = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
+CPaint.tDemoList["rainbowdemo"].tVars = {}
+CPaint.tDemoList["rainbowdemo"].tVars.tClicked = {}
+CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_LOAD] = function()
+    for iX = 1, tGame.Cols do
+        CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX] = {}
+        for iY = 1, tGame.Rows do
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY] = {}
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].bClicked = false
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].tColor = {255,0,0}
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright = tConfig.Bright
+        end
+    end
+
+    AL.NewTimer(400, function()
+
+        if iGameState == GAMESTATE_GAME then return 400; end
+    end)
+end
+CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].bClicked then
+                tFloor[iX][iY].iColor = tonumber(RGBTableToHex(CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].tColor))
+                tFloor[iX][iY].iBright = CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright
+            end
+        end
+    end
+end
+CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_THINK] = function()
+
+    return true
+end
+CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_CLICK] = function(iX, iY)
+    if CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].bClicked then return; end
+
+    CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].bClicked = true
+    CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright = tConfig.Bright
+
+    CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].tColor = CPaint.tDemoList["rainbowdemo"].START_COLORS[math.random(1,#CPaint.tDemoList["rainbowdemo"].START_COLORS)]
+    for iNear = 1, #CPaint.tDemoList["rainbowdemo"].NEARTABLES do
+        local iXPlus, iYPlus = CPaint.tDemoList["rainbowdemo"].NEARTABLES[iNear][1], CPaint.tDemoList["rainbowdemo"].NEARTABLES[iNear][2]
+        if CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX+iXPlus] and CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX+iXPlus][iY+iYPlus] and CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX+iXPlus][iY+iYPlus].bClicked then
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].tColor = RGBRainbowNextColor(CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX+iXPlus][iY+iYPlus].tColor, 10)
+            break;
+        end
+    end
+
+    AL.NewTimer(1000, function()
+        if CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright > 1 then
+            CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright = CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].iBright-1 
+            return 100; 
+        end
+
+        CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX][iY].bClicked = false
+        return nil;
+    end)
 end
 --//
 
 ----//
 
 --UTIL прочие утилиты
+function RGBToHex(r,g,b)
+    local rgb = (r * 0x10000) + (g * 0x100) + b
+    return "0x"..string.format("%06x", rgb)
+end
+
+function RGBTableToHex(tRGB)
+    return RGBToHex(tRGB[1],tRGB[2],tRGB[3])
+end
+
+function RGBRainbowNextColor(tRGBIn, iMultiplier)
+    local tRGB = {0,0,0}
+    if iMultiplier == nil then iMultiplier = 1 end
+
+    if (tRGBIn[1] > 0 and tRGBIn[3] == 0) then
+        tRGB[1] = tRGBIn[1] - iMultiplier
+        tRGB[2] = tRGBIn[2] + iMultiplier
+    end
+
+    if (tRGBIn[2] > 0 and tRGBIn[1] == 0) then
+        tRGB[2] = tRGBIn[2] - iMultiplier
+        tRGB[3] = tRGBIn[3] + iMultiplier
+    end
+
+    if (tRGBIn[3] > 0 and tRGBIn[2] == 0) then
+        tRGB[1] = tRGBIn[1] + iMultiplier
+        tRGB[3] = tRGBIn[3] - iMultiplier
+    end
+
+    return tRGB
+end
+
 function CheckPositionClick(tStart, iSizeX, iSizeY)
     for iX = tStart.X, tStart.X + iSizeX - 1 do
         for iY = tStart.Y, tStart.Y + iSizeY - 1 do
@@ -526,6 +684,10 @@ function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if iGameState == GAMESTATE_GAME and click.Click then
+            CPaint.DemoClick(click.X, click.Y)
+        end
     end
 end
 

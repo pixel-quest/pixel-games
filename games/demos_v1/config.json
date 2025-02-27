@@ -6,7 +6,7 @@
   	"Bright_Ru": "Яркость",
 
   	"DemoName": "matrix",
-  	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake"],
+  	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake", "colorsnake", "rainbowdemo"],
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name"
 }
