@@ -1,0 +1,12 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"DemoName": "matrix",
+  	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake", "colorsnake", "rainbowdemo"],
+  	"DemoName_ru": "Выбор заставки",
+  	"DemoName_en": "Demo name"
+}
