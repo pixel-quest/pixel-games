@@ -324,7 +324,7 @@ CGameMode.ReachGoal = function(tButton)
     if tGameStats.CurrentStars == tGameStats.TotalStars then
         CGameMode.EndGame(true)
     else
-        CAudiSystemAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
         CGameMode.AssignRandomGoal()
         tButton.bGoal = false
         CGameMode.ResetSafeZoneTimer(tButton)

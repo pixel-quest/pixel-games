@@ -125,7 +125,7 @@ function StartGame(gameJson, gameConfigJson)
     local err = CAudio.PreloadFile(tGame["SongName"])
     if err ~= nil then error(err); end
 
-    CAudio.PlayVoicesSync("dance/choose-color.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else

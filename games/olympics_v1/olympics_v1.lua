@@ -382,7 +382,7 @@ CGameMode.AddScoreToPlayer = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerFinished = function(iPlayerID)
-    CAudiSystemSync(CAudio.STAGE_DONE)
+    CAudio.PlaySystemSync(CAudio.STAGE_DONE)
 
     CGameMode.tPlayerFinished[iPlayerID] = true
 
@@ -584,7 +584,7 @@ end
 --LAVA STRIPES
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
     CGameMode.iCountdown = CGameMode.iCountdown + 6
-    CAudio.PlayVoicsSync("olympics/olympics-lava-guide.mp3")
+    CAudio.PlayVoicesSync("olympics/olympics-lava-guide.mp3")
 end
 
 CGameMode.tGameModeStart[CGameMode.GAMEMODE_LAVA_STRIPES] = function()

@@ -231,7 +231,7 @@ CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
             CAudio.PlayRandomBackground()
 
             if bFirstRound then
-                CAudio.PlayVoicsSync(CAudio.START_GAME)
+                CAudio.PlayVoicesSync(CAudio.START_GAME)
             end
 
             return nil
