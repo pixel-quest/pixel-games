@@ -295,7 +295,7 @@ CGameMode.EndGame = function(bVictory)
 
     if bVictory then
         CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
-        CAudio.PlayVoiceSync(CAudio.VICTORY)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
     else
         CAudio.PlaySystemSync(CAudio.GAME_OVER)
