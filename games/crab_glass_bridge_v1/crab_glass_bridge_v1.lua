@@ -110,7 +110,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end 
 
-    CAudio.PlaySync("glassbridge_voice_guide.mp3")
+    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
 end
 
 function NextTick()
@@ -231,7 +231,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlayBackground("glassbridge_music_background.mp3")
+    CAudio.PlayMusic("glassbridge/glassbridge_music_background.mp3")
     iGameState = GAMESTATE_GAME
     CGameMode.LoadSquares()
 
@@ -285,15 +285,15 @@ CGameMode.PlayerTouchSquare = function(tSquareObject, bTouch)
     if tSquareObject.bBad then
         if not tSquareObject.bClaimed then
             tSquareObject.bClaimed = true
-            CAudio.PlayAsync("glassbridge_effect_glassbreak.mp3")
+            CAudio.PlaySystemAsync("glassbridge/glassbridge_effect_glassbreak.mp3")
         end
     else
-        CGameMode.PlaySoundAntiSpam("glassbridge_effect_glassstep.mp3")
+        CGameMode.PlaySoundAntiSpam("glassbridge/glassbridge_effect_glassstep.mp3")
 
         if not tSquareObject.bClaimed then
             tSquareObject.bClaimed = true
             CGameMode.iClaimedSquares = CGameMode.iClaimedSquares + 1
-            CAudio.PlaySync(CAudio.CLICK)
+            CAudio.PlaySystemSync(CAudio.CLICK)
         end
     end
 end
@@ -313,7 +313,7 @@ end
 CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
 
-    CAudio.PlaySyncFromScratch("glassbridge_voice_endgame.mp3")
+    CAudio.PlayVoicesSyncFromScratch("glassbridge/glassbridge_voice_endgame.mp3")
 
     tGameResults.Color = CColors.MAGENTA
 
@@ -339,7 +339,7 @@ end
 CGameMode.PlaySoundAntiSpam = function(sSoundName)
     if CGameMode.bAntiSpamSwitch then return; end
 
-    CAudio.PlayAsync(sSoundName)
+    CAudio.PlaySystemAsync(sSoundName)
 
     CGameMode.bAntiSpamSwitch = true
     AL.NewTimer(250, function()

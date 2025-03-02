@@ -203,8 +203,8 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("quest/quest-game.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("quest/quest-game.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.GameSetupRandomCoins = function()
@@ -233,9 +233,9 @@ CGameMode.PlayerCollectGameSetupCoin = function(iCoinId)
 
     if CGameMode.iGameSetupCollectedCoins == #CGameMode.tGameSetupCoins then
         CGameMode.EndGameSetup()
-        CAudio.PlaySync(CAudio.STAGE_DONE)
+        CAudio.PlaySystemSync(CAudio.STAGE_DONE)
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
 end
 
@@ -249,7 +249,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 
     CGameMode.iCountdown = iCountDownTime
 
-    CAudio.PlaySync("stand_on_green_zone_and_wait.mp3")
+    CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
 
     AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
@@ -272,7 +272,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 end
 
 CGameMode.EndGame = function(bVictory)
@@ -280,12 +280,12 @@ CGameMode.EndGame = function(bVictory)
 
     if bVictory then
         tGameResults.Won = true
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
         tGameResults.Color = CColors.GREEN
     else
         tGameResults.Won = false
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         SetGlobalColorBright(CColors.RED, tConfig.Bright)
         tGameResults.Color = CColors.RED
     end
@@ -352,7 +352,7 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.PlayerCollectCoin = function()
-    CAudio.PlayAsync(CAudio.CLICK)
+    CAudiSystemAsync(CAudio.CLICK)
 
     CGameMode.iMapCoinCollected = CGameMode.iMapCoinCollected + 1
     tGameStats.Players[1].Score = tGameStats.Players[1].Score + 1
@@ -360,17 +360,17 @@ CGameMode.PlayerCollectCoin = function()
     tGameStats.CurrentStars = tGameResults.Score
 
     if CGameMode.iMapCoinCollected == CGameMode.iMapCoinReq then
-        CAudio.PlayAsync(CAudio.STAGE_DONE)
+        CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         tGameStats.TargetScore = CGameMode.iMapCoinCount
     elseif CGameMode.iMapCoinCollected == CGameMode.iMapCoinCount then
-        CAudio.PlayAsync(CAudio.STAGE_DONE)
+        CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         CGameMode.EndRound()
     end
 end
 
 CGameMode.PlayerCollectLava = function(iX, iY)
     if not CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown then
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         tGameResults.Score = tGameResults.Score - 10 
         tGameStats.CurrentStars = tGameResults.Score
 

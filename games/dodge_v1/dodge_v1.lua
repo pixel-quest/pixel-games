@@ -197,9 +197,9 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("dodge_gamename.mp3")
-    CAudio.PlaySync("dodge_rules.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_gamename.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_rules.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -244,11 +244,11 @@ CGameMode.DamagePlayer = function(iDamage)
         if tGameStats.CurrentLives <= 0 then
             CGameMode.EndGame(false)
         else 
-            CAudio.PlayAsync(CAudio.MISCLICK)
+            CAudio.PlaySystemAsync(CAudio.MISCLICK)
         end
     else
         --CAudio.PlayAsync(CAudio.MISCLICK)
-        CAudio.PlayAsync("player_out.mp3")     
+        CAudio.PlayVoicesAsync("dodge/player_out.mp3")
     end
 
     CGameMode.bDamageCooldown = true
@@ -284,13 +284,13 @@ CGameMode.EndGame = function(bVictory)
     CCross.bHidden = true
 
     if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
         CGameMode.GlobalColor(CColors.GREEN)
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
         CGameMode.GlobalColor(CColors.RED)
     end
@@ -383,7 +383,7 @@ CEffect.NextEffectTimer = function()
     --CLog.print("next effect: "..iEffectId)
     --iEffectId = 10
 
-    CAudio.PlaySync("next_effect.mp3")
+    CAudio.PlayVoicesSync("dodge/next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
 
     if CEffect.tEffects[iEffectId][CEffect.CONST_SPECIAL_ENDING_ON] and math.random(1, 100) >= 50 then
@@ -399,7 +399,7 @@ CEffect.NextEffectTimer = function()
             CEffect.bCanCast = true
 
             if not CCross.IsAiOn() then
-                CAudio.PlaySync("dodge_effect_cast_ready.mp3")
+                CAudio.PlayVoicesSync("dodge/dodge_effect_cast_ready.mp3")
             end
 
             return nil
@@ -458,7 +458,7 @@ CEffect.EndCurrentEffect = function()
 
     if iGameState > GAMESTATE_GAME then return nil end
 
-    CAudio.PlaySync(CAudio.STAGE_DONE)
+    CAudio.PlaySystemSync(CAudio.STAGE_DONE)
     --voice-- эффект закончен...
 
     CEffect.iPassedEffectsCount = CEffect.iPassedEffectsCount + 1
@@ -494,7 +494,7 @@ CEffect.PaintEffectPixel = function(iX, iY)
 end
 
 CEffect.SpecialEndingButton = function()
-    CAudio.PlayAsync("special_effect_button.mp3")
+    CAudio.PlayVoicesAsync("dodge/special_effect_button.mp3")
 end
 
 CEffect.SpecialEndingButtonPressButton = function()
@@ -502,7 +502,7 @@ CEffect.SpecialEndingButtonPressButton = function()
 end
 
 CEffect.SpecialEndingCoins = function()
-    CAudio.PlayAsync("special_effect_coins.mp3")
+    CAudio.PlayVoicesAsync("dodge/special_effect_coins.mp3")
 
     CEffect.tCurrentEffectData.tCoins = {}
 
@@ -547,7 +547,7 @@ CEffect.SpecialEndingCollectCoin = function(iCoinId, iX, iY)
         tGameStats.TotalStars = 0
         tGameStats.CurrentStars = 0
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
 
     AL.NewTimer(1000, function()
@@ -604,7 +604,7 @@ CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_SPECIAL_ENDING_ON] = false
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_shot.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_shot.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -635,7 +635,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("plasma.mp3")
+    CAudio.PlaySystemAsync("plasma.mp3")
 end
 
 -- отрисовка эффекта
@@ -695,7 +695,7 @@ CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_SPECIAL_ENDING_ON] = false
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_circle.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_circle.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -709,7 +709,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("plasma.mp3")
+    CAudio.PlaySystemAsync("plasma.mp3")
 end
 
 -- отрисовка эффекта
@@ -774,10 +774,10 @@ CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_enemy.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_enemy.mp3")
 
     if not CCross.IsAiOn() then
-        CAudio.PlaySync("dodge_enemy_controls.mp3")
+        CAudio.PlayVoicesSync("dodge/dodge_enemy_controls.mp3")
     end
 end
 
@@ -801,7 +801,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_ENEMY][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("dodge_enemy_voiceline.mp3")
+    CAudio.PlayVoicesAsync("dodge/dodge_enemy_voiceline.mp3")
 end
 
 -- отрисовка эффекта
@@ -885,7 +885,7 @@ CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_line.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_line.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -897,7 +897,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_SOUND] = function()
-    CAudio.PlaySync("electro-laser.mp3")
+    CAudio.PlaySystemSync("dodge/electro-laser.mp3")
 end
 
 -- отрисовка эффекта
@@ -959,7 +959,7 @@ CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_laser.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_laser.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -969,7 +969,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_SOUND] = function()
-    CAudio.PlaySync("electro-laser.mp3")
+    CAudio.PlaySystemSync("dodge/electro-laser.mp3")
 end
 
 -- отрисовка эффекта
@@ -1011,7 +1011,7 @@ CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_draw.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_draw.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1023,7 +1023,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_DRAW][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("spray-paint.mp3")
+    CAudio.PlaySystemAsync("dodge/spray-paint.mp3")
 end
 
 -- отрисовка эффекта
@@ -1064,7 +1064,7 @@ CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.CONST_SPECIAL_ENDING_ON] = fal
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_linedraw.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_linedraw.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1080,7 +1080,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_LINEDRAW][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("spray-paint.mp3")
+    CAudio.PlaySystemAsync("dodge/spray-paint.mp3")
 end
 
 -- отрисовка эффекта
@@ -1155,7 +1155,7 @@ CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_stripe.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_stripe.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1171,7 +1171,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_SOUND] = function()
-    CAudio.PlayAsync("lightsaber-ignition.mp3")
+    CAudio.PlaySystemAsync("dodge/lightsaber-ignition.mp3")
 end
 
 -- отрисовка эффекта
@@ -1193,13 +1193,13 @@ CEffect.tEffects[CEffect.EFFECT_STRIPE][CEffect.FUNC_TICK] = function()
         CEffect.tCurrentEffectData.iX = CEffect.tCurrentEffectData.iX + CEffect.tCurrentEffectData.iVel
         if CEffect.tCurrentEffectData.iX == tGame.Cols or CEffect.tCurrentEffectData.iX == 1 then
             CEffect.tCurrentEffectData.iVel = -CEffect.tCurrentEffectData.iVel
-            CAudio.PlayAsync("lightsaber-swing.mp3")
+            CAudio.PlaySystemAsync("dodge/lightsaber-swing.mp3")
         end
     else
         CEffect.tCurrentEffectData.iY = CEffect.tCurrentEffectData.iY + CEffect.tCurrentEffectData.iVel
         if CEffect.tCurrentEffectData.iY == tGame.Rows or CEffect.tCurrentEffectData.iY == 1 then
             CEffect.tCurrentEffectData.iVel = -CEffect.tCurrentEffectData.iVel
-            CAudio.PlayAsync("lightsaber-swing.mp3")
+            CAudio.PlaySystemAsync("dodge/lightsaber-swing.mp3")
         end
     end
 end
@@ -1220,7 +1220,7 @@ CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_ball.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_ball.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1248,7 +1248,7 @@ end
 
 -- звуковое сопровождение эффекта
 CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_SOUND] = function()
-    CAudio.PlaySync("ball-kick.mp3")
+    CAudio.PlaySystemSync("dodge/ball-kick.mp3")
 end
 
 -- отрисовка эффекта
@@ -1283,7 +1283,7 @@ CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_TICK] = function()
             end
 
             if not bCheckCollision then
-                CAudio.PlayAsync("ball-bounce.mp3")
+                CAudio.PlaySystemAsync("dodge/ball-bounce.mp3")
             end
 
             if CEffect.tCurrentEffectData.tBalls[iBallId].iX < 1 then CEffect.tCurrentEffectData.tBalls[iBallId].iX = 3 end
@@ -1301,7 +1301,7 @@ CEffect.tEffects[CEffect.EFFECT_BALL][CEffect.FUNC_TICK] = function()
                         CEffect.tCurrentEffectData.tBalls[iBallId].iVelY = -CEffect.tCurrentEffectData.tBalls[iBallId].iVelY
                         CEffect.tCurrentEffectData.tBalls[iBallId].iCollisionCooldown = 5
 
-                        CAudio.PlayAsync("ball-bounce.mp3")
+                        CAudio.PlaySystemAsync("dodge/ball-bounce.mp3")
 
                         return;
                     end
@@ -1329,7 +1329,7 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
 CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlaySync("dodge_effect_gun.mp3")
+    CAudio.PlayVoicesSync("dodge/dodge_effect_gun.mp3")
 end
 
 -- прогрузка переменных эффекта
@@ -1400,7 +1400,7 @@ CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_TICK] = function()
                 CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY + (CEffect.tCurrentEffectData.iSize-1)
             end
 
-            CAudio.PlayAsync("plasma.mp3")
+            CAudio.PlaySystemAsync("plasma.mp3")
 
             CEffect.tCurrentEffectData.bCooldown = true
             AL.NewTimer(500, function()

@@ -220,10 +220,10 @@ CGameMode.init = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("mazeguide_gamename.mp3")
-    CAudio.PlaySync("mazeguide_guide.mp3")
+    CAudio.PlayVoicesSync("mazeguide/mazeguide_gamename.mp3")
+    CAudio.PlayVoicesSync("mazeguide/mazeguide_guide.mp3")
     if not tConfig.AutoStart then
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 end
 
@@ -248,7 +248,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
     AL.NewTimer(tConfig.MovementTick, function()
@@ -291,14 +291,14 @@ CGameMode.EndGame = function(bVictory)
     iGameState = GAMESTATE_POSTGAME
 
     if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
 
         tGameResults.Score = (tConfig.Difficulty * 100 + tGameStats.StageLeftDuration) * 2 * tConfig.Difficulty
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
     end
 

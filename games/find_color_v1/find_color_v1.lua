@@ -199,19 +199,19 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
-    audio.PlaySyncFromScratch("games/find-color-game.mp3") -- Игра "Найди цвет"
-    audio.PlaySync("voices/stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+    audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+    audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlaySyncFromScratch(audio.PAUSE)
+    audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlaySyncFromScratch(audio.START_GAME)
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -329,7 +329,7 @@ function NextTick()
         if AllPosClicked and StageDoneAt == 0 then
             StageDoneAt = time.unix()
             if not StageDonePlayed then
-                audio.PlayAsync(audio.STAGE_DONE)
+                audio.PlaySystemAsync(audio.STAGE_DONE)
                 StageDonePlayed = true
 
                 GameResults.Score = GameResults.Score + (10 * GameStats.StageLeftDuration)
@@ -361,14 +361,14 @@ function NextTick()
         if timeSinceGameStart > GameConfigObj.GameDurationSec or GameStats.StageNum > GameConfigObj.StagesQty then
             if GameStats.StageNum > GameConfigObj.StagesQty then
                 setGlobalColorBright(colors.GREEN, GameConfigObj.Bright)
-                audio.PlaySyncFromScratch(audio.GAME_SUCCESS)
-                audio.PlaySync(audio.VICTORY)
+                audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
+                audio.PlayVoicesSync(audio.VICTORY)
                 GameResults.Won = true
                 GameResults.Color = colors.GREEN
             else
                 setGlobalColorBright(colors.RED, GameConfigObj.Bright)
-                audio.PlaySync(audio.GAME_OVER)
-                audio.PlaySync(audio.DEFEAT)
+                audio.PlaySystemSync(audio.GAME_OVER)
+                audio.PlayVoicesSync(audio.DEFEAT)
                 GameResults.Won = false
                 GameResults.Color = colors.RED
             end

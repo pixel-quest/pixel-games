@@ -127,7 +127,7 @@ function StartGame(gameJson, gameConfigJson)
         CPaint.AnimateTextTimerStart()
     end
 
-    CAudio.PlayBackground(tConfig.Music)
+    CAudio.PlayMusic("happy-birthday/happy_birthday.mp3")
 end
 
 function NextTick()

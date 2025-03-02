@@ -284,9 +284,9 @@ CGameMode.PrepareGame = function()
 
     CUnits.UnitSettings()
 
-    CAudio.PlaySync("games/tower-defence-game.mp3")
-    CAudio.PlaySync("games/tower-defence-tutorial.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("tower-defence/tower-defence-game.mp3")
+    CAudio.PlayVoicesSync("tower-defence/tower-defence-tutorial.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 
     CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
@@ -318,7 +318,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
-            CAudio.PlaySync(CAudio.START_GAME)
+            CAudio.PlayVoicesSync(CAudio.START_GAME)
             CAudio.PlayRandomBackground()
             return nil
         else
@@ -363,8 +363,8 @@ end
 
 CGameMode.Victory = function()
     CAudio.StopBackground()
-    CAudio.PlaySync(CAudio.GAME_SUCCESS)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
     CGameMode.bVictory = true
     iGameState = GAMESTATE_POSTGAME
 
@@ -381,8 +381,8 @@ end
 
 CGameMode.Defeat = function()
     CAudio.StopBackground()
-    CAudio.PlaySync(CAudio.GAME_OVER)    
-    CAudio.PlaySync(CAudio.DEFEAT)
+    CAudio.PlaySystemSync(CAudio.GAME_OVER)
+    CAudio.PlayVoicesSync(CAudio.DEFEAT)
     CGameMode.bVictory = false
     CGameMode.tBase.iColor = CColors.RED
     iGameState = GAMESTATE_POSTGAME
@@ -439,7 +439,7 @@ CGameMode.DamageBase = function(iDamageAmount)
     CGameMode.tBase.iHealth = CGameMode.tBase.iHealth - iDamageAmount
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     if CGameMode.tBase.iHealth <= 0 then
         CGameMode.Defeat()
@@ -474,13 +474,13 @@ CBuffs.ApplyBuff = function(iBuffType)
 
     if iBuffType == CBuffs.BUFF_TYPE_HEAL then
         CGameMode.HealBase()
-        CAudio.PlaySync("voices/towerdefence-health-buff.mp3")
+        CAudio.PlayVoicesSync("tower-defence/towerdefence-health-buff.mp3")
     elseif iBuffType == CBuffs.BUFF_TYPE_KILLALL then
         CUnits.KillAll()
-        CAudio.PlaySync("voices/towerdefence-killall-buff.mp3")
+        CAudio.PlayVoicesSync("tower-defence/towerdefence-killall-buff.mp3")
     elseif iBuffType == CBuffs.BUFF_TYPE_ALLY then
         CUnits.NewUnit(CGameMode.tBase.iX + math.random(-3,3), CGameMode.tBase.iY + math.random(-2,2), CUnits.UNIT_TYPE_ALLY, false, false)
-        CAudio.PlaySync("voices/towerdefence-ally-buff.mp3")
+        CAudio.PlayVoicesSync("tower-defence/towerdefence-ally-buff.mp3")
     end 
 end
 
@@ -515,7 +515,7 @@ CBuffs.DropBuffForPlayers = function()
 
     CBuffs.bBuffDropped = true
     CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
-    CAudio.PlaySync("voices/towerdefence-new-buff.mp3")    
+    CAudio.PlayVoicesSync("tower-defence/towerdefence-new-buff.mp3")
 end
 
 CBuffs.PlayerCollectBuff = function()
@@ -741,7 +741,7 @@ CUnits.UnitThinkShoot = function(iUnitID)
         local iXVel, iYVel = CUnits.GetDestinationXYPlus(iUnitID)
         CProjectile.New(CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iY+1, iXVel, 0, 1)
 
-        CAudio.PlayAsync("plasma.mp3")
+        CAudio.PlaySystemAsync("plasma.mp3")
 
         bFired = true
     end
@@ -918,7 +918,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
 
     if bTrueDeath then
         if iReasonID == CUnits.UNIT_DEATH_REASON_KILLED_BY_PLAYER then
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
 
             if CUnits.tUnits[iUnitID].bScoreable then
                 tGameStats.CurrentStars = tGameStats.CurrentStars + 1
@@ -945,7 +945,7 @@ end
 -- просчёт смертей особых юнитов
 CUnits.UnitSpecial = function(iUnitID)
     if CUnits.tUnits[iUnitID].iUnitType == CUnits.UNIT_TYPE_BLINK and CUnits.tUnits[iUnitID].iSpecial > 0 then
-        CAudio.PlayAsync("teleport.mp3")
+        CAudio.PlaySystemAsync("tower-defence/teleport.mp3")
 
         CUnits.tUnits[iUnitID].iSpecial = CUnits.tUnits[iUnitID].iSpecial - 1
 
@@ -1043,7 +1043,7 @@ CProjectile.CalculateProjectile = function(iProjectileID)
 
         if CUnits.tUnits[iFFID].iUnitType ~= CUnits.UNIT_TYPE_SHOOT then
             --CLog.print("Friendly Fire!")
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
 
             CUnits.UnitKill(iFFID, CUnits.UNIT_DEATH_REASON_FRIENDLY_FIRE)
             CProjectile.Destroy(iProjectileID)

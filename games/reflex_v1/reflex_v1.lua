@@ -266,14 +266,14 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("reflex_gamename.mp3")
-    CAudio.PlaySync("reflex_guide.mp3")
-    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlayVoicesSync("reflex/reflex_gamename.mp3")
+    CAudio.PlayVoicesSync("reflex/reflex_guide.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
 
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     elseif not tGame.NewStart then
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 end
 
@@ -332,7 +332,7 @@ end
 CGameMode.StartNextRound = function()
     CGameMode.bRoundOn = true
 
-    CAudio.PlaySync("reflex_warning.mp3")
+    CAudio.PlayVoicesSync("reflex/reflex_warning.mp3")
 
     AL.NewTimer(math.random(1,5)*1000, function()
         if CGameMode.bRoundOn then
@@ -402,7 +402,7 @@ CGameMode.EndGame = function()
     CAudio.StopBackground()
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     iGameState = GAMESTATE_POSTGAME
 
@@ -431,7 +431,7 @@ CGameMode.PlayerClickPixel = function(iPlayerID, iColor)
 end
 
 CGameMode.PlayerCorrectTarget = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.CLICK)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
 
     local iScoreIncrease = (CGameMode.iPlayerCount - CGameMode.iCorrectlyFinishedPlayerCount) * 2
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iScoreIncrease
@@ -448,7 +448,7 @@ CGameMode.PlayerCorrectTarget = function(iPlayerID)
 end
 
 CGameMode.PlayerWrongTarget = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 end
 
 CGameMode.PlayerFieldOffsetIncrement = function(iPlayerID)

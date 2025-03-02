@@ -109,7 +109,7 @@ function StartGame(gameJson, gameConfigJson)
     CPaint.BackgroundFrameTimerStart()
 
     if CPaint.sBackgroundName ~= "" then
-        CAudio.PlayBackground("backgrounds/heroes/"..CPaint.sBackgroundName..".mp3")
+        CAudio.PlayMusic("heroes/"..CPaint.sBackgroundName..".mp3")
     end
 end
 
