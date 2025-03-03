@@ -530,7 +530,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and CBlock.tBlocks[iX][iY].bCollected == false then
-        if CGameMode.PlayerTouchedLava(iPlayerID, iX, iY) then
+        if tFloor[iX][iY].bClick and CGameMode.PlayerTouchedLava(iPlayerID, iX, iY) then
             CBlock.tBlocks[iX][iY].bCollected = true
             CPaint.AnimatePixelFlicker(iX, iY, 3, CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.tBlocks[iX][iY].iBlockType])
         end
@@ -666,10 +666,12 @@ end
 CAnimate.RegisterBlockClick = function(iX, iY)
     if CAnimate.tBlocks[iX][iY] then
         if CAnimate.tBlocks[iX][iY].iBlockType == CAnimate.ANIMATE_BLOCK_LAVA and not CAnimate.tBlocks[iX][iY].bCollected then
-            if CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID, iX, iY) then
-                CAnimate.tBlocks[iX][iY].bCollected = true
-                CPaint.AnimatePixelFlicker(iX, iY, 3, CAnimate.tBLOCK_TYPE_TO_COLOR[CAnimate.tBlocks[iX][iY].iBlockType])
-            end
+            AL.NewTimer(250, function()
+                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 and CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID, iX, iY) then
+                    CAnimate.tBlocks[iX][iY].bCollected = true
+                    CPaint.AnimatePixelFlicker(iX, iY, 3, CAnimate.tBLOCK_TYPE_TO_COLOR[CAnimate.tBlocks[iX][iY].iBlockType])
+                end
+            end)
         elseif CAnimate.tBlocks[iX][iY].iBlockType == CAnimate.ANIMATE_BLOCK_COIN and not CAnimate.tBlocks[iX][iY].bCollected then
             CAnimate.tBlocks[iX][iY].bCollected = true
             CGameMode.PlayerRoundScoreAdd(CAnimate.tBlocks[iX][iY].iPlayerID, 1)
@@ -902,7 +904,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
+        if click.Click and click.Weight > 5 and iGameState == GAMESTATE_GAME and CGameMode.bRoundStarted then
             if CAnimate.tBlocks[click.X] and CAnimate.tBlocks[click.X][click.Y] and CAnimate.tBlocks[click.X][click.Y].iBlockType > 0 then
                 CAnimate.RegisterBlockClick(click.X, click.Y)
             elseif CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
