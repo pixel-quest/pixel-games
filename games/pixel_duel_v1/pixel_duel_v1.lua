@@ -68,14 +68,7 @@ local GameObj = {
     Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
     Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
-    StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
-        { X = 2, Y = 2, Color = colors.RED },
-        { X = 6, Y = 2, Color = colors.YELLOW },
-        { X = 10, Y = 2, Color = colors.GREEN },
-        { X = 14, Y = 2, Color = colors.CYAN },
-        { X = 18, Y = 2, Color = colors.BLUE },
-        { X = 22, Y = 2, Color = colors.MAGENTA },
-    },
+    StartPositions = {},
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
@@ -155,12 +148,6 @@ function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
     GameConfigObj = json.decode(gameConfigJson)
 
-    -- ограничение на размер стартовой позиции
-    if GameObj.StartPositionSize == nil or
-            GameObj.StartPositionSize < 1 or GameObj.StartPositionSize > 2 then
-        GameObj.StartPositionSize = 2
-    end
-
     for x=1,GameObj.Cols do
         FloorMatrix[x] = {}    -- новый столбец
         for y=1,GameObj.Rows do
@@ -175,9 +162,22 @@ function StartGame(gameJson, gameConfigJson)
         --ButtonsList[num].Bright = colors.BRIGHT70
     end
 
-    for iPlayerID = 1, #GameObj.StartPositions do
-        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-    end    
+    GameObj.StartPositionSize = 2
+    GameObj.StartPositions = {}
+    local iPosX = math.floor(GameObj.Cols/3)
+    local iPosY = math.floor(GameObj.Rows/2.5)
+    for iPlayerID = 1, GameConfigObj.PlayerCount do
+        GameObj.StartPositions[iPlayerID] = {}
+        GameObj.StartPositions[iPlayerID].X = iPosX
+        GameObj.StartPositions[iPlayerID].Y = iPosY
+        GameObj.StartPositions[iPlayerID].Color = GameStats.Players[iPlayerID].Color
+
+        iPosX = iPosX + (GameObj.StartPositionSize*2)
+        if iPlayerID == (GameConfigObj.PlayerCount/2) then
+            iPosX = math.floor(GameObj.Cols/3)
+            iPosY = iPosY + GameObj.StartPositionSize*2
+        end
+    end
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 

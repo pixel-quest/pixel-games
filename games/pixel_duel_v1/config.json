@@ -3,11 +3,20 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
+  "Bright_Ru": "Яркость",
 
   "PointsToWin": 10,
   "PointsToWin_Min": 5,
   "PointsToWin_Max": 50,
   "PointsToWin_Step": 5,
+  "PointsToWin_Ru": "Очков для победы",
+  "PointsToWin_En": "Points to win",
+
+  "PlayerCount": 6,
+  "PlayerCount_Min": 1,
+  "PlayerCount_Max": 6,
+  "PlayerCount_Step": 2,
+  "PlayerCount_Ru": "Количество игроков",
 
   "MoveAllPixels": false,
   
