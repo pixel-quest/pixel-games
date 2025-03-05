@@ -78,7 +78,7 @@ function StartGame(gameJson, gameConfigJson)
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
     end
-    audio.PlaySyncFromScratch("hamster-guide.mp3") -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
+    audio.PlayVoicesSyncFromScratch("hamster/hamster-guide.mp3") -- инструкция по игре "Кликай на залёные и голубые панели, чтобы прокачивать своего хомяка. Постарайтесь прокачать его как можно больше за меньшее время"
 end
 
 function PauseGame()
@@ -145,7 +145,7 @@ function NextTick()
     if not bGameOver and GameStats.StageNum > 0 and GameStats.Players[1].Score >= GameConfigObj["level"..GameStats.StageNum] then
         if GameStats.StageNum < 4 then
             LoadNextLevel()
-            audio.PlayAsync(audio.STAGE_DONE)
+            audio.PlaySystemAsync(audio.STAGE_DONE)
         elseif GameStats.StageNum == 4 then
             WinGame()
         end
@@ -202,7 +202,7 @@ function WinGame()
     tGameResults.Color = colors.GREEN
 
     audio.StopBackground()
-    audio.PlaySync(audio.VICTORY)
+    audio.PlayVoicesSync(audio.VICTORY)
 
     LoadLevelPainting(5)
 
@@ -268,13 +268,13 @@ function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = time.unix()
     if FloorMatrix[click.X][click.Y].Color == colors.GREEN then
         FloorMatrix[click.X][click.Y].Color = colors.NONE
-        audio.PlayAsync(audio.CLICK)
+        audio.PlaySystemAsync(audio.CLICK)
         GameStats.Players[1].Score = GameStats.Players[1].Score + GameConfigObj.greenPoint
         tGameResults.Score = tGameResults.Score + GameConfigObj.greenPoint
     end
     if FloorMatrix[click.X][click.Y].Color == colors.CYAN then
         FloorMatrix[click.X][click.Y].Color = colors.NONE
-        audio.PlayAsync(audio.CLICK)
+        audio.PlaySystemAsync(audio.CLICK)
         GameStats.Players[1].Score = GameStats.Players[1].Score + GameConfigObj.cyanPoint
         tGameResults.Score = tGameResults.Score + GameConfigObj.cyanPoint
     end 

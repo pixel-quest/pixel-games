@@ -236,15 +236,15 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("games/perebejka-game.mp3") 
+    CAudio.PlayVoicesSync("dash/perebejka-game.mp3")
 
     if not tGame.DisableButtonsGameplay then
-        CAudio.PlaySync("dash_rules_default.mp3")
-        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        CAudio.PlayVoicesSync("dash/dash_rules_default.mp3")
+        CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     else
-        CAudio.PlaySync("dash_rules_nobuttons.mp3")
-        CAudio.PlaySync("voices/stand_on_green_and_get_ready.mp3")
+        CAudio.PlayVoicesSync("dash/dash_rules_nobuttons.mp3")
+        CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
     end
 end
 
@@ -269,7 +269,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
     iGameState = GAMESTATE_GAME
 
@@ -324,7 +324,7 @@ CGameMode.ReachGoal = function(tButton)
     if tGameStats.CurrentStars == tGameStats.TotalStars then
         CGameMode.EndGame(true)
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
         CGameMode.AssignRandomGoal()
         tButton.bGoal = false
         CGameMode.ResetSafeZoneTimer(tButton)
@@ -372,7 +372,7 @@ CGameMode.ResetSafeZoneTimer = function(tButton)
 end
 
 CGameMode.NextStage = function()
-    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
       
     if tGameStats.StageNum < tGameStats.TotalStages then
         tGameStats.StageNum = tGameStats.StageNum + 1
@@ -401,13 +401,13 @@ CGameMode.EndGame = function(bVictory)
     end)
 
     if bVictory then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)    
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
         SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
         SetGlobalColorBright(CColors.RED, tConfig.Bright)
     end
@@ -518,7 +518,7 @@ CLava.PlayerStep = function()
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false)
     else
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         AL.NewTimer(tConfig.LavaCooldown, function()
             CLava.bCooldown = false
             CLava.iColor = CColors.RED

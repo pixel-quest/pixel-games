@@ -94,7 +94,7 @@ end
 function CPixel:ProcessClick(bClick)
     if bClick then
         if not self.bRising then
-            CAudio.PlayAsync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
             self.iColor = CColors.GREEN
             self.iBright = CColors.BRIGHT0
             self.bRising = true

@@ -168,7 +168,7 @@ function GameSetupTickSinglePlayer()
         CGameMode.iAlivePlayerCount = 1
 
         iGameState = GAMESTATE_GAME
-        CAudio.PlaySync("voices/match-the-picture-guide.mp3")
+        CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
 end
@@ -199,7 +199,7 @@ function GameSetupTickMultiPlayer()
         iGameState = GAMESTATE_GAME
 
         CAudio.PlaySyncFromScratch("")
-        CAudio.PlaySync("voices/match-the-picture-guide.mp3")
+        CAudio.PlayVoicesSync("math-the-picture/match-the-picture-guide.mp3")
         
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
@@ -259,12 +259,12 @@ CGameMode.InitPlayers = function()
 end
 
 CGameMode.AnnounceGameStart = function()
-    CAudio.PlaySync("games/match-the-picture.mp3")
+    CAudio.PlayVoicesSync("match-the-picture/match-the-picture.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudio.PlaySync("voices/choose-color.mp3")
+        CAudio.PlayVoicesSync("choose-color.mp3")
     else
-        CAudio.PlaySync("press-center-for-start.mp3")
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
 end
 
@@ -298,7 +298,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 
     if CGameMode.iPlayerCount == 1 then
         tGameStats.TargetScore = tConfig.RoundCount
@@ -351,12 +351,12 @@ end
 CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
         if tGameStats.Players[1].Score > 0 then
-            CAudio.PlaySync(CAudio.VICTORY)
+            CAudio.PlayVoicesSync(CAudio.VICTORY)
             tGameResults.Won = true
             tGameResults.Color = CColors.GREEN
             CGameMode.iWinnerID = 1
         else
-            CAudio.PlaySync(CAudio.DEFEAT)
+            CAudio.PlayVoicesSync(CAudio.DEFEAT)
             tGameResults.Won = false
             tGameResults.Color = CColors.RED
         end
@@ -371,7 +371,7 @@ CGameMode.EndGame = function()
         end
 
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
 
         tGameResults.Won = true
         tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
@@ -422,12 +422,12 @@ CGameMode.CalculatePlayerField = function(iPlayerID)
     if CGameMode.tPlayerFieldScore[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinish(iPlayerID)
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
 end
 
 CGameMode.PlayerFinish = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.STAGE_DONE)
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
     CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
     CGameMode.tPlayerFinished[iPlayerID] = true

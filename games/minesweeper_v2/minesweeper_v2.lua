@@ -103,8 +103,8 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
-    CAudio.PlaySync("games/minesweeper.mp3")
-    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlayVoicesSync("minesweeper/minesweeper.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
 end
 
 function NextTick()
@@ -160,7 +160,7 @@ function GameSetupTick()
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
-        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
         CGameMode.StartNextRoundCountDown(20)
     end
 end
@@ -252,7 +252,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 end
 
 CGameMode.PrepareNextRound = function()
@@ -304,7 +304,7 @@ CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
     tGameResults.Won = true
@@ -324,7 +324,7 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] >= CGameMode.tMapCoinCount[iPlayerID] then
         CGameMode.PlayerFinish(iPlayerID)
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
 
     if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
@@ -333,7 +333,7 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
 end
 
 CGameMode.PlayerFinish = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.STAGE_DONE)
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
     CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
     CGameMode.tPlayerFinished[iPlayerID] = true
@@ -442,7 +442,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_MINE and CBlock.tBlocks[iX][iY].bCollected == false then
         CBlock.tBlocks[iX][iY].bCollected = true
         CBlock.tBlocks[iX][iY].bVisible = true
-        CAudio.PlayAsync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
         CGameMode.iMinesClicked = CGameMode.iMinesClicked + 1
         if CGameMode.iMinesClicked % 4 == 0 and not CBlock.bAnimationOn then

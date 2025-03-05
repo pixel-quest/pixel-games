@@ -178,7 +178,7 @@ function GameSetupTickSinglePlayer()
         CGameMode.iAlivePlayerCount = 1
 
         iGameState = GAMESTATE_GAME
-        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
 end
@@ -233,7 +233,7 @@ function GameSetupTickMultiPlayer()
         iGameState = GAMESTATE_GAME
 
         CAudio.PlaySyncFromScratch("")
-        CAudio.PlaySync("voices/minesweeper-guide.mp3")
+        CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
         
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end
@@ -294,19 +294,19 @@ CGameMode.InitPlayers = function()
 end
 
 CGameMode.AnnounceGameStart = function()
-    CAudio.PlaySync("games/minesweeper.mp3")
+    CAudio.PlayVoicesSync("minesweeper/minesweeper.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudio.PlaySync("voices/choose-color.mp3")
+        CAudio.PlayVoicesSync("choose-color.mp3")
     end
 
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
         if #tGame.StartPositions == 1 then
-            CAudio.PlaySync("press-center-for-start.mp3")
+            CAudio.PlayVoicesSync("press-center-for-start.mp3")
         else
-            CAudio.PlaySync("voices/press-button-for-start.mp3")
+            CAudio.PlayVoicesSync("press-button-for-start.mp3")
         end
     end
 end
@@ -341,7 +341,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 end
 
 CGameMode.PrepareNextRound = function()
@@ -387,12 +387,12 @@ end
 CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
         if tGameStats.Players[1].Score > 0 then
-            CAudio.PlaySync(CAudio.VICTORY)
+            CAudio.PlayVoicesSync(CAudio.VICTORY)
             SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
             tGameResults.Won = true
             tGameResults.Color = CColors.GREEN
         else
-            CAudio.PlaySync(CAudio.DEFEAT)
+            CAudio.PlayVoicesSync(CAudio.DEFEAT)
             SetGlobalColorBright(CColors.RED, tConfig.Bright)
             tGameResults.Won = false
             tGameResults.Color = CColors.RED
@@ -410,7 +410,7 @@ CGameMode.EndGame = function()
         iGameState = GAMESTATE_POSTGAME
 
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
         tGameResults.Won = true
@@ -435,7 +435,7 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
     if CGameMode.tPlayerCoinsThisRound[iPlayerID] >= CGameMode.iMapCoinCount then
         CGameMode.PlayerFinish(iPlayerID)
     else
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
 
     if (CGameMode.iPlayerCount > 1) and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
@@ -444,7 +444,7 @@ CGameMode.PlayerTouchedGround = function(iPlayerID)
 end
 
 CGameMode.PlayerFinish = function(iPlayerID)
-    CAudio.PlayAsync(CAudio.STAGE_DONE)
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
     CGameMode.iFinishedCount = CGameMode.iFinishedCount + 1
     CGameMode.tPlayerFinished[iPlayerID] = true
@@ -467,7 +467,7 @@ CGameMode.PlayerTouchedMine = function(iPlayerID)
         tGameResults.Score = tGameResults.Score - 1
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 end
 --//
 

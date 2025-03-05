@@ -220,9 +220,9 @@ CGameMode.Init = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("games/virus.mp3")
-    CAudio.PlaySync("voices/virus-guide.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("virus/virus.mp3")
+    CAudio.PlayVoicesSync("virus/virus-guide.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 end
 
@@ -248,7 +248,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
     iGameState = GAMESTATE_GAME
 
@@ -305,12 +305,12 @@ CGameMode.EndGame = function()
     --CAudio.PlaySync(CAudio.VICTORY)
 
     if CGameMode.iWinner == 1 then
-        CAudio.PlaySync(CAudio.GAME_SUCCESS)
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Won = true
     else
-        CAudio.PlaySync(CAudio.GAME_OVER)    
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Won = false
     end
 
@@ -336,7 +336,7 @@ CGameMode.SetupUnits = function()
 end
 
 CGameMode.DestroyTeam = function(iTeamId)
-    CAudio.PlayAsync(CAudio.CLICK)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
 
     for iUnitID = 1, #CUnits.tUnits do
         if CUnits.tUnits[iUnitID] and CUnits.tUnits[iUnitID].iTeamId == iTeamId then

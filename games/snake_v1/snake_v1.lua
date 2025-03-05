@@ -260,21 +260,21 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("games/snake-game.mp3")
-    CAudio.PlaySync("voices/snake-guide.mp3")
+    CAudio.PlayVoicesSync("snake/snake-game.mp3")
+    CAudio.PlayVoicesSync("snake/snake-guide.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudio.PlaySync("voices/choose-color.mp3")
+        CAudio.PlayVoicesSync("choose-color.mp3")
     end
 
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     elseif not tGame.NewStart then
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 
     if (tGame.NewStart and #tGame.StartPositions == 1) then
-        CAudio.PlaySync("press-center-for-start.mp3")
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
 end
 
@@ -306,7 +306,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
     iGameState = GAMESTATE_GAME
 
@@ -362,7 +362,7 @@ CGameMode.PlayerClickPixel = function(iPixelID)
 
     local iPlayerID = CGameMode.tPixels[iPixelID].iPlayerID
 
-    CAudio.PlayAsync(CAudio.CLICK)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
 
     tGameResults.Score = tGameResults.Score + tGameStats.TargetScore - tGameStats.Players[6].Score
 
@@ -424,10 +424,10 @@ CGameMode.EndGame = function(bVictory)
             CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         end
 
-        CAudio.PlaySync(CAudio.VICTORY)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
     else
-        CAudio.PlaySync(CAudio.DEFEAT)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
     end
 
@@ -665,7 +665,7 @@ CSnake.SnakeCollectPixel = function(iPixelID)
     CGameMode.tPixels[iPixelID] = {}
     CGameMode.PlacePixelForPlayer(iPlayerID)    
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     if not tConfig.FixedSnakeSize then
         CSnake.iLength = CSnake.iLength + 1
@@ -681,7 +681,7 @@ CSnake.PlayerStepOnSnake = function()
     if CSnake.bStepedOn then return; end
     CSnake.bStepedOn = true
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     if tConfig.SnakeDamagePlayerOnStep then
         CSnake.DamagePlayer()
