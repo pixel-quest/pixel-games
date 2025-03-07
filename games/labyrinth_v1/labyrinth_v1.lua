@@ -106,8 +106,8 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
-    CAudio.PlaySync("games/labyrinth.mp3")
-    CAudio.PlaySync("press-center-for-start.mp3")
+    CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 function NextTick()
@@ -233,7 +233,7 @@ end
 CGameMode.StartGame = function()
     iGameState = GAMESTATE_GAME
 
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
 
     AL.NewTimer(1000, function()
         if iGameState == GAMESTATE_GAME then
@@ -268,7 +268,7 @@ CGameMode.EndRound = function()
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.Victory()
     else
-        CAudio.PlaySync(CAudio.STAGE_DONE)
+        CAudio.PlaySystemSync(CAudio.STAGE_DONE)
         CGameMode.iRound = CGameMode.iRound + 1
         tGameStats.StageNum = CGameMode.iRound
 
@@ -288,8 +288,8 @@ CGameMode.PreloadMap = function()
 end
 
 CGameMode.Victory = function()
-    CAudio.PlaySync(CAudio.GAME_SUCCESS)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
     CGameMode.bVictory = true
     iGameState = GAMESTATE_POSTGAME
 
@@ -306,8 +306,8 @@ end
 
 CGameMode.Defeat = function()
     CAudio.StopBackground()
-    CAudio.PlaySync(CAudio.GAME_OVER)
-    CAudio.PlaySync(CAudio.DEFEAT)
+    CAudio.PlaySystemSync(CAudio.GAME_OVER)
+    CAudio.PlayVoicesSync(CAudio.DEFEAT)
     CGameMode.bVictory = false
     iGameState = GAMESTATE_POSTGAME
 
@@ -331,7 +331,7 @@ CGameMode.RoundScoreAdd = function(iScore)
         CGameMode.EndRound()
     end
 
-    CAudio.PlayAsync(CAudio.CLICK);
+    CAudio.PlaySystemAsync(CAudio.CLICK);
 end
 
 CGameMode.PlayerTouchedLava = function()
@@ -343,7 +343,7 @@ CGameMode.PlayerTouchedLava = function()
         CGameMode.Defeat()
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK);
+    CAudio.PlaySystemAsync(CAudio.MISCLICK);
 end
 --//
 
@@ -755,7 +755,7 @@ end
 CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
     if not CUnits.tUnits[iUnitID].bCanDamage then return; end
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     tGameStats.CurrentLives = tGameStats.CurrentLives - iHealthPenalty
 

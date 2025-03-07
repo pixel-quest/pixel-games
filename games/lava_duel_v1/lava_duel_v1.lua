@@ -112,10 +112,10 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 6 * tConfig.RoundCount
     tGameStats.TotalStages = tConfig.RoundCount
 
-    CAudio.PlaySync("voices/choose-color.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
     
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
 
         iPrevTickTime = CTime.unix()
         AL.NewTimer(5000, function()
@@ -274,7 +274,7 @@ CGameMode.CountDownNextRound = function()
 
     --tGameStats.TargetScore = iPlayerCount * tConfig.RoundCount
 
-    CAudio.PlaySyncFromScratch("voices/zone-edge.mp3")
+    CAudio.PlayVoicesSyncFromScratch("quest/zone-edge.mp3")
 
     AL.NewTimer(6000, function()
         CAudio.PlaySyncFromScratch("")
@@ -287,7 +287,7 @@ CGameMode.CountDownNextRound = function()
 
             if bFirstRound then
                 bFirstRound = false
-                CAudio.PlaySync(CAudio.START_GAME)
+                CAudio.PlayVoicesSync(CAudio.START_GAME)
             end
 
             return nil
@@ -329,7 +329,7 @@ CGameMode.PlayerFinished = function(iPlayerID)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iAddScore
 
-    CAudio.PlayAsync(CAudio.STAGE_DONE)  
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
     if CGameMode.iPlayersFinished >= iPlayerCount then
         CGameMode.EndRound()
@@ -366,7 +366,7 @@ CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
@@ -385,7 +385,7 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
     if CGameMode.tPlayersCoinCollected[iPlayerID] == nil then CGameMode.tPlayersCoinCollected[iPlayerID] = 0 end
     CGameMode.tPlayersCoinCollected[iPlayerID] = CGameMode.tPlayersCoinCollected[iPlayerID] + 1
 
-    CAudio.PlayAsync(CAudio.CLICK);
+    CAudio.PlaySystemAsync(CAudio.CLICK);
 
     if CGameMode.tPlayersCoinCollected[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinished(iPlayerID)
@@ -399,13 +399,12 @@ CGameMode.PlayerTouchedLava = function(iPlayerID, iX, iY)
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + tConfig.LavaScorePenalty
     end
 
-    CAudio.PlayAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     CGameMode.tPlayerLavaCD[iPlayerID] = true
     AL.NewTimer(250, function()
         CGameMode.tPlayerLavaCD[iPlayerID] = false
     end)
-
     return true;
 end
 --//

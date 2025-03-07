@@ -230,16 +230,16 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlaySync("voice_pixel_battle.mp3")
+    CAudio.PlayVoicesSync("pixel-battle/voice_pixel_battle.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudio.PlaySync("voices/choose-color.mp3")
+        CAudiVoicesSync("choose-color.mp3")
     end
 
     if tGame.ArenaMode then 
-        CAudio.PlaySync("press-zone-for-start.mp3")
+        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
-        CAudio.PlaySync("voices/press-button-for-start.mp3")
+        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 end
 
@@ -274,7 +274,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
     CGameMode.GameLoop()
 end
@@ -345,7 +345,7 @@ CGameMode.PlayerCollectCoin = function(iPlayerID, iX, iY)
     tFloor[iX][iY].iCoinPlayerID = 0
 
     if not CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) then
-        CAudio.PlayAsync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
         CGameMode.PlayerAddScore(iPlayerID, tConfig.PixelPoints)
         CPaint.AnimatePixelDrop(iX, iY, -1, tGameStats.Players[iPlayerID].Color, tGame.StartPositions[iPlayerID].X)
     end
@@ -360,7 +360,7 @@ CGameMode.EndGame = function(iWinnerID)
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     SetGlobalColorBright(tGameStats.Players[iWinnerID].Color, tConfig.Bright)
     tGameResults.Color = tGame.StartPositions[iWinnerID].Color

@@ -114,10 +114,10 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.bOneAxisMoveMode = tGame.OneAxisMoveMode
 
-    CAudio.PlaySync("games/huarong.mp3")
-    CAudio.PlaySync("voices/huarong-guide.mp3")
-    CAudio.PlaySync("voices/choose-color.mp3")
-    CAudio.PlaySync("voices/press-button-for-start.mp3")    
+    CAudio.PlayVoicesSync("huarong/huarong.mp3")
+    CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
+    CAudio.PlayVoicesSync("press-button-for-start.mp3")
 end
 
 function NextTick()
@@ -244,7 +244,7 @@ end
 CGameMode.StartGame = function()
     iGameState = GAMESTATE_GAME
 
-    CAudio.PlaySync(CAudio.START_GAME)
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
     
     CPieces.Init()
@@ -309,7 +309,7 @@ CGameMode.EndGame = function(iPlayerID)
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
