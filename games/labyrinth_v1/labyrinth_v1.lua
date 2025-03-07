@@ -610,6 +610,8 @@ CUnits.tUnitStruct = {
     tPath = {},
     iStep = 2,
     iCantMove = 0,
+    iDestFindAttempt = 0,
+    bDeadStuck = false
 }
 
 CUnits.NewUnit = function(iX, iY)
@@ -640,9 +642,17 @@ CUnits.RandomDestinationForUnit = function(iUnitID)
 
     CUnits.tUnits[iUnitID].tPath = CPath.Path(tStartBlock, tGoalBlock, CBlock.tBlockList)
     if CUnits.tUnits[iUnitID].tPath == nil then
+        CUnits.tUnits[iUnitID].iDestFindAttempt = CUnits.tUnits[iUnitID].iDestFindAttempt + 1
+        if CUnits.tUnits[iUnitID].iDestFindAttempt > 15 then
+            CUnits.tUnits[iUnitID].bDeadStuck = true
+            return;
+        end
+
         CUnits.RandomDestinationForUnit(iUnitID)
         return;
     end
+
+    CUnits.tUnits[iUnitID].iDestFindAttempt = 0
 end
 
 CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
@@ -663,7 +673,7 @@ end
 
 CUnits.ProcessUnits = function()
     for iUnitID = 1, #CUnits.tUnits do
-        if CUnits.tUnits[iUnitID] then
+        if CUnits.tUnits[iUnitID] and not CUnits.tUnits[iUnitID].bDeadStuck then
             CUnits.UnitThink(iUnitID)
         end
     end
