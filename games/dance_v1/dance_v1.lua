@@ -126,7 +126,7 @@ function StartGame(gameJson, gameConfigJson)
         end    
     end
 
-    local err = CAudio.PreloadFile(tGame["SongName"])
+    local err = CAudio.PreloadFile("audio_v2/"..tGame["SongName"])
     if err ~= nil then error(err); end
 
     CAudio.PlayVoicesSync("choose-color.mp3")
