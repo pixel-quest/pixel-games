@@ -248,6 +248,7 @@ CGameMode.tPlayersCoinCollected = {}
 CGameMode.iMapCoinCount = 0
 CGameMode.bArenaCanStart = false
 CGameMode.bCountdownStarted = false
+CGameMode.tPlayerLavaCD = {}
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
@@ -392,13 +393,18 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
 end
 
 CGameMode.PlayerTouchedLava = function(iPlayerID, iX, iY)
-    if CGameMode.tPlayerFinished[iPlayerID] or not CGameMode.bRoundStarted then return false; end
+    if CGameMode.tPlayerFinished[iPlayerID] or not CGameMode.bRoundStarted or CGameMode.tPlayerLavaCD[iPlayerID] then return false; end
 
     if tGameStats.Players[iPlayerID].Score > 0 then
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + tConfig.LavaScorePenalty
     end
 
     CAudio.PlaySystemAsync(CAudio.MISCLICK)
+
+    CGameMode.tPlayerLavaCD[iPlayerID] = true
+    AL.NewTimer(250, function()
+        CGameMode.tPlayerLavaCD[iPlayerID] = false
+    end)
     return true;
 end
 --//
