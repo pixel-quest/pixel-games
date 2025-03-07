@@ -120,6 +120,10 @@ function StartGame(gameJson, gameConfigJson)
 
     if tGame.StartPositions == nil then
         SetupPlayerPositions()
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end    
     end
 
     local err = CAudio.PreloadFile(tGame["SongName"])
@@ -225,7 +229,7 @@ function TutorialTick()
                     local bArenaClick = false
                     for iX = iCenterX, iCenterX+1 do
                         for iY = iCenterY, iCenterY+1 do
-                            tFloor[iX][iY].iColor = 5
+                            tFloor[iX][iY].iColor = CColors.MAGENTA
                             tFloor[iX][iY].iBright = tConfig.Bright
 
                             if tArenaPlayerReady[iPos] then
