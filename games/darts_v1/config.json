@@ -1,0 +1,15 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"RoundCount": 3,
+  	"RoundCount_Min": 2,
+  	"RoundCount_Max": 6,
+  	"RoundCount_Step": 1,
+  	"RoundCount_Ru": "Количество бросков",
+  	"RoundCount_En": "Throw count"
+  	    	
+}
