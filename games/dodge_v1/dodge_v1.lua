@@ -534,7 +534,7 @@ CEffect.SpecialEndingPaintCoins = function()
 end
 
 CEffect.SpecialEndingCollectCoin = function(iCoinId, iX, iY)
-    if CEffect.tCurrentEffectData.tCoins[iCoinId] == nil then return end
+    if CEffect.tCurrentEffectData.tCoins == nil or CEffect.tCurrentEffectData.tCoins[iCoinId] == nil then return end
 
     CEffect.tCurrentEffectData.tCoins[iCoinId] = nil
 
