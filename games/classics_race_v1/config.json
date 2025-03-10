@@ -12,6 +12,13 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
+  "TeamCount": 2,
+  "TeamCount_Min": 2,
+  "TeamCount_Max": 4,
+  "TeamCount_Step": 1,
+  "TeamCount_ru": "Количество команд",
+  "TeamCount_en": "Team Count",
+
   "AutoStart": true,
   "AutoStart_ru": "Автозапуск при всех занятых позициях",
   "AutoStart_en": "Autostart on all positions occupied",

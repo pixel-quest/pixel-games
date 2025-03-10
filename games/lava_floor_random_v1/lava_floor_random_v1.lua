@@ -352,7 +352,7 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.PlayerCollectCoin = function()
-    CAudiSystemAsync(CAudio.CLICK)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
 
     CGameMode.iMapCoinCollected = CGameMode.iMapCoinCollected + 1
     tGameStats.Players[1].Score = tGameStats.Players[1].Score + 1
@@ -1594,7 +1594,7 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 

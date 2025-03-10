@@ -653,18 +653,22 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect then
-        CField.PixelCapture(click.X, click.Y, 1)
+        if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect then
+            CField.PixelCapture(click.X, click.Y, 1)
+        end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
-    
-    CField.DefectPixelInGame(defect.X, defect.Y)
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+        
+        CField.DefectPixelInGame(defect.X, defect.Y)
+    end
 end
 
 function ButtonClick(click)

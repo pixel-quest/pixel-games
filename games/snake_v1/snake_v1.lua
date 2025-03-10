@@ -97,6 +97,13 @@ local tArenaPlayerReady = {}
 local bAnyButtonClick = false
 local bCountDownStarted = false
 
+local tTeamColors = {}
+tTeamColors[1] = CColors.GREEN
+tTeamColors[2] = CColors.YELLOW
+tTeamColors[3] = CColors.MAGENTA
+tTeamColors[4] = CColors.BLUE
+tTeamColors[5] = CColors.CYAN
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -112,8 +119,33 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    if tGame.StartPositions == nil then
+        tGame.StartPositions = {}
+        local iX = 1
+        local iY = 1
+
+        if not tGame.TeamCount or tGame.TeamCount == 1 then
+            tGame.TeamCount = 1
+            iX = math.floor(tGame.Cols/2.5)
+            iY = math.floor(tGame.Rows/3)
+        end
+
+        for iPlayerID = 1, tGame.TeamCount do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+            iX = iX + tGame.StartPositionSizeX + 2
+            if iX > tGame.Cols-tGame.StartPositionSizeX then
+                iX = 1
+                iY = iY + tGame.StartPositionSizeX + 1
+            end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -1072,7 +1104,7 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
@@ -1099,15 +1131,17 @@ function PixelClick(click)
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and tFloor[defect.X][defect.Y].iPixelID ~= 0 then
-        CGameMode.PlayerClickPixel(tFloor[defect.X][defect.Y].iPixelID)
+        if defect.Defect and tFloor[defect.X][defect.Y].iPixelID ~= 0 then
+            CGameMode.PlayerClickPixel(tFloor[defect.X][defect.Y].iPixelID)
+        end
     end
 end
 
 function ButtonClick(click)
-    if click.GamepadAddress and click.GamepadAddress > 0 then
+    if click.GamepadAddress and click.GamepadAddress > 0 and not bGamePaused then
         CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
         if tButtons[click.Button] == nil then return end

@@ -89,6 +89,12 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tTeamColor = {}
+tTeamColor[1] = CColors.YELLOW
+tTeamColor[2] = CColors.MAGENTA
+tTeamColor[3] = CColors.CYAN
+tTeamColor[4] = CColors.GREEN
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -104,11 +110,23 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    tGame.StartPositions = {}
+    tGame.StartPositionSizeX = math.floor(tGame.Cols*0.8)
+    tGame.StartPositionSizeY = 3
 
-        tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
-        CGameMode.tPlayerCanFinish[iPlayerID] = true
+    local iY = 2
+    for iPlayerID = 1, tConfig.TeamCount do
+        if iY <= tGame.Rows-tGame.StartPositionSizeY then
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = math.floor(tGame.Cols/10)+1
+            tGame.StartPositions[iPlayerID].Y = iY
+
+            iY = iY + tGame.StartPositionSizeY+2
+
+            tGame.StartPositions[iPlayerID].Color = tTeamColor[iPlayerID]
+            tGameStats.Players[iPlayerID].Color = tTeamColor[iPlayerID]
+            CGameMode.tPlayerCanFinish[iPlayerID] = true
+        end
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -770,10 +788,11 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if not bGamePaused and tFloor[click.X] and tFloor[click.X][click.Y] then
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true

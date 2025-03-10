@@ -101,9 +101,18 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    tGame.StartPositionSizeX = 3
+
+    local iX = math.floor(tGame.Cols/2) - (tGame.StartPositionSizeX*2)
     for iPlayerID = 1, #tGame.StartPositions do
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+
+        if not tGame.ArenaMode then
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = math.floor(tGame.Rows/3)
+            iX = iX + (tGame.StartPositionSizeX*4)-1
+        end
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -670,24 +679,29 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
-        if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
-            CBlock.RegisterBlockClick(click.X, click.Y)
+        if click.Click and iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
+            if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
+                CBlock.RegisterBlockClick(click.X, click.Y)
+            end
         end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
+            CBlock.RegisterBlockClick(defect.X, defect.Y)
+        end
     end
 end
 

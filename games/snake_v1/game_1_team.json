@@ -26,13 +26,7 @@
 
   "NewStart": true,
 
-  "StartPositions": [
-    {
-      "X": 9,
-      "Y": 5,
-      "Color": "0x00FF00"
-    }
-  ],
-  "StartPositionSizeX": 7,
-  "StartPositionSizeY": 7
+  "TeamCount": 1, 
+  "StartPositionSizeX": 6,
+  "StartPositionSizeY": 6
 }

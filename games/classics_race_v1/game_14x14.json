@@ -2,19 +2,5 @@
   "Cols": 14,
   "Rows": 14,
   "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 38, 42, 46, 50, 54],  
-  "StartPositions": [
-    {
-      "X": 2,
-      "Y": 3,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 2,
-      "Y": 9,
-      "Color": "0xFF00FF"
-    }
-  ],
-  "StartPositionSizeX": 11,
-  "StartPositionSizeY": 3,
   "Direction": "left"
 }

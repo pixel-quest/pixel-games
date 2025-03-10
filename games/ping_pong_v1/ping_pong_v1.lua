@@ -62,8 +62,8 @@ local tGameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = {
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.RED },
+        { Score = 0, Lives = 0, Color = CColors.BLUE },
     },
     TargetScore = 0,
     StageNum = 0,
@@ -98,6 +98,8 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local bGamePaused = false
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -118,8 +120,17 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    tGame.StartPositions = {}
+    tGame.StartPositionSize = 2
+    for iPlayerID = 1, 2 do
+        tGame.StartPositions[iPlayerID] = {}
+        if iPlayerID == 1 then
+            tGame.StartPositions[iPlayerID].X = 1 + tGame.StartPositionSize
+        elseif iPlayerID == 2 then
+            tGame.StartPositions[iPlayerID].X = tGame.Cols - tGame.StartPositionSize - 1
+        end
+        tGame.StartPositions[iPlayerID].Y = math.ceil(tGame.Rows/2)
+        tGame.StartPositions[iPlayerID].Color = tGameStats.Players[iPlayerID].Color
     end    
 
     CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
@@ -614,14 +625,16 @@ function GetStats()
 end
 
 function PauseGame()
+    bGamePaused = true
 end
 
 function ResumeGame()
+    bGamePaused = false
     iPrevTickTime = CTime.unix()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
@@ -648,7 +661,7 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if click.GamepadAddress and click.GamepadAddress > 0 then
+    if click.GamepadAddress and click.GamepadAddress > 0 and not bGamePaused then
         CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
         if tButtons[click.Button] == nil then return; end

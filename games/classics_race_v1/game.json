@@ -24,19 +24,5 @@
     73,
     77
   ],
-  "StartPositions": [
-    {
-      "X": 3,
-      "Y": 3,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 3,
-      "Y": 11,
-      "Color": "0xFF00FF"
-    }
-  ],
-  "StartPositionSizeX": 19,
-  "StartPositionSizeY": 3,
   "Direction": "left"
 }
