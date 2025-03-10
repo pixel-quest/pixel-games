@@ -1072,7 +1072,7 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
@@ -1099,15 +1099,17 @@ function PixelClick(click)
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and tFloor[defect.X][defect.Y].iPixelID ~= 0 then
-        CGameMode.PlayerClickPixel(tFloor[defect.X][defect.Y].iPixelID)
+        if defect.Defect and tFloor[defect.X][defect.Y].iPixelID ~= 0 then
+            CGameMode.PlayerClickPixel(tFloor[defect.X][defect.Y].iPixelID)
+        end
     end
 end
 
 function ButtonClick(click)
-    if click.GamepadAddress and click.GamepadAddress > 0 then
+    if click.GamepadAddress and click.GamepadAddress > 0 and not bGamePaused then
         CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
         if tButtons[click.Button] == nil then return end
