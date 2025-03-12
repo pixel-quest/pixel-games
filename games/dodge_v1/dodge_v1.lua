@@ -99,6 +99,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
@@ -207,9 +209,9 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("dodge/dodge_rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 
-    --AL.NewTimer((CAudio.GetAudioDuration("dodge/dodge_gamename.mp3")+CAudio.GetAudioDuration("dodge/dodge_rules.mp3"))*1000, function()
+    AL.NewTimer((CAudio.GetVoicesDuration("dodge/dodge_gamename.mp3")+CAudio.GetVoicesDuration("dodge/dodge_rules.mp3"))*1000, function()
         CGameMode.bCanStart = true
-    --end)
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
