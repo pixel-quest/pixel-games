@@ -145,6 +145,11 @@ function GameSetupTick()
     end
 
     if bAnyButtonClick then
+        if not CGameMode.bCanStart then
+            bAnyButtonClick = false
+            return;
+        end
+
         CAudio.PlaySyncFromScratch("")
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME
@@ -181,6 +186,7 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 CGameMode.bDamageCooldown = false
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     if not tConfig.EliminationMode then
@@ -200,6 +206,10 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("dodge/dodge_gamename.mp3")
     CAudio.PlayVoicesSync("dodge/dodge_rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
+
+    --AL.NewTimer((CAudio.GetAudioDuration("dodge/dodge_gamename.mp3")+CAudio.GetAudioDuration("dodge/dodge_rules.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    --end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -1739,7 +1749,12 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
