@@ -734,7 +734,12 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if not tFloor[click.X] or not tFloor[click.X][click.Y] or bGamePaused then return; end
+    if not tFloor[click.X] or not tFloor[click.X][click.Y] then return; end  
+
+    if bGamePaused then
+        tFloor[click.X][click.Y].bClick = false
+        return;
+    end
 
     if iGameState == GAMESTATE_SETUP then
         if click.Click then
