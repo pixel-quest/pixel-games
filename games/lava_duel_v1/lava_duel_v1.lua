@@ -116,7 +116,7 @@ function StartGame(gameJson, gameConfigJson)
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
-        local iOffset = math.floor(tGame.Cols/20)
+        local iOffset = 1
         local iX = iOffset
         local iY = 2
 
