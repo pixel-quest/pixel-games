@@ -90,6 +90,14 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tTeamColors = {}
+tTeamColors[1] = CColors.MAGENTA
+tTeamColors[2] = CColors.YELLOW
+tTeamColors[3] = CColors.CYAN
+tTeamColors[4] = CColors.BLUE
+tTeamColors[5] = CColors.RED
+tTeamColors[6] = CColors.WHITE
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -105,8 +113,27 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    iPrevTickTime = CTime.unix()
+
+    if not tGame.StartPositions then
+        tGame.StartPositions = {}
+
+        local iX = 2
+        local iY = 1
+
+        for iPlayerID = 1, 6 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+            iX = iX + 2 + tGame.StartPositionSizeX
+            if iX + tGame.StartPositionSizeX > tGame.Cols then break; end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end
     end   
 
     CGameMode.InitGameMode()
@@ -168,6 +195,11 @@ function GameSetupTick()
         end
 
         if bAnyButtonClick or (tGame.NewStart and iPlayersReady == #tGame.StartPositions) then
+            if not CGameMode.bCanStart then
+                bAnyButtonClick = false
+                return;
+            end
+
             tGameResults.PlayersCount = iPlayersReady
             CGameMode.iRealPlayerCount = iPlayersReady
             iGameState = GAMESTATE_GAME
@@ -215,6 +247,7 @@ CGameMode.tPlayerLost = {}
 CGameMode.tPlayerSeed = {}
 CGameMode.iMoveDownTickRate = 1
 CGameMode.bVerticalGame = true
+CGameMode.bCanStart = false
 
 CGameMode.iRealPlayerCount = 0
 CGameMode.iPlayerLostCount = 0
@@ -234,6 +267,10 @@ CGameMode.Announcer = function()
     if not tGame.NewStart then
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end   
+
+    AL.NewTimer((CAudio.GetVoicesDuration("tetris/tetris_intro_voice.mp3")*1000) or 5000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
