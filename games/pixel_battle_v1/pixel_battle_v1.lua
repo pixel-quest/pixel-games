@@ -233,7 +233,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("pixel-battle/voice_pixel_battle.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudiVoicesSync("choose-color.mp3")
+        CAudio.PlayVoicesSync("choose-color.mp3")
     end
 
     if tGame.ArenaMode then 
@@ -528,6 +528,11 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
