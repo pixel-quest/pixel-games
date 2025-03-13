@@ -1587,25 +1587,36 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
 
-    if click.Click and not tFloor[click.X][click.Y].bDefect then
-        if iGameState == GAMESTATE_GAME and not CWorld.bPlayerActionsPaused then
-            if tFloor[click.X][click.Y].iUnitID > 0 then
-                CUnits.PlayerAttackUnit(tFloor[click.X][click.Y].iUnitID)
-            elseif tFloor[click.X][click.Y].iBlockType == CWorld.BLOCK_TYPE_BONUS then
-                CGameMode.PlayerTakeBonus(CCamera.CamPosToWorldPos(click.X, click.Y))
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
+        if click.Click and not tFloor[click.X][click.Y].bDefect then
+            if iGameState == GAMESTATE_GAME and not CWorld.bPlayerActionsPaused then
+                if tFloor[click.X][click.Y].iUnitID > 0 then
+                    CUnits.PlayerAttackUnit(tFloor[click.X][click.Y].iUnitID)
+                elseif tFloor[click.X][click.Y].iBlockType == CWorld.BLOCK_TYPE_BONUS then
+                    CGameMode.PlayerTakeBonus(CCamera.CamPosToWorldPos(click.X, click.Y))
+                end
             end
         end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)
+    if bGamePaused then return; end
+
     if click.GamepadAddress and click.GamepadAddress > 0 then
         CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
