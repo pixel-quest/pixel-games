@@ -265,6 +265,11 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+        
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
