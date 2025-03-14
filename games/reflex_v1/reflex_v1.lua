@@ -89,6 +89,14 @@ local tButtonStruct = {
 
 local tArenaPlayerReady = {}
 
+local tTeamColors = {}
+tTeamColors[1] = CColors.RED
+tTeamColors[2] = CColors.BLUE
+tTeamColors[3] = CColors.MAGENTA
+tTeamColors[4] = CColors.CYAN
+tTeamColors[5] = CColors.GREEN
+tTeamColors[6] = CColors.YELLOW
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -104,9 +112,38 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end  
+    iPrevTickTime = CTime.unix()
+
+    if tGame.StartPositions == nil then
+        tGame.StartPositions = {}
+        tGame.PreviewHeight = math.floor(tGame.Cols/10)
+        tGame.PreviewY = math.floor(tGame.Rows/2)
+
+        local iX = 2
+        local iY = 1
+        local iPixelsY = tGame.StartPositionSizeY-tGame.PreviewHeight
+
+        for iPlayerID = 1, 6 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+            tGame.StartPositions[iPlayerID].PixelsY = iY + iPixelsY
+
+            iX = iX + tGame.StartPositionSizeX + math.floor(tGame.StartPositionSizeX/3)
+            if iX + tGame.StartPositionSizeX > tGame.Cols then
+                iX = 2
+                iY = tGame.Rows - tGame.StartPositionSizeY
+                iPixelsY = 0
+
+                if iY + tGame.StartPositionSizeY > tGame.Rows then break; end
+            end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end   
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()
@@ -173,7 +210,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
                         if tArenaPlayerReady[iPos] then
                             tFloor[iX][iY].iBright = tConfig.Bright+2
                         end
@@ -195,12 +232,21 @@ function GameSetupTick()
     end
 
     if tGame.NewStart or bAnyButtonClick then
+        if not CGameMode.bCanStart then 
+            bAnyButtonClick = false
+            return;
+        end
+
         if iPlayersReady > 0 and not CGameMode.bCountDownStarted then
             CGameMode.iPlayerCount = iPlayersReady
             tGameResults.PlayersCount = iPlayersReady
             CGameMode.StartCountDown(9)
         end
     end
+
+    if CGameMode.bCountDownStarted then
+        tGameResults.PlayersCount = iPlayersReady
+    end    
 end
 
 function GameTick()
@@ -261,6 +307,8 @@ CGameMode.tColors[5] = CColors.MAGENTA
 CGameMode.tColors[6] = CColors.CYAN
 CGameMode.tColors[7] = CColors.WHITE
 
+CGameMode.bCanStart = false
+
 CGameMode.InitGameMode = function()
     tGameStats.TotalStages = tConfig.RoundCount
 end
@@ -275,6 +323,12 @@ CGameMode.Announcer = function()
     elseif not tGame.NewStart then
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
+
+    CLog.print(CAudio.GetVoicesDuration("reflex/reflex_guide.mp3"))
+
+    AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

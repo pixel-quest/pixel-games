@@ -2,49 +2,9 @@
   "Cols": 24,
   "Rows": 15,
   "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
-  "PreviewY": 8,
-  "PreviewHeight": 2,
 
-  "NewStart": false,
+  "NewStart": true,
 
-  "StartPositions": [
-    {
-      "X": 2,
-      "Y": 2,
-      "Color": "0xFF0000",
-      "PixelsY": 5
-    },
-    {
-      "X": 10,
-      "Y": 2,
-      "Color": "0x00FF00",
-      "PixelsY": 5
-    },
-    {
-      "X": 18,
-      "Y": 2,
-      "Color": "0xFFFF00",
-      "PixelsY": 5
-    },
-    {
-      "X": 10,
-      "Y": 11,
-      "Color": "0x0000FF",
-      "PixelsY": 11
-    },
-    {
-      "X": 2,
-      "Y": 11,
-      "Color": "0xFF00FF",
-      "PixelsY": 11
-    },
-    {
-      "X": 18,
-      "Y": 11,
-      "Color": "0x00FFFF",
-      "PixelsY": 11
-    }
-  ],
   "StartPositionSizeX": 6,
   "StartPositionSizeY": 5  
 }
