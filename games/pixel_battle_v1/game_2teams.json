@@ -3,18 +3,5 @@
   "Rows": 15,
   "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
 
-  "StartPositions": [
-    {
-      "X": 1,
-      "Y": 1,
-      "Color": "0x00FF00"
-    },
-    {
-      "X": 1,
-      "Y": 9,
-      "Color": "0xFFFF00"
-    }
-  ],
-  "StartPositionSizeX": 24,
-  "StartPositionSizeY": 7  
+  "PlayerCount": 2
 }
