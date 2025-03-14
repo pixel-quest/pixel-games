@@ -104,6 +104,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
