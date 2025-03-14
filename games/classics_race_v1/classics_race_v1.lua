@@ -129,6 +129,10 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
+    if tConfig.TeamCount == 2 then
+        tGame.StartPositions[2].Y = tGame.Rows - tGame.StartPositionSizeY
+    end
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
