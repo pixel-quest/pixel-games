@@ -209,7 +209,8 @@ end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesFromScratch(audio.START_GAME)
+    StageStartTime = time.unix()
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -246,7 +247,7 @@ function NextTick()
 
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        FloorMatrix[iX][iY].Color = 5
+                        FloorMatrix[iX][iY].Color = colors.MAGENTA
                         if tArenaPlayerReady[positionIndex] then
                             FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
                         end
