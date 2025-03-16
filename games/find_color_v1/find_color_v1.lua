@@ -238,7 +238,7 @@ function NextTick()
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
 
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (not bDisPos and PlayerInGame[positionIndex]) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (not bDisPos and PlayerInGame[positionIndex]) or (PlayerInGame[positionIndex] and CountDownStarted) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true
