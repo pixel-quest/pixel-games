@@ -166,6 +166,8 @@ tColors[5] = colors.CYAN
 tColors[6] = colors.BLUE
 tColors[7] = colors.WHITE
 
+local bGamePaused = false
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson) -- старт игры
     GameObj = json.decode(gameJson)
@@ -207,11 +209,14 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
     audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    StageStartTime = time.unix()
+    bGamePaused = false
     audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
@@ -346,6 +351,11 @@ function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = click.Click
     if GameStats.StageNum < CONST_STAGE_GAME then
         return -- игнорируем клики вне этапа игры
+    end
+
+    if bGamePaused then 
+        FloorMatrix[click.X][click.Y].Click = false
+        return;
     end
 
     -- Если есть игрок с таким цветом, засчитываем очки
