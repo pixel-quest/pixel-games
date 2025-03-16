@@ -212,6 +212,7 @@ end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    StageStartTime = time.unix()
     audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
