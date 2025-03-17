@@ -95,6 +95,14 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tColors = {}
+tColors[1] = CColors.RED
+tColors[2] = CColors.YELLOW
+tColors[3] = CColors.MAGENTA
+tColors[4] = CColors.BLUE
+tColors[5] = CColors.CYAN
+tColors[6] = CColors.GREEN
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -110,9 +118,28 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end    
+    if tGame.StartPositions == nil then
+        tGame.StartPositionSizeX = 4
+        tGame.StartPositionSizeY = tGame.Rows-1
+        tGame.StartPositions = {}
+
+        local iX = 1
+        local iY = 2
+
+        for iPlayerID = 1, 6 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
+
+            iX = iX + tGame.StartPositionSizeX + 1
+            if iX + tGame.StartPositionSizeX - 1 > tGame.Cols then break; end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end   
 
     tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
