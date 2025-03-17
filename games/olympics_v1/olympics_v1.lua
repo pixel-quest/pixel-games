@@ -676,7 +676,7 @@ CGameMode.LavaGetColorFromY = function(iY, iPlayerID)
 end
 
 CGameMode.LavaIsLavaY = function(iY, iPlayerID)
-    if iPlayerID ~= nil and CGameMode.GetStartY(iPlayerID) == iY then return false end
+    if iPlayerID ~= nil and (CGameMode.GetStartY(iPlayerID) == iY or CGameMode.PlayerData[iPlayerID].iFinishY == iY or CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY) == iY) then return false end
 
     return iY % 3 ~= 0
 end
@@ -694,6 +694,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
             CGameMode.PlayerFinished(iPlayerID)
         else
             CAudio.PlaySystemAsync(CAudio.CLICK)
+            CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
     elseif CGameMode.LavaIsLavaY(iY, iPlayerID) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
@@ -705,8 +706,6 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
 end
 
 CGameMode.LavaGetNewFinishForPlayer = function(iPlayerID, iFinishY)
-    CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
-
     if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
         return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
     end
