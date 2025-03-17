@@ -177,18 +177,9 @@
     77
   ],
 
-  "StartPositions": [
-    {
-      "X": 2,
-      "Y": 2,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 13,
-      "Y": 2,
-      "Color": "0x00FFFF"
-    }    
-  ],
   "StartPositionSizeX": 10,
-  "StartPositionSizeY": 13
+  "StartPositionSizeY": 13,
+
+  "SPAutoOffsetX": 2,
+  "SPAutoOffsetY": 2
 }

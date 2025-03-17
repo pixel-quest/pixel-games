@@ -123,38 +123,9 @@
     77
   ],
 
-  "StartPositions": [
-    {
-      "X": 1,
-      "Y": 1,
-      "Color": "0x00FF00"
-    },
-    {
-      "X": 9,
-      "Y": 1,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 17,
-      "Y": 1,
-      "Color": "0x00FFFF"
-    },
-    {
-      "X": 1,
-      "Y": 10,
-      "Color": "0xFF00FF"
-    },
-    {
-      "X": 9,
-      "Y": 10,
-      "Color": "0xFFFFFF"
-    },
-    {
-      "X": 17,
-      "Y": 10,
-      "Color": "0x0000FF"
-    }
-  ],
   "StartPositionSizeX": 7,
-  "StartPositionSizeY": 6
+  "StartPositionSizeY": 6,
+
+  "SPAutoOffsetX": 1,
+  "SPAutoOffsetY": 2  
 }
