@@ -129,6 +129,10 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
+    if tConfig.TeamCount == 2 then
+        tGame.StartPositions[2].Y = tGame.Rows - tGame.StartPositionSizeY
+    end
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
@@ -792,7 +796,12 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if not bGamePaused and tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true

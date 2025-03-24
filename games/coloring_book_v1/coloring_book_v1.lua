@@ -116,6 +116,8 @@ local GradientLength = 0
 local GradientOffset = 0
 local LastChangesTimestamp = 0
 
+local bGamePaused = false
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -141,10 +143,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    bGamePaused = false
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -287,7 +291,7 @@ function SetLeftColor()
 end
 
 function PixelClick(click)
-    if click.Click == false or click.Weight < 3 then
+    if click.Click == false or click.Weight < 3 or bGamePaused then
         return
     end
     if time.unix() < FloorMatrix[click.X][click.Y].Click   + 1  then
@@ -331,7 +335,7 @@ end
 --      Click: bool,
 --  }
 function ButtonClick(click)
-    if click.Click == false then
+    if click.Click == false or bGamePaused then
         return
     end
     if time.unix() < ButtonsList[click.Button].Click + 1  then

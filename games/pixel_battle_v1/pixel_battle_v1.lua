@@ -81,6 +81,14 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tTeamColors = {}
+tTeamColors[1] = CColors.GREEN
+tTeamColors[2] = CColors.YELLOW
+tTeamColors[3] = CColors.MAGENTA
+tTeamColors[4] = CColors.CYAN
+tTeamColors[5] = CColors.BLUE
+tTeamColors[6] = CColors.WHITE
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -96,9 +104,37 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end    
+    iPrevTickTime = CTime.unix()
+
+    if tGame.StartPositions == nil then
+        tGame.StartPositions = {}
+        if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
+
+        tGame.StartPositionSizeX = math.floor(tGame.Cols/(tGame.PlayerCount/2))-1
+        tGame.StartPositionSizeY = math.floor(tGame.Rows/2)
+
+        local iX = 1
+        local iY = 1
+
+        for iPlayerID = 1, tGame.PlayerCount do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+            iY = iY + 1 + tGame.StartPositionSizeY
+            if iY + tGame.StartPositionSizeY-1 > tGame.Rows then
+                iY = 1
+                iX = iX + 1 + tGame.StartPositionSizeX
+
+                if iX + tGame.StartPositionSizeX-1 > tGame.Cols then break; end 
+            end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end   
 
     iPrevTickTime = CTime.unix()
     CGameMode.InitGameMode()
@@ -178,6 +214,9 @@ function GameSetupTick()
 
     if (iPlayersReady > 0 and (bAnyButtonClick or tConfig.AutoStartEnable and iPlayersReady == #tGame.StartPositions)) then
         bAnyButtonClick = false
+
+        if not CGameMode.bCanStartGame then return; end
+
         iGameState = GAMESTATE_GAME
         CGameMode.PrepareGame()
         CGameMode.StartCountDown(5)
@@ -217,6 +256,7 @@ CGameMode.iCountdown = 0
 CGameMode.iWinnerID = 0
 CGameMode.tPlayerFieldInfo = {}
 CGameMode.bArenaCanStart = false
+CGameMode.bCanStartGame = false
 
 CGameMode.InitGameMode = function()
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -233,7 +273,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("pixel-battle/voice_pixel_battle.mp3")
 
     if #tGame.StartPositions > 1 then
-        CAudiVoicesSync("choose-color.mp3")
+        CAudio.PlayVoicesSync("choose-color.mp3")
     end
 
     if tGame.ArenaMode then 
@@ -241,6 +281,10 @@ CGameMode.Announcer = function()
     else
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
+
+    AL.NewTimer(CAudio.GetVoicesDuration("pixel-battle/voice_pixel_battle.mp3")*1000, function()
+        CGameMode.bCanStartGame = true
+    end)
 end
 
 CGameMode.PrepareGame = function()
@@ -528,6 +572,11 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true

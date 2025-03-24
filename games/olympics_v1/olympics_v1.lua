@@ -95,6 +95,14 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tColors = {}
+tColors[1] = CColors.RED
+tColors[2] = CColors.YELLOW
+tColors[3] = CColors.MAGENTA
+tColors[4] = CColors.BLUE
+tColors[5] = CColors.CYAN
+tColors[6] = CColors.GREEN
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -110,9 +118,28 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end    
+    if tGame.StartPositions == nil then
+        tGame.StartPositionSizeX = 4
+        tGame.StartPositionSizeY = tGame.Rows-1
+        tGame.StartPositions = {}
+
+        local iX = 1
+        local iY = 2
+
+        for iPlayerID = 1, 6 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
+
+            iX = iX + tGame.StartPositionSizeX + 1
+            if iX + tGame.StartPositionSizeX - 1 > tGame.Cols then break; end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end   
 
     tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
@@ -649,7 +676,7 @@ CGameMode.LavaGetColorFromY = function(iY, iPlayerID)
 end
 
 CGameMode.LavaIsLavaY = function(iY, iPlayerID)
-    if iPlayerID ~= nil and CGameMode.GetStartY(iPlayerID) == iY then return false end
+    if iPlayerID ~= nil and (CGameMode.GetStartY(iPlayerID) == iY or CGameMode.PlayerData[iPlayerID].iFinishY == iY or CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY) == iY) then return false end
 
     return iY % 3 ~= 0
 end
@@ -667,6 +694,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
             CGameMode.PlayerFinished(iPlayerID)
         else
             CAudio.PlaySystemAsync(CAudio.CLICK)
+            CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
             CGameMode.PlayerData[iPlayerID].iFinishY = CGameMode.LavaGetNewFinishForPlayer(iPlayerID, CGameMode.PlayerData[iPlayerID].iFinishY)
         end
     elseif CGameMode.LavaIsLavaY(iY, iPlayerID) and not CGameMode.PlayerData[iPlayerID].tLavaYPressed[iY] then
@@ -678,8 +706,6 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LAVA_STRIPES] = function(iX, iY)
 end
 
 CGameMode.LavaGetNewFinishForPlayer = function(iPlayerID, iFinishY)
-    CGameMode.PlayerData[iPlayerID].tLavaYPressed = {}
-
     if iFinishY == tGame.StartPositions[iPlayerID].Y+1 then
         return tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1
     end
@@ -983,10 +1009,16 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()    
 end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true

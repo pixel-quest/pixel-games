@@ -280,7 +280,7 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.PreloadMap = function()
-    if tConfig.GenerateRandomMap and tGame.UnitSize == 1 then
+    if (tConfig.GenerateRandomMap or not tGame.Maps) and tGame.UnitSize == 1 then
         CMaps.LoadMap(CMaps.GenerateRandomMap())
     else
         CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
@@ -1131,28 +1131,38 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()    
 end
 
 function PixelClick(click)
-    tFloor[click.X][click.Y].bClick = click.Click
-    tFloor[click.X][click.Y].iWeight = click.Weight
-
-    if not bGamePaused and click.Click and iGameState == GAMESTATE_GAME then
-        if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
-            CBlock.RegisterBlockClick(click.X, click.Y)
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
         end
 
-        if tFloor[click.X][click.Y].iUnitID > 0 then
-            CUnits.UnitDamagePlayer(tFloor[click.X][click.Y].iUnitID, 1)
+        tFloor[click.X][click.Y].bClick = click.Click
+        tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if not bGamePaused and click.Click and iGameState == GAMESTATE_GAME then
+            if CBlock.tBlocks[click.X] and CBlock.tBlocks[click.X][click.Y] then
+                CBlock.RegisterBlockClick(click.X, click.Y)
+            end
+
+            if tFloor[click.X][click.Y].iUnitID > 0 then
+                CUnits.UnitDamagePlayer(tFloor[click.X][click.Y].iUnitID, 1)
+            end
         end
     end
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
 
-    if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
-        CBlock.RegisterBlockClick(defect.X, defect.Y)
+        if defect.Defect and CBlock.tBlocks[defect.X] and CBlock.tBlocks[defect.X][defect.Y] and CBlock.tBlocks[defect.X][defect.Y].iBlockType == CBlock.BLOCK_TYPE_COIN then
+            CBlock.RegisterBlockClick(defect.X, defect.Y)
+        end
     end
 end
 

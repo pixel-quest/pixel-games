@@ -22,34 +22,5 @@
     69,
     73,
     77
-  ],
-  "StartPositions": [
-    {
-      "X": 1,
-      "Y": 2,
-      "Color": "0xFF0000"
-    },
-    {
-      "X": 6,
-      "Y": 2,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 11,
-      "Y": 2,
-      "Color": "0x0000FF"
-    },
-    {
-      "X": 16,
-      "Y": 2,
-      "Color": "0xFF00FF"
-    },
-    {
-      "X": 21,
-      "Y": 2,
-      "Color": "0x00FFFF"
-    }
-  ],
-  "StartPositionSizeX": 4,
-  "StartPositionSizeY": 14
+  ]
 }

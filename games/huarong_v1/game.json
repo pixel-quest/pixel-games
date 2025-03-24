@@ -445,38 +445,6 @@
     73,
     77
   ],
-  "StartPositions": [
-    {
-      "X": 2,
-      "Y": 2,
-      "Color": "0x00FF00"
-    },
-    {
-      "X": 10,
-      "Y": 2,
-      "Color": "0xFFFF00"
-    },
-    {
-      "X": 18,
-      "Y": 2,
-      "Color": "0x0000FF"
-    },
-    {
-      "X": 2,
-      "Y": 10,
-      "Color": "0xFF00FF"
-    },
-    {
-      "X": 10,
-      "Y": 10,
-      "Color": "0x00FFFF"
-    },
-    {
-      "X": 18,
-      "Y": 10,
-      "Color": "0xFFFFFF"
-    }
-  ],
   "StartPositionSizeX": 6,
   "StartPositionSizeY": 6
 }

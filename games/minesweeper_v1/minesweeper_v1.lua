@@ -91,6 +91,14 @@ local tButtonStruct = {
 
 local tPlayerInGame = {}
 
+local tTeamColors = {}
+tTeamColors[1] = CColors.GREEN
+tTeamColors[2] = CColors.YELLOW
+tTeamColors[3] = CColors.MAGENTA
+tTeamColors[4] = CColors.BLUE
+tTeamColors[5] = CColors.CYAN
+tTeamColors[6] = CColors.WHITE
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -106,9 +114,31 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end   
+    if tGame.StartPositions == nil then
+        tGame.StartPositions = {}
+
+        local iOffset = tGame.SPAutoOffsetX or math.floor(tGame.Cols/20)
+        local iX = iOffset
+        local iY = tGame.SPAutoOffsetY or 1
+
+        for iPlayerID = 1, 6 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+            iX = iX + tGame.StartPositionSizeX + iOffset
+            if iX + tGame.StartPositionSizeX > tGame.Cols then
+                iX = iOffset
+                iY = iY + tGame.StartPositionSizeY + 1
+                if iY + tGame.StartPositionSizeY - 1 > tGame.Rows then break; end
+            end
+        end
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
 
@@ -815,10 +845,16 @@ end
 
 function ResumeGame()
     bGamePaused = false
+    iPrevTickTime = CTime.unix()    
 end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true

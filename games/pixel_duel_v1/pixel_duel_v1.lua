@@ -125,6 +125,7 @@ local StartPlayersCount = 0 -- количество игроков в момен
 local CountDownStarted = false
 local PlayerInGame = {}
 local iPrevTickTime = 0
+local bGamePaused = false
 
 -- Этапы игры
 local CONST_STAGE_CHOOSE_COLOR = 0 -- выбор цвета
@@ -189,15 +190,17 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
     audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesStartFromScratch(audio.START_GAME)
+    bGamePaused = false
+    audio.PlayVoicesSyncFromScratch(audio.START_GAME)
     CountDownStarted = false
     resetCountdown()
-    iPrevTickTime = CTime.unix()
+    iPrevTickTime = time.unix()
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
@@ -323,62 +326,68 @@ end
 --      Weight: int,
 --  }
 function PixelClick(click)
-    if Stage ~= CONST_STAGE_GAME then
-        if click.Click then
-            FloorMatrix[click.X][click.Y].Click = true
-        else
-            AL.NewTimer(500, function()
-                FloorMatrix[click.X][click.Y].Click = false
-            end)
+    if FloorMatrix[click.X] and FloorMatrix[click.X][click.Y] then
+        if bGamePaused then
+            FloorMatrix[click.X][click.Y].Click = false
+            return;
         end
 
-        return -- игнорируем клики вне этапа игры
-    end
+        if Stage ~= CONST_STAGE_GAME then
+            if click.Click then
+                FloorMatrix[click.X][click.Y].Click = true
+            else
+                AL.NewTimer(500, function()
+                    FloorMatrix[click.X][click.Y].Click = false
+                end)
+            end
 
-    FloorMatrix[click.X][click.Y].Click = click.Click
+            return -- игнорируем клики вне этапа игры
+        end
 
-    -- Если есть игрок с таким цветом, засчитываем очки
-    local clickedColor = FloorMatrix[click.X][click.Y].Color
-    local player = getPlayerByColor(clickedColor)
-    if player == nil then
-        return
-    end
+        FloorMatrix[click.X][click.Y].Click = click.Click
 
-    audio.PlaySystemAsync(audio.CLICK)
-    player.Score = player.Score + 1
+        -- Если есть игрок с таким цветом, засчитываем очки
+        local clickedColor = FloorMatrix[click.X][click.Y].Color
+        local player = getPlayerByColor(clickedColor)
+        if player == nil then
+            return
+        end
 
-    GameResults.Score = GameResults.Score + 1
+        audio.PlaySystemAsync(audio.CLICK)
+        player.Score = player.Score + 1
 
-    -- игрок набрал нужное количесто очков для победы
-    if player.Score >= GameConfigObj.PointsToWin then
-        audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
-        audio.PlaySyncColorSound(player.Color)
-        audio.PlayVoicesSync(audio.VICTORY)
+        GameResults.Score = GameResults.Score + 1
 
-        GameResults.Won = true
-        GameResults.Color = player.Color
+        -- игрок набрал нужное количесто очков для победы
+        if player.Score >= GameConfigObj.PointsToWin then
+            audio.PlaySystemSyncFromScratch(audio.GAME_SUCCESS)
+            audio.PlaySyncColorSound(player.Color)
+            audio.PlayVoicesSync(audio.VICTORY)
 
-        switchStage(CONST_STAGE_WIN)
-        setGlobalColorBright(player.Color, GameConfigObj.Bright)
-        return
-    else -- еще не победил
-        local leftScores = GameConfigObj.PointsToWin - player.Score
-        local alreadyPlayed = LeftAudioPlayed[leftScores]
-        if alreadyPlayed ~= nil and not alreadyPlayed then
-            audio.PlayLeftAudio(leftScores)
-            LeftAudioPlayed[leftScores] = true
+            GameResults.Won = true
+            GameResults.Color = player.Color
+
+            switchStage(CONST_STAGE_WIN)
+            setGlobalColorBright(player.Color, GameConfigObj.Bright)
+            return
+        else -- еще не победил
+            local leftScores = GameConfigObj.PointsToWin - player.Score
+            local alreadyPlayed = LeftAudioPlayed[leftScores]
+            if alreadyPlayed ~= nil and not alreadyPlayed then
+                audio.PlayLeftAudio(leftScores)
+                LeftAudioPlayed[leftScores] = true
+            end
+        end
+
+        -- и переместим пиксель в другое пустое место
+        if GameConfigObj.MoveAllPixels then -- для всех игроков
+            setGlobalColorBright(colors.NONE, colors.BRIGHT0)
+            placeAllPlayerPixels()
+        else -- переместим только пиксель нажавшего игрока
+            placePixel(player.Color)
+            FloorMatrix[click.X][click.Y].Color = colors.NONE
         end
     end
-
-    -- и переместим пиксель в другое пустое место
-    if GameConfigObj.MoveAllPixels then -- для всех игроков
-        setGlobalColorBright(colors.NONE, colors.BRIGHT0)
-        placeAllPlayerPixels()
-    else -- переместим только пиксель нажавшего игрока
-        placePixel(player.Color)
-        FloorMatrix[click.X][click.Y].Color = colors.NONE
-    end
-
 end
 
 -- ButtonClick (служебный): метод нажатия/отпускания кнопки
@@ -414,15 +423,17 @@ end
 --      Defect: bool,
 --  }
 function DefectPixel(defect)
-    FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
+    if FloorMatrix[defect.X] and FloorMatrix[defect.X][defect.Y] then
+        FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
 
-    if defect.Defect then
-        FloorMatrix[defect.X][defect.Y].Click = false
-    end
+        if defect.Defect then
+            FloorMatrix[defect.X][defect.Y].Click = false
+        end
 
-    if FloorMatrix[defect.X][defect.Y].Color > colors.NONE then --  переместим пиксель
-        placePixel(FloorMatrix[defect.X][defect.Y].Color)
-        FloorMatrix[defect.X][defect.Y].Color = colors.NONE
+        if FloorMatrix[defect.X][defect.Y].Color > colors.NONE then --  переместим пиксель
+            placePixel(FloorMatrix[defect.X][defect.Y].Color)
+            FloorMatrix[defect.X][defect.Y].Color = colors.NONE
+        end
     end
 end
 

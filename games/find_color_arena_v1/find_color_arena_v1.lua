@@ -248,7 +248,7 @@ function NextTick()
 
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        FloorMatrix[iX][iY].Color = 5
+                        FloorMatrix[iX][iY].Color = colors.MAGENTA
                         if tArenaPlayerReady[positionIndex] then
                             FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
                         end

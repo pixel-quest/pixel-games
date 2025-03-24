@@ -62,14 +62,6 @@ local GameObj = {
     Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     YOffset = 1, -- смещение по вертикали, костыль для московской комнаты
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
-    StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
-        { X = 2, Y = 2, Color = colors.GREEN },
-        { X = 6, Y = 2, Color = colors.GREEN },
-        { X = 10, Y = 2, Color = colors.GREEN },
-        { X = 14, Y = 2, Color = colors.GREEN },
-        { X = 18, Y = 2, Color = colors.GREEN },
-        { X = 22, Y = 2, Color = colors.GREEN },
-    },
 }
 -- Насторойки, которые может подкручивать админ при запуске игры
 -- Объект конфига игры, см. файл config.json
@@ -190,9 +182,28 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num].Bright = colors.BRIGHT70
     end
 
-    for iPlayerID = 1, #GameObj.StartPositions do
-        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-    end    
+    if GameObj.StartPositions == nil then
+        GameObj.StartPositions = {}
+
+        local iX = 2
+        local iY = math.floor(GameObj.Rows/2)
+        for iPlayerID = 1, 6 do
+            GameObj.StartPositions[iPlayerID] = {}
+            GameObj.StartPositions[iPlayerID].X = iX
+            GameObj.StartPositions[iPlayerID].Y = iY
+            GameObj.StartPositions[iPlayerID].Color = colors.GREEN
+
+            iX = iX + (GameObj.StartPositionSize*2)
+            if iX + GameObj.StartPositionSize > GameObj.Cols then
+                iX = 2
+                iY = iY + (GameObj.StartPositionSize+1)
+            end
+        end
+    else
+        for iPlayerID = 1, #GameObj.StartPositions do
+            GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+        end 
+    end   
 
     GameStats.TotalStars = GameConfigObj.StagesQty
     GameStats.TotalStages=GameConfigObj.StagesQty
@@ -238,7 +249,7 @@ function NextTick()
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
 
             local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (not bDisPos and PlayerInGame[positionIndex]) then
+            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (not bDisPos and PlayerInGame[positionIndex]) or (PlayerInGame[positionIndex] and CountDownStarted) then
                 GameStats.Players[positionIndex].Color = startPosition.Color
                 bright = GameConfigObj.Bright
                 PlayerInGame[positionIndex] = true

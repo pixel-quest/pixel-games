@@ -1064,7 +1064,12 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] and not bGamePaused then
+    if tFloor[click.X] and tFloor[click.X][click.Y] then
+        if bGamePaused then
+            tFloor[click.X][click.Y].bClick = false
+            return;
+        end
+        
         if iGameState == GAMESTATE_TUTORIAL and not CTutorial.bStarted then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
@@ -1091,7 +1096,7 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return end
+    if tButtons[click.Button] == nil or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
 
     if iGameState <= GAMESTATE_SETUP and click.Click == true then

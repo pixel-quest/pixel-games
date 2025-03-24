@@ -64,14 +64,6 @@ local GameObj = {
     Rows = 15, -- пикселей по вертикали (Y), обязательные параметр для всех игр
     Buttons = {2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77}, -- номера кнопок в комнате
     StartPositionSize = 2, -- размер стартовой зоны для игрока, для маленькой выездной платформы удобно ставить тут 1
-    StartPositions = { -- координаты расположения стартовых зон должны быть возле стены, т.к для старта надо нажать кнопку на стене
-        { X = 2, Y = 2, Color = colors.RED },
-        { X = 6, Y = 2, Color = colors.YELLOW },
-        { X = 10, Y = 2, Color = colors.GREEN },
-        { X = 14, Y = 2, Color = colors.CYAN },
-        { X = 18, Y = 2, Color = colors.BLUE },
-        { X = 22, Y = 2, Color = colors.MAGENTA },
-    },
     BurnEffect = { -- тайминги эффекта моргания
         DurationOnMs = 200,
         DurationOffMs = 120,
@@ -166,6 +158,8 @@ tColors[5] = colors.CYAN
 tColors[6] = colors.BLUE
 tColors[7] = colors.WHITE
 
+local bGamePaused = false
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson) -- старт игры
     GameObj = json.decode(gameJson)
@@ -184,9 +178,28 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
         end
     end
 
-    for iPlayerID = 1, #GameObj.StartPositions do
-        GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-    end    
+    if GameObj.StartPositions == nil then
+        GameObj.StartPositions = {}
+
+        local iX = 2
+        local iY = math.floor(GameObj.Rows/2)
+        for iPlayerID = 1, 6 do
+            GameObj.StartPositions[iPlayerID] = {}
+            GameObj.StartPositions[iPlayerID].X = iX
+            GameObj.StartPositions[iPlayerID].Y = iY
+            GameObj.StartPositions[iPlayerID].Color = tColors[iPlayerID]
+
+            iX = iX + (GameObj.StartPositionSize*2)
+            if iX + GameObj.StartPositionSize > GameObj.Cols then
+                iX = 2
+                iY = iY + (GameObj.StartPositionSize+1)
+            end
+        end
+    else
+        for iPlayerID = 1, #GameObj.StartPositions do
+            GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+        end 
+    end     
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
@@ -207,11 +220,14 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
     audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    StageStartTime = time.unix()
+    bGamePaused = false
     audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
@@ -346,6 +362,11 @@ function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = click.Click
     if GameStats.StageNum < CONST_STAGE_GAME then
         return -- игнорируем клики вне этапа игры
+    end
+
+    if bGamePaused then 
+        FloorMatrix[click.X][click.Y].Click = false
+        return;
     end
 
     -- Если есть игрок с таким цветом, засчитываем очки

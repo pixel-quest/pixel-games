@@ -143,6 +143,8 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
 
 local tArenaPlayerReady = {}
 
+local bGamePaused
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -186,11 +188,13 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
+    bGamePaused = true
     audio.PlayVoicesSyncFromScratch(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
+    bGamePaused = false
     audio.PlayVoicesSyncFromScratch(audio.START_GAME)
 end
 
@@ -228,7 +232,7 @@ function NextTick()
 
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        FloorMatrix[iX][iY].Color = 5
+                        FloorMatrix[iX][iY].Color = colors.MAGENTA
                         if tArenaPlayerReady[positionIndex] then
                             FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
                         end
@@ -340,7 +344,7 @@ end
 function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = click.Click
 
-    if Stage ~= CONST_STAGE_GAME then
+    if Stage ~= CONST_STAGE_GAME or bGamePaused then
         return -- игнорируем клики вне этапа игры
     end
 
