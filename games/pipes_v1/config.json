@@ -1,0 +1,15 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"TimeLimit": 60,
+  	"TimeLimit_Min": 20,
+  	"TimeLimit_Max": 300,
+  	"TimeLimit_Step": 10,
+  	"TimeLimit_Ru": "Ограничение времени",
+  	"TimeLimit_En": "Time Limit"
+  	    	
+}
