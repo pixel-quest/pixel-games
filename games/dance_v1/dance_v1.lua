@@ -356,6 +356,7 @@ CTutorial.bPreStarted = false
 CTutorial.bTrueStarted = false
 CTutorial.bDisableErrorSound = true
 CTutorial.bKillTutorialTimers = false
+CTutorial.bEnded = false
 
 CTutorial.PreStart = function()
     CAudio.PlaySyncFromScratch("") -- обрыв звука
@@ -387,6 +388,12 @@ CTutorial.Start = function()
     CAudio.PlayVoicesSync("dance/dance_tutorial_part2.mp3")
     CAudio.PlayVoicesSync("dance/dance_tutorial_part3.mp3")
 
+    AL.NewTimer((CAudio.GetVoicesDuration("dance/dance_tutorial_part2.mp3") + CAudio.GetVoicesDuration("dance/dance_tutorial_part3.mp3")) * 1000, function()
+        if not CTutorial.bEnded then
+            CTutorial.Skip()
+        end
+    end)
+
     CGameMode.PixelMovement()
     CSongSync.Start(tTutorialSong)
 
@@ -398,6 +405,8 @@ end
 
 CTutorial.Skip = function()
     if CTutorial.bSkipDelayOn then return end
+
+    CTutorial.bEnded = true
 
     CSongSync.Clear()
     CGameMode.Clear()
