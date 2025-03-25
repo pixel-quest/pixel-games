@@ -120,18 +120,24 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGame.StartPositions = {}
     tGame.StartPositionSize = 2
-    for iPlayerID = 1, 2 do
-        tGame.StartPositions[iPlayerID] = {}
-        if iPlayerID == 1 then
-            tGame.StartPositions[iPlayerID].X = 1 + tGame.StartPositionSize
-        elseif iPlayerID == 2 then
-            tGame.StartPositions[iPlayerID].X = tGame.Cols - tGame.StartPositionSize - 1
-        end
-        tGame.StartPositions[iPlayerID].Y = math.ceil(tGame.Rows/2)
-        tGame.StartPositions[iPlayerID].Color = tGameStats.Players[iPlayerID].Color
-    end    
+    if tGame.StartPositions == nil then
+        tGame.StartPositions = {}
+        for iPlayerID = 1, 2 do
+            tGame.StartPositions[iPlayerID] = {}
+            if iPlayerID == 1 then
+                tGame.StartPositions[iPlayerID].X = 1 + tGame.StartPositionSize
+            elseif iPlayerID == 2 then
+                tGame.StartPositions[iPlayerID].X = tGame.Cols - tGame.StartPositionSize - 1
+            end
+            tGame.StartPositions[iPlayerID].Y = math.ceil(tGame.Rows/2)
+            tGame.StartPositions[iPlayerID].Color = tGameStats.Players[iPlayerID].Color
+        end    
+    else
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        end 
+    end
 
     CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
     CAudio.PlayVoicesSync(CAudio.CHOOSE_COLOR) -- Выберите цвет
@@ -335,7 +341,7 @@ CBall.NewBall = function()
 
     CBall.tPrev = nil
     CBall.tBall = CHelp.ShallowCopy(CBall.tBallStruct)
-    CBall.tBall.iPosX = math.floor(tGame.Cols/2)
+    CBall.tBall.iPosX = math.floor((tGame.Cols + (tGame.StartPositions[1].X) - (tGame.Cols-tGame.StartPositions[2].X))  /2)
     CBall.tBall.iPosY = math.random(3, tGame.Rows-2)
     CBall.tBall.iColor = CColors.GREEN
     CBall.tBall.iVelocityX = 0
