@@ -702,7 +702,7 @@ CAnimate.RegisterBlockClick = function(iX, iY)
     if CAnimate.tBlocks[iX][iY] then
         if CAnimate.tBlocks[iX][iY].iBlockType == CAnimate.ANIMATE_BLOCK_LAVA and not CAnimate.tBlocks[iX][iY].bCollected then
             AL.NewTimer(250, function()
-                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 and CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID, iX, iY) then
+                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 and CAnimate.tBlocks[iX] and CAnimate.tBlocks[iX][iY] and CGameMode.PlayerTouchedLava(CAnimate.tBlocks[iX][iY].iPlayerID, iX, iY) then
                     CAnimate.tBlocks[iX][iY].bCollected = true
                     CPaint.AnimatePixelFlicker(iX, iY, 3, CAnimate.tBLOCK_TYPE_TO_COLOR[CAnimate.tBlocks[iX][iY].iBlockType])
                 end
