@@ -324,8 +324,6 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 
-    CLog.print(CAudio.GetVoicesDuration("reflex/reflex_guide.mp3"))
-
     AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
         CGameMode.bCanStart = true
     end)
