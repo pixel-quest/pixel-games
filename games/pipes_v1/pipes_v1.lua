@@ -100,6 +100,8 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     iPrevTickTime = CTime.unix() 
+
+    CGameMode.Announcer()
 end
 
 function NextTick()
@@ -127,8 +129,6 @@ function NextTick()
 
     AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
-
-    CGameMode.Announcer()
 end
 
 function GameSetupTick()
