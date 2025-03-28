@@ -287,9 +287,13 @@ function ButtonClick(click)
 end
 
 function DefectPixel(defect)
-    FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
+    if FloorMatrix[defect.X] and FloorMatrix[defect.X][defect.Y] then
+        FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
+    end
 end
 
 function DefectButton(defect)
-    ButtonsList[defect.Button].Defect = defect.Defect
+    if ButtonsList[defect.Button] then
+        ButtonsList[defect.Button].Defect = defect.Defect
+    end
 end
