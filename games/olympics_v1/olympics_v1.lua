@@ -512,7 +512,7 @@ CGameMode.tGameModeClick[CGameMode.GAMEMODE_LONGJUMP] = function(iX, iY)
 end
 
 CGameMode.LongJumpPlayerLanded = function(iPlayerID, iY)
-    CLog.print(iPlayerID.." landed at "..iY)
+    --CLog.print(iPlayerID.." landed at "..iY)
 
     CGameMode.PlayerData[iPlayerID].iLandingSpotY = iY
     local iDistance = iY
