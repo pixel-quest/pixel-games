@@ -462,7 +462,7 @@ end
 
 CAnnouncer.PlaySoundAtPosition = function(sSoundName, iX, iY)
     if CWorld.bEndGame or CCamera.bFreeView or CCamera.WorldPosToView(iX, iY) == CCamera.iCurrentView then
-        CAudio.PlaySystemAsync("tower-defence2"..sSoundName)
+        CAudio.PlaySystemAsync("tower-defence2/"..sSoundName)
     end  
 end
 
