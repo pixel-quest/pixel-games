@@ -237,6 +237,7 @@ end
 CTutorial = {}
 CTutorial.iFinishCount = 0
 CTutorial.bSkipDelayOn = true
+CTutorial.bEnded = false
 
 CTutorial.MAX_FINISH = 4
 
@@ -244,8 +245,10 @@ CTutorial.Start = function()
     CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-tutorial.mp3")
 
     AL.NewTimer(20000, function()
-        CTutorial.LoadMaps()
-        CAudio.PlayRandomBackground()
+        if not CTutorial.bEnded then
+            CTutorial.LoadMaps()
+            CAudio.PlayRandomBackground()
+        end
     end)
 
     AL.NewTimer(5000, function()
@@ -276,6 +279,7 @@ CTutorial.PlayerFinished = function(iPlayerID)
 end
 
 CTutorial.End = function()
+    CTutorial.bEnded = true
     CAudio.StopBackground()
     CBlock.tBlocks = {}
     CGameMode.bGameStarted = false
