@@ -211,7 +211,7 @@ function GameSetupTick()
                 local bArenaClick = false
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = 5
+                        tFloor[iX][iY].iColor = CColors.MAGENTA
 
                         if tFloor[iX][iY].bClick then 
                             bArenaClick = true
@@ -249,7 +249,11 @@ end
 function RangeFloor(setPixel, setButton)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            if not tFloor[iX] or not tFloor[iX][iY] or not tFloor[iX][iY].iColor then
+                CLog.print("lavaduel ERROR while attempting to range floor at X:"..iX.." Y:"..iY..". Map ID:"..CMaps.iRandomMapID)
+            else
+                setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            end
         end
     end
 
