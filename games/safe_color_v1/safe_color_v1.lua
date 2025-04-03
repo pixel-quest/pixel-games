@@ -280,7 +280,6 @@ function NextTick()
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
                 GameStarted = true
                 switchStage(GameStats.StageNum+1)
-                resetCountdown()
             end
         else
             CountDownStarted = false
@@ -469,6 +468,7 @@ function switchStage(newStage)
         GameStats.CurrentStars = GameStats.StageNum
         setGlobalColorBrightExceptColor(colors.NONE, colors.BRIGHT0, colors.NONE)
         StageDonePlayed = false
+        resetCountdown()
 
         audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
         audio.PlaySyncColorSound(GameStats.TargetColor)
