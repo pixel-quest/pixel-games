@@ -316,6 +316,7 @@ function NextTick()
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
                 switchStage(GameStats.StageNum + 2)
+                resetCountdown()
             end
         end
     elseif GameStats.StageNum >= CONST_STAGE_GAME then -- этап игры
@@ -555,7 +556,6 @@ function switchStage(newStage)
     GameStats.StageTotalDuration = GameConfigObj.StageDurationSec
     Freezing = false
     Freezed = false
-    resetCountdown()
 
     if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR or
             GameStats.StageNum == CONST_STAGE_WIN then
