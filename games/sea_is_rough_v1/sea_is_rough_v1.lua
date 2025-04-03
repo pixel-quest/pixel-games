@@ -285,6 +285,7 @@ function NextTick()
 
             if GameStats.StageLeftDuration <= 0 then -- начинаем игру
                 switchStage(GameStats.StageNum + 1)
+                resetCountdown()
             end
         else
             CountDownStarted = false
@@ -391,8 +392,8 @@ function PixelClick(click)
                     return
                 else -- еще не победил
                     local leftScores = GameConfigObj.PointsToWin - player.Score
-                    local alreadyPlayed = LeftAudioPlayed[leftScores]
-                    if alreadyPlayed ~= nil and not alreadyPlayed then
+                    if leftScores <= 5 and not LeftAudioPlayed[leftScores] then
+                        --log.print("play "..leftScores)
                         audio.PlayLeftAudio(leftScores)
                         LeftAudioPlayed[leftScores] = true
                     end
@@ -534,7 +535,6 @@ function switchStage(newStage)
     GameStats.StageTotalDuration = GameConfigObj.StageDurationSec
     Freezing = false
     Freezed = false
-    resetCountdown()
 
     if GameStats.StageNum == CONST_STAGE_CHOOSE_COLOR or
             GameStats.StageNum == CONST_STAGE_WIN then
