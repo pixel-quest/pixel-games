@@ -199,7 +199,7 @@ function GameSetupTickMultiPlayer()
         iGameState = GAMESTATE_GAME
 
         CAudio.PlaySyncFromScratch("")
-        CAudio.PlayVoicesSync("math-the-picture/match-the-picture-guide.mp3")
+        CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
         
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
     end

@@ -457,7 +457,7 @@ CAnnouncer.AnnounceEvent = function(iEventID, iX, iY)
         end
     end
 
-    CAudio.PlaySystemSync("tower-defence2/"..CAnnouncer[iEventID].sSound)
+    CAudio.PlayVoicesSync("tower-defence2/"..CAnnouncer[iEventID].sSound)
 end
 
 CAnnouncer.PlaySoundAtPosition = function(sSoundName, iX, iY)
