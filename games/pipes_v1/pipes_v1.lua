@@ -84,6 +84,8 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local bAnyButtonClick = false
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -135,6 +137,11 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
 
     if not CGameMode.bCountDownStarted then
+        if bAnyButtonClick then
+            CGameMode.StartCountDown(5)
+            return
+        end
+
         for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
             for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
                 tFloor[iX][iY].iColor = CColors.BLUE
@@ -181,9 +188,10 @@ CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 
 CGameMode.Announcer = function()
+    CAudio.PlayVoicesSync("pipes/pipes_rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer((CAudio.GetVoicesDuration("pipes/pipes_rules.mp3")*1000), function()
         CGameMode.bCanStartGame = true
     end)
 end
@@ -733,6 +741,8 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused then return end
     tButtons[click.Button].bClick = click.Click
+
+    if click.Click then bAnyButtonClick = true; end
 end
 
 function DefectButton(defect)

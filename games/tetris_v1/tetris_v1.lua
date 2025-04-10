@@ -190,16 +190,9 @@ function GameSetupTick()
     end
 
     if iPlayersReady > 0 then
-        if not tGame.NewStart then
-            SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
-        end
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
 
-        if bAnyButtonClick or (tGame.NewStart and iPlayersReady == #tGame.StartPositions) then
-            if not CGameMode.bCanStart then
-                bAnyButtonClick = false
-                return;
-            end
-
+        if bAnyButtonClick or (CGameMode.bCanStart and iPlayersReady == #tGame.StartPositions) then
             tGameResults.PlayersCount = iPlayersReady
             CGameMode.iRealPlayerCount = iPlayersReady
             iGameState = GAMESTATE_GAME
@@ -264,9 +257,6 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("tetris/tetris_intro_voice.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
-    if not tGame.NewStart then
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
-    end   
 
     AL.NewTimer((CAudio.GetVoicesDuration("tetris/tetris_intro_voice.mp3")*1000) or 5000, function()
         CGameMode.bCanStart = true
