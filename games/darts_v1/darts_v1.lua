@@ -1,8 +1,10 @@
 --[[
-    Название: Название механики
+    Название: Дартс
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики:
+        Игроки пытаются попасть в мишень, нажимая на свою зону.
+        чем ближе к центру мишени тем больше очков
+    Идеи по доработке: 
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -77,6 +79,7 @@ local tButtonStruct = {
 }
 
 local tPlayerInGame = {}
+local bAnyButtonClick = false
 
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
@@ -98,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
     end    
 
     tGameStats.TotalStages = tConfig.RoundCount
+
+    CGameMode.Announcer()
 end
 
 function NextTick()
@@ -148,7 +153,7 @@ function GameSetupTick()
         CPaint.PlayerZone(iPlayerID, iBright)
     end
 
-    if iPlayersReady > 1 and not CGameMode.bCountDownStarted then
+    if not CGameMode.bCountDownStarted and ((iPlayersReady > 1 and CGameMode.bCanStart) or bAnyButtonClick) then
         CGameMode.StartCountDown(10)
     end
 end
@@ -199,6 +204,15 @@ CGameMode.iCrosshairY = 0
 CGameMode.iCrosshairVel = 1
 CGameMode.bPlayerCanMove = false
 CGameMode.iWinnerID = 0
+CGameMode.bCanStart = false
+
+CGameMode.Announcer = function()
+    CAudio.PlayVoicesSync("darts/darts_rules.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("darts/darts_rules.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
+end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
@@ -307,6 +321,8 @@ CGameMode.WaitForPlayerMove = function(bYAxis)
 end
 
 CGameMode.PlayerHit = function(bYAxis)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
+
     if bYAxis then
         AL.NewTimer(1000, function()
             CGameMode.iCrosshairX = 1
@@ -471,6 +487,8 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil then return end
     tButtons[click.Button].bClick = click.Click
+
+    if click.Click then bAnyButtonClick = true end
 end
 
 function DefectButton(defect)
