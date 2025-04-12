@@ -3,7 +3,7 @@
 # 🕹 Игры [Pixel Quest](https://pixelquest.ru)
 
 Репозиторий содержит исходный код игр проекта [Pixel Quest](https://pixelquest.ru), написанных на языке Lua.
-Здесь представлены исходники не всех игр проекта, часть игр по-прежнему написана на Go и со временем будет также перенесена на Lua.
+Здесь представлены исходники почти всех игр проекта, но одна игра по-прежнему написана на Go и со временем будет также перенесена на Lua.
 
 ### Следить за технической стороной проекта Pixel Quest можно в телеграм канале [@pixel_quest](https://t.me/pixel_quest)
 
@@ -26,6 +26,7 @@
   - Заставка **Марио** – *рисунок Марио во весь пол с переливающимся фоном* [mario_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/mario_v1/mario_v1.lua)
   - Заставка **Круги на воде** – *расходящиеся круги от шагов* [water_circles_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/water_circles_v1/water_circles_v1.lua)
   - Заставка **Супергерои** – *рисунки мультяшных супергероев* [heroes_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/heroes_v1/heroes_v1.lua)
+  - Заставки **Демо** – *различные эффекты заставок* [demos_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/demos_v1/demos_v1.lua)
   - **Пиксель дуэль** – *собираем свой цвет быстрее соперника* [pixel_duel_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pixel_duel_v1/pixel_duel_v1.lua)
   - **Море волнуется** – *соревнуемся и собираем на цветном поле свой цвет* [sea_is_rough_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/sea_is_rough_v1/sea_is_rough_v1.lua)
   - **Безопасный цвет** – *нужно успеть встать на безопасный цвет, прежде чем поле загорится красным* [safe_color_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/safe_color_v1/safe_color_v1.lua)
@@ -56,6 +57,8 @@
   - **Стеклянный Мост** – *испытание Стеклянный Мост из Игры в кальмара* [crab_glass_bridge_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/crab_glass_bridge_v1/crab_glass_bridge_v1.lua)
   - **Генеративная Пол – это лава** – *Пол – это лава с генеративными эффектами* [lava_floor_random_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/lava_floor_random_v1/lava_floor_random_v1.lua)
   - **Сапёр V2** – *соревновательный Сапёр с пересечением зон игроков* [minesweeper_v2.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/minesweeper_v2/minesweeper_v2.lua)
+  - **Водопровод** – *логическая игра на поиск пути* [pipes_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/pipes_v1/pipes_v1.lua)
+  - **Дартс** – *соревновательная игра на попадание в цель* [darts_v1.lua](https://github.com/pixel-quest/pixel-games/blob/main/games/darts_v1/darts_v1.lua)
 
 ## Ещё скриншоты
 <img src="https://github.com/pixel-quest/pixel-games/raw/main/img/lua-ide.jpg">
