@@ -1,0 +1,53 @@
+{
+	"ArenaMode": true,
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 18,
+	"PreviewHeight": 1,
+	"PreviewY": 1,
+	"Rows": 6,
+	"StartPositionSizeX": 6,
+	"StartPositionSizeY": 5,
+	"StartPositions": [
+		{
+			"Color": "0xFF0000",
+			"PixelsY": 2,
+			"X": 1,
+			"Y": 2
+		},
+		{
+			"Color": "0x00FF00",
+			"PixelsY": 2,
+			"X": 7,
+			"Y": 2
+		},
+		{
+			"Color": "0xFFFF00",
+			"PixelsY": 2,
+			"X": 13,
+			"Y": 2
+		}
+	],
+	"rooms": [
+		"krd1-3"
+	]
+}

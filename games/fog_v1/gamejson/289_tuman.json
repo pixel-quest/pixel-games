@@ -1,0 +1,44 @@
+{
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 41,
+	"DamageSoundsList": [
+		"fog_scream1.mp3",
+		"fog_scream2.mp3",
+		"fog_scream3.mp3"
+	],
+	"Rows": 15,
+	"ScarySoundsList": [
+		"fog_piano2.mp3",
+		"fog_piano3.mp3",
+		"fog_piano4.mp3",
+		"fog_laugh1.mp3",
+		"fog_laugh2.mp3",
+		"fog_ghost1.mp3"
+	],
+	"SongList": [
+		"fog_song1.mp3"
+	],
+	"rooms": [
+		"hab1s-1"
+	]
+}

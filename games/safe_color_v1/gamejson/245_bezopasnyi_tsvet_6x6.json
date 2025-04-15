@@ -1,0 +1,67 @@
+{
+	"BurnEffect": {
+		"DurationOffMs": 120,
+		"DurationOnMs": 200,
+		"TotalDurationMs": 1500
+	},
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 6,
+	"Rows": 6,
+	"StartPositionSize": 2,
+	"StartPositions": [
+		{
+			"Color": "0x00FF00",
+			"X": 1,
+			"Y": 1
+		},
+		{
+			"Color": "0x00FF00",
+			"X": 5,
+			"Y": 1
+		},
+		{
+			"Color": "0x00FF00",
+			"X": 3,
+			"Y": 3
+		},
+		{
+			"Color": "0x00FF00",
+			"X": 1,
+			"Y": 5
+		},
+		{
+			"Color": "0x00FF00",
+			"X": 5,
+			"Y": 5
+		},
+		{
+			"Color": "0x00FF00",
+			"X": 10,
+			"Y": 10
+		}
+	],
+	"YOffset": 0,
+	"rooms": [
+		"msk2-2"
+	]
+}
