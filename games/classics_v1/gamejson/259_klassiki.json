@@ -1,0 +1,16 @@
+{
+	"Cols": 15,
+	"Rows": 15,
+	"StartPositionSizeY": 6,
+	"StartPositions": [
+		{
+			"Color": "0x00FF00"
+		},
+		{
+			"Color": "0x0000FF"
+		}
+	],
+	"rooms": [
+		"nsk1-2"
+	]
+}

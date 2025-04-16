@@ -1,0 +1,39 @@
+{
+	"ArenaMode": true,
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		38,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 6,
+	"Rows": 6,
+	"StartPositionSizeX": 6,
+	"StartPositionSizeY": 6,
+	"StartPositions": [
+		{
+			"Color": "0x00FF00",
+			"X": 1,
+			"Y": 1
+		}
+	],
+	"rooms": [
+		"msk2-2"
+	]
+}

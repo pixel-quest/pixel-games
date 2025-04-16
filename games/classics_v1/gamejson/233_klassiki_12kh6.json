@@ -1,0 +1,45 @@
+{
+	"ArenaMode": true,
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		38,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 12,
+	"Rows": 6,
+	"StartPositionSizeX": 3,
+	"StartPositionSizeY": 6,
+	"StartPositions": [
+		{
+			"Color": "0x00FF00",
+			"X": 3,
+			"Y": 1
+		},
+		{
+			"Color": "0x0000FF",
+			"X": 8,
+			"Y": 1
+		}
+	],
+	"rooms": [
+		"sml1-4",
+		"spb1-2"
+	]
+}

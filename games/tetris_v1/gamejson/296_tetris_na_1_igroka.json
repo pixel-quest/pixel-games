@@ -1,0 +1,39 @@
+{
+	"Buttons": [
+		2,
+		6,
+		10,
+		14,
+		18,
+		22,
+		26,
+		30,
+		34,
+		42,
+		46,
+		50,
+		54,
+		58,
+		62,
+		65,
+		69,
+		73,
+		77
+	],
+	"Cols": 41,
+	"NewStart": true,
+	"Rows": 15,
+	"StartPositionControlsY": 21,
+	"StartPositionSizeX": 24,
+	"StartPositionSizeY": 13,
+	"StartPositions": [
+		{
+			"Color": "0xFFFF00",
+			"X": 1,
+			"Y": 2
+		}
+	],
+	"rooms": [
+		"hab1s-1"
+	]
+}
