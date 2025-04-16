@@ -6,7 +6,11 @@
   	"Bright_Ru": "Яркость",
 
   	"DemoName": "matrix",
-  	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake", "colorsnake", "rainbowdemo"],
+  	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake", "rainbowdemo"],
   	"DemoName_ru": "Выбор заставки",
-  	"DemoName_en": "Demo name"
+  	"DemoName_en": "Demo name",
+
+  	"SwitchEffects": false,
+  	"SwitchEffects_ru": "Чередовать эффекты",
+  	"SwitchEffects_en": "Auto switch effects"
 }
