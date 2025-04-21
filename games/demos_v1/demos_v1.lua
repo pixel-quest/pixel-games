@@ -162,10 +162,29 @@ CPaint.Demo = function()
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_PAINT]()
 end
 
+CPaint.UnloadDemo = function(fCallback)
+    iGameState = GAMESTATE_POSTGAME
+    AL.NewTimer(1100, function()
+        iGameState = GAMESTATE_GAME
+        fCallback()
+    end)
+end
+
 CPaint.DemoThinker = function()
     AL.NewTimer(CPaint.tDemoList[CPaint.sLoadedDemo].THINK_DELAY, function()
         if CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_THINK]() and iGameState == GAMESTATE_GAME then return CPaint.tDemoList[CPaint.sLoadedDemo].THINK_DELAY end 
     end)
+
+    if tConfig.SwitchEffects then
+        AL.NewTimer(60000, function()
+            if iGameState == GAMESTATE_GAME then
+                CPaint.UnloadDemo(function()
+                    CPaint.LoadDemo(tConfig.DemoName_List[math.random(1,#tConfig.DemoName_List-1)])
+                    CPaint.DemoThinker()
+                end)
+            end
+        end)
+    end
 end
 
 CPaint.DemoClick = function(iX, iY)
@@ -180,9 +199,10 @@ CPaint.tDemoList = {}
 CPaint.tDemoList["matrix"] = {}
 CPaint.tDemoList["matrix"].THINK_DELAY = 120
 CPaint.tDemoList["matrix"].COLOR = "0x00ff0a"
-CPaint.tDemoList["matrix"].tVars = {}
-CPaint.tDemoList["matrix"].tVars.tParticles = {}
 CPaint.tDemoList["matrix"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["matrix"].tVars = {}
+    CPaint.tDemoList["matrix"].tVars.tParticles = {}
+
     local function randX()
         local iX = 0
         repeat iX = math.random(1, tGame.Cols)
@@ -191,7 +211,7 @@ CPaint.tDemoList["matrix"][CPaint.FUNC_LOAD] = function()
         return iX
     end
 
-    AL.NewTimer(400, function()
+    AL.NewTimer(200, function()
         for iParticle = 1, math.random(0,2) do
             local iParticleID = #CPaint.tDemoList["matrix"].tVars.tParticles+1
             CPaint.tDemoList["matrix"].tVars.tParticles[iParticleID] = {}
@@ -200,7 +220,7 @@ CPaint.tDemoList["matrix"][CPaint.FUNC_LOAD] = function()
             CPaint.tDemoList["matrix"].tVars.tParticles[iParticleID].iSize = math.random(7, 20)
         end
 
-        if iGameState == GAMESTATE_GAME then return 400; end
+        if iGameState == GAMESTATE_GAME then return 200; end
     end)
 end
 CPaint.tDemoList["matrix"][CPaint.FUNC_PAINT] = function()
@@ -242,9 +262,10 @@ end
 CPaint.tDemoList["derby"] = {}
 CPaint.tDemoList["derby"].THINK_DELAY = 200
 CPaint.tDemoList["derby"].COLOR = "0xFF00FF"
-CPaint.tDemoList["derby"].tVars = {}
-CPaint.tDemoList["derby"].tVars.tParticles = {}
 CPaint.tDemoList["derby"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["derby"].tVars = {}
+    CPaint.tDemoList["derby"].tVars.tParticles = {}
+
     local function randXY()
         local iX = 0
         local iY = 0
@@ -254,7 +275,7 @@ CPaint.tDemoList["derby"][CPaint.FUNC_LOAD] = function()
         return iX, iY
     end
 
-    for iParticleID = 1, math.abs(tGame.Cols - tGame.Rows) do
+    for iParticleID = 1, math.ceil(math.abs(tGame.Cols - tGame.Rows)/2) do
         CPaint.tDemoList["derby"].tVars.tParticles[iParticleID] = {}
         CPaint.tDemoList["derby"].tVars.tParticles[iParticleID].iX, CPaint.tDemoList["derby"].tVars.tParticles[iParticleID].iY = randXY()
         CPaint.tDemoList["derby"].tVars.tParticles[iParticleID].iDestX = 0
@@ -266,7 +287,7 @@ CPaint.tDemoList["derby"][CPaint.FUNC_LOAD] = function()
             CPaint.tDemoList["derby"].tVars.tParticles[iParticleID].iDestX = math.random(1, tGame.Cols)
             CPaint.tDemoList["derby"].tVars.tParticles[iParticleID].iDestY = math.random(1, tGame.Rows)
 
-            if iGameState == GAMESTATE_GAME then return math.random(200, 5000); end
+            if iGameState == GAMESTATE_GAME then return math.random(200, 500); end
         end)
     end
 end
@@ -344,20 +365,54 @@ end
 CPaint.tDemoList["rainbowwave"] = {}
 CPaint.tDemoList["rainbowwave"].THINK_DELAY = 100
 CPaint.tDemoList["rainbowwave"].SIZE = 1
-CPaint.tDemoList["rainbowwave"].COLORS = {CColors.RED, CColors.YELLOW, CColors.GREEN, CColors.CYAN, CColors.BLUE, CColors.MAGENTA}
-CPaint.tDemoList["rainbowwave"].tVars = {}
-CPaint.tDemoList["rainbowwave"].tVars.tParticles = {}
-CPaint.tDemoList["rainbowwave"].tVars.iNextY = 1
-CPaint.tDemoList["rainbowwave"].tVars.iNextYPlus = 1
-CPaint.tDemoList["rainbowwave"].tVars.iColorOffset = 1
+CPaint.tDemoList["rainbowwave"].COLORS = 
+{
+    {CColors.RED, 3}, 
+    {CColors.RED, 4}, 
+    {CColors.RED, 5}, 
+    {CColors.RED, 4}, 
+    {CColors.RED, 3},  
+    {CColors.YELLOW, 3}, 
+    {CColors.YELLOW, 4}, 
+    {CColors.YELLOW, 5}, 
+    {CColors.YELLOW, 4}, 
+    {CColors.YELLOW, 3},  
+    {CColors.GREEN, 3}, 
+    {CColors.GREEN, 4}, 
+    {CColors.GREEN, 5}, 
+    {CColors.GREEN, 4}, 
+    {CColors.GREEN, 3}, 
+    {CColors.CYAN, 3}, 
+    {CColors.CYAN, 4}, 
+    {CColors.CYAN, 5}, 
+    {CColors.CYAN, 4}, 
+    {CColors.CYAN, 3}, 
+    {CColors.BLUE, 3}, 
+    {CColors.BLUE, 4}, 
+    {CColors.BLUE, 5}, 
+    {CColors.BLUE, 4}, 
+    {CColors.BLUE, 3}, 
+    {CColors.MAGENTA, 3}, 
+    {CColors.MAGENTA, 4}, 
+    {CColors.MAGENTA, 5}, 
+    {CColors.MAGENTA, 4}, 
+    {CColors.MAGENTA, 3}, 
+}
+
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["rainbowwave"].tVars = {}
+    CPaint.tDemoList["rainbowwave"].tVars.tParticles = {}
+    CPaint.tDemoList["rainbowwave"].tVars.iNextY = 1
+    CPaint.tDemoList["rainbowwave"].tVars.iNextYPlus = 1
+    CPaint.tDemoList["rainbowwave"].tVars.iColorOffset = 1
+
     CPaint.tDemoList["rainbowwave"].SIZE = math.floor(tGame.Rows/3)
     CPaint.tDemoList["rainbowwave"].tVars.iNextY = math.floor(tGame.Rows/2 - CPaint.tDemoList["rainbowwave"].SIZE/2)
 
-    AL.NewTimer(700, function()
+    AL.NewTimer(200, function()
         CPaint.tDemoList["rainbowwave"].tVars.iColorOffset = CPaint.tDemoList["rainbowwave"].tVars.iColorOffset + 1
 
-        if iGameState == GAMESTATE_GAME then return 500; end
+        if iGameState == GAMESTATE_GAME then return 200; end
     end)
 
     AL.NewTimer(200, function()
@@ -375,8 +430,8 @@ CPaint.tDemoList["rainbowwave"][CPaint.FUNC_PAINT] = function()
             for iY = CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY, CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY + CPaint.tDemoList["rainbowwave"].SIZE-1 do
                 local iColorID = math.floor(((CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY + CPaint.tDemoList["rainbowwave"].SIZE-1 - iY) + CPaint.tDemoList["rainbowwave"].tVars.iColorOffset) %(#CPaint.tDemoList["rainbowwave"].COLORS))
                 if iColorID == 0 then iColorID = #CPaint.tDemoList["rainbowwave"].COLORS end
-                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iColor = CPaint.tDemoList["rainbowwave"].COLORS[iColorID]
-                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iBright = tConfig.Bright
+                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iColor = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][1]
+                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iBright = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][2]
             end
         end
     end
@@ -407,13 +462,14 @@ end
 CPaint.tDemoList["rainbowsnake"] = {}
 CPaint.tDemoList["rainbowsnake"].THINK_DELAY = 30
 CPaint.tDemoList["rainbowsnake"].START_COLORS = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
-CPaint.tDemoList["rainbowsnake"].tVars = {}
-CPaint.tDemoList["rainbowsnake"].tVars.tColor = CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1,#CPaint.tDemoList["rainbowsnake"].START_COLORS)]
-CPaint.tDemoList["rainbowsnake"].tVars.iX = 0
-CPaint.tDemoList["rainbowsnake"].tVars.iY = 1
-CPaint.tDemoList["rainbowsnake"].tVars.tBlocks = {}
-CPaint.tDemoList["rainbowsnake"].tVars.tParticles = {}
 CPaint.tDemoList["rainbowsnake"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["rainbowsnake"].tVars = {}
+    CPaint.tDemoList["rainbowsnake"].tVars.tColor = CPaint.tDemoList["rainbowsnake"].START_COLORS[math.random(1,#CPaint.tDemoList["rainbowsnake"].START_COLORS)]
+    CPaint.tDemoList["rainbowsnake"].tVars.iX = 0
+    CPaint.tDemoList["rainbowsnake"].tVars.iY = 1
+    CPaint.tDemoList["rainbowsnake"].tVars.tBlocks = {}
+    CPaint.tDemoList["rainbowsnake"].tVars.tParticles = {}
+
     for iX = 1, tGame.Cols do
         CPaint.tDemoList["rainbowsnake"].tVars.tBlocks[iX] = {}
         for iY = 1, tGame.Rows do
@@ -453,14 +509,15 @@ end
 CPaint.tDemoList["colorsnake"] = {}
 CPaint.tDemoList["colorsnake"].THINK_DELAY = 30
 CPaint.tDemoList["colorsnake"].START_COLORS = {"0x0088FF", "0xFFAA00", "0xFF7700", "0xFF0033", "0x9911AA", "0xAADD22"}
-CPaint.tDemoList["colorsnake"].tVars = {}
-CPaint.tDemoList["colorsnake"].tVars.iColor = tonumber(CPaint.tDemoList["colorsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["colorsnake"].START_COLORS)])
-CPaint.tDemoList["colorsnake"].tVars.iColorCount = 0
-CPaint.tDemoList["colorsnake"].tVars.iX = 0
-CPaint.tDemoList["colorsnake"].tVars.iY = 1
-CPaint.tDemoList["colorsnake"].tVars.tBlocks = {}
-CPaint.tDemoList["colorsnake"].tVars.tParticles = {}
 CPaint.tDemoList["colorsnake"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["colorsnake"].tVars = {}
+    CPaint.tDemoList["colorsnake"].tVars.iColor = tonumber(CPaint.tDemoList["colorsnake"].START_COLORS[math.random(1, #CPaint.tDemoList["colorsnake"].START_COLORS)])
+    CPaint.tDemoList["colorsnake"].tVars.iColorCount = 0
+    CPaint.tDemoList["colorsnake"].tVars.iX = 0
+    CPaint.tDemoList["colorsnake"].tVars.iY = 1
+    CPaint.tDemoList["colorsnake"].tVars.tBlocks = {}
+    CPaint.tDemoList["colorsnake"].tVars.tParticles = {}
+
     for iX = 1, tGame.Cols do
         CPaint.tDemoList["colorsnake"].tVars.tBlocks[iX] = {}
         for iY = 1, tGame.Rows do
@@ -510,9 +567,10 @@ CPaint.tDemoList["rainbowdemo"] = {}
 CPaint.tDemoList["rainbowdemo"].THINK_DELAY = 120
 CPaint.tDemoList["rainbowdemo"].NEARTABLES = {{0,-1},{-1,0},{1,0},{0,1},} 
 CPaint.tDemoList["rainbowdemo"].START_COLORS = {{255, 0, 0}, {0, 255, 0}, {0, 0, 255}}
-CPaint.tDemoList["rainbowdemo"].tVars = {}
-CPaint.tDemoList["rainbowdemo"].tVars.tClicked = {}
 CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["rainbowdemo"].tVars = {}
+    CPaint.tDemoList["rainbowdemo"].tVars.tClicked = {}
+
     for iX = 1, tGame.Cols do
         CPaint.tDemoList["rainbowdemo"].tVars.tClicked[iX] = {}
         for iY = 1, tGame.Rows do
