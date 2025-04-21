@@ -142,16 +142,11 @@ function GameSetupTick()
         for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
             tFloor[iX][iY].iColor = CColors.BLUE
             tFloor[iX][iY].iBright = tConfig.Bright
-            if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            if tFloor[iX][iY].bClick and CGameMode.bCanStart then bAnyButtonClick = true; end
         end
     end
 
     if bAnyButtonClick then
-        if not CGameMode.bCanStart then
-            bAnyButtonClick = false
-            return;
-        end
-
         CAudio.PlaySyncFromScratch("")
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME
