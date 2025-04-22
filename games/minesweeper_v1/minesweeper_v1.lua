@@ -142,6 +142,11 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameResults.PlayersCount = tConfig.PlayerCount
 
+    if tConfig.PlayerLives > 0 and #tGame.StartPositions == 1 then
+        tGameStats.TotalLives = tConfig.PlayerLives
+        tGameStats.CurrentLives = tConfig.PlayerLives
+    end
+
     tGameStats.TotalStages = tConfig.RoundCount
     CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
@@ -427,6 +432,8 @@ CGameMode.EndGame = function()
             tGameResults.Won = false
             tGameResults.Color = CColors.RED
         end
+
+        iGameState = GAMESTATE_POSTGAME
     else
         local iMaxScore = -999
 
@@ -495,6 +502,14 @@ CGameMode.PlayerTouchedMine = function(iPlayerID)
 
     if CGameMode.iPlayerCount == 1 then
         tGameResults.Score = tGameResults.Score - 1
+    end
+
+    if tGameStats.TotalLives > 0 then
+        tGameStats.CurrentLives = tGameStats.CurrentLives - 1
+        if tGameStats.CurrentLives <= 0 then
+            tGameStats.Players[1].Score = -1
+            CGameMode.EndGame()
+        end
     end
 
     CAudio.PlaySystemAsync(CAudio.MISCLICK)
@@ -850,7 +865,7 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
-        if bGamePaused then
+        if bGamePaused or iGameState > GAMESTATE_GAME then
             tFloor[click.X][click.Y].bClick = false
             return;
         end

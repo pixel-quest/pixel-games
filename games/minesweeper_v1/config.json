@@ -12,6 +12,13 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
+  "PlayerLives": 0,
+  "PlayerLives_Min": 0,
+  "PlayerLives_Max": 50,
+  "PlayerLives_Step": 5,
+  "PlayerLives_ru": "Жизни команды(только если 1 команда)",
+  "PlayerLives_en": "Team Lives(1 team only)",
+
   "AutoStart": true,
   "AutoStart_ru": "Автозапуск при всех занятых позициях",
   "AutoStart_en": "Autostart on all positions occupied",
