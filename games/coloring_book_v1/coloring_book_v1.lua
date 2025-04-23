@@ -91,6 +91,7 @@ local GameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = colors.NONE,
+    ScoreboardVariant = 10,
 }
 gameState = {
     State = -1,
