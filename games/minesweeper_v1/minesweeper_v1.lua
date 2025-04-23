@@ -64,6 +64,7 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 0,
 }
 
 local tGameResults = {
@@ -138,6 +139,10 @@ function StartGame(gameJson, gameConfigJson)
         for iPlayerID = 1, #tGame.StartPositions do
             tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
         end 
+    end
+
+    if #tGame.StartPositions == 1 then
+        tGameStats.ScoreboardVariant = 4
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
