@@ -1,0 +1,22 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"PlayerCount": 1,
+	"PlayerCount_Min": 1,
+	"PlayerCount_Max": 4,
+	"PlayerCount_Step": 1,
+	"PlayerCount_ru": "Количество команд",
+	"PlayerCount_en": "Team Count",
+
+	"ButtonsCount": 6,
+	"ButtonsCount_Min": 5,
+	"ButtonsCount_Max": 9,
+	"ButtonsCount_Step": 1,
+	"ButtonsCount_ru": "Количество кнопок",
+	"ButtonsCount_en": "Buttons"
+  	    	
+}
