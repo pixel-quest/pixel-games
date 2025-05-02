@@ -99,6 +99,8 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
+    iPrevTickTime = CTime.unix()
+
     for _, iButton in pairs(tGame.Buttons) do
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
@@ -190,7 +192,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (tConfig.AutoStartPlayerCount > 0 and iPlayersReady >= tConfig.AutoStartPlayerCount)) then
+    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (CGameMode.bCanStart and tConfig.AutoStartPlayerCount > 0 and iPlayersReady >= tConfig.AutoStartPlayerCount)) then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -239,14 +241,22 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("dash/perebejka-game.mp3")
 
+    local iAudioDur = 0
+
     if not tGame.DisableButtonsGameplay then
         CAudio.PlayVoicesSync("dash/dash_rules_default.mp3")
         CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_default.mp3"))*1000 
     else
         CAudio.PlayVoicesSync("dash/dash_rules_nobuttons.mp3")
         CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
+        iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_nobuttons.mp3"))*1000 
     end
+
+    AL.NewTimer(iAudioDur + 2000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
