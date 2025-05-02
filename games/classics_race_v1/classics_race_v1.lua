@@ -111,6 +111,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGame.StartPositions = {}
     tGame.StartPositionSizeX = math.floor(tGame.Cols*0.8)
     tGame.StartPositionSizeY = 3
@@ -143,6 +145,10 @@ function StartGame(gameJson, gameConfigJson)
     CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
     CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("classics-race/classics-race-guide.mp3"))*1000 + 2000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 function NextTick()
@@ -297,6 +303,7 @@ CGameMode.bGameStarted = false
 CGameMode.tPlayerSeeds = {}
 CGameMode.tPlayerCanFinish = {}
 CGameMode.iDefaultSeed = 1
+CGameMode.bCanStart = false
 
 CGameMode.iFinishPosition = 1
 
@@ -674,7 +681,7 @@ CPaint.PlayerZones = function()
         end
     end
 
-    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and iZonesClicked == #tGame.StartPositions then
+    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and iZonesClicked == #tGame.StartPositions and CGameMode.bCanStart then
         bAnyButtonClick = true
     end
 end
