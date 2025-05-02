@@ -120,6 +120,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         local iX = 1
@@ -226,7 +228,7 @@ function GameSetupTick()
                     end
                 end
 
-                if bArenaClick then
+                if bArenaClick and CGameMode.bCanStart then
                     bAnyButtonClick = true 
                     tArenaPlayerReady[iPos] = true
                 else
@@ -236,7 +238,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and (tGame.NewStart or bAnyButtonClick) then
+    if not bCountDownStarted and iPlayersReady > 0 and ((CGameMode.bCanStart and iPlayersReady == #tGame.StartPositions) or bAnyButtonClick) then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -277,6 +279,7 @@ CGameMode.iWinnerID = -1
 CGameMode.tPixels = {}
 CGameMode.tBlockList = {}
 CGameMode.bArenaMode = false
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     tGameStats.TargetScore = tConfig.TargetScore
@@ -302,13 +305,15 @@ CGameMode.Announcer = function()
 
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-    elseif not tGame.NewStart then
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 
     if (tGame.NewStart and #tGame.StartPositions == 1) then
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
+
+    AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 3000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
