@@ -98,6 +98,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end    
 
+    iPrevTickTime = CTime.unix()
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -180,6 +182,8 @@ CGameMode.iGameSetupCollectedCoins = 0
 
 CGameMode.iRoundTimeLimit = 60
 
+CGameMode.bCanStart = false
+
 CGameMode.InitGameMode = function()
     if tConfig.Seed ~= 0 then 
         math.randomseed(tonumber(tConfig.Seed))
@@ -206,6 +210,10 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("quest/quest-game.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("quest/quest-game.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.GameSetupRandomCoins = function()
@@ -1061,11 +1069,13 @@ CPaint.GameField = function()
 end
 
 CPaint.GameSetup = function()
-    for iCoinId = 1, #CGameMode.tGameSetupCoins do
-        if not CGameMode.tGameSetupCoins[iCoinId].bCollected then
-            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]
-            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iBright = tConfig.Bright
-            tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iCoinId = iCoinId
+    if CGameMode.bCanStart then
+        for iCoinId = 1, #CGameMode.tGameSetupCoins do
+            if not CGameMode.tGameSetupCoins[iCoinId].bCollected then
+                tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iColor = CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]
+                tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iBright = tConfig.Bright
+                tFloor[CGameMode.tGameSetupCoins[iCoinId].iX][CGameMode.tGameSetupCoins[iCoinId].iY].iCoinId = iCoinId
+            end
         end
     end
 end
