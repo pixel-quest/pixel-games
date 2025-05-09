@@ -156,13 +156,13 @@ function GameSetupTick()
         CPaint.PlayerZone(iPlayerID, iBright)           
     end
 
-    if (iPlayersReady > 1 and bAnyButtonClick) or (iPlayersReady >= tConfig.AutoStartPlayerCount) then
+    if (iPlayersReady > 1 and bAnyButtonClick) or (iPlayersReady >= #tGame.StartPositions) then
         bAnyButtonClick = false
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
         CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        CGameMode.StartNextRoundCountDown(20)
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3"))
     end
 end
 
