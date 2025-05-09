@@ -101,6 +101,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     for iPlayerID = 1, #tGame.StartPositions do
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end    
@@ -154,11 +156,13 @@ function GameSetupTick()
 end
 
 function GameSetupTickSinglePlayer()
-    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
-            tFloor[iX][iY].iColor = CColors.BLUE
-            tFloor[iX][iY].iBright = tConfig.Bright
-            if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+    if CGameMode.bCanStart then
+        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            end
         end
     end
 
@@ -194,7 +198,7 @@ function GameSetupTickMultiPlayer()
         end
     end
 
-    if iPlayersReady > 1 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions)) then
+    if iPlayersReady > 1 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions and CGameMode.bCanStart)) then
         bAnyButtonClick = false
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
@@ -247,6 +251,7 @@ CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
 CGameMode.tPlayerFieldScore = {}
 CGameMode.bPlayerMovesCount = false
+CGameMode.bCanStart = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -267,6 +272,10 @@ CGameMode.AnnounceGameStart = function()
     else
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
+
+    AL.NewTimer((CAudio.GetVoicesDuration("match-the-picture/match-the-picture.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartNextRoundCountDown = function(iCountDownTime)
