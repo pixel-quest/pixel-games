@@ -103,6 +103,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGameResults.PlayersCount = 2
 
     CGameMode.init()
@@ -188,6 +190,8 @@ end
 CGameMode = {}
 CGameMode.iCountdown = 0
 
+CGameMode.bCanStart = false
+
 CGameMode.bVictory = false
 
 CGameMode.iDifficulty = 2
@@ -226,6 +230,10 @@ CGameMode.Announcer = function()
     if not tConfig.AutoStart then
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
+
+    AL.NewTimer((CAudio.GetVoicesDuration("mazeguide/mazeguide_guide.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -407,7 +415,7 @@ CPaint.UI = function()
         end
     end
 
-    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and bActive1 and bActive2 then
+    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and bActive1 and bActive2 and CGameMode.bCanStart then
         bAnyButtonClick = true
     end
 end
