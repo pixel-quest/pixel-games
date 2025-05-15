@@ -56,6 +56,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
@@ -101,6 +102,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGame.StartPositionSizeX = 3
 
     local iX = math.floor(tGame.Cols/2) - (tGame.StartPositionSizeX*2)
@@ -128,6 +131,10 @@ function StartGame(gameJson, gameConfigJson)
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("classics/classics-game.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 function NextTick()
@@ -192,7 +199,7 @@ function GameSetupTick()
                 end
             end
         end
-    elseif not CGameMode.bCountDownStarted then
+    elseif not CGameMode.bCountDownStarted and CGameMode.bCanStart then
         for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
             for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
                 tFloor[iX][iY].iColor = CColors.BLUE
@@ -243,6 +250,7 @@ CGameMode.tPlayerMapTotalCoinCount = {}
 CGameMode.tPlayerMapTotalCoinCollected = {}
 CGameMode.iDefaultSeed = 1
 CGameMode.bCountDownStarted = false
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     if tGame.Direction == "right" then

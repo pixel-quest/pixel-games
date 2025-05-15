@@ -65,6 +65,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 9,
 }
 
 local tGameResults = {
@@ -106,11 +107,17 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     for iPlayerID = 1, #tGame.StartPositions do
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end 
 
     CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 + 2000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 function NextTick()
@@ -144,7 +151,7 @@ function GameSetupTick()
     SetAllFloorColorBright(CColors.WHITE, 1) -- красим всё поле в один цвет
     CPaint.PlayerZones()
 
-    if tGame.StartButtonFloorX then
+    if CGameMode.bCanStart and tGame.StartButtonFloorX then
         for iX = tGame.StartButtonFloorX, tGame.StartButtonFloorX + 1 do
             for iY = tGame.StartButtonFloorY, tGame.StartButtonFloorY + 2 do
                 tFloor[iX][iY].iColor = CColors.BLUE
@@ -203,6 +210,8 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.tSquares = {}
 CGameMode.bVictory = false
+
+CGameMode.bCanStart = false
 
 CGameMode.iTotalSquares = 0
 CGameMode.iClaimedSquares = 0

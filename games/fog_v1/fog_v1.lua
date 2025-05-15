@@ -55,6 +55,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+     ScoreboardVariant = 3,
 }
 
 local tGameResults = {
@@ -95,6 +96,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
@@ -130,15 +133,17 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
-    --SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
+    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
     CWorld.Draw()
 
     if not CGameMode.bCountDownStarted then
-        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+        if CGameMode.bCanStart then
+            for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+                for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                    tFloor[iX][iY].iColor = CColors.BLUE
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                    if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+                end
             end
         end
     end
@@ -180,6 +185,7 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.bVictory = false
 CGameMode.tLastPlayerStep = {}
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     CWorld.Load()
@@ -194,6 +200,10 @@ CGameMode.Announcer = function()
 
     CAudio.PlayVoicesSync("halloween/fog_halloween_guide.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("halloween/fog_halloween_guide.mp3"))*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

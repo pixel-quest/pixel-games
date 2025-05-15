@@ -53,6 +53,7 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 3,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
@@ -95,6 +96,8 @@ function StartGame(gameJson, gameConfigJson)
     for _, iId in pairs(tGame.Buttons) do
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
+
+    iPrevTickTime = CTime.unix()
 
     for iPlayerID = 1, #tGame.StartPositions do
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
