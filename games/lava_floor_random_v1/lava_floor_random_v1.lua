@@ -50,10 +50,11 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 1,
+    TargetScore = 0,
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 1,
 }
 
 local tGameResults = {
@@ -197,7 +198,7 @@ CGameMode.InitGameMode = function()
         CGameMode.tGameSetupCoins[1].iY = math.random(math.floor(tGame.Rows/2)-3,math.floor(tGame.Rows/2)+3)
     until not tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].bDefect 
     tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].iCoinId = 1
-    tGameStats.TargetScore = 1
+    tGameStats.TotalStars = 1
 
     tGameStats.TotalStages = tConfig.RoundCount
 end
@@ -222,14 +223,14 @@ CGameMode.GameSetupRandomCoins = function()
         end
     end
 
-    tGameStats.TargetScore = #CGameMode.tGameSetupCoins
+    tGameStats.TotalStars = #CGameMode.tGameSetupCoins
 end
 
 CGameMode.PlayerCollectGameSetupCoin = function(iCoinId)
     CGameMode.tGameSetupCoins[iCoinId].bCollected = true
     CGameMode.iGameSetupCollectedCoins = CGameMode.iGameSetupCollectedCoins + 1
 
-    tGameStats.Players[1].Score = tGameStats.Players[1].Score + 1
+    tGameStats.CurrentStars = tGameStats.CurrentStars + 1
 
     if CGameMode.iGameSetupCollectedCoins == #CGameMode.tGameSetupCoins then
         CGameMode.EndGameSetup()
@@ -300,8 +301,8 @@ CGameMode.StartRound = function()
     CAudio.PlayRandomBackground()
     CGameMode.bRoundStarted = true
 
-    tGameStats.Players[1].Score = 0
-    tGameStats.TargetScore = CGameMode.iMapCoinReq
+    tGameStats.CurrentStars = 0
+    tGameStats.TotalStars = CGameMode.iMapCoinReq
 
     tGameStats.StageLeftDuration = CGameMode.iRoundTimeLimit
     AL.NewTimer(1000, function()
@@ -340,8 +341,8 @@ CGameMode.EndRound = function()
 
     CBlock.Clear()
 
-    tGameStats.Players[1].Score = tGameResults.Score
-    tGameStats.TargetScore = tGameResults.Score
+    tGameStats.CurrentStars = tGameResults.Score
+    tGameStats.TotalStars = tGameResults.Score
 
     if tGameStats.StageNum == tGameStats.TotalStages then
         CGameMode.EndGame(true)
@@ -355,13 +356,13 @@ CGameMode.PlayerCollectCoin = function()
     CAudio.PlaySystemAsync(CAudio.CLICK)
 
     CGameMode.iMapCoinCollected = CGameMode.iMapCoinCollected + 1
-    tGameStats.Players[1].Score = tGameStats.Players[1].Score + 1
+    tGameStats.CurrentStars = tGameStats.CurrentStars + 1
     tGameResults.Score = tGameResults.Score + 25
-    tGameStats.CurrentStars = tGameResults.Score
+    tGameStats.CurrentStars = CGameMode.iMapCoinCollected
 
     if CGameMode.iMapCoinCollected == CGameMode.iMapCoinReq then
         CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
-        tGameStats.TargetScore = CGameMode.iMapCoinCount
+        tGameStats.TotalStars = CGameMode.iMapCoinCount
     elseif CGameMode.iMapCoinCollected == CGameMode.iMapCoinCount then
         CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         CGameMode.EndRound()
@@ -372,7 +373,6 @@ CGameMode.PlayerCollectLava = function(iX, iY)
     if not CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown then
         CAudio.PlaySystemAsync(CAudio.MISCLICK)
         tGameResults.Score = tGameResults.Score - 10 
-        tGameStats.CurrentStars = tGameResults.Score
 
         CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.NONE)
 

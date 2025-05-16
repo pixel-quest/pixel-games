@@ -53,6 +53,7 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 3,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
