@@ -284,7 +284,7 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("memorization_guide.mp3")
+    CAudio.PlayVoicesSync("memorization/memorization_guide.mp3")
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
@@ -296,7 +296,7 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     end
 
-    AL.NewTimer(CAudio.GetVoicesDuration("memorization_guide.mp3") * 1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("memorization/memorization_guide.mp3") * 1000, function()
         CGameMode.bCanStartGame = true
     end)
 end
