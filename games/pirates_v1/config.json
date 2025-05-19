@@ -1,0 +1,22 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"PlayerCount": 3,
+  	"PlayerCount_Min": 2,
+  	"PlayerCount_Max": 5,
+  	"PlayerCount_Step": 1,
+  	"PlayerCount_Ru": "Количество кораблей",
+  	"PlayerCount_En": "Ship Count",
+
+  	"ShipHealth": 15,
+  	"ShipHealth_Min": 5,
+  	"ShipHealth_Max": 30,
+  	"ShipHealth_Step": 5,
+  	"ShipHealth_Ru": "Прочность корабля",
+  	"ShipHealth_En": "Ship Durability"
+
+}
