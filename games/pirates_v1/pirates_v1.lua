@@ -1,8 +1,10 @@
 --[[
-    Название: Название механики
+    Название: Пираты (карибского моря)
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики: 
+        Игроки управляют кораблями в море, стреляют в корабли друг друга из пушек и уклоняются от выстрелов
+        Побеждает тот кто остаётся последним выжившим
+    Идеи по доработке:
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -112,7 +114,7 @@ function StartGame(gameJson, gameConfigJson)
         if tGame.StartPositionSizeX < 4 then tGame.StartPositionSizeX = 4; end
         tGame.StartPositionSizeY = tGame.Rows
 
-        local iX = 1
+        local iX = 0
         local iY = 1
 
         for iPlayerID = 1, tConfig.PlayerCount do
@@ -188,8 +190,10 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and (bAnyButtonClick or iPlayersReady == #tGame.StartPositions and CGameMode.bCanAutoStart)) then
+    if (iPlayersReady > 1 and (bAnyButtonClick or iPlayersReady == #tGame.StartPositions and CGameMode.bCanAutoStart)) then
         bAnyButtonClick = false
+
+        CGameMode.iAlivePlayerCount = iPlayersReady
 
         iGameState = GAMESTATE_GAME
         CShips.Spawn()
@@ -232,6 +236,9 @@ CGameMode.iCountdown = 0
 CGameMode.bCanAutoStart = false
 CGameMode.bGameStarted = false
 
+CGameMode.iAlivePlayerCount = 0
+CGameMode.iWinnerID = 0
+
 CGameMode.Announcer = function()
     --voice gamename and guide
     CAudio.PlayVoicesSync("choose-color.mp3")
@@ -263,18 +270,18 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.Thinkers = function()
-    AL.NewTimer(250, function()
+    AL.NewTimer(200, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CShips.ShipThinker()
-        return 250
+        return 200
     end)
 
-    AL.NewTimer(50, function()
+    AL.NewTimer(100, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CProjectiles.ProjectileThink()
-        return 50
+        return 100
     end)
 end
 
@@ -283,6 +290,27 @@ CGameMode.StartGame = function()
     CAudio.PlayRandomBackground()
 
     CGameMode.bGameStarted = true
+end
+
+CGameMode.EndGame = function()
+    for iShipId = 1, #CShips.tShips do
+        if CShips.tShips[iShipId].bAlive then
+            CGameMode.iWinnerID = CShips.tShips[iShipId].iPlayerID
+            break;
+        end
+    end
+
+    iGameState = GAMESTATE_POSTGAME
+
+    CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
+
+    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+    tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
+
+    AL.NewTimer(10000, function()
+        iGameState = GAMESTATE_FINISH
+    end) 
 end
 --//
 
@@ -318,15 +346,18 @@ CShips.NewShip = function(iPlayerID)
     CShips.tShips[iShipId].iHealth = CShips.SHIP_HEALTH
     CShips.tShips[iShipId].bAlive = true
     CShips.tShips[iShipId].bCanShoot = true
+    CShips.tShips[iShipId].bOnFire = false
+
+    if iPlayerID == 1 then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + 2 end
+    if iPlayerID == #tGame.StartPositions then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-2 end
 
     CShips.tPlayerIDToShipId[iPlayerID] = iShipId
+    tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
 end
 
 CShips.ShipThinker = function()
     for iShipId = 1, #CShips.tShips do
         if CShips.tShips[iShipId] and CShips.tShips[iShipId].bAlive then
-            tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
-
             if CShips.tShips[iShipId].iTargetY ~= CShips.tShips[iShipId].iY then
                 if CShips.tShips[iShipId].iY > CShips.tShips[iShipId].iTargetY then
                     CShips.tShips[iShipId].iY = CShips.tShips[iShipId].iY - 1
@@ -366,9 +397,32 @@ CShips.ShipShoot = function(iShipId, iX, iY)
         end
         CProjectiles.NewProjectile(iX, iY, iVelX, 0)
 
+        --sound cannon shot
+
         AL.NewTimer(2000, function()
             CShips.tShips[iShipId].bCanShoot = true
         end) 
+    end
+end
+
+CShips.DamageShip = function(iShipId)
+    CShips.tShips[iShipId].iHealth = CShips.tShips[iShipId].iHealth - 1
+    tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
+
+    if CShips.tShips[iShipId].iHealth == 0 then
+        --sound ship dead
+        CShips.tShips[iShipId].bAlive = false
+        CGameMode.iAlivePlayerCount = CGameMode.iAlivePlayerCount - 1
+        if CGameMode.iAlivePlayerCount == 1 then
+            CGameMode.EndGame()
+        end
+    else
+        --sound ship hit
+
+        CShips.tShips[iShipId].bOnFire = true
+        AL.NewTimer(250, function()
+            CShips.tShips[iShipId].bOnFire = false
+        end)
     end
 end
 --//
@@ -395,7 +449,42 @@ CProjectiles.ProjectileThink = function()
             if CProjectiles.tProjectiles[iProjectileId].iX < 1 or CProjectiles.tProjectiles[iProjectileId].iX > tGame.Cols or
             CProjectiles.tProjectiles[iProjectileId].iY < 1 or CProjectiles.tProjectiles[iProjectileId].iY > tGame.Rows then
                 CProjectiles.tProjectiles[iProjectileId] = nil
-            end 
+            else
+                CProjectiles.ProjectileCollision(iProjectileId)
+            end
+        end
+    end
+end
+
+CProjectiles.ProjectileCollision = function(iProjectileId)
+    for iShipId = 1, #CShips.tShips do
+        if CShips.tShips[iShipId] and CShips.tShips[iShipId].bAlive then
+            if CProjectiles.tProjectiles[iProjectileId].iX == CShips.tShips[iShipId].iX + math.floor(CShips.SHIP_SIZE_X/2) then
+                if CProjectiles.tProjectiles[iProjectileId].iY >= CShips.tShips[iShipId].iY and CProjectiles.tProjectiles[iProjectileId].iY <= CShips.tShips[iShipId].iY + CShips.SHIP_SIZE_Y-1 then
+                    CShips.DamageShip(iShipId)
+                    CProjectiles.tProjectiles[iProjectileId] = nil
+                    return;
+                end
+            end
+        end
+    end
+
+    for iProjectileId2 = 1, #CProjectiles.tProjectiles do
+        if iProjectileId ~= iProjectileId2 and CProjectiles.tProjectiles[iProjectileId2] then
+            if CProjectiles.tProjectiles[iProjectileId].iX == CProjectiles.tProjectiles[iProjectileId2].iX and CProjectiles.tProjectiles[iProjectileId].iY == CProjectiles.tProjectiles[iProjectileId2].iY then
+                CProjectiles.tProjectiles[iProjectileId2] = nil
+
+                CProjectiles.tProjectiles[iProjectileId].iVelX = 0
+                CProjectiles.tProjectiles[iProjectileId].iVelY = 0
+
+                --sound projectiles hit
+
+                AL.NewTimer(250, function()
+                    CProjectiles.tProjectiles[iProjectileId] = nil
+                end)
+
+                return;
+            end
         end
     end
 end
@@ -424,27 +513,35 @@ CPaint.Ships = function()
                     local iColor = tGame.StartPositions[CShips.tShips[iShipId].iPlayerID].Color
                     local iBright = tConfig.Bright
 
-                    if iY ~= CShips.tShips[iShipId].iY and iY ~= CShips.tShips[iShipId].iY + CShips.SHIP_SIZE_Y-1 then
-                        if iX == CShips.tShips[iShipId].iX + math.floor(CShips.SHIP_SIZE_X/2) then
-                            iBright = iBright-2
-                        end
-                    else
-                        if iX == CShips.tShips[iShipId].iX or iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 then
-                            iColor = CColors.BLUE
-                            iBright = iBright-1
-                        end
-                    end 
+                    if CShips.tShips[iShipId].bAlive then
+                        if iY ~= CShips.tShips[iShipId].iY and iY ~= CShips.tShips[iShipId].iY + CShips.SHIP_SIZE_Y-1 then
+                            if iX == CShips.tShips[iShipId].iX + math.floor(CShips.SHIP_SIZE_X/2) then
+                                iBright = iBright-2
+                                if CShips.tShips[iShipId].bOnFire then
+                                    iColor = CColors.RED
+                                end
+                            end
+                        else
+                            if iX == CShips.tShips[iShipId].iX or iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 then
+                                iColor = CColors.BLUE
+                                iBright = iBright-1
+                            end
+                        end 
 
-                    if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted and CShips.tShips[iShipId].bCanShoot then
-                        if iX == CShips.tShips[iShipId].iX or iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 then
-                            if iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)-1 or iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)+1 then
-                                iColor = CColors.RED
+                        if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted and CShips.tShips[iShipId].bCanShoot then
+                            if (iX == CShips.tShips[iShipId].iX and iShipId ~= 1) or (iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 and iShipId ~= #CShips.tShips) then
+                                if iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)-1 or iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)+1 then
+                                    iColor = CColors.RED
 
-                                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
-                                    CShips.ShipShoot(iShipId, iX, iY)
+                                    if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
+                                        CShips.ShipShoot(iShipId, iX, iY)
+                                    end
                                 end
                             end
                         end
+                    else
+                        iColor = CColors.RED
+                        iBright = 1
                     end
 
                     tFloor[iX][iY].iColor = iColor

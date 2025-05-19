@@ -1,22 +1,22 @@
 {
 	"Bright": 5,
-	"Bright_Min": 1,
-	"Bright_Max": 7,
-	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+	"Bright_min": 1,
+	"Bright_max": 7,
+	"Bright_step": 1,
+  	"Bright_ru": "Яркость",
 
   	"PlayerCount": 3,
-  	"PlayerCount_Min": 2,
-  	"PlayerCount_Max": 5,
-  	"PlayerCount_Step": 1,
-  	"PlayerCount_Ru": "Количество кораблей",
-  	"PlayerCount_En": "Ship Count",
+  	"PlayerCount_min": 2,
+  	"PlayerCount_max": 5,
+  	"PlayerCount_step": 1,
+  	"PlayerCount_ru": "Количество кораблей",
+  	"PlayerCount_en": "Ship Count",
 
-  	"ShipHealth": 15,
-  	"ShipHealth_Min": 5,
-  	"ShipHealth_Max": 30,
-  	"ShipHealth_Step": 5,
-  	"ShipHealth_Ru": "Прочность корабля",
-  	"ShipHealth_En": "Ship Durability"
+  	"ShipHealth": 10,
+  	"ShipHealth_min": 5,
+  	"ShipHealth_max": 25,
+  	"ShipHealth_step": 5,
+  	"ShipHealth_ru": "Прочность корабля",
+  	"ShipHealth_en": "Ship Durability"
 
 }
