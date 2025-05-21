@@ -422,12 +422,12 @@ CGameMode.PlayerClickButton = function(iPlayerID, iButtonId)
                 CGameMode.EndGame(true, iPlayerID)
             else
                 CGameMode.tPlayerSequencePoint[iPlayerID] = CGameMode.tPlayerSequencePoint[iPlayerID] + 1
-                AL.NewTimer(800, function()
+                AL.NewTimer(1500, function()
                     CGameMode.PreviewSequenceForPlayer(iPlayerID)
                 end)
             end
         else
-            AL.NewTimer(350, function()
+            AL.NewTimer(1500, function()
                 CGameMode.tPlayerCanMove[iPlayerID] = true
             end)           
         end
@@ -483,10 +483,10 @@ CPaint.PlayerGameZone = function(iPlayerID)
         return
     end
 
-    SetRectColorBright(tGame.StartPositions[iPlayerID].X, 
-        tGame.StartPositions[iPlayerID].Y, 
-        tGame.StartPositionSizeX-1, 
-        tGame.StartPositionSizeY-1, 
+    SetRectColorBright(tGame.StartPositions[iPlayerID].X-1, 
+        tGame.StartPositions[iPlayerID].Y-1, 
+        tGame.StartPositionSizeX+1, 
+        tGame.StartPositionSizeY+1, 
         tGame.StartPositions[iPlayerID].Color, 
         1)
 
@@ -506,7 +506,7 @@ CPaint.PlayerGameZone = function(iPlayerID)
         end
 
         if iButtonId == CGameMode.tPlayerSequenceAnimatedPoint[iPlayerID] then
-            iColor = CColors.BLUE
+            iColor = tGame.StartPositions[iPlayerID].Color
         end
 
         for i = iX, iX + 1 do
