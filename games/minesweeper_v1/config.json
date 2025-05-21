@@ -26,13 +26,6 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
-  "GameCountdown": 25,
-  "GameCountdown_Min": 1,
-  "GameCountdown_Max": 30,
-  "GameCountdown_Step": 1,
-  "GameCountdown_ru": "Отсчёт до начала игры",
-  "GameCountdown_en": "Game start countdown",
-
   "RoundCountdown": 10,
   "RoundCountdown_Min": 1,
   "RoundCountdown_Max": 20,

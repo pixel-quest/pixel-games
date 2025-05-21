@@ -92,6 +92,7 @@ local GameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = colors.NONE,
+    ScoreboardVariant = 2,
 }
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена

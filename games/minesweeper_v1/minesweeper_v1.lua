@@ -64,6 +64,7 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
@@ -140,6 +141,10 @@ function StartGame(gameJson, gameConfigJson)
         end 
     end
 
+    if #tGame.StartPositions == 1 then
+        tGameStats.ScoreboardVariant = 4
+    end
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     if tConfig.PlayerLives > 0 and #tGame.StartPositions == 1 then
@@ -214,7 +219,7 @@ function GameSetupTickSinglePlayer()
 
         iGameState = GAMESTATE_GAME
         CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3"))
     end
 end
 
@@ -269,8 +274,7 @@ function GameSetupTickMultiPlayer()
 
         CAudio.PlaySyncFromScratch("")
         CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        
-        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3"))
     end
 end
 

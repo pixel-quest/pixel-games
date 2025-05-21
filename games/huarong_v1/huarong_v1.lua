@@ -60,6 +60,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
@@ -116,6 +117,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
@@ -147,6 +150,10 @@ function StartGame(gameJson, gameConfigJson)
     CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
     CAudio.PlayVoicesSync("press-button-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("huarong/huarong-guide.mp3"))*1000 + 3000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 function NextTick()
@@ -200,7 +207,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions)) then
+    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions and CGameMode.bCanStart)) then
         tGameResults.PlayersCount = iPlayersReady
         CGameMode.StartCountDown(5)
     end    
@@ -245,6 +252,7 @@ CGameMode.iCountdown = 0
 CGameMode.iWinnerID = -1
 CGameMode.tFinishPosPlayerX = {}
 CGameMode.tFinishPosPlayerY = {}
+CGameMode.bCanStart = false
 
 CGameMode.bOneAxisMoveMode = false
 CGameMode.iOneAxisMoveModeScorableCount = 0

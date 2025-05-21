@@ -140,6 +140,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+     ScoreboardVariant = 3,
 }
 
 local tGameResults = {
@@ -184,6 +185,8 @@ function StartGame(gameJson, gameConfigJson)
     for _, iId in pairs(tGame.Buttons) do
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
+
+    iPrevTickTime = CTime.unix()
 
     tGameResults.PlayersCount = tConfig.PlayerCount
 
@@ -260,6 +263,7 @@ CGameMode = {}
 CGameMode.tSettings = {}
 CGameMode.iCountdown = 0
 CGameMode.bVictory = false
+CGameMode.bCanStart = false
 
 CGameMode.tBase = {
     iX = 0,
@@ -288,6 +292,10 @@ CGameMode.PrepareGame = function()
     CAudio.PlayVoicesSync("tower-defence/tower-defence-tutorial.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 2000, function()
+        CGameMode.bCanStart = true
+    end)
 
     CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
 
@@ -1385,7 +1393,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) then
+        if iGameState == GAMESTATE_SETUP and tFloor[click.X][click.Y].iColor == tonumber(tConfig.BaseColor) and CGameMode.bCanStart then
             bAnyButtonClick = true
         end
 

@@ -81,6 +81,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
+    ScoreboardVariant = 6,
 }
 
 local tGameResults = {
@@ -121,6 +122,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     CGameMode.Init()
     CGameMode.Announcer()
 end
@@ -154,15 +157,17 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
     CPaint.Units()  
 
-    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
-            tFloor[iX][iY].iColor = CColors.BLUE
-            tFloor[iX][iY].iBright = tConfig.Bright
-            if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+    if CGameMode.bCanStart then
+        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            end
         end
     end
 
@@ -204,6 +209,7 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.iWinner = 0
+CGameMode.bCanStart = false
 
 CGameMode.tTeamIDToColor = {}
 CGameMode.tTeamIDToColor[1] = CColors.GREEN
@@ -224,6 +230,10 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("virus/virus-guide.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

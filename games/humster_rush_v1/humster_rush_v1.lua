@@ -39,6 +39,7 @@ local GameStats = {
     StageNum = 0,
     TotalStages = 4,
     TargetColor = colors.NONE,
+    ScoreboardVariant = 4,
 }
 
 local tGameResults = {
