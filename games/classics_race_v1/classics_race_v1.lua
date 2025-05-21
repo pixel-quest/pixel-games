@@ -114,6 +114,10 @@ function StartGame(gameJson, gameConfigJson)
     tGame.StartPositionSizeX = math.floor(tGame.Cols*0.8)
     tGame.StartPositionSizeY = 3
 
+    if tGame.StartPositionOffsetX then
+        tGame.StartPositionSizeX = tGame.StartPositionSizeX - tGame.StartPositionOffsetX
+    end
+
     local iY = 2
     for iPlayerID = 1, tConfig.TeamCount do
         if iY <= tGame.Rows-tGame.StartPositionSizeY then

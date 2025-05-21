@@ -194,7 +194,7 @@ CPaint.PaintBG = function()
                 tFloor[iX][iY].iBright = tBackgroundColor.bright
             end
 
-            if tBg ~= nil and tBg[iBGY][iBGX] ~= "0xEMPTY1" then
+            if tBg ~= nil and tBg[iBGY] and tBg[iBGY][iBGX] and tBg[iBGY][iBGX] ~= "0xEMPTY1" then
                 tFloor[iX][iY].iColor = tonumber(tBg[iBGY][iBGX])
                 tFloor[iX][iY].iBright = tConfig.Bright
 
