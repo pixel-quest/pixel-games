@@ -367,8 +367,12 @@ CPaint.PlayerZones = function()
                     tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerId].Color
                     tFloor[iX][iY].iBright = tConfig.Bright
 
-                    if not tGame.StartPositions[iPlayerId].PreStartDraw and CGameMode.iClaimedSquares < CGameMode.iTotalSquares/2 then
-                        tFloor[iX][iY].iBright = tConfig.Bright-3
+                    if not tGame.StartPositions[iPlayerId].PreStartDraw then 
+                        if CGameMode.iClaimedSquares < CGameMode.iTotalSquares/2 then
+                            tFloor[iX][iY].iBright = tConfig.Bright-3
+                        elseif tConfig.EndGameAfterFinish and iGameState == GAMESTATE_GAME and tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                            CGameMode.EndGame(true)
+                        end
                     end
                 end
             end
