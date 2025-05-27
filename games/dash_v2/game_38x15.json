@@ -10,40 +10,47 @@
     22,
     26,
     30,
-    34,
-    38,
     41,
     45,
     49,
-    53,
-    57,
     61,
     65,
     69,
     73,
-    77
+    77,
+    81,
+    85,
+    89,
+    93,
+    97,
+    101,
+    105
   ],
-  "DisableButtonsGameplay": false,
+  "DisableButtonsGameplay": true,
   "SafeZoneOffsets": {
-    "38": {
-      "X": -1,
-      "Y": 0
-    },
     "41": {
-      "X": 0,
+      "X": -7,
       "Y": 1
     },
-    "53": {
-      "X": 0,
-      "Y": -1
-    }
+    "45": {
+      "X": -7,
+      "Y": 0
+    },   
+    "49": {
+      "X": -7,
+      "Y": 0
+    },
+     "61": {
+      "X": -1,
+      "Y": 0
+    }   
   },
   "LavaObjects": [
     [
       {
         "PosX": 1,
         "PosY": 1,
-        "SizeX": 24,
+        "SizeX": 38,
         "SizeY": 2,
         "VelX": 0,
         "VelY": 1,
@@ -70,7 +77,7 @@
         "PosX": 1,
         "PosY": -1,
         "SizeX": 3,
-        "SizeY": 20,
+        "SizeY": 34,
         "VelX": -1,
         "VelY": 0,
         "IgnoreBoundsX": true,
@@ -85,7 +92,7 @@
         "PosX": 3,
         "PosY": -1,
         "SizeX": 3,
-        "SizeY": 20,
+        "SizeY": 34,
         "VelX": -1,
         "VelY": 0,
         "IgnoreBoundsX": true,
@@ -99,7 +106,7 @@
       {
         "PosX": 1,
         "PosY": 1,
-        "SizeX": 24,
+        "SizeX": 38,
         "SizeY": 2,
         "VelX": 0,
         "VelY": 1,
