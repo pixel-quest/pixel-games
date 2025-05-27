@@ -252,6 +252,7 @@ CGameMode.tPlayerFinished = {}
 CGameMode.tPlayerFieldScore = {}
 CGameMode.bPlayerMovesCount = false
 CGameMode.bCanStart = false
+CGameMode.tTeamScores = {}
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -309,10 +310,6 @@ end
 
 CGameMode.StartGame = function()
     CAudio.PlayVoicesSync(CAudio.START_GAME)
-
-    if CGameMode.iPlayerCount == 1 then
-        tGameStats.TargetScore = tConfig.RoundCount
-    end
 end
 
 CGameMode.PrepareNextRound = function()
@@ -351,6 +348,12 @@ CGameMode.EndRound = function()
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.EndGame()
     else
+        for iPlayerID = 1, #tGame.StartPositions do
+            if tPlayerInGame[iPlayerID] then
+                tGameStats.Players[iPlayerID].Score = 0
+            end
+        end
+
         CGameMode.iRound = CGameMode.iRound + 1
         tGameStats.StageNum = CGameMode.iRound
 
@@ -360,7 +363,7 @@ end
 
 CGameMode.EndGame = function()
     if CGameMode.iPlayerCount == 1 then
-        if tGameStats.Players[1].Score > 0 then
+        if CGameMode.tTeamScores[1] > 0 then
             CAudio.PlayVoicesSync(CAudio.VICTORY)
             tGameResults.Won = true
             tGameResults.Color = CColors.GREEN
@@ -374,8 +377,8 @@ CGameMode.EndGame = function()
         local iMaxScore = -999
 
         for iPlayerID = 1, CGameMode.iPlayerCount do
-            if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
-                iMaxScore = tGameStats.Players[iPlayerID].Score
+            if tPlayerInGame[iPlayerID] and CGameMode.tTeamScores[iPlayerID] > iMaxScore then
+                iMaxScore = CGameMode.tTeamScores[iPlayerID]
                 CGameMode.iWinnerID = iPlayerID
             end
         end
@@ -424,6 +427,8 @@ CGameMode.AddPlayerFieldScore = function(iPlayerID, iScorePlus)
     end
 
     CGameMode.tPlayerFieldScore[iPlayerID] = CGameMode.tPlayerFieldScore[iPlayerID] + iScorePlus
+
+    tGameStats.Players[iPlayerID].Score = CGameMode.tPlayerFieldScore[iPlayerID]
 end
 
 CGameMode.CalculatePlayerField = function(iPlayerID)
@@ -444,11 +449,7 @@ CGameMode.PlayerFinish = function(iPlayerID)
 
     local iFinishBonusMultiplier = #tGame.StartPositions - CGameMode.iFinishedCount
 
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + (CGameMode.iAlivePlayerCount - (CGameMode.iFinishedCount-1))
-
-    if (CGameMode.iPlayerCount > 1) and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
-    end
+    CGameMode.tTeamScores[iPlayerID] = (CGameMode.tTeamScores[iPlayerID] or 0) + (CGameMode.iAlivePlayerCount - (CGameMode.iFinishedCount-1))
 
     if CGameMode.iFinishedCount == CGameMode.iAlivePlayerCount then
         CGameMode.EndRound()
@@ -510,6 +511,7 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
     end
 
     CGameMode.iMapCoinCount = iCoinCount
+    tGameStats.TargetScore = iCoinCount
 end
 --//
 
