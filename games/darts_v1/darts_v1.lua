@@ -110,6 +110,11 @@ function StartGame(gameJson, gameConfigJson)
     tGame.CenterX = math.floor(tGame.Cols/2)
     tGame.CenterY = math.ceil(tGame.Rows/2)
 
+    CGameMode.iCrosshairMinX = tGame.CenterX-6
+    CGameMode.iCrosshairMaxX = tGame.CenterX+6
+    CGameMode.iCrosshairMinY = tGame.CenterY-6
+    CGameMode.iCrosshairMaxY = tGame.CenterY+6
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     if tGame.StartPositions == nil then
@@ -117,7 +122,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositionSize = 2
 
         local iStartX = math.floor(tGame.Cols/10)
-        local iStartY = math.ceil(tGame.Rows/5)
+        local iStartY = math.ceil(tGame.Rows/10)
 
         local iX = iStartX
         local iY = iStartY
@@ -127,7 +132,7 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tPlayerIDtoColor[iPlayerID]
 
-            iY = iY + tGame.StartPositionSize + 2
+            iY = iY + tGame.StartPositionSize + 3
 
             if iY >= tGame.Rows then
                 iY = iStartY
@@ -178,6 +183,7 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     CPaint.BG()
 
     local iPlayersReady = 0
@@ -208,11 +214,7 @@ function GameTick()
 
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
-            local iBright = tConfig.Bright-2
-            if CGameMode.iPlayerIDToMove == iPlayerID and CGameMode.bPlayerCanMove then
-                iBright = tConfig.Bright
-            end
-            CPaint.PlayerZone(iPlayerID, iBright)
+            CPaint.PlayerZone(iPlayerID, tConfig.Bright-1)
         end
     end
 
@@ -248,8 +250,14 @@ CGameMode.iCrosshairX = 0
 CGameMode.iCrosshairY = 0
 CGameMode.iCrosshairVel = 1
 CGameMode.bPlayerCanMove = false
+CGameMode.bPlayerMoved = false
 CGameMode.iWinnerID = 0
 CGameMode.bCanStart = false
+
+CGameMode.iCrosshairMinX = 0
+CGameMode.iCrosshairMaxX = 0
+CGameMode.iCrosshairMinY = 0
+CGameMode.iCrosshairMaxY = 0
 
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("darts/darts_rules.mp3")
@@ -319,7 +327,7 @@ end
 
 CGameMode.NextPlayerMove = function()
     CGameMode.iCrosshairX = tGame.CenterX
-    CGameMode.iCrosshairY = 1
+    CGameMode.iCrosshairY = CGameMode.iCrosshairMinY
     CGameMode.iCrosshairVel = 1
     CGameMode.bPlayerCanMove = false
 
@@ -343,19 +351,20 @@ end
 CGameMode.WaitForPlayerMove = function(bYAxis)
     AL.NewTimer(1500, function()
         CGameMode.bPlayerCanMove = true
-        if CheckPositionClick(tGame.StartPositions[CGameMode.iPlayerIDToMove], tGame.StartPositionSize, tGame.StartPositionSize) then
+        if CGameMode.bPlayerMoved then
             CGameMode.PlayerHit(bYAxis)
             CGameMode.bPlayerCanMove = false
+            CGameMode.bPlayerMoved = false
             return nil;
         else
             if bYAxis then
                 CGameMode.iCrosshairY = CGameMode.iCrosshairY + CGameMode.iCrosshairVel
-                if CGameMode.iCrosshairY == 1 or CGameMode.iCrosshairY == tGame.Rows then 
+                if CGameMode.iCrosshairY == CGameMode.iCrosshairMinY or CGameMode.iCrosshairY == CGameMode.iCrosshairMaxY then 
                     CGameMode.iCrosshairVel = -CGameMode.iCrosshairVel
                 end
             else
                 CGameMode.iCrosshairX = CGameMode.iCrosshairX + CGameMode.iCrosshairVel
-                if CGameMode.iCrosshairX == 1 or CGameMode.iCrosshairX == tGame.Cols then 
+                if CGameMode.iCrosshairX == CGameMode.iCrosshairMinX or CGameMode.iCrosshairX == CGameMode.iCrosshairMaxX then 
                     CGameMode.iCrosshairVel = -CGameMode.iCrosshairVel
                 end
             end
@@ -370,7 +379,7 @@ CGameMode.PlayerHit = function(bYAxis)
 
     if bYAxis then
         AL.NewTimer(1000, function()
-            CGameMode.iCrosshairX = 1
+            CGameMode.iCrosshairX = CGameMode.iCrosshairMinX
             CGameMode.iCrosshairVel = 1
             CGameMode.WaitForPlayerMove(false)
         end)
@@ -451,9 +460,31 @@ end
 CPaint.PlayerZone = function(iPlayerID, iBright)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X+tGame.StartPositionSize-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSize-1 do
-            if not tFloor[iX][iY].bDefect then
-                tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
-                tFloor[iX][iY].iBright = iBright
+            tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+            tFloor[iX][iY].iBright = iBright
+
+            if CGameMode.iPlayerIDToMove == iPlayerID then
+                tFloor[iX][iY].iBright = iBright+1
+            end
+        end
+    end
+
+    if CGameMode.iPlayerIDToMove == iPlayerID and CGameMode.bPlayerCanMove then
+        local iStartX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSize
+        if tGame.StartPositions[iPlayerID].X > tGame.Cols/2 then 
+            iStartX = tGame.StartPositions[iPlayerID].X - tGame.StartPositionSize
+        end
+
+        for iX = iStartX, iStartX+tGame.StartPositionSize-1 do
+            for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y+tGame.StartPositionSize-1 do
+                if not tFloor[iX][iY].bDefect then
+                    tFloor[iX][iY].iColor = CColors.WHITE
+                    tFloor[iX][iY].iBright = iBright+2
+
+                    if tFloor[iX][iY].bClick and CGameMode.bPlayerCanMove then
+                        CGameMode.bPlayerMoved = true
+                    end
+                end
             end
         end
     end
