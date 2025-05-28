@@ -228,11 +228,10 @@ function GameSetupTick()
                     end
                 end
 
-                if bArenaClick and CGameMode.bCanStart then
+                if bArenaClick and CGameMode.bCanStart or tArenaPlayerReady[iPos] then
                     bAnyButtonClick = true 
                     tArenaPlayerReady[iPos] = true
-                else
-                    tArenaPlayerReady[iPos] = false
+                    iPlayersReady = iPlayersReady + 1
                 end
             end
         end
