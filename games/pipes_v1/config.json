@@ -5,7 +5,7 @@
 	"Bright_Step": 1,
   	"Bright_Ru": "Яркость",
 
-  	"TimeLimit": 60,
+  	"TimeLimit": 100,
   	"TimeLimit_Min": 20,
   	"TimeLimit_Max": 300,
   	"TimeLimit_Step": 10,
