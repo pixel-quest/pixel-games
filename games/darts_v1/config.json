@@ -10,6 +10,12 @@
   	"RoundCount_Max": 6,
   	"RoundCount_Step": 1,
   	"RoundCount_Ru": "Количество бросков",
-  	"RoundCount_En": "Throw count"
-  	    	
+  	"RoundCount_En": "Throw count",
+
+  	"PlayerCount": 6,
+   	"PlayerCount_Min": 2,
+  	"PlayerCount_Max": 6,
+  	"PlayerCount_Step": 1,
+  	"PlayerCount_ru": "Количество игроков",
+  	"PlayerCount_en": "Player count"    	
 }
