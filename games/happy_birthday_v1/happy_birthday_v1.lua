@@ -18,9 +18,6 @@
         
         Если буква неопределена - вместо неё будет нарисован квадрат 4x5
 
-    Выбор музыки:
-        - Название звука вписывается в настройку "Music"
-
 
 ]]
 math.randomseed(os.time())
@@ -128,7 +125,9 @@ function StartGame(gameJson, gameConfigJson)
         CPaint.AnimateTextTimerStart()
     end
 
-    CAudio.PlayMusic("happy-birthday/happy_birthday.mp3")
+    if not tConfig.NoSound then
+        CAudio.PlayMusic("happy-birthday/happy_birthday.mp3")
+    end
 end
 
 function NextTick()
@@ -182,7 +181,7 @@ CPaint.PaintBG = function()
 
     for iY = 1, tGame.Rows do
         for iX = 1, tGame.Cols do
-            tFloor[iX][iY].iColor = tonumber(tBg[iY][iX])
+            tFloor[iX][iY].iColor = tonumber(tBg[iY][iX]) or CColors.NONE
             tFloor[iX][iY].iBright = tConfig.Bright
         end
     end
