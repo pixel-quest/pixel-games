@@ -259,7 +259,7 @@ function NextTick()
                     end
                 end
 
-                if bArenaClick then
+                if bArenaClick or tArenaPlayerReady[positionIndex] then
                     bAnyPlayerClick = true
                     tArenaPlayerReady[positionIndex] = true               
                 else

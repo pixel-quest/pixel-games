@@ -228,6 +228,8 @@ function NextTick()
     if GameStats.StageNum == CONST_STAGE_START then -- этап выбора цвета
         local bAnyPlayerClick = false
 
+        local iPlayersReady = 0
+
         -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
         for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
 
@@ -247,6 +249,8 @@ function NextTick()
                 local iCenterY = startPosition.Y + math.floor(GameObj.StartPositionSize/3)
                 local bArenaClick = false
 
+                iPlayersReady = iPlayersReady + 1
+
                 for iX = iCenterX, iCenterX+1 do
                     for iY = iCenterY, iCenterY+1 do
                         FloorMatrix[iX][iY].Color = colors.MAGENTA
@@ -260,7 +264,7 @@ function NextTick()
                     end
                 end
 
-                if bArenaClick then
+                if bArenaClick or tArenaPlayerReady[positionIndex] then
                     bAnyPlayerClick = true
                     tArenaPlayerReady[positionIndex] = true               
                 else
