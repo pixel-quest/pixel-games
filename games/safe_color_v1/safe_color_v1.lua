@@ -293,7 +293,7 @@ function NextTick()
         elseif timeSinceStageStart > GameConfigObj.StageDurationSec then -- время поджигать пол
             GameStats.StageLeftDuration = 0
             -- (яркость - 1) это чтобы видеть отличие красных зон от заливки
-            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, targetColor(GameStats.StageNum))
+            setGlobalColorBrightExceptColor(colors.RED, GameConfigObj.Bright-1, GameStats.TargetColor)
             processClicksAndEffects()
             
             if LavaSpawnTime == 0 then
@@ -615,7 +615,7 @@ function targetColor(stageNum)
     if stageNum < CONST_STAGE_GAME or stageNum > GameConfigObj.StagesQty then
         return colors.NONE
     end
-    return tColors[stageNum%7 + 1]
+    return tColors[math.random(2,7)]
 end
 
 -- Залить всё поле цветом, пропуская exceptColor
