@@ -396,6 +396,7 @@ CEffect.NextEffectTimer = function()
 
     if CEffect.tEffects[iEffectId][CEffect.CONST_SPECIAL_ENDING_ON] and math.random(1, 100) >= 50 then
         CEffect.iEndId = math.random(1, CEffect.SPECIAL_ENDING_COUNT)
+        if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON and tGame.NoButtonsGame then CEffect.iEndId = CEffect.SPECIAL_ENDING_TYPE_COINS end
     end
 
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects

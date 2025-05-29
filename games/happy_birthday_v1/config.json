@@ -28,12 +28,13 @@
 
 	"BackgroundName": "old_cake",
 	"BackgroundName_List": ["old_cake", "new_cake", "minecraft_cake"],
-	"BackgroundName_ru": "Название Заднего Фона",
-	"BackgroundName_en": "Back Ground Name",
+	"BackgroundName_ru": "Выбор Заднего Фона",
+	"BackgroundName_en": "BackGround Name",
 
 	"Text": "ТЕКСТ",
 	"Text_ru": "Текст (только русские заглавные буквы)",
 
-	"Music": "backgrounds/happy_birthday.mp3",
-	"Music_ru": "Музыка"
+	"NoSound": false,
+	"NoSound_ru": "Без Звука",
+	"NoSound_en": "No Sound"
 }
