@@ -113,6 +113,10 @@ function StartGame(gameJson, gameConfigJson)
     tGame.StartPositionsSizeX = 4
     tGame.StartPositionsSizeY = tGame.Rows
 
+    if tConfig.SmallZones then
+        tGame.StartPositionsSizeY = math.floor(tGame.Rows/2)
+    end
+
     local iX = 1
     local iY = 1
     for iPlayerID = 1, 6 do
@@ -122,10 +126,14 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
         iX = iX + tGame.StartPositionsSizeX + 1
-        if iX + tGame.StartPositionsSizeX-1 > tGame.Cols then break; end
+        if iX + tGame.StartPositionsSizeX-1 > tGame.Cols then 
+            iX = 1
+            iY = iY + tGame.StartPositionsSizeY+1
+            if iY > tGame.Rows then break; end
+        end
     end
 
-    CPixels.PIXEL_START_Y = tGame.Rows+1
+    CPixels.PIXEL_START_Y = tGame.StartPositionsSizeY
 
     CGameMode.Announcer()
 end
@@ -367,7 +375,7 @@ end
 
 CGameMode.SpawnPixelForAllPlayers = function(iPixelType, iPixelX, iVelX, iColor, bBad)
     local iVelY = 1
-    if CPixels.PIXEL_START_Y > tGame.Rows/2 then iVelY = -1; end
+    if CPixels.PIXEL_START_Y > tGame.StartPositionsSizeY/2 then iVelY = -1; end
 
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
@@ -401,7 +409,7 @@ CPixels.SpawnPixel = function(iPlayerID, iPixelType, iPixelX, iVelX, iVelY, iCol
     CPixels.tPixels[iPixelID] = {}
     CPixels.tPixels[iPixelID].iPlayerID = iPlayerID
     CPixels.tPixels[iPixelID].iX = tGame.StartPositions[iPlayerID].X + iPixelX-2
-    CPixels.tPixels[iPixelID].iY = CPixels.PIXEL_START_Y
+    CPixels.tPixels[iPixelID].iY = tGame.StartPositions[iPlayerID].Y + CPixels.PIXEL_START_Y -1
     CPixels.tPixels[iPixelID].iVelX = iVelX
     CPixels.tPixels[iPixelID].iVelY = iVelY
 
@@ -416,17 +424,22 @@ CPixels.SpawnPixel = function(iPlayerID, iPixelType, iPixelX, iVelX, iVelY, iCol
         CPixels.tPixelFactory[iPixelX].iColor = iColor
         CPixels.tPixelFactory[iPixelX].bBad = bBad
     end
+
+    if CPixels.tPixels[iPixelID].iColor == tGame.StartPositions[iPlayerID].Color then
+        CPixels.tPixels[iPixelID].iColor = CColors.BLUE
+    end
 end
 
 CPixels.PixelMovement = function()
     for iPixelID = 1, #CPixels.tPixels do
         if CPixels.tPixels[iPixelID] then
+            local iPlayerID = CPixels.tPixels[iPixelID].iPlayerID
             CPixels.tPixels[iPixelID].iY = CPixels.tPixels[iPixelID].iY + CPixels.tPixels[iPixelID].iVelY
 
-            if CPixels.tPixels[iPixelID].iY > 0 and CPixels.tPixels[iPixelID].iY <= tGame.Rows then
+            if CPixels.tPixels[iPixelID].iY > tGame.StartPositions[iPlayerID].Y-1 and CPixels.tPixels[iPixelID].iY <= tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 then
                 if CPixels.tPixels[iPixelID].iVelX ~= 0 then
                     CPixels.tPixels[iPixelID].iX = CPixels.tPixels[iPixelID].iX + CPixels.tPixels[iPixelID].iVelX
-                    if CPixels.tPixels[iPixelID].iX < tGame.StartPositions[CPixels.tPixels[iPixelID].iPlayerID].X or CPixels.tPixels[iPixelID].iX >= tGame.StartPositions[CPixels.tPixels[iPixelID].iPlayerID].X + tGame.StartPositionsSizeX then
+                    if CPixels.tPixels[iPixelID].iX < tGame.StartPositions[iPlayerID].X or CPixels.tPixels[iPixelID].iX >= tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX then
                         CPixels.tPixels[iPixelID].iVelX = -CPixels.tPixels[iPixelID].iVelX
                         CPixels.tPixels[iPixelID].iX = CPixels.tPixels[iPixelID].iX + (CPixels.tPixels[iPixelID].iVelX*2)
                     end
