@@ -140,7 +140,10 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    if not CGameMode.bCountDownStarted then
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    end
+    
     CPaint.Objects()
 
     if not CGameMode.bCountDownStarted then
