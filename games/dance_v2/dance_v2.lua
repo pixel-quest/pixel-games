@@ -235,7 +235,7 @@ CGameMode.bCanAutoStart = false
 CGameMode.iWinnerID = 0
 
 CGameMode.Announcer = function()
-    --voice gamename and guide
+    CAudio.PlayVoicesSync("dance2/dance2_guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
 
     AL.NewTimer(1000, function()
@@ -299,7 +299,7 @@ CGameMode.EndGame = function()
     tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
     tGameResults.Won = true
 
-    CAudio.PlaySyncFromScratch("")
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
