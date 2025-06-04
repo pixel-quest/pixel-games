@@ -12,6 +12,10 @@
   	"TimeLimit_Ru": "Ограничение времени в секундах (если 0 то время бесконечное)",
   	"TimeLimit_En": "Time limit in seconds (set 0 for infinite time)",
 
+  	"EndGameAfterFinish": true,
+  	"EndGameAfterFinish_ru": "Заканчивать игру после первого финишировшего",
+  	"EndGameAfterFinish_en": "End game after first player finished",
+
   	"HardMode": false,
   	"HardMode_Ru": "Сложный режим, разбитые стёкла не остаются видимыми",
   	"HardMode_Ru": "Hard Mode, broken windows are not visible"
