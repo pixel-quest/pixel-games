@@ -107,7 +107,7 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
-    if AL.RoomHasNFZ() then
+    if AL.RoomHasNFZ(tGame) then
         AL.LoadNFZInfo()
     end
 

@@ -120,7 +120,7 @@ function StartGame(gameJson, gameConfigJson)
     local iMaxX = tGame.Cols
     local iMaxY = tGame.Rows
 
-    if AL.RoomHasNFZ() then
+    if AL.RoomHasNFZ(tGame) then
         AL.LoadNFZInfo()
     
         iMinX = AL.NFZ.iMinX-1

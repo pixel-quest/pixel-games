@@ -79,8 +79,11 @@ end
 
 --NFZ - NoFeetZone / Pixel Wall Zone / Зона Пиксельной Стены
 AL.NFZ = {}
+local tGame = {}
 
-AL.RoomHasNFZ = function()
+AL.RoomHasNFZ = function(tGameIn)
+    tGame = tGameIn
+
     if tGame and tGame.NoFeetZones ~= nil then
         if #tGame.NoFeetZones > 0 then 
             return true; 
