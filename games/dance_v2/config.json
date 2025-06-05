@@ -1,0 +1,14 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_Ru": "Яркость",
+
+  	"SmallZones": false,
+  	"SmallZones_ru": "Малые зоны",
+  	"SmallZones_en": "Small Zones",
+
+	"PixelMoveDelayMS": 150,
+	"PixelMoveDelayMS_Hidden": true
+}
