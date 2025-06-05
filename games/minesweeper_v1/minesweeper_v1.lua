@@ -144,8 +144,8 @@ function StartGame(gameJson, gameConfigJson)
 
             iX = iX + tGame.StartPositionSizeX + iOffset
             if iX + tGame.StartPositionSizeX > iMaxX then
-                iX = iOffset
-                iY = iY + tGame.StartPositionSizeY + 1
+                iX = iOffset + iMinX
+                iY = iY + tGame.StartPositionSizeY + iMinY + 1
                 if iY + tGame.StartPositionSizeY - 1 > iMaxY then break; end
             end
         end
