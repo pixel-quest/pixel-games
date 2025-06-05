@@ -15,12 +15,16 @@
 	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
 	"PlayerCount_en": "Player Count",
 
+	"TeamMode": true,
+	"TeamMode_ru": "Командый режим (все игроки в одной команде)",
+	"TeamMode_en": "Team mode (all players in one team)",
+
 	"TeamCount": 2,
 	"TeamCount_Min": 1,
 	"TeamCount_Max": 4,
 	"TeamCount_Step": 1,
-	"TeamCount_ru": "Количество Вражеских Команд",
-	"TeamCount_en": "Number Of Enemy Teams",
+	"TeamCount_ru": "Количество Команд",
+	"TeamCount_en": "Number Of Teams",
 
 	"UnitCountPerTeam": 1,
 	"UnitCountPerTeam_Min": 1,
@@ -37,9 +41,5 @@
   	"GameLength_en": "Game Duration",
 
 	"UnitThinkDelay": 500,
-	"UnitThinkDelay_Min": 100,
-	"UnitThinkDelay_Max": 2000,
-	"UnitThinkDelay_Step": 100,
-	"UnitThinkDelay_ru": "Частота Движения Юнита",
-	"UnitThinkDelay_en": "Unit Movement Tick Rate"
+	"UnitThinkDelay_Hidden": true
 }
