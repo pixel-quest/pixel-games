@@ -136,10 +136,10 @@ NFZ_LoadMinY = function()
     local iMinY = 1
 
     for iNFZId = 1, #tGame.NoFeetZones do
-        if tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY-1 < math.floor(tGame.Rows/2) and (tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY-1) > iMinY then
-            iMinY = tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY-1
+        if tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY < math.floor(tGame.Rows/2) and (tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY) > iMinY then
+            iMinY = tGame.NoFeetZones[iNFZId].Y + tGame.NoFeetZones[iNFZId].SizeY
         end
-    end    
+    end      
 
     return iMinY
 end
