@@ -114,24 +114,24 @@ function StartGame(gameJson, gameConfigJson)
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
+        local iMinX = 1
+        local iMinY = 1
         local iMaxX = tGame.Cols-1
         local iMaxY = tGame.Rows
         if AL.NFZ.bLoaded then
+            iMinX = AL.NFZ.iMinX
+            iMinY = AL.NFZ.iMinY
             iMaxX = AL.NFZ.iMaxX
             iMaxY = AL.NFZ.iMaxY
         end
 
-        tGame.StartPositionSizeX = math.floor(iMaxX/tConfig.PlayerCount)-1
+        tGame.StartPositionSizeX = math.floor((iMaxX-iMinX)/tConfig.PlayerCount)
         if tGame.StartPositionSizeX < 4 then tGame.StartPositionSizeX = 4; end
-        tGame.StartPositionSizeY = iMaxY
+        if tGame.StartPositionSizeX > 10 then tGame.StartPositionSizeX = 10; end
+        tGame.StartPositionSizeY = iMaxY - iMinY + 1
 
-        local iX = 0
-        local iY = 1
-
-        if AL.NFZ.bLoaded then
-            iX = AL.NFZ.iMinX
-            iY = AL.NFZ.iMinY
-        end
+        local iX = iMinX
+        local iY = iMinY
 
         for iPlayerID = 1, tConfig.PlayerCount do
             tGame.StartPositions[iPlayerID] = {}
