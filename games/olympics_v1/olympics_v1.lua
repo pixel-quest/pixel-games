@@ -180,7 +180,9 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    if not bCountDownStared then
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    end
 
     local iPlayersReady = 0
 

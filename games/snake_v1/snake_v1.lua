@@ -186,7 +186,7 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if not tGame.NewStart then
+    if tGame.TeamCount > 1 and not bCountDownStarted then
         SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
     end
     local iPlayersReady = 0
