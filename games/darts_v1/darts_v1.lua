@@ -264,6 +264,7 @@ CGameMode.iCrosshairMaxY = 0
 
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("darts/darts_rules.mp3")
+    CAudio.PlayVoicesSync("choose-color.mp3")
 
     AL.NewTimer((CAudio.GetVoicesDuration("darts/darts_rules.mp3"))*1000, function()
         CGameMode.bCanStart = true
