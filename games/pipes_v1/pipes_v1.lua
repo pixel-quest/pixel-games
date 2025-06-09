@@ -150,6 +150,7 @@ function GameSetupTick()
 
                 if tFloor[iX][iY].bClick and CGameMode.bCanStartGame then
                     CGameMode.StartCountDown(5)
+                    return;
                 end
             end
         end
@@ -219,7 +220,9 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    CGameMode.GenerateMap()
+    repeat CGameMode.GenerateMap()
+    until #CPipes.tPipes > math.ceil((tGame.Cols+tGame.Rows)/2)
+    
     tGameStats.TargetScore = #CPipes.tPipes
     CPipes.StartWaterFlow()
 
@@ -329,7 +332,7 @@ CGameMode.GenerateMap = function()
         local bQuad = bTurn and math.random(1,100) > 70 or #CPipes.tPipes == 0
         local iDirection = tonumber(iDirectionIn)
 
-        if #CPipes.tPipes >= 100 then return; end
+        if #CPipes.tPipes >= 150 then return; end
 
         if bTurn or not validDirection(iDirection, iX, iY) then 
             iDirection = newDirection(iDirection, iX, iY)

@@ -107,6 +107,8 @@ local tButtonStruct = {
     bDefect = false,
 }
 
+local tPlayerInGame = {}
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -123,6 +125,28 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     iPrevTickTime = CTime.unix()
+
+    if not tConfig.TeamMode then
+        tGame.StartPositions = {}
+        tGame.StartPositionsSizeX = 5
+        tGame.StartPositionsSizeY = 5
+
+        local iX = 1
+        local iY = 1
+        for iPlayerID = 1, tConfig.TeamCount+1 do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].X = iX
+            tGame.StartPositions[iPlayerID].Y = iY
+            tGame.StartPositions[iPlayerID].Color = CGameMode.tTeamIDToColor[iPlayerID]
+
+            iX = iX + tGame.StartPositionsSizeX + 4
+            if iX + tGame.StartPositionsSizeX-1 > tGame.Cols then 
+                iX = 1
+                iY = iY + tGame.StartPositionsSizeY+1
+                if iY > tGame.Rows then break; end
+            end
+        end
+    end
 
     CGameMode.Init()
     CGameMode.Announcer()
@@ -157,21 +181,45 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    if not CGameMode.bCountDownStarted then
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    end
 
     CPaint.Units()  
 
-    if CGameMode.bCanStart then
-        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+    local iPlayersReady = 0
+
+    if tConfig.TeamMode then
+        if CGameMode.bCanStart then
+            for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+                for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                    tFloor[iX][iY].iColor = CColors.BLUE
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                    if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+                end
             end
+        end
+    else
+        CPaint.PlayerZones()
+
+        for iPlayerID = 1, #tGame.StartPositions do
+            if CheckPositionClick(tGame.StartPositions[iPlayerID], tGame.StartPositionsSizeX, tGame.StartPositionsSizeY) then
+                tPlayerInGame[iPlayerID] = true
+
+                tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+            elseif not CGameMode.bCountDownStarted then
+                AL.NewTimer(250, function()
+                    if not CheckPositionClick(tGame.StartPositions[iPlayerID], tGame.StartPositionsSizeX, tGame.StartPositionsSizeY) and not CGameMode.bCountDownStarted then
+                        tPlayerInGame[iPlayerID] = false
+                        tGameStats.Players[iPlayerID].Color = CColors.NONE
+                    end
+                end)
+            end
+            if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
         end
     end
 
-    if bAnyButtonClick and not CGameMode.bCountDownStarted then
+    if not CGameMode.bCountDownStarted and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or (CGameMode.bCanStart and iPlayersReady > 1 and iPlayersReady == #tGame.StartPositions)) then
         CAudio.PlaySyncFromScratch("")
         CGameMode.StartCountDown(5)
         bAnyButtonClick = false
@@ -210,6 +258,7 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.iWinner = 0
 CGameMode.bCanStart = false
+CGameMode.iGameStartTime = 0
 
 CGameMode.tTeamIDToColor = {}
 CGameMode.tTeamIDToColor[1] = CColors.GREEN
@@ -222,14 +271,21 @@ CGameMode.tTeamIDToColor[6] = CColors.BLUE
 
 CGameMode.Init = function()
     CField.SetupField()
-    CGameMode.SetupUnits()
+    
+    if tConfig.TeamMode then
+        CGameMode.SetupUnits()
+    end
 end
 
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("virus/virus.mp3")
     CAudio.PlayVoicesSync("virus/virus-guide.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
-    --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+    if tConfig.TeamMode then
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    else
+        CAudio.PlayVoicesSync("choose-color.mp3")
+    end
 
     AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
         CGameMode.bCanStart = true
@@ -239,6 +295,8 @@ end
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.bCountDownStarted = true
+
+    CGameMode.iGameStartTime = CTime.unix()
 
     AL.NewTimer(1000, function()
         CAudio.PlaySyncFromScratch("")
@@ -264,6 +322,10 @@ CGameMode.StartGame = function()
 
     tGameStats.StageTotalDuration = tConfig.GameLength
     tGameStats.StageLeftDuration = tConfig.GameLength
+
+    if not tConfig.TeamMode then
+        CGameMode.SetupMultiplayer()
+    end
 
     AL.NewTimer(tConfig.UnitThinkDelay, function()
         if iGameState == GAMESTATE_GAME then
@@ -345,6 +407,22 @@ CGameMode.SetupUnits = function()
     end 
 end
 
+CGameMode.SetupMultiplayer = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] then
+            for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
+                for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
+                    CField.PixelCapture(iX, iY, iPlayerID)
+                end
+            end
+        else
+            --[[for iUnit = 1, tConfig.UnitCountPerTeam do
+                CUnits.NewUnit(math.random( 1, tGame.Cols ), math.random( 1, tGame.Rows ), iTeamId)
+            end]]           
+        end
+    end   
+end
+
 CGameMode.DestroyTeam = function(iTeamId)
     CAudio.PlaySystemAsync(CAudio.CLICK)
 
@@ -356,8 +434,8 @@ CGameMode.DestroyTeam = function(iTeamId)
 
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY] == iTeamId then
-                CField.tField[iX][iY] = 0
+            if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY].iPlayerID == iTeamId then
+                CField.tField[iX][iY].iPlayerID = 0
             end
         end
     end
@@ -378,7 +456,9 @@ CField.SetupField = function()
 
         for iY = 1, tGame.Rows do
             if tFloor[iX] ~= nil and tFloor[iX][iY] ~= nil and not tFloor[iX][iY].bDefect then
-                CField.tField[iX][iY] = 0
+                CField.tField[iX][iY] = {}
+                CField.tField[iX][iY].iPlayerID = 0
+                CField.tField[iX][iY].iCaptureTime = 0
                 iTargetScore = iTargetScore + 1
             end
         end
@@ -388,17 +468,19 @@ CField.SetupField = function()
 end
 
 CField.PixelCapture = function(iX, iY, iPlayerID)
-    if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY] ~= iPlayerID then
-        if CField.tField[iX][iY] ~= 0 then
-            tGameStats.Players[CField.tField[iX][iY]].Score = tGameStats.Players[CField.tField[iX][iY]].Score - 1
+    if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY].iPlayerID ~= iPlayerID then
+        if CField.tField[iX][iY].iPlayerID ~= 0 then
+            tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score = tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score - 1
 
-            if CField.tField[iX][iY] > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY]].Score <= 10 then
-                CGameMode.DestroyTeam(CField.tField[iX][iY])
+            if CField.tField[iX][iY].iPlayerID > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score <= 10 then
+                CGameMode.DestroyTeam(CField.tField[iX][iY].iPlayerID)
             end
         end
 
-        CField.tField[iX][iY] = iPlayerID
+        CField.tField[iX][iY].iPlayerID = iPlayerID
         tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
+
+        CField.tField[iX][iY].iCaptureTime = tonumber(CTime.unix() - CGameMode.iGameStartTime)
 
         if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
             CGameMode.iWinner = iPlayerID
@@ -407,10 +489,30 @@ CField.PixelCapture = function(iX, iY, iPlayerID)
     end
 end
 
+CField.PixelCaptureMultiplayer = function(iStartX, iStartY)
+    local iMaxTime = 1
+    local iRecentPlayerID = 0
+
+    for iX = iStartX-1, iStartX+1 do
+        for iY = iStartY-1, iStartY+1 do
+            if CField.tField[iX] and CField.tField[iX][iY] and not (iX == iStartX and iY == iStartY) then
+                if CField.tField[iX][iY].iPlayerID ~= 0 and CField.tField[iX][iY].iCaptureTime > iMaxTime then
+                    iRecentPlayerID = CField.tField[iX][iY].iPlayerID
+                    iMaxTime = CField.tField[iX][iY].iCaptureTime
+                end
+            end
+        end 
+    end
+
+    if iRecentPlayerID ~= 0 then
+        CField.PixelCapture(iStartX, iStartY, iRecentPlayerID)  
+    end
+end
+
 CField.DefectPixelInGame = function(iX, iY)
     if CField.tField[iX] and CField.tField[iX][iY] then
-        if CField.tField[iX][iY] ~= 0 then
-            tGameStats.Players[CField.tField[iX][iY]].Score = tGameStats.Players[CField.tField[iX][iY]].Score - 1
+        if CField.tField[iX][iY].iPlayerID ~= 0 then
+            tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score = tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score - 1
         end
 
         CField.tField[iX][iY] = nil
@@ -543,11 +645,26 @@ end
 --Paint
 CPaint = {}
 
+CPaint.PlayerZones = function()
+    for iPlayerID = 1, #tGame.StartPositions do
+        for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
+            for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
+                tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+                tFloor[iX][iY].iBright = tConfig.Bright
+
+                if not tPlayerInGame[iPlayerID] then
+                    tFloor[iX][iY].iBright = tConfig.Bright-3
+                end
+            end
+        end
+    end
+end
+
 CPaint.Field = function()
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY] > 0 then
-                tFloor[iX][iY].iColor = tGameStats.Players[CField.tField[iX][iY]].Color
+            if CField.tField[iX] and CField.tField[iX][iY] and CField.tField[iX][iY].iPlayerID > 0 then
+                tFloor[iX][iY].iColor = tGameStats.Players[CField.tField[iX][iY].iPlayerID].Color
                 tFloor[iX][iY].iBright = tConfig.Bright
             end
         end
@@ -673,7 +790,11 @@ function PixelClick(click)
         tFloor[click.X][click.Y].iWeight = click.Weight
 
         if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect then
-            CField.PixelCapture(click.X, click.Y, 1)
+            if tConfig.TeamMode then
+                CField.PixelCapture(click.X, click.Y, 1)
+            else
+                CField.PixelCaptureMultiplayer(click.X, click.Y)
+            end
         end
     end
 end

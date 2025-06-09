@@ -133,7 +133,9 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
+    if not CGameMode.bCountDownStarted then
+        SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
+    end
     CWorld.Draw()
 
     if not CGameMode.bCountDownStarted then

@@ -13,7 +13,7 @@
 	"AnimationDelay_en": "Animation tick rate",
 
 	"BackgroundName": "mario",
-	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin","hellokitty","elka","arrow1","arrow2","arrow3"],
+	"BackgroundName_List": ["mario", "minion","creeper","skull","amongus","hulk","batsign","marvel","pumpkin", "ru", "ru_static", "hellokitty","elka","arrow1","arrow2","arrow3"],
 	"BackgroundName_ru": "Картинка",
 	"BackgroundName_en": "Image",
 

@@ -401,6 +401,13 @@ CPaint.UI = function()
         return bActive
     end
 
+    for iY = 1, tGame.Rows do
+        for iX = tGame.Cols-(tConfig.ControlPanelWidth-1), tGame.Cols do
+            tFloor[iX][iY].iColor = CColors.WHITE
+            tFloor[iX][iY].iBright = tConfig.Bright
+        end
+    end
+
     local bActive1 = false
     local bActive2 = false
     for iX = 1, tGame.Cols-2 do
