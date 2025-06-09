@@ -119,13 +119,29 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
     if tGame.StartPositions == nil then
-        tGame.StartPositionSizeX = 4
-        tGame.StartPositionSizeY = tGame.Rows-1
         tGame.StartPositions = {}
 
-        local iX = 1
-        local iY = 2
+        local iMinX = 1
+        local iMinY = 1
+        local iMaxX = tGame.Cols
+        local iMaxY = tGame.Rows
+        if AL.NFZ.bLoaded then
+            iMinX = AL.NFZ.iMinX
+            iMinY = AL.NFZ.iMinY
+            iMaxX = AL.NFZ.iMaxX
+            iMaxY = AL.NFZ.iMaxY
+        end
+
+        tGame.StartPositionSizeX = 4
+        tGame.StartPositionSizeY = iMaxY-iMinY
+
+        local iX = iMinX
+        local iY = iMinY+1
 
         for iPlayerID = 1, 6 do
             tGame.StartPositions[iPlayerID] = {}
@@ -134,7 +150,7 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
 
             iX = iX + tGame.StartPositionSizeX + 1
-            if iX + tGame.StartPositionSizeX - 1 > tGame.Cols then break; end
+            if iX + tGame.StartPositionSizeX - 1 > iMaxX then break; end
         end
     else
         for iPlayerID = 1, #tGame.StartPositions do
