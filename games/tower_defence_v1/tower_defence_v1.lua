@@ -1049,7 +1049,7 @@ CProjectile.CalculateProjectile = function(iProjectileID)
     if tFloor[CProjectile.tProjectiles[iProjectileID].iX][CProjectile.tProjectiles[iProjectileID].iY].iUnitID ~= 0 then
         local iFFID = tFloor[CProjectile.tProjectiles[iProjectileID].iX][CProjectile.tProjectiles[iProjectileID].iY].iUnitID
 
-        if CUnits.tUnits[iFFID].iUnitType ~= CUnits.UNIT_TYPE_SHOOT then
+        if CUnits.tUnits[iFFID] and CUnits.tUnits[iFFID].iUnitType ~= CUnits.UNIT_TYPE_SHOOT then
             --CLog.print("Friendly Fire!")
             CAudio.PlaySystemAsync(CAudio.CLICK)
 
