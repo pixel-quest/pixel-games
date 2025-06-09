@@ -107,8 +107,26 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
     tGame.CenterX = math.floor(tGame.Cols/2)
     tGame.CenterY = math.ceil(tGame.Rows/2)
+
+    local iMinX = 1
+    local iMinY = 1
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        iMinX = AL.NFZ.iMinX
+        iMinY = AL.NFZ.iMinY
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
 
     CGameMode.iCrosshairMinX = tGame.CenterX-6
     CGameMode.iCrosshairMaxX = tGame.CenterX+6
@@ -121,8 +139,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions = {}
         tGame.StartPositionSize = 2
 
-        local iStartX = math.floor(tGame.Cols/10)
-        local iStartY = math.ceil(tGame.Rows/10)
+        local iStartX = iMinX + tGame.StartPositionSize
+        local iStartY = iMinY + tGame.StartPositionSize
 
         local iX = iStartX
         local iY = iStartY
@@ -134,10 +152,10 @@ function StartGame(gameJson, gameConfigJson)
 
             iY = iY + tGame.StartPositionSize + 3
 
-            if iY >= tGame.Rows then
+            if iY >= iMaxY then
                 iY = iStartY
                 if iX == iStartX then
-                    iX = tGame.Cols - 1 - tGame.StartPositionSize
+                    iX = iMaxX - 1 - tGame.StartPositionSize
                 else
                     break;
                 end
