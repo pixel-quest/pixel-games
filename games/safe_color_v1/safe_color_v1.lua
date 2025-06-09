@@ -160,6 +160,15 @@ tColors[5] = colors.CYAN
 tColors[6] = colors.BLUE
 tColors[7] = colors.WHITE
 
+for iColorId = 1, 6 do
+    if math.random(1,100) >= 50 then
+        local iRand = math.random(1,6)
+        local iColor = tColors[iColorId]
+        tColors[iColorId] = tColors[iRand]
+        tColors[iRand] = iColor 
+    end    
+end
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -631,7 +640,7 @@ function targetColor(stageNum)
     if stageNum < CONST_STAGE_GAME or stageNum > GameConfigObj.StagesQty then
         return colors.NONE
     end
-    return tColors[math.random(2,7)]
+    return tColors[stageNum%7 + 1]
 end
 
 -- Залить всё поле цветом, пропуская exceptColor
