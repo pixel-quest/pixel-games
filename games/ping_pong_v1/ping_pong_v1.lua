@@ -122,13 +122,13 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     tGame.StartPositionSize = 3
+
+    CGameMode.iMinX = 1
+    CGameMode.iMinY = 1
+    CGameMode.iMaxX = tGame.Cols
+    CGameMode.iMaxY = tGame.Rows
+
     if tGame.StartPositions == nil then
-
-        CGameMode.iMinX = 1
-        CGameMode.iMinY = 1
-        CGameMode.iMaxX = tGame.Cols
-        CGameMode.iMaxY = tGame.Rows
-
         if AL.RoomHasNFZ(tGame) then
             AL.LoadNFZInfo()
         
