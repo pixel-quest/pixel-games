@@ -115,8 +115,8 @@ AL.LoadNFZInfo = function()
     AL.NFZ.iMaxX = NFZ_LoadMaxX()
     AL.NFZ.iMaxY = NFZ_LoadMaxY()   
 
-    AL.NFZ.iCenterX = math.floor((AL.NFZ.iMaxX - AL.NFZ.iMinX)/2)
-    AL.NFZ.iCenterY = math.floor((AL.NFZ.iMaxY - AL.NFZ.iMinY)/2)
+    AL.NFZ.iCenterX = AL.NFZ.iMinX + math.floor((AL.NFZ.iMaxX - AL.NFZ.iMinX)/2)
+    AL.NFZ.iCenterY = AL.NFZ.iMinY + math.floor((AL.NFZ.iMaxY - AL.NFZ.iMinY)/2)
 
     AL.NFZ.bLoaded = true
 end
