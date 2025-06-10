@@ -116,11 +116,29 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
     if not tGame.StartPositions then
         tGame.StartPositions = {}
 
-        local iX = 2
-        local iY = 1
+        local iX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + 1 + tGame.iMinX
+        local iY = tGame.iMinY
 
         for iPlayerID = 1, 6 do
             tGame.StartPositions[iPlayerID] = {}
@@ -129,7 +147,7 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iX = iX + 2 + tGame.StartPositionSizeX
-            if iX + tGame.StartPositionSizeX > tGame.Cols then break; end
+            if iX + tGame.StartPositionSizeX > tGame.iMaxX then break; end
         end
     else
         for iPlayerID = 1, #tGame.StartPositions do
