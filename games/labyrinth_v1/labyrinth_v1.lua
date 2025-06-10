@@ -10,7 +10,6 @@
     Идеи по доработке: 
         Настройка чтоб враги бегали за игроками
         Штрафовать за прыжки через стены?
-        Доделать генератор карт
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -396,7 +395,7 @@ CMaps.LoadMap = function(tMap)
                 CUnits.NewUnit(iX, iY)
             end
 
-            if iBlockType == CBlock.BLOCK_TYPE_LAVA or iBlockType == CBlock.BLOCK_TYPE_START then
+            if iBlockType == CBlock.BLOCK_TYPE_LAVA then
                 tFloor[iX][iY].bBlocked = true
             end
 
@@ -632,31 +631,31 @@ CUnits.Clear = function()
 end
 
 CUnits.RandomDestinationForUnit = function(iUnitID)
-    CUnits.tUnits[iUnitID].iDestX = math.random( 1, tGame.Cols )
-    CUnits.tUnits[iUnitID].iDestY = math.random( 1, tGame.Rows )
+    CUnits.tUnits[iUnitID].tPath = nil
     CUnits.tUnits[iUnitID].iStep = 2
 
-    if tFloor[CUnits.tUnits[iUnitID].iDestX][CUnits.tUnits[iUnitID].iDestY].bBlocked then
-        CUnits.RandomDestinationForUnit(iUnitID)
-        return;
-    end
+    for iAttempt = 1, tGame.Rows do
+        local tBlock = CBlock.tBlockList[math.random(1,#CBlock.tBlockList)]
+        local iX = tBlock.iX
+        local iY = tBlock.iY
 
-    local tStartBlock = {iX = CUnits.tUnits[iUnitID].iX, iY = CUnits.tUnits[iUnitID].iY}
-    local tGoalBlock = {iX = CUnits.tUnits[iUnitID].iDestX, iY = CUnits.tUnits[iUnitID].iDestY}
+        if CBlock.tBlocks[iX][iY] and CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
+            CUnits.tUnits[iUnitID].iDestX = iX
+            CUnits.tUnits[iUnitID].iDestY = iY
 
-    CUnits.tUnits[iUnitID].tPath = CPath.Path(tStartBlock, tGoalBlock, CBlock.tBlockList)
-    if CUnits.tUnits[iUnitID].tPath == nil then
-        CUnits.tUnits[iUnitID].iDestFindAttempt = CUnits.tUnits[iUnitID].iDestFindAttempt + 1
-        if CUnits.tUnits[iUnitID].iDestFindAttempt > 15 then
-            CUnits.tUnits[iUnitID].bDeadStuck = true
-            return;
+            local tStartBlock = {iX = CUnits.tUnits[iUnitID].iX, iY = CUnits.tUnits[iUnitID].iY}
+            local tGoalBlock = {iX = CUnits.tUnits[iUnitID].iDestX, iY = CUnits.tUnits[iUnitID].iDestY}
+
+            CUnits.tUnits[iUnitID].tPath = CPath.Path(tStartBlock, tGoalBlock, CBlock.tBlockList)
+            if CUnits.tUnits[iUnitID].tPath ~= nil then
+                return true;
+            end
         end
-
-        CUnits.RandomDestinationForUnit(iUnitID)
-        return;
     end
 
-    CUnits.tUnits[iUnitID].iDestFindAttempt = 0
+    if CUnits.tUnits[iUnitID].tPath == nil then
+        CUnits.tUnits[iUnitID].bDeadStuck = true
+    end
 end
 
 CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
@@ -692,6 +691,7 @@ CUnits.UnitThinkDefault = function(iUnitID)
     if CUnits.tUnits[iUnitID].iDestX == 0 or (CUnits.tUnits[iUnitID].iX == CUnits.tUnits[iUnitID].iDestX and CUnits.tUnits[iUnitID].iY == CUnits.tUnits[iUnitID].iDestY) then
         --CLog.print("New Destination for unit #"..iUnitID)
         CUnits.RandomDestinationForUnit(iUnitID)
+        if CUnits.tUnits[iUnitID].bDeadStuck then return; end
     end
 
     local iXPlus, iYPlus = CUnits.GetDestinationXYPlus(iUnitID)
@@ -738,14 +738,13 @@ CUnits.Move = function(iUnitID, iXPlus, iYPlus)
     CUnits.tUnits[iUnitID].iX = CUnits.tUnits[iUnitID].iX + iXPlus
     CUnits.tUnits[iUnitID].iY = CUnits.tUnits[iUnitID].iY + iYPlus
 
-    if CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.UNIT_SIZE, CUnits.UNIT_SIZE) then
+    if CBlock.tBlocks[CUnits.tUnits[iUnitID].iX][CUnits.tUnits[iUnitID].iY].iBlockType ~= CBlock.BLOCK_TYPE_START and CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.UNIT_SIZE, CUnits.UNIT_SIZE) then
         CUnits.UnitDamagePlayer(iUnitID, 1)
     end
 end
 
 CUnits.GetDestinationXYPlus = function(iUnitID)
     if CUnits.tUnits[iUnitID].tPath == nil or CUnits.tUnits[iUnitID].tPath[CUnits.tUnits[iUnitID].iStep] == nil then
-        CUnits.RandomDestinationForUnit(iUnitID)
         return 0, 0
     end
 
@@ -924,11 +923,19 @@ CPath.Path = function(tStartBlock, tGoalBlock, tBlocks)
     if not CPath.tCached[tStartBlock] then
         CPath.tCached[tStartBlock] = {}
     elseif CPath.tCached[tStartBlock][tGoalBlock] then
+        if CPath.tCached[tStartBlock][tGoalBlock] == "NULL" then
+            return nil
+        end
+
         return CPath.tCached[tStartBlock][tGoalBlock]
     end
 
     local tResPath = CPath.AStar(tStartBlock, tGoalBlock, tBlocks)
     CPath.tCached[tStartBlock][tGoalBlock] = tResPath
+
+    if tResPath == nil then
+        CPath.tCached[tStartBlock][tGoalBlock] = "NULL"
+    end
 
     --[[
     if tResPath == nil then
@@ -1153,7 +1160,7 @@ function PixelClick(click)
                 CBlock.RegisterBlockClick(click.X, click.Y)
             end
 
-            if tFloor[click.X][click.Y].iUnitID > 0 then
+            if tFloor[click.X][click.Y].iUnitID > 0 and CBlock.tBlocks[click.X][click.Y].iBlockType ~= CBlock.BLOCK_TYPE_START then
                 CUnits.UnitDamagePlayer(tFloor[click.X][click.Y].iUnitID, 1)
             end
         end

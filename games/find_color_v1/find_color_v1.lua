@@ -595,6 +595,10 @@ function switchStage(newStage)
             x = (math.random(GameObj.Cols/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1
             y = (math.random(GameObj.Rows/GameConfigObj.BlockSize)-1)*GameConfigObj.BlockSize + 1 + GameObj.YOffset
 
+            if not FloorMatrix[x] or not FloorMatrix[x][y] then
+                goto continue
+            end
+
             if FloorMatrix[x][y].Color == GameStats.TargetColor then
                 goto continue
             end
