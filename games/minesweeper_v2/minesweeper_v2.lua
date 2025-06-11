@@ -466,6 +466,7 @@ end
 CBlock.AnimateVisibility = function(bVisible)
     CBlock.bAnimationOn = bVisible
 
+    --[[
     if CBlock.bAnimationOn then
         AL.NewTimer(500, function()
             CBlock.bAnimSwitch = not CBlock.bAnimSwitch
@@ -474,6 +475,7 @@ CBlock.AnimateVisibility = function(bVisible)
             return nil
         end)
     end
+    ]]
 end
 --//
 
