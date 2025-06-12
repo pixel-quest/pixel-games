@@ -188,7 +188,7 @@ function StartGame(gameJson, gameConfigJson)
 
         local iX = 2
         local iY = math.floor(GameObj.Rows/2)
-        for iPlayerID = 1, 6 do
+        for iPlayerID = 1, GameConfigObj.PlayerCount do
             GameObj.StartPositions[iPlayerID] = {}
             GameObj.StartPositions[iPlayerID].X = iX
             GameObj.StartPositions[iPlayerID].Y = iY
