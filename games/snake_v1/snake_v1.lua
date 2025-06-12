@@ -237,7 +237,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and ((CGameMode.bCanStart and iPlayersReady == #tGame.StartPositions) or bAnyButtonClick) then
+    if not bCountDownStarted and iPlayersReady > 0 and ((CGameMode.bCanStart and (iPlayersReady == #tGame.StartPositions or iPlayersReady == tConfig.PlayerCount)) or bAnyButtonClick) then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
