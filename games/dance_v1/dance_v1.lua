@@ -147,7 +147,7 @@ function SetupPlayerPositions()
     local iX = 1
 
     tGame.StartPositions = {}
-    for iPlayerID = 1, 6 do
+    for iPlayerID = 1, tConfig.PlayerCount do
         if iX < tGame.Cols then
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX

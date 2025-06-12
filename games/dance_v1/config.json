@@ -8,6 +8,13 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
+  "PlayerCount": 6,
+  "PlayerCount_Min": 2,
+  "PlayerCount_Max": 6,
+  "PlayerCount_Step": 1,
+  "PlayerCount_ru": "Количество игроков",
+  "PlayerCount_en": "Player Count",
+
   "StartPositionSize": 4,
   "StartPositionSize_Min": 3,
   "StartPositionSize_Max": 4,
