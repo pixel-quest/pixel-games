@@ -15,7 +15,7 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
-  "GameCountdown": 5,
+  "GameCountdown": 10,
   "GameCountdown_Hidden": true,
 
   "TargetScore": 20,
