@@ -16,8 +16,8 @@
   "StartPositionSize_en": "Player Position Size",
 
   "AutoStart": true,
-  "AutoStart_ru": "Автозапуск при всех занятых позициях",
-  "AutoStart_en": "Autostart on all positions occupied",
+  "AutoStart_ru": "Автозапуск",
+  "AutoStart_en": "Autostart",
 
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 

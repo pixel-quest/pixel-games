@@ -201,7 +201,7 @@ function TutorialTick()
         bAnyButtonClick = false
     end
 
-    if not CTutorial.bStarted then
+    if not CSongSync.bOn then
         for iPos, tPos in ipairs(tGame.StartPositions) do
             if iPos <= #tGame.StartPositions then
 
@@ -216,7 +216,7 @@ function TutorialTick()
                     iBright = tConfig.Bright
                     iPlayersReady = iPlayersReady + 1
                     tPlayerInGame[iPos] = true
-                else
+                elseif not CTutorial.bStarted then
                     tGameStats.Players[iPos].Color = CColors.NONE
                     tPlayerInGame[iPos] = false
                 end
@@ -255,7 +255,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions and not CTutorial.bStarted) then
+    if bAnyButtonClick or (tConfig.AutoStart and iPlayersReady > 1 and not CTutorial.bStarted) then
         if tGame.ArenaMode then
             if not bCountDownStarted then
                 CGameMode.CountDown(5)
