@@ -108,6 +108,7 @@ function StartGame(gameJson, gameConfigJson)
     CGameMode.InitGameMode()
 
     CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
+    CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
