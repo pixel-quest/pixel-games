@@ -115,12 +115,28 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    local iMinX = 0
+    local iMinY = 0
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    
+        iMinX = AL.NFZ.iMinX-1
+        iMinY = AL.NFZ.iMinY-1
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+    end
+
+    local iStartOffsetX = math.floor((tGame.Cols - (iMaxX-iMinX))/2) - 1
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
-        local iOffset = tGame.SPAutoOffsetX or math.floor(tGame.Cols/20)
-        local iX = iOffset
-        local iY = tGame.SPAutoOffsetY or 1
+        local iOffset = tGame.SPAutoOffsetX or math.floor(iMaxX/20)
+        local iX = iOffset + iMinX + iStartOffsetX
+        local iY = (tGame.SPAutoOffsetY or 1) + iMinY
 
         for iPlayerID = 1, 6 do
             tGame.StartPositions[iPlayerID] = {}
@@ -129,10 +145,10 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iX = iX + tGame.StartPositionSizeX + iOffset
-            if iX + tGame.StartPositionSizeX > tGame.Cols then
-                iX = iOffset
-                iY = iY + tGame.StartPositionSizeY + 1
-                if iY + tGame.StartPositionSizeY - 1 > tGame.Rows then break; end
+            if iX + tGame.StartPositionSizeX > iMaxX then
+                iX = iOffset + iMinX + iStartOffsetX
+                iY = iY + tGame.StartPositionSizeY + iMinY + 1
+                if iY + tGame.StartPositionSizeY - 1 > iMaxY then break; end
             end
         end
     else
@@ -203,8 +219,16 @@ function GameSetupTick()
 end
 
 function GameSetupTickSinglePlayer()
-    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+    local midX = math.floor(tGame.Cols/2)-1
+    local midY = math.floor(tGame.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        midX = AL.NFZ.iCenterX
+        midY = AL.NFZ.iCenterY
+    end
+
+    for iX = midX, midX + 2 do
+        for iY = midY, midY + 2 do
             tFloor[iX][iY].iColor = CColors.BLUE
             tFloor[iX][iY].iBright = tConfig.Bright
             if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
