@@ -206,7 +206,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 1 and (bAnyButtonClick or iPlayersReady == #tGame.StartPositions and CGameMode.bCanAutoStart)) then
+    if (iPlayersReady > 1 and bAnyButtonClick) or (iPlayersReady  == #tGame.StartPositions and CGameMode.bCanAutoStart) then
         bAnyButtonClick = false
 
         CGameMode.iAlivePlayerCount = iPlayersReady
@@ -256,9 +256,9 @@ CGameMode.iAlivePlayerCount = 0
 CGameMode.iWinnerID = 0
 
 CGameMode.Announcer = function()
-    --voice gamename and guide
+    CAudio.PlayVoicesSync("pirates/pirates_guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
-    CAudio.PlayVoicesSync("press-button-for-start.mp3")
+    --CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
     AL.NewTimer(1000, function()
         CGameMode.bCanAutoStart = true
@@ -413,7 +413,7 @@ CShips.ShipShoot = function(iShipId, iX, iY)
         end
         CProjectiles.NewProjectile(iX, iY, iVelX, 0)
 
-        --sound cannon shot
+        CAudio.PlaySystemSync("pirates/cannon.mp3")
 
         AL.NewTimer(2000, function()
             CShips.tShips[iShipId].bCanShoot = true
@@ -426,14 +426,14 @@ CShips.DamageShip = function(iShipId)
     tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
 
     if CShips.tShips[iShipId].iHealth == 0 then
-        --sound ship dead
+        CAudio.PlaySystemSync("pirates/ship_dead.mp3")
         CShips.tShips[iShipId].bAlive = false
         CGameMode.iAlivePlayerCount = CGameMode.iAlivePlayerCount - 1
         if CGameMode.iAlivePlayerCount == 1 then
             CGameMode.EndGame()
         end
     else
-        --sound ship hit
+        CAudio.PlaySystemSync("pirates/ship_hit.mp3")
 
         CShips.tShips[iShipId].bOnFire = true
         AL.NewTimer(250, function()
@@ -662,7 +662,7 @@ function PixelClick(click)
             return;
         end
 
-        if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iPlayerID > 0 then
+        if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iPlayerID > 0 and tPlayerInGame[tFloor[click.X][click.Y].iPlayerID] then
             CShips.PlayerControl(tFloor[click.X][click.Y].iPlayerID, click.X, click.Y)
         end
 
