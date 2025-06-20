@@ -185,14 +185,16 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, 0) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+    if not CGameMode.bCountDownStarted then
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+    end
 
     local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bCountDownStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -227,14 +229,12 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick or (not tGame.ArenaMode and iPlayersReady == #tGame.StartPositions and CGameMode.bCanStartGame)) then
+    if not CGameMode.bCountDownStarted and ((iPlayersReady > 0 and bAnyButtonClick) or (not tGame.ArenaMode and (iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions) and CGameMode.bCanStartGame)) then
         bAnyButtonClick = false
 
         CGameMode.iRealPlayerCount = iPlayersReady
 
-        iGameState = GAMESTATE_GAME
-        CGameMode.PrepareGame()
-        CGameMode.StartCountDown(5)
+        CGameMode.StartCountDown(10)
     end
 end
 
@@ -268,6 +268,7 @@ end
 CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCanStartGame = false
+CGameMode.bCountDownStarted = false
 CGameMode.tPlayerSequence = {}
 CGameMode.tPlayerSequencePoint = {}
 CGameMode.tPlayerSequenceLocalPoint = {}
@@ -322,6 +323,7 @@ end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
+    CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
         CAudio.PlaySystemSyncFromScratch("")
@@ -341,14 +343,20 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
+    CGameMode.PrepareGame()
+
+    iGameState = GAMESTATE_GAME
+
     CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
-    for iPlayerID = 1, 6 do
-        if tPlayerInGame[iPlayerID] then
-            CGameMode.PreviewSequenceForPlayer(iPlayerID)
+    AL.NewTimer(2000, function()
+        for iPlayerID = 1, 6 do
+            if tPlayerInGame[iPlayerID] then
+                CGameMode.PreviewSequenceForPlayer(iPlayerID)
+            end
         end
-    end
+    end)
 end
 
 CGameMode.EndGame = function(bVictory, iWinnerID)
@@ -611,6 +619,19 @@ function PixelClick(click)
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
             return;
+        end
+
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
+
+            return
         end
 
         tFloor[click.X][click.Y].bClick = click.Click
