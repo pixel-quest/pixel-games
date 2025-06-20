@@ -189,11 +189,11 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady == #tGame.StartPositions and CGameMode.bCanAutoStart) then
+    if bAnyButtonClick or (iPlayersReady > 1 and CGameMode.bCanAutoStart) then
         bAnyButtonClick = false
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
-        CGameMode.StartCountDown(5)
+        CGameMode.StartCountDown(10)
     end
 
     tGameResults.PlayersCount = iPlayersReady
@@ -602,6 +602,19 @@ function PixelClick(click)
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
             return;
+        end
+
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+            else
+                AL.NewTimer(500, function()
+                    tFloor[click.X][click.Y].bClick = false
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
+
+            return
         end
 
         tFloor[click.X][click.Y].bClick = click.Click

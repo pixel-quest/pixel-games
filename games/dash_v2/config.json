@@ -12,14 +12,14 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
-  "AutoStartPlayerCount": 6,
+  "AutoStartPlayerCount": 2,
   "AutoStartPlayerCount_ru": "Количество игроков для авто-старта",
   "AutoStartPlayerCount_en": "Players needed for auto-start",
 
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
-  "GameCountdown": 5,
+  "GameCountdown": 10,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
