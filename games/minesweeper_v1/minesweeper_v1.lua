@@ -899,9 +899,13 @@ function PixelClick(click)
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
-            else
-                AL.NewTimer(500, function()
-                    tFloor[click.X][click.Y].bClick = false
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                tFloor[click.X][click.Y].bHold = true
+                AL.NewTimer(1000, function()
+                    if tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bClick = false
+                    end
                 end)
             end
 
