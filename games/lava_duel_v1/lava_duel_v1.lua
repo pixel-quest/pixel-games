@@ -951,6 +951,7 @@ function PixelClick(click)
                     end
                 end)
             end
+            tFloor[click.X][click.Y].iWeight = click.Weight
 
             return
         end
