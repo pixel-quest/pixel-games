@@ -41,5 +41,9 @@
   	"GameLength_en": "Game Duration",
 
 	"UnitThinkDelay": 500,
-	"UnitThinkDelay_Hidden": true
+	"UnitThinkDelay_Min": 100,
+	"UnitThinkDelay_Max": 1000,
+	"UnitThinkDelay_Step": 100,	
+  	"UnitThinkDelay_ru": "Задержка движения врагов(чем меньше тем быстрее)",
+  	"UnitThinkDelay_en": "Enemy movement delay(lower = faster)"
 }
