@@ -129,13 +129,11 @@ function StartGame(gameJson, gameConfigJson)
         iMaxY = AL.NFZ.iMaxY
     end
 
-    local iStartOffsetX = math.floor((tGame.Cols - (iMaxX-iMinX))/2) - 1
-
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
         local iOffset = tGame.SPAutoOffsetX or math.floor(iMaxX/20)
-        local iX = iOffset + iMinX + iStartOffsetX
+        local iX = iOffset + iMinX
         local iY = (tGame.SPAutoOffsetY or 1) + iMinY
 
         for iPlayerID = 1, 6 do
@@ -146,7 +144,7 @@ function StartGame(gameJson, gameConfigJson)
 
             iX = iX + tGame.StartPositionSizeX + iOffset
             if iX + tGame.StartPositionSizeX > iMaxX then
-                iX = iOffset + iMinX + iStartOffsetX
+                iX = iOffset + iMinX
                 iY = iY + tGame.StartPositionSizeY + iMinY + 1
                 if iY + tGame.StartPositionSizeY - 1 > iMaxY then break; end
             end
