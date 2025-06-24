@@ -315,7 +315,7 @@ end
 CGameMode.LoadSongPixels = function()
     for iBatchID = 1, #tGame.Song do
         if tGame.Song[iBatchID] then
-            AL.NewTimer((tGame.Song[iBatchID][1] - tConfig.PixelMoveDelayMS), function()
+            AL.NewTimer(tConfig.SongStartDelayMS + (tGame.Song[iBatchID][1] + tConfig.PixelMoveDelayMS), function()
                 CGameMode.SpawnBatch(iBatchID)
             end)
 
