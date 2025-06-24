@@ -129,13 +129,11 @@ function StartGame(gameJson, gameConfigJson)
         iMaxY = AL.NFZ.iMaxY
     end
 
-    local iStartOffsetX = math.floor((tGame.Cols - (iMaxX-iMinX))/2) - 1
-
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
         local iOffset = tGame.SPAutoOffsetX or math.floor(iMaxX/20)
-        local iX = iOffset + iMinX + iStartOffsetX
+        local iX = iOffset + iMinX
         local iY = (tGame.SPAutoOffsetY or 1) + iMinY
 
         for iPlayerID = 1, 6 do
@@ -146,7 +144,7 @@ function StartGame(gameJson, gameConfigJson)
 
             iX = iX + tGame.StartPositionSizeX + iOffset
             if iX + tGame.StartPositionSizeX > iMaxX then
-                iX = iOffset + iMinX + iStartOffsetX
+                iX = iOffset + iMinX
                 iY = iY + tGame.StartPositionSizeY + iMinY + 1
                 if iY + tGame.StartPositionSizeY - 1 > iMaxY then break; end
             end
@@ -901,9 +899,13 @@ function PixelClick(click)
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
-            else
-                AL.NewTimer(500, function()
-                    tFloor[click.X][click.Y].bClick = false
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                tFloor[click.X][click.Y].bHold = true
+                AL.NewTimer(1000, function()
+                    if tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bClick = false
+                    end
                 end)
             end
 
