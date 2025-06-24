@@ -3,7 +3,7 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+  	"Bright_ru": "Яркость",
 
   	"DemoName": "matrix",
   	"DemoName_List": ["matrix", "derby", "rainbowwave", "rainbowsnake", "rainbowdemo"],

@@ -3,7 +3,7 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-	"Bright_Ru": "Яркость",
+	"Bright_ru": "Яркость",
   	    	
 	"AutoStartEnable": true,
 	"AutoStartEnable_ru": "Авто запуск игры при всех занятых зонах",
