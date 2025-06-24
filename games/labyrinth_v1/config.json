@@ -36,6 +36,10 @@
   "UnitThinkDelay_ru": "Частота Движения Юнита",
   "UnitThinkDelay_en": "Unit Movement Tick Rate",
 
+  "SmartUnits": false,
+  "SmartUnits_ru": "Умные Юниты (выключить если игра тормозит)",
+  "SmartUnits_en": "Smart Units (turn off if the game is lagging)",
+
   "GenerateRandomMap": true,
   "GenerateRandom_ru": "Случайная генерация лабиринта (работает только при размере юнита 1)",
   "GenerateRandom_en": "Maze generation (unit size 1 only)",
