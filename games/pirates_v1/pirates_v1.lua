@@ -413,7 +413,7 @@ CShips.ShipShoot = function(iShipId, iX, iY)
         end
         CProjectiles.NewProjectile(iX, iY, iVelX, 0)
 
-        CAudio.PlaySystemSync("pirates/cannon.mp3")
+        CAudio.PlaySystemAsync("pirates/cannon.mp3")
 
         AL.NewTimer(2000, function()
             CShips.tShips[iShipId].bCanShoot = true
@@ -426,14 +426,14 @@ CShips.DamageShip = function(iShipId)
     tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
 
     if CShips.tShips[iShipId].iHealth == 0 then
-        CAudio.PlaySystemSync("pirates/ship_dead.mp3")
+        CAudio.PlaySystemAsync("pirates/ship_dead.mp3")
         CShips.tShips[iShipId].bAlive = false
         CGameMode.iAlivePlayerCount = CGameMode.iAlivePlayerCount - 1
         if CGameMode.iAlivePlayerCount == 1 then
             CGameMode.EndGame()
         end
     else
-        CAudio.PlaySystemSync("pirates/ship_hit.mp3")
+        CAudio.PlaySystemAsync("pirates/ship_hit.mp3")
 
         CShips.tShips[iShipId].bOnFire = true
         AL.NewTimer(250, function()
