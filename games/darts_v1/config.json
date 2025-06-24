@@ -3,14 +3,14 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+  	"Bright_ru": "Яркость",
 
   	"RoundCount": 3,
   	"RoundCount_Min": 2,
   	"RoundCount_Max": 6,
   	"RoundCount_Step": 1,
-  	"RoundCount_Ru": "Количество бросков",
-  	"RoundCount_En": "Throw count",
+  	"RoundCount_ru": "Количество бросков",
+  	"RoundCount_en": "Throw count",
 
   	"PlayerCount": 6,
    	"PlayerCount_Min": 2,
