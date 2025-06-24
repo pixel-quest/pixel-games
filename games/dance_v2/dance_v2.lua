@@ -238,7 +238,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("dance2/dance2_guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("dance2/dance2_guide.mp3") * 1000, function()
         CGameMode.bCanAutoStart = true
     end)
 end

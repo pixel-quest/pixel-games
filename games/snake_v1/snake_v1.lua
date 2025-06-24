@@ -702,7 +702,7 @@ CSnake.SnakeCollectPixel = function(iPixelID)
     CGameMode.tPixels[iPixelID] = {}
     CGameMode.PlacePixelForPlayer(iPlayerID)    
 
-    CAudio.PlaySystemAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync("snake/apple_crunch.mp3")
 
     if not tConfig.FixedSnakeSize then
         CSnake.iLength = CSnake.iLength + 1
