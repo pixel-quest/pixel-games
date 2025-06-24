@@ -124,8 +124,8 @@ function StartGame(gameJson, gameConfigJson)
         iMaxX = AL.NFZ.iMaxX
         iMaxY = AL.NFZ.iMaxY
 
-        tGame.CenterX = AL.NFZ.iCenterX
-        tGame.CenterY = AL.NFZ.iCenterY
+        tGame.CenterX = AL.NFZ.iCenterX+iMinX
+        tGame.CenterY = AL.NFZ.iCenterY+iMinY
     end
 
     CGameMode.iCrosshairMinX = tGame.CenterX-6
@@ -155,7 +155,7 @@ function StartGame(gameJson, gameConfigJson)
             if iY >= iMaxY then
                 iY = iStartY
                 if iX == iStartX then
-                    iX = iMaxX - 1 - tGame.StartPositionSize
+                    iX = iMaxX - (tGame.StartPositionSize*2)
                 else
                     break;
                 end
