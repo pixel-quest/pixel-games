@@ -109,6 +109,24 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+
+    tGame.CenterY = math.floor(tGame.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         if tGame.PlayerCount == nil then tGame.PlayerCount = tConfig.PlayerCount; end
@@ -116,17 +134,18 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositionSizeX = 8
         tGame.StartPositionSizeY = math.ceil(tConfig.ButtonsCount/3)*3 - 1
 
-        local iStartX = 2
-        local iStartY = 2
-        local iDistance = math.ceil(tGame.Rows/5)
+        local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX + 2
+        local iStartY = tGame.iMinY+1
+        local iDistance = math.ceil((tGame.iMaxY-tGame.iMinY)/5)
 
         if tConfig.PlayerCount <= 2 then
-            iStartY = math.floor(tGame.Rows/2) - math.floor(tGame.StartPositionSizeY/2)+1
+            iStartX = tGame.iMinX+math.floor(tGame.StartPositionSizeX/3)-1
+            iStartY = math.floor((tGame.iMaxY-tGame.iMinY)/2) - math.floor(tGame.StartPositionSizeY/2)+1
             iDistance = iDistance * 2
         end
 
         if tConfig.PlayerCount == 1 then
-            iStartX = math.floor(tGame.Cols/2) - math.floor(tGame.StartPositionSizeX/2)+1
+            iStartX = math.ceil((tGame.iMaxX-tGame.iMinX)/2) - math.floor(tGame.StartPositionSizeX/2)+1
         end
 
         local iX = iStartX
@@ -139,11 +158,11 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iY = iY + iDistance + tGame.StartPositionSizeY
-            if iY + tGame.StartPositionSizeY-1 > tGame.Rows then
+            if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
                 iY = iStartY
                 iX = iX + iDistance + tGame.StartPositionSizeX
 
-                if iX + tGame.StartPositionSizeX-1 > tGame.Cols then break; end 
+                if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end 
             end
         end
     else
