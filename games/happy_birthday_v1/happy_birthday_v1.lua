@@ -179,11 +179,36 @@ CPaint.PaintBG = function()
 
     local tBg = tGame.Backgrounds[CPaint.sBackgroundName][CPaint.iBackgroundFrameId]
 
-    for iY = 1, tGame.Rows do
-        for iX = 1, tGame.Cols do
-            tFloor[iX][iY].iColor = tonumber(tBg[iY][iX]) or CColors.NONE
+    local iStartX = 1
+    local iStartY = 1
+    local iEndX = tGame.Cols
+    local iEndY = tGame.Rows
+    local iIncX = 1
+    local iIncY = 1
+
+    local iBGX = 0
+    local iBGY = 0
+
+    if tGame.MirrorGameX then
+        iStartX = tGame.Cols
+        iEndX = 1
+        iIncX = -1
+    end
+
+    if tGame.MirrorGameY then
+        iStartY = tGame.Rows
+        iEndY = 1
+        iIncY = -1
+    end
+
+    for iY = iStartY, iEndY, iIncY do
+        iBGY = iBGY + 1
+        for iX = iStartX, iEndX, iIncX do
+            iBGX = iBGX + 1
+            tFloor[iX][iY].iColor = tonumber(tBg[iBGY][iBGX]) or CColors.NONE
             tFloor[iX][iY].iBright = tConfig.Bright
         end
+        iBGX = 0
     end
 end
 
@@ -220,11 +245,24 @@ end
 
 CPaint.Text = function()
     local sText = tConfig.Text
+    local iStartX = 0
     local iX = 0
+    local iXInc = 1
     local iY = 1
+    local iYInc = 7
+
+    if tGame.MirrorGameX then
+        iStartX = tGame.Cols
+        iX = tGame.Cols
+        iXInc = -1
+    end
+    if tGame.MirrorGameY then
+        iY = tGame.Rows - 7
+        iYInc = -7
+    end
 
     if CPaint.bAnimateText then
-        iY = 4
+        iY = tGame.Rows + math.ceil(iYInc/2)
     end
 
     for i = 1, #sText do
@@ -244,21 +282,56 @@ CPaint.Text = function()
                 end
             end
 
-            for iLocalY = 1, tLetter.iSizeY do
-                for iLocalX = 1, tLetter.iSizeX do
+            local iLocalYStart = 1
+            local iLocalYEnd = tLetter.iSizeY
+            local iLocalYInc = 1
+            local iLocalXStart = 1
+            local iLocalXEnd = tLetter.iSizeX
+            local iLocalXInc = 1
+
+            if tGame.MirrorGameX then
+                iLocalXStart = tLetter.iSizeX
+                iLocalXEnd = 1
+                iLocalXInc = -1
+            end
+            if tGame.MirrorGameY then
+                iLocalYStart = tLetter.iSizeY
+                iLocalYEnd = 1
+                iLocalYInc = -1
+            end
+
+            local iLetterX = 0
+            local iLetterY = 0
+
+            if tGame.MirrorGameX then
+                iX = iX - (tLetter.iSizeX + 1)
+            end
+
+            for iLocalY = iLocalYStart, iLocalYEnd, iLocalYInc do
+                iLetterY = iLetterY + 1
+                for iLocalX = iLocalXStart, iLocalXEnd, iLocalXInc do
+                    iLetterX = iLetterX + 1
                     if tLetter.tPaint[iLocalY][iLocalX] == 1 then
-                        if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY+iAnimY] then
-                            tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iColor = CPaint.iTextColor
-                            tFloor[iX+iLocalX][iY+iLocalY+iAnimY].iBright = tConfig.Bright
+                        if tFloor[iX+iLetterX] and tFloor[iX+iLetterX][iY+iLetterY+iAnimY] then
+                            tFloor[iX+iLetterX][iY+iLetterY+iAnimY].iColor = CPaint.iTextColor
+                            tFloor[iX+iLetterX][iY+iLetterY+iAnimY].iBright = tConfig.Bright
                         end
                     end
                 end
+                iLetterX = 0
             end
 
-            iX = iX + tLetter.iSizeX+1
-            if (iX + 4) > tGame.Cols then
-                iX = 0
-                iY = iY + 7
+            if not tGame.MirrorGameX then
+                iX = iX + (tLetter.iSizeX*iXInc) + 1
+            end
+            
+            if (not tGame.MirrorGameX and (iX + 4 > tGame.Cols)) or (tGame.MirrorGameX and (iX < 1)) then
+                iX = iStartX
+                iY = iY + iYInc
+
+                if tGame.MirrorGameY then
+                    iY = iY - (tLetter.iSizeY + 1)
+                end
             end
         end
     end
