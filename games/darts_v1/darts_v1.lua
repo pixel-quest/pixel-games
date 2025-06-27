@@ -524,7 +524,7 @@ function CheckPositionClick(tStart, iSizeX, iSizeY)
     for iX = tStart.X, tStart.X + iSizeX - 1 do
         for iY = tStart.Y, tStart.Y + iSizeY - 1 do
             if tFloor[iX] and tFloor[iX][iY] then
-                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
+                if tFloor[iX][iY].bClick then
                     return true
                 end 
             end
@@ -598,12 +598,25 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
-        if iGameState == GAMESTATE_SETUP and not click.Click then
-            AL.NewTimer(500, function()
-                tFloor[click.X][click.Y].bClick = false
-            end)
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                AL.NewTimer(500, function()
+                    if not tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bHold = true
+                        AL.NewTimer(750, function()
+                            if tFloor[click.X][click.Y].bHold then
+                                tFloor[click.X][click.Y].bClick = false
+                            end
+                        end)
+                    end
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
 
-            return;
+            return
         end
 
         tFloor[click.X][click.Y].bClick = click.Click

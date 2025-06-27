@@ -361,7 +361,8 @@ CShips.NewShip = function(iPlayerID)
     CShips.tShips[iShipId].iLastControlY = 0
     CShips.tShips[iShipId].iHealth = CShips.SHIP_HEALTH
     CShips.tShips[iShipId].bAlive = true
-    CShips.tShips[iShipId].bCanShoot = true
+    CShips.tShips[iShipId].bLeftCanShoot = true
+    CShips.tShips[iShipId].bRightCanShoot = true
     CShips.tShips[iShipId].bOnFire = false
 
     if iPlayerID == 1 then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + 2 end
@@ -403,22 +404,35 @@ CShips.PlayerControl = function(iPlayerID, iX, iY)
     end
 end
 
-CShips.ShipShoot = function(iShipId, iX, iY)
-    if CShips.tShips[iShipId].bCanShoot then
-        CShips.tShips[iShipId].bCanShoot = false
-
-        local iVelX = -1
-        if iX > CShips.tShips[iShipId].iX then
-            iVelX = 1
+CShips.ShipShoot = function(iShipId, iX, iY, bLeftSide)
+    if bLeftSide then
+        if CShips.tShips[iShipId].bLeftCanShoot then
+            CShips.tShips[iShipId].bLeftCanShoot = false
+            AL.NewTimer(2000, function()
+                CShips.tShips[iShipId].bLeftCanShoot = true
+            end) 
+        else
+            return false
         end
-        CProjectiles.NewProjectile(iX, iY, iVelX, 0)
-
-        CAudio.PlaySystemAsync("pirates/cannon.mp3")
-
-        AL.NewTimer(2000, function()
-            CShips.tShips[iShipId].bCanShoot = true
-        end) 
+    else
+        if CShips.tShips[iShipId].bRightCanShoot then
+            CShips.tShips[iShipId].bRightCanShoot = false
+            AL.NewTimer(2000, function()
+                CShips.tShips[iShipId].bRightCanShoot = true
+            end) 
+        else
+            return false
+        end
     end
+
+    local iVelX = -1
+    if iX > CShips.tShips[iShipId].iX then
+        iVelX = 1
+    end
+    CProjectiles.NewProjectile(iX, iY, iVelX, 0)
+
+    CAudio.PlaySystemAsync("pirates/cannon.mp3")
+    return true
 end
 
 CShips.DamageShip = function(iShipId)
@@ -544,13 +558,16 @@ CPaint.Ships = function()
                             end
                         end 
 
-                        if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted and CShips.tShips[iShipId].bCanShoot then
-                            if (iX == CShips.tShips[iShipId].iX and iShipId ~= 1) or (iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 and iShipId ~= #CShips.tShips) then
+                        if iGameState == GAMESTATE_GAME and CGameMode.bGameStarted then
+                            if (iX == CShips.tShips[iShipId].iX and iShipId ~= 1 and CShips.tShips[iShipId].bLeftCanShoot) or (iX == CShips.tShips[iShipId].iX+CShips.SHIP_SIZE_X-1 and iShipId ~= #CShips.tShips and CShips.tShips[iShipId].bRightCanShoot) then
                                 if iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)-1 or iY == CShips.tShips[iShipId].iY + math.floor(CShips.SHIP_SIZE_Y/2)+1 then
                                     iColor = CColors.RED
 
+                                    local bLeftSide = true
+                                    if iX > CShips.tShips[iShipId].iX then bLeftSide = false; end
+
                                     if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
-                                        CShips.ShipShoot(iShipId, iX, iY)
+                                        CShips.ShipShoot(iShipId, iX, iY, bLeftSide)
                                     end
                                 end
                             end
@@ -660,6 +677,27 @@ function PixelClick(click)
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
             return;
+        end
+
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                AL.NewTimer(500, function()
+                    if not tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bHold = true
+                        AL.NewTimer(750, function()
+                            if tFloor[click.X][click.Y].bHold then
+                                tFloor[click.X][click.Y].bClick = false
+                            end
+                        end)
+                    end
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
+
+            return
         end
 
         if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iPlayerID > 0 and tPlayerInGame[tFloor[click.X][click.Y].iPlayerID] then
