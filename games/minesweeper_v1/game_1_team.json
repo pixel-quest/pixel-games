@@ -1,6 +1,10 @@
 {
   "Cols": 24,
   "Rows": 15,
+
+  "MirrorGameX": false,
+  "MirrorGameY": false,
+
   "Maps": [
     [
       [2,2,2,2,2,2,2,2,2,2,2,1,1,2,2,2,2,2,2,2,2,2,2,2], 
