@@ -325,13 +325,9 @@ CPaint.Text = function()
                 iX = iX + (tLetter.iSizeX*iXInc) + 1
             end
             
-            if (not tGame.MirrorGameX and (iX + 4 > tGame.Cols)) or (tGame.MirrorGameX and (iX < 1)) then
+            if (not tGame.MirrorGameX and (iX + 4 > tGame.Cols)) or (tGame.MirrorGameX and (iX-4 < 1)) then
                 iX = iStartX
                 iY = iY + iYInc
-
-                if tGame.MirrorGameY then
-                    iY = iY - (tLetter.iSizeY + 1)
-                end
             end
         end
     end
