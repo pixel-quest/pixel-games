@@ -568,16 +568,29 @@ CMaps.GetRandomMap = function()
 end
 
 CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
+    local iMapStartX = 0
     local iMapX = 0
     local iMapY = 0
+    local iIncX = 1
+    local iIncY = 1
     local iBlockCount = 0
     local iCoinCount = 0
 
+    if tGame.MirrorGameX then
+        iMapStartX = #tMap[1]+1
+        iMapX = #tMap[1]+1
+        iIncX = -1
+    end
+    if tGame.MirrorGameY then
+        iMapY = #tMap+1
+        iIncY = -1
+    end
+
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y  do
-        iMapY = iMapY + 1
+        iMapY = iMapY + iIncY
 
         for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-            iMapX = iMapX + 1
+            iMapX = iMapX + iIncX
 
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
             if tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then 
@@ -592,7 +605,7 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
             end
         end
 
-        iMapX = 0
+        iMapX = iMapStartX
     end
 
     CGameMode.iMapCoinCount = iCoinCount
