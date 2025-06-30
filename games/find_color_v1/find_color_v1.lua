@@ -3,6 +3,9 @@
 -- Описание механики: Встать на определенный сегмент с нужным цветом для смены этапа
 --    Внимание: Для старта игры требуется занять позицю и нажать любую кнопку на стене!
 
+math.randomseed(os.time())
+require("avonlib")
+
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
@@ -142,6 +145,8 @@ local LeftAudioPlayed = { -- 3... 2... 1...
 }
 local StageDonePlayed = false
 
+local iPrevTickTime = 0
+
 local tColors = {}
 tColors[1] = colors.GREEN
 tColors[2] = colors.RED
@@ -182,6 +187,8 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num].Color = colors.NONE
         ButtonsList[num].Bright = colors.BRIGHT70
     end
+
+    iPrevTickTime = time.unix()
 
     if GameObj.StartPositions == nil then
         GameObj.StartPositions = {}
@@ -238,6 +245,9 @@ end
 -- Не вызывается, когда игра на паузе или завершена
 -- Чтобы нивелировать паузу, нужно запоминать время паузы и делать сдвиг
 function NextTick()
+    AL.CountTimers((time.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = time.unix()
+
     if GameStats.StageNum == CONST_STAGE_START then -- этап выбора цвета
         local bDisPos = false
         if iGameSetupTimestamp == 0 or (time.unix() - 1) >= iGameSetupTimestamp then
@@ -434,7 +444,22 @@ function PixelClick(click)
         return
     end
 
-    FloorMatrix[click.X][click.Y].Click = click.Click
+    if click.Click then
+        FloorMatrix[click.X][click.Y].Click = true
+        FloorMatrix[click.X][click.Y].bHold = false
+    elseif not FloorMatrix[click.X][click.Y].bHold then
+        AL.NewTimer(500, function()
+            if not FloorMatrix[click.X][click.Y].bHold then
+                FloorMatrix[click.X][click.Y].bHold = true
+                AL.NewTimer(750, function()
+                    if FloorMatrix[click.X][click.Y].bHold then
+                        FloorMatrix[click.X][click.Y].Click = false
+                    end
+                end)
+            end
+        end)
+    end
+    FloorMatrix[click.X][click.Y].Weight = click.Weight 
 end
 
 -- ButtonClick (служебный): метод нажатия/отпускания кнопки
