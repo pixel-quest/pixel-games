@@ -456,6 +456,8 @@ CEffect.EffectTimer = function()
 end
 
 CEffect.EndCurrentEffect = function()
+    if CEffect.iCurrentEffect == 0 then return; end
+
     CEffect.iLastEffect = CEffect.iCurrentEffect
 
     CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_UNLOAD]()
