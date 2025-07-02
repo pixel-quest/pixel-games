@@ -209,7 +209,7 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename and rules
+    CAudio.PlayVoicesSync("ropejump/ropejump-guide.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
@@ -323,20 +323,25 @@ CRope.Paint = function()
 end
 
 CRope.TimerLoop = function()
-    AL.NewTimer(CRope.MAX_VELOCITY+1-CRope.iVelocity, function()
+    CRope.iY = math.floor(-tGame.Rows/2)-1
+
+    AL.NewTimer(CRope.MAX_VELOCITY+50-CRope.iVelocity, function()
         CRope.iY = CRope.iY - 1
-        if CRope.iY <= -tGame.Rows - 2 then
-            CRope.iY = tGame.Rows
-            CRope.iVelocity = CRope.iVelocity + (CRope.MAX_VELOCITY/tConfig.JumpCount)
+
+        if CRope.iY == math.floor(-tGame.Rows/2) then
             tGameStats.CurrentStars = tGameStats.CurrentStars + 1
-
-            if tGameStats.TotalStars - tGameStats.CurrentStars <= 5 then
-                CAudio.PlayLeftAudio(tGameStats.TotalStars - tGameStats.CurrentStars)
-            end
-
+        
             if tGameStats.CurrentStars == tGameStats.TotalStars then
                 CGameMode.EndGame(true)
+            else
+                CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
+                if tGameStats.TotalStars - tGameStats.CurrentStars <= 5 then
+                    CAudio.PlayLeftAudio(tGameStats.TotalStars - tGameStats.CurrentStars)
+                end
             end
+        elseif CRope.iY <= -tGame.Rows - 2 then
+            CRope.iY = tGame.Rows
+            CRope.iVelocity = CRope.iVelocity + (CRope.MAX_VELOCITY/tConfig.JumpCount)
         end
 
         if iGameState == GAMESTATE_GAME then
@@ -349,6 +354,8 @@ CRope.DamagePlayer = function()
     tGameStats.CurrentLives = tGameStats.CurrentLives-1
     if tGameStats.CurrentLives <= 0 then
         CGameMode.EndGame(false)
+    else
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
     end
 end
 --//
