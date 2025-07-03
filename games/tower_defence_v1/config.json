@@ -12,6 +12,20 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
+  "Difficulty": 2,
+  "Difficulty_Min": 1,
+  "Difficulty_Max": 10,
+  "Difficulty_Step": 1,
+  "Difficulty_ru": "Сложность",
+  "Difficulty_en": "Difficulty",
+
+  "LivesMultiplier": 1.0,
+  "LivesMultiplier_Min": 1.0,
+  "LivesMultiplier_Max": 9.0,
+  "LivesMultiplier_Step": 0.5,
+  "LivesMultiplier_ru": "Множитель жизней (чем больше тем больше жизней)",
+  "LivesMultiplier_en": "Lives Multiplier",
+
   "BaseColor": "0x00FF00",
   "BaseColor_Hidden": true,
 
@@ -35,12 +49,5 @@
   "UnitThinkDelay_Step": 100,
   "UnitThinkDelay_ru": "Частота передвижения юнитов",
   "UnitThinkDelay_en": "Unit movement tick rate",
-  "UnitThinkDelay_Hidden": true,
-
-  "Difficulty": 2,
-  "Difficulty_Min": 1,
-  "Difficulty_Max": 10,
-  "Difficulty_Step": 1,
-  "Difficulty_ru": "Сложность",
-  "Difficulty_en": "Difficulty"
+  "UnitThinkDelay_Hidden": true
 }

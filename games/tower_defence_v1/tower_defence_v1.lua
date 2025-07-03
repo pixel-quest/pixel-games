@@ -287,8 +287,8 @@ CGameMode.PrepareGame = function()
     CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
     CGameMode.tBase.iColor = tonumber(tConfig.BaseColor)
 
-    tGameStats.TotalLives = CGameMode.tBase.iHealth
-    tGameStats.CurrentLives = CGameMode.tBase.iHealth
+    tGameStats.TotalLives = math.ceil(CGameMode.tBase.iHealth * (tConfig.LivesMultiplier or 1))
+    tGameStats.CurrentLives = tGameStats.TotalLives
 
     CUnits.UnitSettings()
 
