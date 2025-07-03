@@ -1,0 +1,21 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"TeamHealth": 15,
+	"TeamHealth_Min": 0,
+	"TeamHealth_Max": 50,
+	"TeamHealth_Step": 1,
+	"TeamHealth_ru": "Жизни команды(0 для бесконечных)",
+	"TeamHealth_en": "Team Lives(0 for infinite)",
+
+	"JumpCount": 20,
+	"JumpCount_Min": 5,
+	"JumpCount_Max": 100,
+	"JumpCount_Step": 5,
+	"JumpCount_ru": "Количество прыжков",
+	"JumpCount_en": "Jumps count"
+}
