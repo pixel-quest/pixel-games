@@ -152,11 +152,13 @@ function GameSetupTick()
     if not CGameMode.bCountDownStarted then
         SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     
-        for iX = tGame.CenterX-1, tGame.CenterX + 1 do
-            for iY = tGame.CenterY, tGame.CenterY + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+        if CGameMode.bCanAutoStart then
+            for iX = tGame.CenterX-1, tGame.CenterX + 1 do
+                for iY = tGame.CenterY, tGame.CenterY + 2 do
+                    tFloor[iX][iY].iColor = CColors.BLUE
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                    if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+                end
             end
         end
     end    
@@ -201,6 +203,7 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.tAnimatedPixels = {}
+CGameMode.bCanAutoStart = false
 
 CGameMode.InitGameMode = function()
     tGameStats.TotalLives = tConfig.TeamHealth
@@ -211,6 +214,10 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("ropejump/ropejump-guide.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
+
+    AL.NewTimer(CAudio.GetVoicesDuration("ropejump/ropejump-guide.mp3")*1000, function()
+        CGameMode.bCanAutoStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
