@@ -284,10 +284,10 @@ CGameMode.PrepareGame = function()
 
     CGameMode.tBase.iX = math.floor(tGame.Cols/2)
     CGameMode.tBase.iY = math.floor(tGame.Rows/2)
-    CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
+    CGameMode.tBase.iHealth = math.ceil(CGameMode.tSettings.BaseHealth * (tConfig.LivesMultiplier or 1))
     CGameMode.tBase.iColor = tonumber(tConfig.BaseColor)
 
-    tGameStats.TotalLives = math.ceil(CGameMode.tBase.iHealth * (tConfig.LivesMultiplier or 1))
+    tGameStats.TotalLives = CGameMode.tBase.iHealth
     tGameStats.CurrentLives = tGameStats.TotalLives
 
     CUnits.UnitSettings()
@@ -938,7 +938,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
                     CGameMode.Victory()
                 end
 
-                tGameResults.Score = tGameResults.Score + 100 + (CGameMode.tBase.iHealth - CGameMode.tSettings.BaseHealth)
+                tGameResults.Score = tGameResults.Score + 100 + (CGameMode.tBase.iHealth - (CGameMode.tSettings.BaseHealth * (tConfig.LivesMultiplier or 1)))
 
                 if not CBuffs.bBuffDropped and CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
                     CBuffs.DropBuffForPlayers()
