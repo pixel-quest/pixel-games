@@ -63,7 +63,7 @@
       "BuffHealAmount": 3
     },
     {
-      "BaseHealth": 10,
+      "BaseHealth": 13,
       "UnitsToKill": 80,
       "UnitCountPerSpawn": 4,
       "SpecialUnitSpawnChance": 40,
@@ -80,6 +80,44 @@
 
       "BuffDropChance": 5,
       "BuffHealAmount": 2
+    },
+    {
+      "BaseHealth": 10,
+      "UnitsToKill": 160,
+      "UnitCountPerSpawn": 5,
+      "SpecialUnitSpawnChance": 50,
+
+      "UnitHealthDefault": 1,
+      "UnitHealthShoot": 1,
+
+      "UnitSizeDefault": 2,
+      "UnitSizeBlink": 2,
+      "UnitSizeSlime": 3,
+
+      "SpecialBlink": 3,
+      "SpecialShootDelay": 1250,
+
+      "BuffDropChance": 5,
+      "BuffHealAmount": 1
+    },
+    {
+      "BaseHealth": 8,
+      "UnitsToKill": 320,
+      "UnitCountPerSpawn": 5,
+      "SpecialUnitSpawnChance": 50,
+
+      "UnitHealthDefault": 1,
+      "UnitHealthShoot": 1,
+
+      "UnitSizeDefault": 2,
+      "UnitSizeBlink": 2,
+      "UnitSizeSlime": 3,
+
+      "SpecialBlink": 3,
+      "SpecialShootDelay": 1250,
+
+      "BuffDropChance": 5,
+      "BuffHealAmount": 1
     },
     {
       "BaseHealth": 8,
@@ -102,7 +140,7 @@
     },
     {
       "BaseHealth": 5,
-      "UnitsToKill": 2500,
+      "UnitsToKill": 1000,
       "UnitCountPerSpawn": 6,
       "SpecialUnitSpawnChance": 60,
 
@@ -118,6 +156,44 @@
 
       "BuffDropChance": 5,
       "BuffHealAmount": 1
-    }    
+    },
+    {
+      "BaseHealth": 5,
+      "UnitsToKill": 2000,
+      "UnitCountPerSpawn": 6,
+      "SpecialUnitSpawnChance": 60,
+
+      "UnitHealthDefault": 1,
+      "UnitHealthShoot": 1,
+
+      "UnitSizeDefault": 2,
+      "UnitSizeBlink": 2,
+      "UnitSizeSlime": 3,
+
+      "SpecialBlink": 3,
+      "SpecialShootDelay": 1000,
+
+      "BuffDropChance": 5,
+      "BuffHealAmount": 1
+    },  
+    {
+      "BaseHealth": 1,
+      "UnitsToKill": 2000,
+      "UnitCountPerSpawn": 6,
+      "SpecialUnitSpawnChance": 60,
+
+      "UnitHealthDefault": 1,
+      "UnitHealthShoot": 1,
+
+      "UnitSizeDefault": 2,
+      "UnitSizeBlink": 2,
+      "UnitSizeSlime": 3,
+
+      "SpecialBlink": 3,
+      "SpecialShootDelay": 1000,
+
+      "BuffDropChance": 5,
+      "BuffHealAmount": 1
+    }
   ]
 }
