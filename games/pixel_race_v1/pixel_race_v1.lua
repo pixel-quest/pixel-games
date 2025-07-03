@@ -243,10 +243,10 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("pixel_race/pixel_race_rules.mp3")
+    CAudio.PlayVoicesSync("pixel-race/pixel_race_rules.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("pixel_race/pixel_race_rules.mp3")*1000 + 2000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("pixel-race/pixel_race_rules.mp3")*1000 + 2000, function()
         CGameMode.bCanAutoStart = true
     end)
 end
