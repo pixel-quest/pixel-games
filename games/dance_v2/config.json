@@ -3,11 +3,18 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+  	"Bright_ru": "Яркость",
 
   	"SmallZones": false,
   	"SmallZones_ru": "Малые зоны",
   	"SmallZones_en": "Small Zones",
+
+	"SongStartDelayMS": 100,
+	"SongStartDelayMS_Min": 0,
+	"SongStartDelayMS_Max": 10000,
+	"SongStartDelayMS_Step": 10, 
+	"SongStartDelayMS_ru": "Задержка Начала Песни",
+	"SongStartDelayMS_en": "Song Start Delay",
 
 	"PixelMoveDelayMS": 150,
 	"PixelMoveDelayMS_Hidden": true

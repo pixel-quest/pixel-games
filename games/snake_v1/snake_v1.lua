@@ -702,7 +702,7 @@ CSnake.SnakeCollectPixel = function(iPixelID)
     CGameMode.tPixels[iPixelID] = {}
     CGameMode.PlacePixelForPlayer(iPlayerID)    
 
-    CAudio.PlaySystemAsync(CAudio.MISCLICK)
+    CAudio.PlaySystemAsync("snake/apple_crunch.mp3")
 
     if not tConfig.FixedSnakeSize then
         CSnake.iLength = CSnake.iLength + 1
@@ -1118,11 +1118,20 @@ function PixelClick(click)
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
-            else
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
                 AL.NewTimer(500, function()
-                    tFloor[click.X][click.Y].bClick = false
+                    if not tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bHold = true
+                        AL.NewTimer(750, function()
+                            if tFloor[click.X][click.Y].bHold then
+                                tFloor[click.X][click.Y].bClick = false
+                            end
+                        end)
+                    end
                 end)
             end
+            tFloor[click.X][click.Y].iWeight = click.Weight
 
             return
         end

@@ -3,13 +3,13 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+  	"Bright_ru": "Яркость",
 
   	"TimeLimit": 100,
   	"TimeLimit_Min": 20,
   	"TimeLimit_Max": 300,
   	"TimeLimit_Step": 10,
-  	"TimeLimit_Ru": "Ограничение времени",
-  	"TimeLimit_En": "Time Limit"
+  	"TimeLimit_ru": "Ограничение времени",
+  	"TimeLimit_en": "Time Limit"
   	    	
 }

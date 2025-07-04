@@ -107,6 +107,7 @@ function StartGame(gameJson, gameConfigJson)
     CGameMode.InitGameMode()
 
     CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
+    CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
@@ -614,7 +615,8 @@ CUnits.tUnitStruct = {
     iStep = 2,
     iCantMove = 0,
     iDestFindAttempt = 0,
-    bDeadStuck = false
+    bDeadStuck = false,
+    bSimpleUp = false
 }
 
 CUnits.NewUnit = function(iX, iY)
@@ -684,9 +686,40 @@ end
 
 --UNIT AI
 CUnits.UnitThink = function(iUnitID)
-    CUnits.UnitThinkDefault(iUnitID)
+    if tConfig.SmartUnits then
+        CUnits.UnitThinkDefault(iUnitID)
+    else
+        CUnits.UnitThinkSimple(iUnitID)
+    end
 end
 
+CUnits.UnitThinkSimple = function(iUnitID)
+    local iPlus = 1
+    if CUnits.tUnits[iUnitID].bSimpleUp then
+        iPlus = -1
+    end
+
+    local bMoved = false
+    local function canMoveMove(iPlusX, iPlusY)
+        if CUnits.CanMove(iUnitID, iPlusX, iPlusY) then
+            CUnits.Move(iUnitID, iPlusX, iPlusY) 
+            bMoved = true
+            return true
+        end
+        return false  
+    end
+
+    if math.random(1,2) == 1 then
+        if not canMoveMove(0, iPlus) then canMoveMove(iPlus, 0) end
+    else
+        if not canMoveMove(iPlus, 0) then canMoveMove(0, iPlus) end
+    end 
+
+    if not bMoved then
+        CUnits.tUnits[iUnitID].bSimpleUp = not CUnits.tUnits[iUnitID].bSimpleUp
+    end
+end
+ 
 CUnits.UnitThinkDefault = function(iUnitID)
     if CUnits.tUnits[iUnitID].iDestX == 0 or (CUnits.tUnits[iUnitID].iX == CUnits.tUnits[iUnitID].iDestX and CUnits.tUnits[iUnitID].iY == CUnits.tUnits[iUnitID].iDestY) then
         --CLog.print("New Destination for unit #"..iUnitID)
@@ -722,10 +755,11 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
 
     for iXCheck = iX, iX + CUnits.UNIT_SIZE-1 do
         for iYCheck = iY, iY + CUnits.UNIT_SIZE-1 do
-            if not tFloor[iXCheck] or not tFloor[iXCheck][iYCheck] then return true end
+            if not tFloor[iXCheck] or not tFloor[iXCheck][iYCheck] then return false end
             --if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             --if tFloor[iXCheck][iYCheck].bDefect then return false end
+            if CUnits.UNIT_SIZE == 2 and CBlock.tBlocks[iXCheck][iYCheck].iBlockType == CBlock.BLOCK_TYPE_START then return false end
         end
     end
 

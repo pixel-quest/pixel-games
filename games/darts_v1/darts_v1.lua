@@ -107,8 +107,26 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
     tGame.CenterX = math.floor(tGame.Cols/2)
     tGame.CenterY = math.ceil(tGame.Rows/2)
+
+    local iMinX = 1
+    local iMinY = 1
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        iMinX = AL.NFZ.iMinX
+        iMinY = AL.NFZ.iMinY
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX+iMinX
+        tGame.CenterY = AL.NFZ.iCenterY+iMinY
+    end
 
     CGameMode.iCrosshairMinX = tGame.CenterX-6
     CGameMode.iCrosshairMaxX = tGame.CenterX+6
@@ -121,8 +139,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions = {}
         tGame.StartPositionSize = 2
 
-        local iStartX = math.floor(tGame.Cols/10)
-        local iStartY = math.ceil(tGame.Rows/10)
+        local iStartX = iMinX + tGame.StartPositionSize
+        local iStartY = iMinY + tGame.StartPositionSize
 
         local iX = iStartX
         local iY = iStartY
@@ -134,10 +152,10 @@ function StartGame(gameJson, gameConfigJson)
 
             iY = iY + tGame.StartPositionSize + 3
 
-            if iY >= tGame.Rows then
+            if iY >= iMaxY then
                 iY = iStartY
                 if iX == iStartX then
-                    iX = tGame.Cols - 1 - tGame.StartPositionSize
+                    iX = iMaxX - (tGame.StartPositionSize*2)
                 else
                     break;
                 end
@@ -506,7 +524,7 @@ function CheckPositionClick(tStart, iSizeX, iSizeY)
     for iX = tStart.X, tStart.X + iSizeX - 1 do
         for iY = tStart.Y, tStart.Y + iSizeY - 1 do
             if tFloor[iX] and tFloor[iX][iY] then
-                if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
+                if tFloor[iX][iY].bClick then
                     return true
                 end 
             end
@@ -580,12 +598,25 @@ end
 
 function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
-        if iGameState == GAMESTATE_SETUP and not click.Click then
-            AL.NewTimer(500, function()
-                tFloor[click.X][click.Y].bClick = false
-            end)
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                AL.NewTimer(500, function()
+                    if not tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bHold = true
+                        AL.NewTimer(750, function()
+                            if tFloor[click.X][click.Y].bHold then
+                                tFloor[click.X][click.Y].bClick = false
+                            end
+                        end)
+                    end
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
 
-            return;
+            return
         end
 
         tFloor[click.X][click.Y].bClick = click.Click

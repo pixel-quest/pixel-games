@@ -115,12 +115,26 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    local iMinX = 0
+    local iMinY = 0
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    
+        iMinX = AL.NFZ.iMinX-1
+        iMinY = AL.NFZ.iMinY-1
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
-        local iOffset = tGame.SPAutoOffsetX or math.floor(tGame.Cols/20)
-        local iX = iOffset
-        local iY = tGame.SPAutoOffsetY or 1
+        local iOffset = tGame.SPAutoOffsetX or math.floor(iMaxX/20)
+        local iX = iOffset + iMinX
+        local iY = (tGame.SPAutoOffsetY or 1) + iMinY
 
         for iPlayerID = 1, 6 do
             tGame.StartPositions[iPlayerID] = {}
@@ -129,10 +143,10 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iX = iX + tGame.StartPositionSizeX + iOffset
-            if iX + tGame.StartPositionSizeX > tGame.Cols then
-                iX = iOffset
-                iY = iY + tGame.StartPositionSizeY + 1
-                if iY + tGame.StartPositionSizeY - 1 > tGame.Rows then break; end
+            if iX + tGame.StartPositionSizeX > iMaxX then
+                iX = iOffset + iMinX
+                iY = iY + tGame.StartPositionSizeY + iMinY + 1
+                if iY + tGame.StartPositionSizeY - 1 > iMaxY then break; end
             end
         end
     else
@@ -203,8 +217,16 @@ function GameSetupTick()
 end
 
 function GameSetupTickSinglePlayer()
-    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+    local midX = math.floor(tGame.Cols/2)-1
+    local midY = math.floor(tGame.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        midX = AL.NFZ.iCenterX
+        midY = AL.NFZ.iCenterY
+    end
+
+    for iX = midX, midX + 2 do
+        for iY = midY, midY + 2 do
             tFloor[iX][iY].iColor = CColors.BLUE
             tFloor[iX][iY].iBright = tConfig.Bright
             if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
@@ -546,16 +568,29 @@ CMaps.GetRandomMap = function()
 end
 
 CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
+    local iMapStartX = 0
     local iMapX = 0
     local iMapY = 0
+    local iIncX = 1
+    local iIncY = 1
     local iBlockCount = 0
     local iCoinCount = 0
 
+    if tGame.MirrorGameX then
+        iMapStartX = #tMap[1]+1
+        iMapX = #tMap[1]+1
+        iIncX = -1
+    end
+    if tGame.MirrorGameY then
+        iMapY = #tMap+1
+        iIncY = -1
+    end
+
     for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y  do
-        iMapY = iMapY + 1
+        iMapY = iMapY + iIncY
 
         for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
-            iMapX = iMapX + 1
+            iMapX = iMapX + iIncX
 
             local iBlockType = CBlock.BLOCK_TYPE_GROUND
             if tMap[iMapY] ~= nil and tMap[iMapY][iMapX] ~= nil then 
@@ -570,7 +605,7 @@ CMaps.LoadMapForPlayer = function(tMap, iPlayerID)
             end
         end
 
-        iMapX = 0
+        iMapX = iMapStartX
     end
 
     CGameMode.iMapCoinCount = iCoinCount
@@ -877,9 +912,13 @@ function PixelClick(click)
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
-            else
-                AL.NewTimer(500, function()
-                    tFloor[click.X][click.Y].bClick = false
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                tFloor[click.X][click.Y].bHold = true
+                AL.NewTimer(1000, function()
+                    if tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bClick = false
+                    end
                 end)
             end
 

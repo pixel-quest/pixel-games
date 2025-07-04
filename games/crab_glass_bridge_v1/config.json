@@ -3,20 +3,20 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+  	"Bright_ru": "Яркость",
 
   	"TimeLimit": 300,
   	"TimeLimit_Min": 0,
   	"TimeLimit_Max": 600,
   	"TimeLimit_Step": 30,
-  	"TimeLimit_Ru": "Ограничение времени в секундах (если 0 то время бесконечное)",
-  	"TimeLimit_En": "Time limit in seconds (set 0 for infinite time)",
+  	"TimeLimit_ru": "Ограничение времени в секундах (если 0 то время бесконечное)",
+  	"TimeLimit_en": "Time limit in seconds (set 0 for infinite time)",
 
   	"EndGameAfterFinish": true,
   	"EndGameAfterFinish_ru": "Заканчивать игру после первого финишировшего",
   	"EndGameAfterFinish_en": "End game after first player finished",
 
   	"HardMode": false,
-  	"HardMode_Ru": "Сложный режим, разбитые стёкла не остаются видимыми",
-  	"HardMode_Ru": "Hard Mode, broken windows are not visible"
+  	"HardMode_ru": "Сложный режим, разбитые стёкла не остаются видимыми",
+  	"HardMode_ru": "Hard Mode, broken windows are not visible"
 }

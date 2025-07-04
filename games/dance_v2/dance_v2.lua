@@ -210,11 +210,11 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady == #tGame.StartPositions and CGameMode.bCanAutoStart) then
+    if bAnyButtonClick or (iPlayersReady > 1 and CGameMode.bCanAutoStart) then
         bAnyButtonClick = false
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
-        CGameMode.StartCountDown(5)
+        CGameMode.StartCountDown(10)
     end
 
     tGameResults.PlayersCount = iPlayersReady
@@ -259,7 +259,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("dance2/dance2_guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("dance2/dance2_guide.mp3") * 1000, function()
         CGameMode.bCanAutoStart = true
     end)
 end
@@ -336,7 +336,7 @@ end
 CGameMode.LoadSongPixels = function()
     for iBatchID = 1, #tGame.Song do
         if tGame.Song[iBatchID] then
-            AL.NewTimer((tGame.Song[iBatchID][1] - (tConfig.PixelMoveDelayMS * math.floor(tGame.StartPositionsSizeY/2))), function()
+            AL.NewTimer(tConfig.SongStartDelayMS + (tGame.Song[iBatchID][1] + tConfig.PixelMoveDelayMS), function()
                 CGameMode.SpawnBatch(iBatchID)
             end)
 
@@ -623,6 +623,27 @@ function PixelClick(click)
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
             return;
+        end
+
+        if iGameState == GAMESTATE_SETUP then
+            if click.Click then
+                tFloor[click.X][click.Y].bClick = true
+                tFloor[click.X][click.Y].bHold = false
+            elseif not tFloor[click.X][click.Y].bHold then
+                AL.NewTimer(500, function()
+                    if not tFloor[click.X][click.Y].bHold then
+                        tFloor[click.X][click.Y].bHold = true
+                        AL.NewTimer(750, function()
+                            if tFloor[click.X][click.Y].bHold then
+                                tFloor[click.X][click.Y].bClick = false
+                            end
+                        end)
+                    end
+                end)
+            end
+            tFloor[click.X][click.Y].iWeight = click.Weight
+
+            return
         end
 
         tFloor[click.X][click.Y].bClick = click.Click
