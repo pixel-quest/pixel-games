@@ -121,17 +121,32 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    tGame.StartPositionSize = 2
+    tGame.StartPositionSize = 3
+
+    CGameMode.iMinX = 1
+    CGameMode.iMinY = 1
+    CGameMode.iMaxX = tGame.Cols
+    CGameMode.iMaxY = tGame.Rows
+
     if tGame.StartPositions == nil then
+        if AL.RoomHasNFZ(tGame) then
+            AL.LoadNFZInfo()
+        
+            CGameMode.iMinX = AL.NFZ.iMinX
+            CGameMode.iMinY = AL.NFZ.iMinY
+            CGameMode.iMaxX = AL.NFZ.iMaxX
+            CGameMode.iMaxY = AL.NFZ.iMaxY
+        end
+
         tGame.StartPositions = {}
         for iPlayerID = 1, 2 do
             tGame.StartPositions[iPlayerID] = {}
             if iPlayerID == 1 then
-                tGame.StartPositions[iPlayerID].X = 1 + tGame.StartPositionSize
+                tGame.StartPositions[iPlayerID].X = CGameMode.iMinX + tGame.StartPositionSize
             elseif iPlayerID == 2 then
-                tGame.StartPositions[iPlayerID].X = tGame.Cols - tGame.StartPositionSize - 1
+                tGame.StartPositions[iPlayerID].X = CGameMode.iMaxX - tGame.StartPositionSize - 1
             end
-            tGame.StartPositions[iPlayerID].Y = math.ceil(tGame.Rows/2)
+            tGame.StartPositions[iPlayerID].Y = math.floor(CGameMode.iMaxY/2 + CGameMode.iMinY/2)-1
             tGame.StartPositions[iPlayerID].Color = tGameStats.Players[iPlayerID].Color
         end    
     else
@@ -235,6 +250,11 @@ CGameMode = {}
 CGameMode.RoundStartedAt = CTime.unix()
 CGameMode.iCountdown = -1
 CGameMode.GameWinner = -1
+
+CGameMode.iMinX = 0
+CGameMode.iMinY = 0
+CGameMode.iMaxX = 0
+CGameMode.iMaxY = 0
 
 CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
     CGameMode.iCountdown = iCountDownTime
@@ -342,8 +362,8 @@ CBall.NewBall = function()
 
     CBall.tPrev = nil
     CBall.tBall = CHelp.ShallowCopy(CBall.tBallStruct)
-    CBall.tBall.iPosX = math.floor((tGame.Cols + (tGame.StartPositions[1].X) - (tGame.Cols-tGame.StartPositions[2].X))  /2)
-    CBall.tBall.iPosY = math.random(3, tGame.Rows-2)
+    CBall.tBall.iPosX = math.floor((CGameMode.iMaxX + (tGame.StartPositions[1].X) - (CGameMode.iMaxX-tGame.StartPositions[2].X))  /2)
+    CBall.tBall.iPosY = math.random(CGameMode.iMinY+2, CGameMode.iMaxY-2)
     CBall.tBall.iColor = CColors.GREEN
     CBall.tBall.iVelocityX = 0
     CBall.tBall.iVelocityY = 0
@@ -363,7 +383,7 @@ CBall.Movement = function()
 
         CBall.tBall.iVelocityX = CBall.tBall.iVelocityX * -1
 
-        if iHitPosition == HIT_CORNER and CBall.tBall.iPosY > 1 and CBall.tBall.iPosY < tGame.Rows then
+        if iHitPosition == HIT_CORNER and CBall.tBall.iPosY > CGameMode.iMinY and CBall.tBall.iPosY < CGameMode.iMaxY then
             CBall.tBall.iVelocityY = CBall.tBall.iVelocityY * -1
         end
 
@@ -378,7 +398,7 @@ CBall.Movement = function()
 
     CBall.tBall.iPosY = CBall.tBall.iPosY + CBall.tBall.iVelocityY
 
-    if (CBall.tBall.iPosY <= 1) or (CBall.tBall.iPosY >= tGame.Rows) then
+    if (CBall.tBall.iPosY <= CGameMode.iMinY) or (CBall.tBall.iPosY >= CGameMode.iMaxY) then
         CBall.tBall.iVelocityY = CBall.tBall.iVelocityY * -1
     end
 
@@ -521,7 +541,7 @@ end
 
 CAI.AIMove = function()
     if CAI.GoalY == 0 or CAI.GoalY == CPod.tPods[1].iPosY then
-        CAI.GoalY = math.random(1, tGame.Rows)
+        CAI.GoalY = math.random(CGameMode.iMinY, CGameMode.iMaxY)
     end 
 
     if CPod.tPods[1].iPosY < CAI.GoalY then

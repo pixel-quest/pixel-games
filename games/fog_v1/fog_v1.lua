@@ -98,6 +98,28 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    tGame.CenterX = math.floor(tGame.Cols/2)
+    tGame.CenterY = math.floor(tGame.Rows/2)
+
+
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
@@ -140,8 +162,8 @@ function GameSetupTick()
 
     if not CGameMode.bCountDownStarted then
         if CGameMode.bCanStart then
-            for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-                for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+            for iX = tGame.CenterX-1, tGame.CenterX + 1 do
+                for iY = tGame.CenterY, tGame.CenterY + 2 do
                     tFloor[iX][iY].iColor = CColors.BLUE
                     tFloor[iX][iY].iBright = tConfig.Bright
                     if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
@@ -514,13 +536,13 @@ CWorld.Load = function()
         end
     end
 
-    CWorld.CreateStructure(math.random(math.floor(tGame.Cols/2.5), math.floor(tGame.Cols/1.5)), math.random(tGame.Rows/3, tGame.Rows/2), CWorld.BLOCK_TYPE_SAFEZONE) 
+    CWorld.CreateStructure(math.random(math.floor(tGame.iMaxX/2.5), math.floor(tGame.iMaxX/1.5)), math.random(tGame.iMaxY/3, tGame.iMaxY/2), CWorld.BLOCK_TYPE_SAFEZONE) 
 
     for iStructureId = 1, math.random(1,3) do
         local iBlockType = CWorld.BLOCK_TYPE_SAFEZONE
         if iStructureId > 1 and math.random(1, 3) == 3 then iBlockType = CWorld.BLOCK_TYPE_TERRAIN end
 
-        CWorld.CreateStructure(math.random(1, tGame.Cols), math.random(1, tGame.Rows), iBlockType)       
+        CWorld.CreateStructure(math.random(tGame.iMinX, tGame.iMaxX), math.random(tGame.iMinY, tGame.iMaxY), iBlockType)       
     end
 
     for iCoinId = 1, tConfig.CoinCount do

@@ -8,6 +8,9 @@
 -- Идеи по доработке:
 --		1. Можно сделать вариант на выбывание с уменьшением количества безопасных сегментов
 
+math.randomseed(os.time())
+require("avonlib")
+
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
@@ -157,6 +160,15 @@ tColors[5] = colors.CYAN
 tColors[6] = colors.BLUE
 tColors[7] = colors.WHITE
 
+for iColorId = 1, 6 do
+    if math.random(1,100) >= 50 then
+        local iRand = math.random(1,6)
+        local iColor = tColors[iColorId]
+        tColors[iColorId] = tColors[iRand]
+        tColors[iRand] = iColor 
+    end    
+end
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -175,10 +187,19 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
+    local iMinX = 1
+    local iMaxX = GameObj.Cols
+
+    if AL.RoomHasNFZ(GameObj) then
+        AL.LoadNFZInfo()
+        iMinX = AL.NFZ.iMinX
+        iMaxX = AL.NFZ.iMaxX
+    end
+
     if GameObj.StartPositions == nil then
         GameObj.StartPositions = {}
 
-        local iX = 2
+        local iX = iMinX + 2
         local iY = math.floor(GameObj.Rows/2)
         for iPlayerID = 1, 6 do
             GameObj.StartPositions[iPlayerID] = {}
@@ -187,8 +208,8 @@ function StartGame(gameJson, gameConfigJson)
             GameObj.StartPositions[iPlayerID].Color = colors.GREEN
 
             iX = iX + (GameObj.StartPositionSize*2)
-            if iX + GameObj.StartPositionSize > GameObj.Cols then
-                iX = 2
+            if iX + GameObj.StartPositionSize-1 > iMaxX then
+                iX = iMinX + 2
                 iY = iY + (GameObj.StartPositionSize+1)
             end
         end
@@ -518,6 +539,10 @@ function switchStage(newStage)
             x = math.random(GameObj.Cols/2)*2-1
             y = math.random(GameObj.Rows/2)*2-1 + GameObj.YOffset
 
+            if AL.NFZ.bLoaded and AL.IsPixelInNFZ(x, y) then
+                goto continue
+            end
+
             if FloorMatrix[x][y].Color == GameStats.TargetColor then
                 goto continue
             end
@@ -615,7 +640,7 @@ function targetColor(stageNum)
     if stageNum < CONST_STAGE_GAME or stageNum > GameConfigObj.StagesQty then
         return colors.NONE
     end
-    return tColors[math.random(2,7)]
+    return tColors[stageNum%7 + 1]
 end
 
 -- Залить всё поле цветом, пропуская exceptColor
