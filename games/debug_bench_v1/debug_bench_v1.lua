@@ -224,7 +224,7 @@ function PixelClick(click)
         end
 
         if tGameStats.StageNum == 2 and tFloor[click.X][click.Y].iColor == CColors.NONE then
-            tFloor[click.X][click.Y].iBright = 7
+            tFloor[click.X][click.Y].iBright = 6
             AL.NewTimer(0, function()
                 tFloor[click.X][click.Y].iColor = tColors[math.random(1,#tColors)]
                 tFloor[click.X][click.Y].iBright = tFloor[click.X][click.Y].iBright - 1
@@ -249,6 +249,19 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
+
+    if tGameStats.StageNum == 2 and tButtons[click.Button].iColor == CColors.NONE then
+        tButtons[click.Button].iColorCount = 6
+        AL.NewTimer(0, function()
+            tButtons[click.Button].iColor = tColors[math.random(1,#tColors)]
+            if tButtons[click.Button].iColorCount > 0 then
+                tButtons[click.Button].iColorCount = tButtons[click.Button].iColorCount - 1
+                return 250
+            end
+            tButtons[click.Button].iColor = CColors.NONE
+            return nil
+        end)
+    end 
 
     if click.Click then 
         iCurrentColor = CColors.NONE
