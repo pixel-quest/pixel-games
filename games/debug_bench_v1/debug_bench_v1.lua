@@ -137,6 +137,7 @@ end
 function SwitchStage()
     tGameStats.StageNum = tGameStats.StageNum + 1
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+    iCurrentColor = CColors.NONE
 end
 
 --UTIL прочие утилиты
