@@ -115,13 +115,36 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+
+    tGame.CenterY = math.floor(tGame.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
-        tGame.PreviewHeight = math.floor(tGame.Cols/10)
-        tGame.PreviewY = math.floor(tGame.Rows/2)
+        tGame.PreviewHeight = math.ceil(tGame.iMaxY/10)
+        tGame.PreviewY = tGame.CenterY
 
-        local iX = 2
-        local iY = 1
+        local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX
+
+        local iX = iStartX
+        local iY = tGame.iMinY
         local iPixelsY = tGame.StartPositionSizeY-tGame.PreviewHeight
 
         for iPlayerID = 1, 6 do
@@ -132,12 +155,12 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].PixelsY = iY + iPixelsY
 
             iX = iX + tGame.StartPositionSizeX + math.floor(tGame.StartPositionSizeX/3)
-            if iX + tGame.StartPositionSizeX > tGame.Cols then
-                iX = 2
-                iY = tGame.Rows - tGame.StartPositionSizeY
+            if iX + tGame.StartPositionSizeX > tGame.iMaxX then
+                iX = iStartX
+                iY = tGame.iMaxY - tGame.StartPositionSizeY + 1
                 iPixelsY = 0
 
-                if iY + tGame.StartPositionSizeY > tGame.Rows then break; end
+                if iY + tGame.StartPositionSizeY > tGame.iMaxX then break; end
             end
         end
     else
@@ -317,7 +340,7 @@ CGameMode.Announcer = function()
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        --CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 
     AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
@@ -709,7 +732,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if iGameState == GAMESTATE_GAME and CGameMode.bRoundOn and click.Click and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iPlayerID > 0 then
+        if iGameState == GAMESTATE_GAME and CGameMode.bRoundOn and click.Click and not tFloor[click.X][click.Y].bDefect and tFloor[click.X][click.Y].iPlayerID > 0 and #CGameMode.tTargetPixelColor > 0 then
             CGameMode.PlayerClickPixel(tFloor[click.X][click.Y].iPlayerID, tFloor[click.X][click.Y].iColor)
         end
     end
