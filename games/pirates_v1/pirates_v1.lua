@@ -260,7 +260,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("choose-color.mp3")
     --CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_guide.mp3")*1000 + 3000, function()
         CGameMode.bCanAutoStart = true
     end)
 end
