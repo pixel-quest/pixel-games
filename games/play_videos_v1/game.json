@@ -1,0 +1,12 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+  "Videos": [
+    {
+      "Name": "video_name.mp4",
+      "Voice": "set_name/video_name.mp3",
+      "Duration": 14
+    }
+  ],
+  "Buttons": []
+}
