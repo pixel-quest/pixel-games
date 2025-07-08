@@ -3,6 +3,9 @@
 -- Описание механики: проигрывает видео на фронте
 -- Идеи по доработке: световые эффекты на полу, плюс управление освещением в игровой
 
+math.randomseed(os.time())
+require("avonlib")
+
 local log = require("log")
 local inspect = require("inspect")
 local help = require("help")
@@ -10,7 +13,7 @@ local json = require("json")
 local time = require("time")
 local audio = require("audio")
 local colors = require("colors")
-local video = require("video")
+--local video = require("video")
 
 local GameObj = {
     Cols = 24,
@@ -38,10 +41,14 @@ local GameStats = {
     TotalStages = 0,
     TargetColor = colors.NONE,
 }
-local GameResults = {
+local tGameResults = {
     Won = false,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 0,
+    Color = colors.NONE,
+    selected_branch = nil,
 }
-
 local FloorMatrix = {}
 local ButtonsList = {}
 local Pixel = {
@@ -51,12 +58,19 @@ local Pixel = {
     Defect = false,
 }
 
+local tColoredPixels = {}
+
+local COLOR_PIXELS_COUNT = 5
+
 -- Управление видео
 local videoIndex = 1
 local videoPlaying = false
 local videoEndTime = nil
 local startDelayEndTime = nil
 local pausedAt = nil
+
+local bColorsLoaded = false
+local tColorChoiceCount = {}
 
 local function PlayCurrentVideo()
     local v = GameObj.Videos[videoIndex]
@@ -91,7 +105,7 @@ function StartGame(gameJson, gameConfigJson)
         videoPlaying = false
         videoEndTime = nil
     else
-        GameResults.Won = true
+        tGameResults.Won = true
     end
 end
 
@@ -103,6 +117,10 @@ function NextTick()
         startDelayEndTime = nil
     end
 
+    if not bColorsLoaded and GameObj.ColorOptions ~= nil then
+        LoadColorChoices()
+    end
+
     if videoPlaying and videoEndTime and time.unix() >= videoEndTime then
         videoIndex = videoIndex + 1
         if videoIndex <= #GameObj.Videos then
@@ -110,8 +128,56 @@ function NextTick()
         else
             videoPlaying = false
             video.Stop()
-            GameResults.Won = true
-            return GameResults
+            tGameResults.Won = true
+            return tGameResults
+        end
+    end
+
+    if tGameResults.selected_branch ~= nil then
+        tGameResults.Won = true
+        return tGameResults
+    end
+end
+
+function LoadColorChoices()
+    bColorsLoaded = true
+
+    for iColorId = 1, #GameObj.ColorOptions do
+        tColorChoiceCount[iColorId] = 0
+
+        local iX = 1
+        local iY = 1
+        for iColorPixel = 1, COLOR_PIXELS_COUNT do
+            repeat
+            iX = math.random(1, GameObj.Cols)
+            iY = math.random(1, GameObj.Rows)
+            until FloorMatrix[iX] ~= nil and FloorMatrix[iX][iY] ~= nil and not FloorMatrix[iX][iY].bIsColorPixel and not FloorMatrix[iX][iY].Defect
+
+            FloorMatrix[iX][iY].bIsColorPixel = true
+            FloorMatrix[iX][iY].Color = tonumber(GameObj.ColorOptions[iColorId].color)
+            FloorMatrix[iX][iY].iColorId = iColorId
+            FloorMatrix[iX][iY].Bright = GameConfigObj.Bright 
+        end
+    end
+end
+
+function ClickColorPixel(iX, iY)
+    local iColorId = FloorMatrix[iX][iY].iColorId
+
+    FloorMatrix[iX][iY].bIsColorPixel = false
+    FloorMatrix[iX][iY].Color = colors.NONE
+
+    tColorChoiceCount[iColorId] = tColorChoiceCount[iColorId] + 1
+
+    if tColorChoiceCount[iColorId] >= COLOR_PIXELS_COUNT then
+        tGameResults.selected_branch = GameObj.ColorOptions[iColorId].shift
+
+        log.print("Color "..iColorId.." selected!")
+
+        for iX = 1, GameObj.Cols do
+            for iY = 1, GameObj.Rows do
+                FloorMatrix[iX][iY].iColor = colors.NONE
+            end
         end
     end
 end
@@ -153,6 +219,10 @@ end
 
 function PixelClick(click)
     FloorMatrix[click.X][click.Y].Click = click.Click
+
+    if click.Click and FloorMatrix[click.X][click.Y].bIsColorPixel then
+        ClickColorPixel(click.X, click.Y)
+    end
 end
 
 function ButtonClick(click)
@@ -162,6 +232,10 @@ end
 
 function DefectPixel(defect)
     FloorMatrix[defect.X][defect.Y].Defect = defect.Defect
+
+    if FloorMatrix[defect.X][defect.Y].bIsColorPixel then
+        ClickColorPixel(defect.X, defect.Y)
+    end
 end
 
 function DefectButton(defect)
