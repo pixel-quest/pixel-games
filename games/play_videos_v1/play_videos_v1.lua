@@ -13,7 +13,7 @@ local json = require("json")
 local time = require("time")
 local audio = require("audio")
 local colors = require("colors")
---local video = require("video")
+local video = require("video")
 
 local GameObj = {
     Cols = 24,
