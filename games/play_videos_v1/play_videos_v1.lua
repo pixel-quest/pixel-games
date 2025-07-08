@@ -117,10 +117,6 @@ function NextTick()
         startDelayEndTime = nil
     end
 
-    if not bColorsLoaded and GameObj.ColorOptions ~= nil then
-        LoadColorChoices()
-    end
-
     if videoPlaying and videoEndTime and time.unix() >= videoEndTime then
         videoIndex = videoIndex + 1
         if videoIndex <= #GameObj.Videos then
@@ -128,8 +124,15 @@ function NextTick()
         else
             videoPlaying = false
             video.Stop()
-            tGameResults.Won = true
-            return tGameResults
+
+            if GameObj.ColorOptions ~= nil then
+                if not bColorsLoaded then
+                    LoadColorChoices()
+                end
+            else
+                tGameResults.Won = true
+                return tGameResults
+            end
         end
     end
 
