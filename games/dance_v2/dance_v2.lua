@@ -109,16 +109,37 @@ function StartGame(gameJson, gameConfigJson)
     local err = CAudio.PreloadFile("audio_v2/"..tGame["SongName"])
     if err ~= nil then error(err); end
 
-    tGame.StartPositions = {}
-    tGame.StartPositionsSizeX = 4
-    tGame.StartPositionsSizeY = tGame.Rows
-
-    if tConfig.SmallZones then
-        tGame.StartPositionsSizeY = math.floor(tGame.Rows/2)
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
     end
 
-    local iX = 1
-    local iY = 1
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
+    tGame.StartPositions = {}
+    tGame.StartPositionsSizeX = 4
+    tGame.StartPositionsSizeY = tGame.iMaxY - tGame.iMinY + 1
+
+    if tConfig.SmallZones then
+        tGame.StartPositionsSizeY = math.floor(tGame.iMaxY/2) - math.floor(tGame.iMinY/2)
+    end
+
+    local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX
+
+    local iX = iStartX
+    local iY = tGame.iMinY
     for iPlayerID = 1, 6 do
         tGame.StartPositions[iPlayerID] = {}
         tGame.StartPositions[iPlayerID].X = iX
@@ -126,10 +147,10 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
         iX = iX + tGame.StartPositionsSizeX + 1
-        if iX + tGame.StartPositionsSizeX-1 > tGame.Cols then 
-            iX = 1
+        if iX + tGame.StartPositionsSizeX-1 > tGame.iMaxX then 
+            iX = iStartX
             iY = iY + tGame.StartPositionsSizeY+1
-            if iY > tGame.Rows then break; end
+            if iY > tGame.iMaxY then break; end
         end
     end
 
