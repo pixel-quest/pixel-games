@@ -8,5 +8,13 @@
       "Duration": 14
     }
   ],
+
+  "ColorOptions":
+  [
+    {"color": "0x00FF00", "shift": 1},
+    {"color": "0xFF0000", "shift": 2},
+    {"color": "0x0000FF", "shift": -1}
+  ],
+
   "Buttons": []
 }
