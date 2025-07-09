@@ -99,6 +99,20 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num] = help.ShallowCopy(Pixel)
     end
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+    GameObj.iMinX = 1
+    GameObj.iMinY = 1
+    GameObj.iMaxX = GameObj.Cols
+    GameObj.iMaxY = GameObj.Rows
+    if AL.NFZ.bLoaded then
+        GameObj.iMinX = AL.NFZ.iMinX
+        GameObj.iMinY = AL.NFZ.iMinY
+        GameObj.iMaxX = AL.NFZ.iMaxX
+        GameObj.iMaxY = AL.NFZ.iMaxY
+    end
+
     if GameObj.Videos and #GameObj.Videos > 0 then
         startDelayEndTime = time.unix() + 1
         videoIndex = 1
@@ -127,6 +141,7 @@ function NextTick()
 
             if GameObj.ColorOptions ~= nil then
                 if not bColorsLoaded then
+                    audio.PlayVoicesSyncFromScratch("play-videos/collect-all-pixels.mp3")
                     LoadColorChoices()
                 end
             else
@@ -151,9 +166,12 @@ function LoadColorChoices()
         local iX = 1
         local iY = 1
         for iColorPixel = 1, COLOR_PIXELS_COUNT do
+            local iMaxX = GameObj.iMaxX/#GameObj.ColorOptions * iColorId
+            local iMinX = iMaxX - (GameObj.iMaxX/#GameObj.ColorOptions) + GameObj.iMinX
+
             repeat
-            iX = math.random(1, GameObj.Cols)
-            iY = math.random(1, GameObj.Rows)
+            iX = math.random(iMinX, iMaxX)
+            iY = math.random(GameObj.iMinY + (GameObj.iMaxY/4), GameObj.iMaxY - math.floor(GameObj.iMaxY/4))
             until FloorMatrix[iX] ~= nil and FloorMatrix[iX][iY] ~= nil and not FloorMatrix[iX][iY].bIsColorPixel and not FloorMatrix[iX][iY].Defect
 
             FloorMatrix[iX][iY].bIsColorPixel = true
