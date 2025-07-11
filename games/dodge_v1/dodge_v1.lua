@@ -1524,13 +1524,18 @@ CCross.AiNewDest = function()
 
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            local iWeight = tFloor[iX][iY].iWeight + math.random(-5,5)
+            local iWeight = tFloor[iX][iY].iWeight
             if iWeight > iMax then
                 iMax = iWeight
                 CCross.iAiDestX = iX
                 CCross.iAiDestY = iY
             end
         end
+    end
+
+    if iMax <= 10 then
+        CCross.iAiDestX = math.random(1, tGame.Cols)
+        CCross.iAiDestY = math.random(1, tGame.Rows)
     end
 end
 
@@ -1750,7 +1755,7 @@ function ResumeGame()
 end
 
 function PixelClick(click)
-    if tFloor[click.X] and tFloor[click.X][click.Y] then
+    if tFloor[click.X] and tFloor[click.X][click.Y] and not tFloor[click.X][click.Y].bDefect then
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
             tFloor[click.X][click.Y].iWeight = click.Weight
@@ -1773,6 +1778,7 @@ end
 function DefectPixel(defect)
     if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
         tFloor[defect.X][defect.Y].bDefect = defect.Defect
+        tFloor[defect.X][defect.Y].iWeight = 0
 
         if defect.Defect and CEffect.bEffectOn and tFloor[defect.X][defect.Y].iCoinId > 0 then
             CEffect.SpecialEndingCollectCoin(tFloor[defect.X][defect.Y].iCoinId, defect.X, defect.Y)
