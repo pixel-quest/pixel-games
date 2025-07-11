@@ -241,7 +241,7 @@ function GameSetupTickSinglePlayer()
 
         iGameState = GAMESTATE_GAME
         CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3"))
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
     end
 end
 
@@ -296,7 +296,7 @@ function GameSetupTickMultiPlayer()
 
         CAudio.PlaySyncFromScratch("")
         CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3"))
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
     end
 end
 

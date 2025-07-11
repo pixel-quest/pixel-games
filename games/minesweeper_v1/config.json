@@ -26,9 +26,9 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
-  "RoundCountdown": 10,
-  "RoundCountdown_Min": 1,
-  "RoundCountdown_Max": 20,
+  "RoundCountdown": 25,
+  "RoundCountdown_Min": 10,
+  "RoundCountdown_Max": 60,
   "RoundCountdown_Step": 1,
   "RoundCountdown_ru": "Отсчёт до начала раунда",
   "RoundCountdown_en": "Round start countdown",
