@@ -40,6 +40,8 @@ local GameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = colors.NONE,
+    Choices = {},
+    AskedChoice = ""
 }
 local tGameResults = {
     Won = false,
@@ -87,6 +89,12 @@ end
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
     GameConfigObj = json.decode(gameConfigJson)
+
+    for _, option in ipairs(GameObj.ColorOptions or {}) do
+        table.insert(GameStats.Choices, option.choice)
+    end
+
+    GameStats.AskedChoice = GameObj.AskedChoice
 
     for x = 1, GameObj.Cols do
         FloorMatrix[x] = {}
@@ -143,6 +151,7 @@ function NextTick()
                 if not bColorsLoaded then
                     audio.PlayVoicesSyncFromScratch("play-videos/collect-all-pixels.mp3")
                     LoadColorChoices()
+                    GameStats.ScoreboardVariant = 11
                 end
             else
                 tGameResults.Won = true
