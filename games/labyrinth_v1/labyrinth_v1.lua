@@ -102,6 +102,27 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    tGame.CenterX = math.floor(tGame.Cols/2)
+    tGame.CenterY = math.floor(tGame.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     CGameMode.InitGameMode()
@@ -147,8 +168,8 @@ function GameSetupTick()
     CPaint.Objects()
 
     if not CGameMode.bCountDownStarted then
-        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+        for iX = tGame.CenterX, tGame.CenterX+2 do
+            for iY = tGame.CenterY, tGame.CenterY+2 do
                 tFloor[iX][iY].iColor = CColors.BLUE
                 tFloor[iX][iY].iBright = tConfig.Bright
                 if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
@@ -432,13 +453,13 @@ CMaps.GenerateRandomMap = function()
 
     CMaps.CarveRandomGenMap(1,1)
 
-    spawnSafeZone(1, 1, 3)
-    spawnSafeZone(tGame.Cols-2, tGame.Rows-2, 3)
+    spawnSafeZone(tGame.iMinX, tGame.iMinY, 3)
+    spawnSafeZone(tGame.iMaxX-2, tGame.iMaxY-2, 3)
 
     for iSafeZoneId = 1, math.random(1,2) do
         local iSize = 2
-        local iStartX = math.random(1, tGame.Cols-iSize)
-        local iStartY = math.random(1, tGame.Rows-iSize)
+        local iStartX = math.random(tGame.iMinX, tGame.iMaxX-iSize)
+        local iStartY = math.random(tGame.iMinY, tGame.iMaxY-iSize)
         spawnSafeZone(iStartX, iStartY, iSize)
     end
 
