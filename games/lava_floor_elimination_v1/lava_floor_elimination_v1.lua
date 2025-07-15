@@ -228,6 +228,17 @@ function SwitchStage()
     
 end
 
+function ShuffleColorsArray(tArrayIn)
+    local tArray = CHelp.DeepCopy(tArrayIn)
+    for iColorId = 1, #tArray do
+        local iRand = math.random(1,#tArray)
+        local iColor = tArray[iColorId]
+        tArray[iColorId] = tArray[iRand]
+        tArray[iRand] = iColor 
+    end
+    return tArray
+end
+
 local tColors = {}
 tColors[1] = CColors.BLUE
 tColors[2] = CColors.MAGENTA
@@ -235,14 +246,9 @@ tColors[3] = CColors.CYAN
 tColors[4] = CColors.WHITE
 tColors[5] = CColors.YELLOW
 tColors[6] = CColors.GREEN
-for iColorId = 1, #tColors do
-    if math.random(1,100) >= 25 then
-        local iRand = math.random(1,#tColors)
-        local iColor = tColors[iColorId]
-        tColors[iColorId] = tColors[iRand]
-        tColors[iRand] = iColor 
-    end    
-end
+tColors = ShuffleColorsArray(tColors)
+
+local tColorsForObjects = ShuffleColorsArray(tColors)
 
 --GAMEMODE
 CGameMode = {}
@@ -306,40 +312,87 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.PlaceRandomObjects = function()
-    local iX = tGame.iMinX + math.random(0,3)
-    local iY = tGame.iMinY + math.random(0,1)
+    local function spawnTop()
+        local iX = tGame.iMinX + math.random(0,2)
+        local iY = tGame.iMinY
 
-    local iYInc = math.floor((tGame.iMaxY+1-tGame.iMinY)/3)
-
-    for i = 1, math.random(math.floor(tGame.Rows/2),tGame.Rows) do
-        local iMidSize = math.random(2,6)
-        local bRotated = math.random(1,2) == 2
-
-        local tShape = CShapes.tShapes[1]
-        if math.random(1,3) < 3 then
-            if iY < tGame.iMinY + iYInc then
+        for i = 1, math.random(3,5) do
+            local tShape = CShapes.tShapes[1]
+            local bRotated = math.random(1,2) == 2 
+            local iMidSize = math.random(4,6)
+            if math.random(1,2) == 2 then 
                 tShape = CShapes.tShapes[2]
                 bRotated = true
-            elseif iY > tGame.iMaxY - iYInc then
-                tShape = CShapes.tShapes[3]
-                bRotated = true
-            elseif iX < tGame.iMinX + 5 then
-                tShape = CShapes.tShapes[2]
-                bRotated = false
             end
-        end
 
-        CObjects.NewObject(iX, iY, tShape, iMidSize, tColors[i%#tColors + 1], bRotated)
+            if iX + iMidSize > tGame.iMaxX then iMidSize = (tGame.iMaxX - iX - 1) end
 
-        iX = iX + iMidSize+1 + math.random(0,2)
-        if iX > tGame.iMaxX then
-            iX = tGame.iMinX + math.random(0,3)
-            iY = iY + iYInc
-            if iY > tGame.iMaxY then
-                break;
+            if not bRotated then
+                iMidSize = 3
             end
+
+            CObjects.NewObject(iX, iY, tShape, iMidSize, bRotated)
+        
+            iX = iX + iMidSize + 1 + math.random(0,2)
+
+            if iX > tGame.iMaxX-3 then break; end
         end
     end
+
+    local function spawnBottom()
+        local iX = tGame.iMinX + math.random(0,2)
+
+        for i = 1, math.random(3,5) do
+            local iY = tGame.iMaxY
+
+            local tShape = CShapes.tShapes[1]
+            local bRotated = math.random(1,2) == 2 
+            local iMidSize = math.random(4,6)
+
+            if math.random(1,2) == 2 then 
+                tShape = CShapes.tShapes[3]
+                bRotated = true
+            end
+
+            if iX + iMidSize > tGame.iMaxX then iMidSize = (tGame.iMaxX - iX - 1) end
+
+            if not bRotated then
+                iMidSize = math.random(2,3)
+                iY = tGame.iMaxY - iMidSize
+            else
+                iY = tGame.iMaxY - 3
+            end
+
+            CObjects.NewObject(iX, iY, tShape, iMidSize, bRotated)
+        
+            iX = iX + iMidSize + 1 + math.random(0,3)
+
+            if iX > tGame.iMaxX-3 then break; end
+        end
+    end
+
+    local function SpawnCenter()
+        local iX = tGame.CenterX
+        local iY = tGame.CenterY
+
+        local tShape = CShapes.tShapes[1]
+
+        local iObjectCount = math.random(2,3)
+    
+        iX = iX - (iObjectCount*3)
+
+        for i = 1, iObjectCount do
+            local iMidSize = math.random(6,10) - iObjectCount
+
+            iX = iX + 2 + iMidSize + math.random(0,2)
+
+            CObjects.NewObject(iX, iY, tShape, iMidSize, true)
+        end
+    end
+
+    spawnTop()
+    spawnBottom()
+    SpawnCenter()
 end
 
 CGameMode.ColorElimCountDown = function(iCountDownTime)
@@ -566,7 +619,7 @@ end
 CObjects = {}
 CObjects.tObjects = {}
 
-CObjects.NewObject = function(iX, iY, tShape, iMidSize, iColor, bRotated)
+CObjects.NewObject = function(iX, iY, tShape, iMidSize, bRotated)
     local iObjectID = #CObjects.tObjects+1
     CObjects.tObjects[iObjectID] = {}
     CObjects.tObjects[iObjectID].iX = iX
@@ -582,7 +635,11 @@ CObjects.NewObject = function(iX, iY, tShape, iMidSize, iColor, bRotated)
         CObjects.tObjects[iObjectID].tShape = RotateTable(CObjects.tObjects[iObjectID].tShape)
     end
 
-    CObjects.tObjects[iObjectID].iColor = iColor
+    if iObjectID <= #tColorsForObjects then
+        CObjects.tObjects[iObjectID].iColor = tColorsForObjects[iObjectID]
+    else
+        CObjects.tObjects[iObjectID].iColor = tColorsForObjects[math.random(1,#tColors)]
+    end
 end
 
 CObjects.PaintObjects = function()
@@ -612,21 +669,21 @@ CShapes.tShapes = {}
 
 CShapes.tShapes[1] = 
 {
-    {1,1,1,1},
-    {1,1,1,1},
-    {1,1,1,1},
+    {1,1,1,1,1},
+    {1,1,1,1,1},
+    {1,1,1,1,1},
 }
 CShapes.tShapes[2] = 
 {
-    {1,1,1},
-    {0,1,1},
-    {1,1,1},
+    {1,1,1,1},
+    {0,1,1,1},
+    {1,1,1,1},
 }
 CShapes.tShapes[3] = 
 {
-    {1,1,1},
-    {1,1,0},
-    {1,1,1},
+    {1,1,1,1},
+    {1,1,1,0},
+    {1,1,1,1},
 }
 --//
 
