@@ -113,19 +113,37 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    local iMinX = 1
+    local iMinY = 1
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        iMinX = AL.NFZ.iMinX
+        iMinY = AL.NFZ.iMinY
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+    end
+
     tGame.StartPositions = {}
-    tGame.StartPositionSizeX = math.floor(tGame.Cols*0.8)
+    tGame.StartPositionSizeX = math.floor(iMaxX*0.8) - iMinX
     tGame.StartPositionSizeY = 3
 
     if tGame.StartPositionOffsetX then
         tGame.StartPositionSizeX = tGame.StartPositionSizeX - tGame.StartPositionOffsetX
     end
 
-    local iY = 2
+    local iY = iMinY+1
     for iPlayerID = 1, tConfig.TeamCount do
-        if iY <= tGame.Rows-tGame.StartPositionSizeY then
+        if iY <= iMaxY-tGame.StartPositionSizeY then
             tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = math.floor(tGame.Cols/10)+1
+            tGame.StartPositions[iPlayerID].X = math.floor(iMaxX/10)+ iMinX
             tGame.StartPositions[iPlayerID].Y = iY
 
             iY = iY + tGame.StartPositionSizeY+2
@@ -136,8 +154,8 @@ function StartGame(gameJson, gameConfigJson)
         end
     end
 
-    if tConfig.TeamCount == 2 then
-        tGame.StartPositions[2].Y = tGame.Rows - tGame.StartPositionSizeY
+    if tConfig.TeamCount == 2 and #tGame.StartPositions == 2 then
+        tGame.StartPositions[2].Y = iMaxY - tGame.StartPositionSizeY
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
@@ -691,21 +709,29 @@ CPaint.PlayerZones = function()
 end
 
 CPaint.PlayerZone = function(iPlayerID, iBright)
-    local iX = 1
+    local iXStart = 1
+    local iXEnd = 1
+    local iXInc = 1
     if tGame.Direction == "right" then
-        iX = tGame.StartPositions[iPlayerID].X-1
+        iXStart = tGame.StartPositions[iPlayerID].X-1
+        iXEnd = 1
+        iXInc = -1
     elseif tGame.Direction == "left" then
-        iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
+        iXStart = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
+        iXEnd = tGame.Cols
+        iXInc = 1
     end
 
     local bClick = false
 
-    for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
-        tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
-        tFloor[iX][iY].iBright = iBright
+    for iX = iXStart, iXEnd, iXInc do
+        for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY + tGame.StartPositions[iPlayerID].Y-1 do
+            tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+            tFloor[iX][iY].iBright = iBright
 
-        if tFloor[iX][iY].bClick then
-            bClick = true
+            if tFloor[iX][iY].bClick then
+                bClick = true
+            end
         end
     end
 

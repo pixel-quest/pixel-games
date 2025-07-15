@@ -1,6 +1,16 @@
 {
   "Cols": 38,
   "Rows": 15,
+
+  "NoFeetZones": [
+    {
+      "X": 30,
+      "Y": 1,
+      "SizeX": 8,
+      "SizeY": 15
+    }
+  ],
+
   "Buttons": 
   [
     2,
@@ -24,6 +34,5 @@
     73,
     77
   ],
-  "Direction": "right",
-  "StartPositionOffsetX": 2
+  "Direction": "left"
 }
