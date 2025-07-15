@@ -177,7 +177,7 @@ function GameSetupTick()
         bAnyButtonClick = false
 
         if not CGameMode.bCountDownStarted then
-            CGameMode.StartCountDown(2)
+            CGameMode.StartCountDown(15)
         end
     end
 end
