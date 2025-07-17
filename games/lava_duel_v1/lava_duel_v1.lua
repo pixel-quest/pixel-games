@@ -142,6 +142,8 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 6 * tConfig.RoundCount
     tGameStats.TotalStages = tConfig.RoundCount
 
+    CAudio.PlayVoicesSync("lavaduel/lavaduel-rules.mp3")
+
     CAudio.PlayVoicesSync("choose-color.mp3")
     
     if tGame.ArenaMode then 
