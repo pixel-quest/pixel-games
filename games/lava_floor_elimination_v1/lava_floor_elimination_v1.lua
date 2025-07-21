@@ -60,7 +60,7 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 5,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 0,
+    ScoreboardVariant = 9,
 }
 
 local tGameResults = {
@@ -161,16 +161,18 @@ function GameSetupTick()
     if not CGameMode.bCountDownStarted then
         SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
-        for iX = tGame.CenterX-1, tGame.CenterX + 1 do
-            for iY = tGame.CenterY, tGame.CenterY + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+        if CGameMode.bCanAutoStart then
+            for iX = tGame.CenterX-1, tGame.CenterX + 1 do
+                for iY = tGame.CenterY, tGame.CenterY + 2 do
+                    tFloor[iX][iY].iColor = CColors.BLUE
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                    if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+                end
             end
         end
     else
         SetAllButtonColorBright(CColors.NONE, tConfig.Bright)
-        CObjects.PaintObjects()
+        CObjects.PaintObjects(tConfig.Bright)
     end
 
     if bAnyButtonClick then
@@ -183,28 +185,34 @@ function GameSetupTick()
 end
 
 function GameTick()
-    if CGameMode.bIntroInProgress then
-        SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-        CIntro.Paint()
-    else
-        for iX = 1, tGame.Cols do
-            for iY = 1, tGame.Rows do
-                if not tFloor[iX][iY].bStepCD then
-                    if tFloor[iX][iY].bClick and tFloor[iX][iY].iColor == CColors.RED then
-                        AL.NewTimer(200, function()
-                            if tFloor[iX][iY].iColor == CColors.RED and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
-                                CGameMode.PlayerStepOnLava(iX, iY)
-                            end
-                        end)
-                    end
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+    local iBrightIn = tConfig.Bright
 
-                    tFloor[iX][iY].iColor = CColors.RED
-                    tFloor[iX][iY].iBright = tConfig.Bright
+    if CGameMode.bIntroInProgress then
+        iBrightIn = CColors.BRIGHT15
+    end
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if not tFloor[iX][iY].bStepCD then
+                if tFloor[iX][iY].bClick and tFloor[iX][iY].iColor == CColors.RED then
+                    AL.NewTimer(200, function()
+                        if tFloor[iX][iY].iColor == CColors.RED and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 5 then
+                            CGameMode.PlayerStepOnLava(iX, iY)
+                        end
+                    end)
                 end
+
+                tFloor[iX][iY].iColor = CColors.RED
+                tFloor[iX][iY].iBright = iBrightIn
             end
         end
+    end
 
-        CObjects.PaintObjects() 
+    CObjects.PaintObjects(iBrightIn) 
+
+    if CGameMode.bIntroInProgress then
+        CIntro.Paint()
     end
 end
 
@@ -252,6 +260,7 @@ local tColorsForObjects = ShuffleColorsArray(tColors)
 
 --GAMEMODE
 CGameMode = {}
+CGameMode.bCanAutoStart = false
 CGameMode.bIntroInProgress = false
 CGameMode.iCountdown = 0
 CGameMode.iNextElimColorId = 1
@@ -264,8 +273,12 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename rules
+    CAudio.PlayVoicesSync("lfe/lfe-rules.mp3")
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
+
+    AL.NewTimer(CAudio.GetVoicesDuration("lfe/lfe-rules.mp3")*1000 + 2000, function()
+        CGameMode.bCanAutoStart = true
+    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -281,7 +294,9 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown < 10 then
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -372,14 +387,14 @@ CGameMode.PlaceRandomObjects = function()
     end
 
     local function SpawnCenter()
-        local iX = tGame.CenterX
+        local iX = 1
         local iY = tGame.CenterY
 
         local tShape = CShapes.tShapes[1]
 
-        local iObjectCount = math.random(2,3)
+        local iObjectCount = math.random(3,4)
     
-        iX = iX - (iObjectCount*3)
+        --iX = iX - (iObjectCount*3)
 
         for i = 1, iObjectCount do
             local iMidSize = math.random(6,10) - iObjectCount
@@ -390,9 +405,9 @@ CGameMode.PlaceRandomObjects = function()
         end
     end
 
+    SpawnCenter()
     spawnTop()
     spawnBottom()
-    SpawnCenter()
 end
 
 CGameMode.ColorElimCountDown = function(iCountDownTime)
@@ -486,7 +501,7 @@ CIntro.Start = function()
     CIntro.bNoCubeMovement = true
     CIntro.bShuffleEnded = false
 
-    --voice следите за перемещением центрального квадрата
+    CAudio.PlayVoicesSync("lfe/lfe-follow-center-cube.mp3") --voice следите за перемещением центрального квадрата
 
     CGameMode.bIntroInProgress = true
     CIntro.SpawnCubes()
@@ -591,7 +606,7 @@ CIntro.ShuffleCubes = function()
 end
 
 CIntro.SwitchTwoCubes = function(iCubeId1, iCubeId2)
-    --voice запомните цвет
+    CAudio.PlayVoicesSync("lfe/lfe-remember-color.mp3") --voice запомните цвет
 
     CIntro.tCubes[iCubeId1].iTargetX = CIntro.tCubes[iCubeId2].iX
     CIntro.tCubes[iCubeId2].iTargetX = CIntro.tCubes[iCubeId1].iX
@@ -642,7 +657,7 @@ CObjects.NewObject = function(iX, iY, tShape, iMidSize, bRotated)
     end
 end
 
-CObjects.PaintObjects = function()
+CObjects.PaintObjects = function(iBright)
     for iObjectID = 1, #CObjects.tObjects do
         if CObjects.tObjects[iObjectID] ~= nil then
             for iObjectY = 1, #CObjects.tObjects[iObjectID].tShape do
@@ -653,7 +668,7 @@ CObjects.PaintObjects = function()
 
                         if tFloor[iX] and tFloor[iX][iY] then
                             tFloor[iX][iY].iColor = CObjects.tObjects[iObjectID].iColor
-                            tFloor[iX][iY].iBright = tConfig.Bright
+                            tFloor[iX][iY].iBright = iBright
                         end
                     end
                 end
