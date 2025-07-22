@@ -71,6 +71,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    iTime = 0
 }
 local tButtonStruct = { 
     bClick = false,
@@ -320,7 +321,7 @@ CRope.Paint = function()
                 tFloor[iX][CRope.iY].iColor = CColors.RED
                 tFloor[iX][CRope.iY].iBright = tConfig.Bright
 
-                if tFloor[iX][CRope.iY].bClick and tFloor[iX][CRope.iY].iWeight > 10 then
+                if tFloor[iX][CRope.iY].bClick and tFloor[iX][CRope.iY].iWeight > 10 and (CTime.unix() - tFloor[iX][CRope.iY].iTime) <= 250 then
                     CRope.DamagePlayer()
                     CGameMode.AnimateDamage(iX, CRope.iY)
                 end
@@ -448,7 +449,12 @@ function PixelClick(click)
     if tFloor[click.X] and tFloor[click.X][click.Y] then
         if bGamePaused then
             tFloor[click.X][click.Y].bClick = false
+            tFloor[click.X][click.Y].iWeight = 0
             return;
+        end
+
+        if click.Click then
+            tFloor[click.X][click.Y].iTime = CTime.unix()
         end
 
         if iGameState == GAMESTATE_SETUP then
