@@ -207,6 +207,8 @@ CGameMode.tAnimatedPixels = {}
 CGameMode.bCanAutoStart = false
 
 CGameMode.InitGameMode = function()
+    if tGame.DamageDelay == nil then tGame.DamageDelay = 250; end
+
     tGameStats.TotalLives = tConfig.TeamHealth
     tGameStats.CurrentLives = tConfig.TeamHealth
     tGameStats.TotalStars = tConfig.JumpCount
@@ -321,7 +323,7 @@ CRope.Paint = function()
                 tFloor[iX][CRope.iY].iColor = CColors.RED
                 tFloor[iX][CRope.iY].iBright = tConfig.Bright
 
-                if tFloor[iX][CRope.iY].bClick and tFloor[iX][CRope.iY].iWeight > 10 and (CTime.unix() - tFloor[iX][CRope.iY].iTime) <= 250 then
+                if tFloor[iX][CRope.iY].bClick and tFloor[iX][CRope.iY].iWeight > 10 and (CTime.unix() - tFloor[iX][CRope.iY].iTime) <= tGame.DamageDelay then
                     CRope.DamagePlayer()
                     CGameMode.AnimateDamage(iX, CRope.iY)
                 end
