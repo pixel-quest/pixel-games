@@ -678,7 +678,7 @@ end
 
 CUnits.ProcessUnits = function()
     for iUnitID = 1, #CUnits.tUnits do
-        if CUnits.tUnits[iUnitID] and not CUnits.tUnits[iUnitID].bDeadStuck then
+        if CUnits.tUnits[iUnitID] then
             CUnits.UnitThink(iUnitID)
         end
     end
@@ -686,7 +686,7 @@ end
 
 --UNIT AI
 CUnits.UnitThink = function(iUnitID)
-    if tConfig.SmartUnits then
+    if tConfig.SmartUnits and not CUnits.tUnits[iUnitID].bDeadStuck then
         CUnits.UnitThinkDefault(iUnitID)
     else
         CUnits.UnitThinkSimple(iUnitID)
@@ -759,7 +759,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
             --if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             --if tFloor[iXCheck][iYCheck].bDefect then return false end
-            if CUnits.UNIT_SIZE == 2 and CBlock.tBlocks[iXCheck][iYCheck].iBlockType == CBlock.BLOCK_TYPE_START then return false end
+            if CBlock.tBlocks[iXCheck][iYCheck].iBlockType == CBlock.BLOCK_TYPE_START then return false end
         end
     end
 
