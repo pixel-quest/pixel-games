@@ -140,7 +140,7 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iX = iX + tGame.StartPositionSizeX + 1
-            if iX + tGame.StartPositionSizeX-1 > iMaxX then
+            if iX + tGame.StartPositionSizeX-1 > iMaxX+1 then
                 break;
             end
         end
@@ -354,7 +354,7 @@ CShips.NewShip = function(iPlayerID)
     local iShipId = #CShips.tShips+1
     CShips.tShips[iShipId] = {}
     CShips.tShips[iShipId].iPlayerID = iPlayerID
-    CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2)
+    CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2) - 1
     CShips.tShips[iShipId].iY = 1
     CShips.tShips[iShipId].iTargetY = 1
     CShips.tShips[iShipId].iLastControlX = 0
@@ -365,8 +365,8 @@ CShips.NewShip = function(iPlayerID)
     CShips.tShips[iShipId].bRightCanShoot = true
     CShips.tShips[iShipId].bOnFire = false
 
-    if iPlayerID == 1 then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + 2 end
-    if iPlayerID == #tGame.StartPositions then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-2 end
+    if iPlayerID == 1 then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + 1 end
+    if iPlayerID == #tGame.StartPositions then CShips.tShips[iShipId].iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-3 end
 
     CShips.tPlayerIDToShipId[iPlayerID] = iShipId
     tGameStats.Players[CShips.tShips[iShipId].iPlayerID].Score = CShips.tShips[iShipId].iHealth
