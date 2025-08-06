@@ -304,6 +304,7 @@ CGameMode.iPlayerCount = 0
 CGameMode.iRountCount = 0
 CGameMode.bRoundOn = false
 CGameMode.bCountDownStarted = false
+CGameMode.iSameMaxScoreCount = 0
 
 CGameMode.iBestScore = 0
 CGameMode.iWinnerID = 1
@@ -462,10 +463,14 @@ CGameMode.EndRound = function()
     CGameMode.tPlayerPosition = {}
     tGameStats.TargetColor = CColors.NONE
 
-    if CGameMode.iRountCount == tConfig.RoundCount then
+    if CGameMode.iRountCount >= tConfig.RoundCount and CGameMode.iSameMaxScoreCount == 1 then
         CGameMode.EndGame()
     else
-        CGameMode.StartCountDown(tConfig.RoundCountdown)    
+        CGameMode.StartCountDown(tConfig.RoundCountdown)
+    
+        if CGameMode.iRountCount >= tConfig.RoundCount and CGameMode.iSameMaxScoreCount > 1 then
+            CAudio.PlaySystemAsync("draw_overtime.mp3")
+        end
     end
 end
 
@@ -515,6 +520,9 @@ CGameMode.PlayerCorrectTarget = function(iPlayerID)
         CGameMode.iBestScore = tGameStats.Players[iPlayerID].Score
         CGameMode.iWinnerID = iPlayerID
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+        CGameMode.iSameMaxScoreCount = 1
+    elseif tGameStats.Players[iPlayerID].Score == CGameMode.iBestScore then
+        CGameMode.iSameMaxScoreCount = CGameMode.iSameMaxScoreCount + 1
     end
 end
 
