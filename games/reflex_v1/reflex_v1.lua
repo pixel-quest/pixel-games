@@ -469,7 +469,7 @@ CGameMode.EndRound = function()
         CGameMode.StartCountDown(tConfig.RoundCountdown)
     
         if CGameMode.iRountCount >= tConfig.RoundCount and CGameMode.iSameMaxScoreCount > 1 then
-            CAudio.PlaySystemAsync("draw_overtime.mp3")
+            CAudio.PlayVoicesAsync("draw_overtime.mp3")
         end
     end
 end

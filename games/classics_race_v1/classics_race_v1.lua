@@ -433,7 +433,7 @@ CGameMode.EndGame = function()
             CGameMode.iWinnerID = i
             iMaxScore = tGameStats.Players[i].Score
         elseif tGameStats.Players[i].Score == iMaxScore then
-            CAudio.PlaySystemAsync("draw_overtime.mp3")
+            CAudio.PlayVoicesAsync("draw_overtime.mp3")
             tGameStats.StageLeftDuration = 10
             return 1000
         end
