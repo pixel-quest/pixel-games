@@ -555,7 +555,7 @@ CBlock.BLOCK_TYPE_REDGROUND = 4
 CBlock.tBLOCK_TYPE_TO_COLOR = {}
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_GROUND]                   = CColors.WHITE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]                     = CColors.BLUE
-CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.GREEN
+CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.BLUE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_REDGROUND]                = CColors.RED
 
 CBlock.RandomBlockType = function()
@@ -672,7 +672,7 @@ end
 
 --PAINT
 CPaint = {}
-CPaint.ANIMATION_DELAY = 75
+CPaint.ANIMATION_DELAY = 150
 
 CPaint.Blocks = function()
     for iX = 1, tGame.Cols do
