@@ -374,8 +374,7 @@ CGameMode.Start = function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
         if tGameStats.StageLeftDuration <= 0 then
-            CGameMode.EndGame()
-            return nil
+            return CGameMode.EndGame()
         end
 
         if tGameStats.StageLeftDuration < 10 then
@@ -427,17 +426,20 @@ CGameMode.PlayerFinished = function(iPlayerID)
 end
 
 CGameMode.EndGame = function()
-    CAudio.StopBackground()
-
     local iMaxScore = -999
 
     for i = 1, #tGame.StartPositions do
         if tGameStats.Players[i].Score > iMaxScore then
             CGameMode.iWinnerID = i
             iMaxScore = tGameStats.Players[i].Score
+        elseif tGameStats.Players[i].Score == iMaxScore then
+            CAudio.PlayVoicesAsync("draw_overtime.mp3")
+            tGameStats.StageLeftDuration = 10
+            return 1000
         end
     end
 
+    CAudio.StopBackground()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
@@ -451,6 +453,8 @@ CGameMode.EndGame = function()
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)    
+
+    return nil
 end
 --//
 
@@ -551,7 +555,7 @@ CBlock.BLOCK_TYPE_REDGROUND = 4
 CBlock.tBLOCK_TYPE_TO_COLOR = {}
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_GROUND]                   = CColors.WHITE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_COIN]                     = CColors.BLUE
-CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.GREEN
+CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_FINISH]                   = CColors.BLUE
 CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_REDGROUND]                = CColors.RED
 
 CBlock.RandomBlockType = function()
@@ -668,7 +672,7 @@ end
 
 --PAINT
 CPaint = {}
-CPaint.ANIMATION_DELAY = 75
+CPaint.ANIMATION_DELAY = 150
 
 CPaint.Blocks = function()
     for iX = 1, tGame.Cols do

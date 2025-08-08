@@ -360,7 +360,7 @@ CGameMode.EndRound = function()
     CGameMode.bRoundOn = false
     CPaint.ResetAnimation()
 
-    if CGameMode.iRound == CGameMode.GAMEMODE_COUNT then
+    if CGameMode.iRound >= CGameMode.GAMEMODE_COUNT then
         CGameMode.EndGame()
     else
         CAudio.PlayVoicesAsync("olympics/get-back.mp3")
@@ -377,6 +377,13 @@ CGameMode.EndGame = function()
         if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
             iMaxScore = tGameStats.Players[iPlayerID].Score
             CGameMode.iWinnerID = iPlayerID
+        elseif tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score == iMaxScore then
+            CAudio.PlayVoicesSync("draw_overtime.mp3")
+            CAudio.PlayVoicesSync("olympics/get-back.mp3")
+            AL.NewTimer(12000, function()
+                CGameMode.StartCountDown(tConfig.RoundCountdown)
+            end)          
+            return
         end
     end
 
