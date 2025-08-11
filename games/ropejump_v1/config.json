@@ -5,7 +5,7 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
-	"TeamHealth": 15,
+	"TeamHealth": 10,
 	"TeamHealth_Min": 0,
 	"TeamHealth_Max": 50,
 	"TeamHealth_Step": 1,
