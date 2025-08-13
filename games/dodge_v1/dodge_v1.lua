@@ -139,11 +139,13 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
-    for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
-        for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
-            tFloor[iX][iY].iColor = CColors.BLUE
-            tFloor[iX][iY].iBright = tConfig.Bright
-            if tFloor[iX][iY].bClick and CGameMode.bCanStart then bAnyButtonClick = true; end
+    if CGameMode.bCanStart then
+        for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
+            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
+                tFloor[iX][iY].iColor = CColors.BLUE
+                tFloor[iX][iY].iBright = tConfig.Bright
+                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
+            end
         end
     end
 
@@ -1524,11 +1526,13 @@ CCross.AiNewDest = function()
 
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            local iWeight = tFloor[iX][iY].iWeight
-            if iWeight > iMax then
-                iMax = iWeight
-                CCross.iAiDestX = iX
-                CCross.iAiDestY = iY
+            if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                local iWeight = tFloor[iX][iY].iWeight + math.random(-2,2)
+                if iWeight > iMax then
+                    iMax = iWeight
+                    CCross.iAiDestX = iX
+                    CCross.iAiDestY = iY
+                end
             end
         end
     end
