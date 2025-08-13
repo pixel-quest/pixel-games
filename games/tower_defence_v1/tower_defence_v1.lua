@@ -355,8 +355,6 @@ CGameMode.StartGame = function()
     end)
 
     AL.NewTimer(tConfig.UnitThinkDelay, function()
-        CLog.print(CUnits.iAliveCount)
-
         if iGameState < GAMESTATE_FINISH then
             CUnits.ProcessUnits()
             return tConfig.UnitThinkDelay
