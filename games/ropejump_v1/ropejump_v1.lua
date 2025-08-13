@@ -1,8 +1,10 @@
 --[[
     Название: Скакалка/Веревка
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики: 
+        Игроки стоят на безопасных мостах из белых пикселей и уклоняются от красной полоски которая наносит урон.
+        Наступание на пискели вне моста также наносит урон.
+        Синие монеты дают жизни если их собирать.
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -71,7 +73,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    iTime = 0
+    iTime = 0,
+    bBridge = false,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -150,6 +153,9 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+    CGameMode.PaintBridges()
+    CGameMode.PaintAnimated()
+
     if not CGameMode.bCountDownStarted then
         SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     
@@ -175,7 +181,9 @@ end
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+    CGameMode.PaintBridges()
     CRope.Paint()
+    CGameMode.PaintCoin()
     CGameMode.PaintAnimated()
 end
 
@@ -205,6 +213,11 @@ CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.tAnimatedPixels = {}
 CGameMode.bCanAutoStart = false
+CGameMode.bLavaCD = false
+CGameMode.tBridges = {}
+CGameMode.tCoin = {}
+
+CGameMode.BRIDGE_HEIGHT = 3
 
 CGameMode.InitGameMode = function()
     if tGame.DamageDelay == nil then tGame.DamageDelay = 250; end
@@ -212,6 +225,8 @@ CGameMode.InitGameMode = function()
     tGameStats.TotalLives = tConfig.TeamHealth
     tGameStats.CurrentLives = tConfig.TeamHealth
     tGameStats.TotalStars = tConfig.JumpCount
+
+    CGameMode.BuildBridges()
 end
 
 CGameMode.Announcer = function()
@@ -249,6 +264,8 @@ CGameMode.StartGame = function()
 
     CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
+
+    CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
 
     CRope.TimerLoop()
 end
@@ -306,6 +323,55 @@ CGameMode.PaintAnimated = function()
         end
     end
 end
+
+CGameMode.BuildBridges = function()
+    local iY = 1
+
+    for iBridgeID = 1, 6 do
+        CGameMode.tBridges[iBridgeID] = {}
+        CGameMode.tBridges[iBridgeID].iY = iY
+
+        iY = iY + CGameMode.BRIDGE_HEIGHT*2
+        if iY + CGameMode.BRIDGE_HEIGHT-1 > tGame.iMaxY then break; end
+    end
+end
+
+CGameMode.PaintBridges = function()
+    for iBridgeID = 1, #CGameMode.tBridges do
+        for iX = 1, tGame.Cols do
+            for iY = CGameMode.tBridges[iBridgeID].iY, CGameMode.tBridges[iBridgeID].iY + CGameMode.BRIDGE_HEIGHT-1 do
+                tFloor[iX][iY].iColor = CColors.WHITE
+                tFloor[iX][iY].iBright = tConfig.Bright-1
+                tFloor[iX][iY].bBridge = true
+            end
+        end
+    end
+end
+
+CGameMode.PlaceCoin = function(iBridgeID, iX)
+    CGameMode.tCoin = {}
+    CGameMode.tCoin.iBridgeID = iBridgeID
+    CGameMode.tCoin.iX = iX
+end
+
+CGameMode.PaintCoin = function()
+    if CGameMode.tCoin.iBridgeID then
+        local iY = CGameMode.tBridges[CGameMode.tCoin.iBridgeID].iY+1
+        tFloor[CGameMode.tCoin.iX][iY].iColor = CColors.BLUE
+        tFloor[CGameMode.tCoin.iX][iY].iBright = tConfig.Bright
+
+        if tFloor[CGameMode.tCoin.iX][iY].bClick then CGameMode.CollectCoin(true) end
+        if tFloor[CGameMode.tCoin.iX][iY].bDefect then CGameMode.CollectCoin(false) end
+    end    
+end
+
+CGameMode.CollectCoin = function(bAddScore)
+    if bAddScore then
+        tGameStats.CurrentLives = tGameStats.CurrentLives + 1
+        tGameResults.Score = tGameResults.Score + 50
+    end
+    CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
+end
 --//
 
 --ROPE
@@ -341,6 +407,8 @@ CRope.TimerLoop = function()
         if CRope.iY == math.floor(-tGame.Rows/2) then
             tGameStats.CurrentStars = tGameStats.CurrentStars + 1
         
+            tGameResults.Score = tGameResults.Score + 30
+
             if tGameStats.CurrentStars == tGameStats.TotalStars then
                 CGameMode.EndGame(true)
             else
@@ -367,6 +435,8 @@ CRope.DamagePlayer = function()
     else
         CAudio.PlaySystemAsync(CAudio.MISCLICK)
     end
+
+    tGameResults.Score = tGameResults.Score - 10
 end
 --//
 
@@ -457,6 +527,19 @@ function PixelClick(click)
 
         if click.Click then
             tFloor[click.X][click.Y].iTime = CTime.unix()
+        end
+
+        if click.Click and not tFloor[click.X][click.Y].bDefect and not tFloor[click.X][click.Y].bBridge then
+            CGameMode.AnimateDamage(click.X, click.Y)
+
+            if iGameState == GAMESTATE_GAME and not CGameMode.bLavaCD then
+                CRope.DamagePlayer()
+
+                CGameMode.bLavaCD = true
+                AL.NewTimer(250, function()
+                    CGameMode.bLavaCD = false
+                end)
+            end
         end
 
         if iGameState == GAMESTATE_SETUP then
