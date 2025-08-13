@@ -355,6 +355,8 @@ CGameMode.StartGame = function()
     end)
 
     AL.NewTimer(tConfig.UnitThinkDelay, function()
+        CLog.print(CUnits.iAliveCount)
+
         if iGameState < GAMESTATE_FINISH then
             CUnits.ProcessUnits()
             return tConfig.UnitThinkDelay
@@ -540,6 +542,8 @@ end
 --UNITS
 CUnits = {}
 
+CUnits.iAliveCount = 0
+
 CUnits.tUnits = {}
 CUnits.tUnitStruct = {
     iX = 0,
@@ -657,6 +661,8 @@ CUnits.NewUnit = function(iX, iY, iUnitType,  bScoreable, bXMain, iSize)
         --CUnits.tUnits[iUnitID].iX = iX + iXPlus
         --CUnits.tUnits[iUnitID].iY = iY + iYPlus
     end
+
+    CUnits.iAliveCount = CUnits.iAliveCount + 1
 end
 
 CUnits.RectHasUnitsOrBlocked = function(iXStart, iYStart, iSize)
@@ -817,7 +823,7 @@ CUnits.CanMove = function(iUnitID, iXPlus, iYPlus)
             if tFloor[iXCheck][iYCheck].iUnitID > 0 and tFloor[iXCheck][iYCheck].iUnitID ~= iUnitID then return false end
             if tFloor[iXCheck][iYCheck].bBlocked then return false end
             --if tFloor[iXCheck][iYCheck].bDefect then return false end
-            if tFloor[iXCheck][iYCheck].bClick then return false end
+            if tFloor[iXCheck][iYCheck].bClick and not (CUnits.iAliveCount > CGameMode.tSettings.UnitCountPerSpawn*2) then return false end
         end
     end
 
@@ -951,6 +957,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
         end
 
         CUnits.tUnits[iUnitID] = nil
+        CUnits.iAliveCount = CUnits.iAliveCount - 1
     end
 end
 
