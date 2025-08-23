@@ -422,7 +422,7 @@ CGameMode.RewardPlayerForHit = function()
     if iXDiff < 3 and iYDiff < 3 then iScore = iScore*2 end
     if iXDiff == 0 and iYDiff == 0 then iScore = iScore*2 end
 
-    CLog.print(iXDiff.." "..iYDiff.." "..iScore)
+    --CLog.print(iXDiff.." "..iYDiff.." "..iScore)
 
     tGameStats.Players[CGameMode.iPlayerIDToMove].Score = tGameStats.Players[CGameMode.iPlayerIDToMove].Score + iScore
     if tGameStats.Players[CGameMode.iPlayerIDToMove].Score > tGameStats.TargetScore then
