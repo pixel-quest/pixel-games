@@ -1,8 +1,8 @@
 --[[
-    Название: Название механики
+    Название: Фроггер
     Автор: Avondale, дискорд - avonda
-    Описание механики: в общих словах, что происходит в механике
-    Идеи по доработке: то, что может улучшить игру, но не было реализовано здесь
+    Описание механики: 
+        Игроки должны за ограниченное время перебежать дорогу как можно больше раз, туда обратно, не попадаясь под машины
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -71,6 +71,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    iClickTime = 0,
+    bDamageCooldown = false,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -239,7 +241,8 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename guide
+    --voice gamename
+    CAudio.PlayVoicesSync("frogger/frogger-rules.mp3")
 
     AL.NewTimer(1000, function()
         CGameMode.bCanAutoStart = true
@@ -276,12 +279,12 @@ CGameMode.StartGame = function()
         return 1000
     end)
 
-    AL.NewTimer(100, function()
+    AL.NewTimer(125, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CUnits.Think()
 
-        return 100
+        return 125
     end)
 end
 
@@ -289,11 +292,12 @@ CGameMode.EndGame = function(bTimeOut)
     iGameState = GAMESTATE_POSTGAME
     CAudio.StopBackground()
 
+    CAudio.PlaySystemSync("game-over.mp3")
     if bTimeOut then
-        --voice time out
+        CAudio.PlayVoicesSync("notime.mp3")
         tGameResults.Color = CColors.YELLOW
     else
-        --voice no more lives
+        CAudio.PlayVoicesSync("nolives.mp3")
         tGameResults.Color = CColors.RED
     end
 
@@ -307,6 +311,16 @@ CGameMode.RewardForTarget = function()
     tGameResults.Score = tGameResults.Score + 100
 
     tGameStats.StageLeftDuration = tGameStats.StageLeftDuration + math.floor(tConfig.TimeLimit/10)
+
+    local iClearLaneID = math.random(1, #CLanes.tLanes)
+    CLanes.ClearUnitsFromLane(iClearLaneID)
+    CLanes.tLanes[iClearLaneID].iColor = CColors.RED
+    AL.NewTimer(1000, function()
+        CLanes.SpawnUnitsOnLane(iClearLaneID)
+    end)
+    AL.NewTimer(1500, function()
+        CLanes.tLanes[iClearLaneID].iColor = CColors.NONE
+    end)
 end
 
 CGameMode.DamagePlayer = function()
@@ -392,6 +406,7 @@ CLanes.NewLane = function(iX, iY)
     CLanes.tLanes[iLaneID].iY = iY
     CLanes.tLanes[iLaneID].iSizeX = CLanes.LANE_SIZE
     CLanes.tLanes[iLaneID].iSizeY = CLanes.LANE_SIZE
+    CLanes.tLanes[iLaneID].iColor = CColors.NONE
 
     if tConfig.Vertical then
         CLanes.tLanes[iLaneID].iSizeY = tGame.Rows-iY+1
@@ -399,14 +414,29 @@ CLanes.NewLane = function(iX, iY)
         CLanes.tLanes[iLaneID].iSizeX = tGame.Cols-iX+1
     end
 
+    CLanes.SpawnUnitsOnLane(iLaneID)
+end
+
+CLanes.SpawnUnitsOnLane = function(iLaneID)
     local iLaneVelocity = math.random(0,1)
     if iLaneVelocity == 0 then iLaneVelocity = -1; end
-    CUnits.SpawnNewUnitOnLane(iLaneID, iLaneVelocity)
+
+    for iUnit = 1, math.random(1,4) do
+        CUnits.SpawnNewUnitOnLane(iLaneID, iLaneVelocity)
+    end
+end
+
+CLanes.ClearUnitsFromLane = function(iLaneID)
+    for iUnitID = 1, #CUnits.tUnits do
+        if CUnits.tUnits[iUnitID] and CUnits.tUnits[iUnitID].iLaneID == iLaneID then
+            CUnits.FadeKillUnit(iUnitID)
+        end
+    end
 end
 
 CLanes.Paint = function()
     for iLaneID = 1, #CLanes.tLanes do
-        SetRectColorBright(CLanes.tLanes[iLaneID].iX, CLanes.tLanes[iLaneID].iY, CLanes.tLanes[iLaneID].iSizeX, CLanes.tLanes[iLaneID].iSizeY, CColors.NONE, CColors.BRIGHT0)
+        SetRectColorBright(CLanes.tLanes[iLaneID].iX, CLanes.tLanes[iLaneID].iY, CLanes.tLanes[iLaneID].iSizeX, CLanes.tLanes[iLaneID].iSizeY, CLanes.tLanes[iLaneID].iColor, 1)
     end
 end
 --//
@@ -429,6 +459,7 @@ CUnits.SpawnNewUnitOnLane = function(iLaneID, iVelocity)
     CUnits.tUnits[iUnitID].iXVel = 0
     CUnits.tUnits[iUnitID].iYVel = 0
     CUnits.tUnits[iUnitID].bDamageCooldown = false
+    CUnits.tUnits[iUnitID].iBright = tConfig.Bright
 
     if tConfig.Vertical then
         CUnits.tUnits[iUnitID].iYVel = iVelocity
@@ -448,10 +479,17 @@ CUnits.Paint = function()
                 for iY = CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iY + CLanes.LANE_SIZE-1 do
                     if tFloor[iX] and tFloor[iX][iY] then
                         tFloor[iX][iY].iColor = CUnits.tUnits[iUnitID].iColor
-                        tFloor[iX][iY].iBright = tConfig.Bright
+                        tFloor[iX][iY].iBright = CUnits.tUnits[iUnitID].iBright
 
-                        if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
-                            CUnits.DamagePlayer(iUnitID)
+                        if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iWeight > 5 and not tFloor[iX][iY].bDamageCooldown then
+                            if (CTime.unix() - tFloor[iX][iY].iClickTime)*1000 < tGame.DamageDelay then
+                                CUnits.DamagePlayer(iUnitID)
+
+                                tFloor[iX][iY].bDamageCooldown = true
+                                AL.NewTimer(500, function()
+                                    tFloor[iX][iY].bDamageCooldown = false
+                                end)
+                            end
                         end
                     end
                 end
@@ -486,6 +524,18 @@ CUnits.Think = function()
             if CUnits.tUnits[iUnitID].iY < 0 then CUnits.tUnits[iUnitID].iY = tGame.Rows; end
         end
     end     
+end
+
+CUnits.FadeKillUnit = function(iUnitID)
+    AL.NewTimer(100, function()
+        CUnits.tUnits[iUnitID].iBright = CUnits.tUnits[iUnitID].iBright - 1
+        if CUnits.tUnits[iUnitID].iBright <= 0 then
+            CUnits.tUnits[iUnitID] = nil
+            return nil;
+        end
+
+        return 200
+    end)
 end
 --//
 
@@ -592,6 +642,10 @@ function PixelClick(click)
 
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if click.Click then
+           tFloor[click.X][click.Y].iClickTime = CTime.unix() 
+        end
     end
 end
 
