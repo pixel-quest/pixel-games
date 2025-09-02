@@ -325,7 +325,7 @@ CGameMode.PaintAnimated = function()
 end
 
 CGameMode.BuildBridges = function()
-    local iY = 1
+    local iY = CGameMode.BRIDGE_HEIGHT+1
 
     for iBridgeID = 1, 6 do
         CGameMode.tBridges[iBridgeID] = {}
@@ -368,6 +368,7 @@ end
 CGameMode.CollectCoin = function(bAddScore)
     if bAddScore then
         tGameStats.CurrentLives = tGameStats.CurrentLives + 1
+        if tGameStats.CurrentLives > tGameStats.TotalLives then tGameStats.TotalLives = tGameStats.CurrentLives; end
         tGameResults.Score = tGameResults.Score + 50
     end
     CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
@@ -430,7 +431,7 @@ end
 
 CRope.DamagePlayer = function()
     tGameStats.CurrentLives = tGameStats.CurrentLives-1
-    if tGameStats.CurrentLives <= 0 then
+    if tGameStats.CurrentLives <= 0 and tConfig.TeamHealth > 0 then
         CGameMode.EndGame(false)
     else
         CAudio.PlaySystemAsync(CAudio.MISCLICK)
