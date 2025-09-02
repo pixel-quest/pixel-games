@@ -1,0 +1,25 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"Vertical": false,
+	"Vertical_ru": "Вертикальные дороги",
+	"Vertical_ru": "Vertical position",
+
+	"Lives": 15,
+	"Lives_Min": 1,
+	"Lives_Max": 100,
+	"Lives_Step": 1,
+	"Lives_ru": "Жизни",
+	"Lives_en": "Team Lives",
+
+	"TimeLimit": 90,
+	"TimeLimit_Min": 30,
+	"TimeLimit_Max": 180,
+	"TimeLimit_Step": 30,
+	"TimeLimit_ru": "Время",
+	"TimeLimit_en": "Time"
+}
