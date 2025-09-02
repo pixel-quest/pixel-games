@@ -1,0 +1,14 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"FortHealth": 15,
+	"FortHealth_Min": 5,
+	"FortHealth_Max": 50,
+	"FortHealth_Step": 5,
+	"FortHealth_ru": "Жизни Крепостей",
+	"FortHealth_en": "Forts Lives Count"
+}
