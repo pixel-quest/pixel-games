@@ -146,7 +146,9 @@ end
 function GameTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
     CPaint.PaintBG()
-    CPaint.Text()
+    if tConfig.Text and #tConfig.Text > 0 then
+        CPaint.Text()
+    end
 end
 
 function RangeFloor(setPixel, setButton)
