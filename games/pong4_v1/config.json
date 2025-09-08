@@ -1,0 +1,21 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"Lives": 5,
+	"Lives_Min": 1,
+	"Lives_Max": 20,
+	"Lives_Step": 1,
+	"Lives_ru": "Жизни игроков",
+	"Lives_en": "Lives",
+
+	"EnemySkill": 50,
+	"EnemySkill_Min": 0,
+	"EnemySkill_Max": 100,
+	"EnemySkill_Step": 5,
+	"EnemySkill_ru": "Умение играть искуственного интеллекта",
+	"EnemySkill_en": "AI Skill"
+}
