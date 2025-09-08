@@ -270,6 +270,9 @@ CGameMode.AnnounceGameStart = function()
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
+        if not tConfig.AutoStart then
+            CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        end
     else
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
