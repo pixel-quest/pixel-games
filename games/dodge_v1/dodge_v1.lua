@@ -249,7 +249,7 @@ CGameMode.DamagePlayer = function(iDamage)
 
     tGameResults.Score = tGameResults.Score - 10
 
-    if not tConfig.EliminationMode then 
+    if not tConfig.EliminationMode and tConfig.TeamHealth > 0 then 
         tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
         if tGameStats.CurrentLives <= 0 then
             CGameMode.EndGame(false)
