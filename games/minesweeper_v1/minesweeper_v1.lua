@@ -240,8 +240,8 @@ function GameSetupTickSinglePlayer()
         CGameMode.iAlivePlayerCount = 1
 
         iGameState = GAMESTATE_GAME
-        CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
-        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
+        CAudio.PlayVoicesSyncFromScratch("minesweeper/minesweeper-guide-solo.mp3")
+        CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide-solo.mp3") + tConfig.RoundCountdown)
     end
 end
 
@@ -294,8 +294,7 @@ function GameSetupTickMultiPlayer()
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
-        CAudio.PlaySyncFromScratch("")
-        CAudio.PlayVoicesSync("minesweeper/minesweeper-guide.mp3")
+        CAudio.PlayVoicesSyncFromScratch("minesweeper/minesweeper-guide.mp3")
         CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
     end
 end
@@ -390,10 +389,11 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
             
             return nil
         else
-            if CGameMode.iCountdown <= 5 then
-                CAudio.PlaySyncFromScratch("")
+            if CGameMode.iCountdown <= 9 then
+                CAudio.PlaySystemSyncFromScratch("")
                 CAudio.PlayLeftAudio(CGameMode.iCountdown)
             end
+
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
