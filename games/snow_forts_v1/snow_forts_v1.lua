@@ -487,6 +487,11 @@ end
 
 CForts.AddSnowballs = function(iFortID, iAmount)
     CForts.tForts[iFortID].iSnowballsCount = CForts.tForts[iFortID].iSnowballsCount + iAmount
+
+    if CForts.tForts[iFortID].iSnowballsCount == CForts.iMaxSnowballs then
+        CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
+    end
+
     if CForts.tForts[iFortID].iSnowballsCount > CForts.iMaxSnowballs then
         CForts.tForts[iFortID].iSnowballsCount = CForts.iMaxSnowballs
     end
@@ -631,7 +636,7 @@ CShields.Paint = function()
         if CShields.tShields[iShieldID] then
             for iX = CShields.tShields[iShieldID].iX, CShields.tShields[iShieldID].iX + CShields.tShields[iShieldID].iSizeX-1 do
                 for iY = CShields.tShields[iShieldID].iY, CShields.tShields[iShieldID].iY + CShields.tShields[iShieldID].iSizeY-1 do
-                    tFloor[iX][iY].iColor = tPlayerColors[CShields.tShields[iShieldID].iTeamID]
+                    tFloor[iX][iY].iColor = CColors.CYAN
                     tFloor[iX][iY].iBright = tConfig.Bright
                 end
             end
