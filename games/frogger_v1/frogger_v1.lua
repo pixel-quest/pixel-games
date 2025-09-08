@@ -241,7 +241,7 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename
+    CAudio.PlayVoicesSync("frogger/frogger.mp3")
     CAudio.PlayVoicesSync("frogger/frogger-rules.mp3")
 
     AL.NewTimer(1000, function()
@@ -279,12 +279,12 @@ CGameMode.StartGame = function()
         return 1000
     end)
 
-    AL.NewTimer(125, function()
+    AL.NewTimer(250, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CUnits.Think()
 
-        return 125
+        return 250
     end)
 end
 
