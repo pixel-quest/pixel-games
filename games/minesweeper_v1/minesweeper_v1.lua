@@ -390,7 +390,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
             return nil
         else
             if CGameMode.iCountdown <= 9 then
-                CAudio.PlaySystemSyncFromScratch("")
+                CAudio.ResetSync()
                 CAudio.PlayLeftAudio(CGameMode.iCountdown)
             end
 
