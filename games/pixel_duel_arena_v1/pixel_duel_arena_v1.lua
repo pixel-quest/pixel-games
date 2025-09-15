@@ -282,7 +282,7 @@ function NextTick()
         if StartPlayersCount > 0 then
             CountDownStarted = true
 
-            audio.PlaySyncFromScratch("") -- очистить очередь звуков
+            audio.ResetSync() -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
