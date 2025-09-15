@@ -220,7 +220,7 @@ function GameSetupTick()
     end
 
     if not CGameMode.bCountDownStarted and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or (CGameMode.bCanStart and iPlayersReady > 1 and iPlayersReady == #tGame.StartPositions)) then
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         bAnyButtonClick = false
     end  
@@ -299,7 +299,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iGameStartTime = CTime.unix()
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then

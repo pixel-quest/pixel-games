@@ -294,7 +294,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
         else
             if CGameMode.iCountdown <= 5 then
                 if CGameMode.AllPlayersOnStart() then
-                    CAudio.PlaySyncFromScratch("")
+                    CAudio.ResetSync()
                     CAudio.PlayLeftAudio(CGameMode.iCountdown)
                 else
                     CAudio.PlayVoicesSync("olympics/get-back.mp3")
@@ -331,7 +331,7 @@ CGameMode.PrepareNextRound = function()
 
     CGameMode.NextGameModeType()
 
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
     CGameMode.tGameModeAnnouncer[CGameMode.iGameMode]()
 end
 
