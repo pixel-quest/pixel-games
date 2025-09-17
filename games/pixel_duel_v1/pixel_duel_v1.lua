@@ -164,10 +164,29 @@ function StartGame(gameJson, gameConfigJson)
         --ButtonsList[num].Bright = colors.BRIGHT70
     end
 
+    if AL.RoomHasNFZ(GameObj) then
+        AL.LoadNFZInfo()
+    end
+
+    GameObj.iMinX = 1
+    GameObj.iMinY = 1
+    GameObj.iMaxX = GameObj.Cols
+    GameObj.iMaxY = GameObj.Rows
+    GameObj.CenterX = math.floor(GameObj.Cols/2)
+    GameObj.CenterY = math.floor(GameObj.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        GameObj.iMinX = AL.NFZ.iMinX
+        GameObj.iMinY = AL.NFZ.iMinY
+        GameObj.iMaxX = AL.NFZ.iMaxX
+        GameObj.iMaxY = AL.NFZ.iMaxY
+    end
+
     GameObj.StartPositionSize = 2
     GameObj.StartPositions = {}
-    local iPosX = math.floor(GameObj.Cols/3)
-    local iPosY = math.floor(GameObj.Rows/2.5)
+    local iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
+    local iPosY = math.floor((GameObj.iMaxY-GameObj.iMinY)/2.5)
+    log.print(iPosY)
     for iPlayerID = 1, GameConfigObj.PlayerCount do
         GameObj.StartPositions[iPlayerID] = {}
         GameObj.StartPositions[iPlayerID].X = iPosX
@@ -176,7 +195,7 @@ function StartGame(gameJson, gameConfigJson)
 
         iPosX = iPosX + (GameObj.StartPositionSize*2)
         if iPlayerID == (GameConfigObj.PlayerCount/2) then
-            iPosX = math.floor(GameObj.Cols/3)
+            iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
             iPosY = iPosY + GameObj.StartPositionSize*2
         end
     end
