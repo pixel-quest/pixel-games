@@ -313,7 +313,7 @@ CGameMode.CountDownNextRound = function()
     CAudio.PlayVoicesSyncFromScratch("quest/zone-edge.mp3")
 
     AL.NewTimer(6000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then

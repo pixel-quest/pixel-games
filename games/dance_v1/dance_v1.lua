@@ -360,7 +360,7 @@ CTutorial.bKillTutorialTimers = false
 CTutorial.bEnded = false
 
 CTutorial.PreStart = function()
-    CAudio.PlaySyncFromScratch("") -- обрыв звука
+    CAudio.ResetSync() -- обрыв звука
     CAudio.PlayVoicesSync("dance/dance_tutorial_part1.mp3")
     CTutorial.bStarted = true
 
@@ -385,7 +385,7 @@ CTutorial.Start = function()
     if CTutorial.bTrueStarted then return; end
 
     CTutorial.bTrueStarted = true
-    CAudio.PlaySyncFromScratch("") -- обрыв звука
+    CAudio.ResetSync() -- обрыв звука
     CAudio.PlayVoicesSync("dance/dance_tutorial_part2.mp3")
     CAudio.PlayVoicesSync("dance/dance_tutorial_part3.mp3")
 
@@ -411,7 +411,7 @@ CTutorial.Skip = function()
 
     CSongSync.Clear()
     CGameMode.Clear()
-    CAudio.PlaySyncFromScratch("") -- обрыв звука
+    CAudio.ResetSync() -- обрыв звука
 
     CAudio.PlayVoicesSync("choose-color.mp3")
     CAudio.PlayVoicesSync("press-button-for-start.mp3")
@@ -527,7 +527,7 @@ CGameMode.CountDown = function(iCountDownTime)
 
     CGameMode.iCountdown = iCountDownTime
 
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
     AL.NewTimer(1, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -777,7 +777,7 @@ CGameMode.EndGame = function()
     CPaint.ClearAnimations()
     --CPaint.AnimateEnd(tGameStats.Players[CGameMode.iWinnerID].Color)
     iGameState = GAMESTATE_POSTGAME
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 

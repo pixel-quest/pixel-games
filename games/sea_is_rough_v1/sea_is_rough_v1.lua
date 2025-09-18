@@ -273,7 +273,7 @@ function NextTick()
 
             GameResults.PlayersCount = StartPlayersCount
 
-            audio.PlaySyncFromScratch("") -- очистить очередь звуков
+            audio.ResetSync() -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 5 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
@@ -542,7 +542,7 @@ function switchStage(newStage)
         audio.StopBackground()
         return
     else
-        audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
+        audio.ResetSync() -- очистим очередь звуков, чтобы обрезать долгие речи на старте
         audio.PlayRandomBackground()
     end
 

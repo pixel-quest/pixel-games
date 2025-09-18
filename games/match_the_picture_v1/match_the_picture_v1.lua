@@ -203,7 +203,7 @@ function GameSetupTickMultiPlayer()
         CGameMode.iAlivePlayerCount = iPlayersReady
         iGameState = GAMESTATE_GAME
 
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
         
         CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
@@ -301,7 +301,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
             return nil
         else
             if CGameMode.iCountdown <= 5 then
-                CAudio.PlaySyncFromScratch("")
+                CAudio.ResetSync()
                 CAudio.PlayLeftAudio(CGameMode.iCountdown)
             end
             CGameMode.iCountdown = CGameMode.iCountdown - 1

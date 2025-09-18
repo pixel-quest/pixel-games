@@ -146,7 +146,7 @@ function GameSetupTick()
     CPaint.UI()
 
     if bAnyButtonClick then
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME
     end    
@@ -240,7 +240,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -296,7 +296,7 @@ end
 CGameMode.EndGame = function(bVictory)
     CGameMode.bVictory = bVictory
     CAudio.StopBackground()
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
     iGameState = GAMESTATE_POSTGAME
 
     if bVictory then

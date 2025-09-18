@@ -243,7 +243,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySystemSyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then

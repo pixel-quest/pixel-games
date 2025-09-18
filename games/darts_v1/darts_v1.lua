@@ -294,7 +294,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -333,7 +333,7 @@ CGameMode.EndGame = function()
 
     iGameState = GAMESTATE_POSTGAME  
 
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlaySync(CAudio.VICTORY)
 

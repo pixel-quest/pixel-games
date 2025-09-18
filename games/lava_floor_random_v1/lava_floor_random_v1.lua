@@ -261,7 +261,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
