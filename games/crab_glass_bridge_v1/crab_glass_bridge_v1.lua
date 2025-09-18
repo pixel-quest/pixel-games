@@ -163,7 +163,7 @@ function GameSetupTick()
 
     if bAnyButtonClick then
         if not CGameMode.bCountDownStarted then
-            CAudio.PlaySyncFromScratch("")
+            CAudio.ResetSync()
             CGameMode.StartCountDown(5)
             SetAllButtonColorBright(CColors.NONE, tConfig.Bright)
         end
@@ -223,7 +223,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then

@@ -259,6 +259,69 @@ CPaint.tDemoList["matrix"][CPaint.FUNC_CLICK] = function(iX, iY)
 end
 --//
 
+--MATRIX2
+CPaint.tDemoList["matrix2"] = {}
+CPaint.tDemoList["matrix2"].THINK_DELAY = 120
+CPaint.tDemoList["matrix2"].COLOR = "0x00ff0a"
+CPaint.tDemoList["matrix2"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["matrix2"].tVars = {}
+    CPaint.tDemoList["matrix2"].tVars.tParticles = {}
+
+    local function randY()
+        local iY = 0
+        repeat iY = math.random(1, tGame.Rows)
+        until tFloor[1][iY].iColor == CColors.NONE
+
+        return iY
+    end
+
+    AL.NewTimer(400, function()
+        for iParticle = 1, math.random(0,2) do
+            local iParticleID = #CPaint.tDemoList["matrix2"].tVars.tParticles+1
+            CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID] = {}
+            CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iY = randY()
+            CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iSize = math.random(7, 20)
+            CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX = tGame.Cols + CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iSize
+        end
+
+        if iGameState == GAMESTATE_GAME then return 400; end
+    end)
+end
+CPaint.tDemoList["matrix2"][CPaint.FUNC_PAINT] = function()
+    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
+
+    for iParticleID = 1, #CPaint.tDemoList["matrix2"].tVars.tParticles do
+        if CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID] then
+            for iX = CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX, CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX + CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iSize do
+                if iX >= 1 and iX <= tGame.Cols then
+                    local iBright = (10 + math.floor(CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iSize/4)) - (iX - CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX)
+                    if iBright > 10 then iBright = 10 end
+                    if iBright < 0 then iBright = 0 end
+                    tFloor[iX][CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iY].iColor = tonumber(CPaint.tDemoList["matrix2"].COLOR)
+                    tFloor[iX][CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iY].iBright = iBright
+                end
+            end
+        end
+    end
+end
+CPaint.tDemoList["matrix2"][CPaint.FUNC_THINK] = function()
+
+    for iParticleID = 1, #CPaint.tDemoList["matrix2"].tVars.tParticles do
+        if CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID] then
+            CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX = CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX - 1
+            if CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iX < 1 - CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID].iSize+1 then
+                CPaint.tDemoList["matrix2"].tVars.tParticles[iParticleID] = nil
+            end
+        end
+    end
+
+    return true
+end
+CPaint.tDemoList["matrix2"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
+
 --DERBY
 CPaint.tDemoList["derby"] = {}
 CPaint.tDemoList["derby"].THINK_DELAY = 200

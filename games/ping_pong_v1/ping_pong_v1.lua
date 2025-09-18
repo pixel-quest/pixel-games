@@ -259,7 +259,7 @@ CGameMode.iMaxY = 0
 CGameMode.NextRoundCountDown = function(iCountDownTime, bFirstRound)
     CGameMode.iCountdown = iCountDownTime
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
 
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 

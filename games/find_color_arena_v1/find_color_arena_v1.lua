@@ -297,7 +297,7 @@ function NextTick()
         if StartPlayersCount > 0 then
             CountDownStarted = true
 
-            audio.PlaySyncFromScratch("") -- очистить очередь звуков
+            audio.ResetSync() -- очистить очередь звуков
             local timeSinceCountdown = time.unix() - StageStartTime
             GameStats.StageTotalDuration = 3 -- сек обратный отсчет
             GameStats.StageLeftDuration = math.ceil(GameStats.StageTotalDuration - timeSinceCountdown)
@@ -563,7 +563,7 @@ function switchStage(newStage)
     local TargetColor=targetColor(newStage)
     GameStats.TargetColor=TargetColor
 
-    audio.PlaySyncFromScratch("") -- очистим очередь звуков, чтобы обрезать долгие речи на старте
+    audio.ResetSync() -- очистим очередь звуков, чтобы обрезать долгие речи на старте
     audio.PlaySyncColorSound(GameStats.TargetColor)
 
     local NewColor

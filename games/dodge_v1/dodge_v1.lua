@@ -150,7 +150,7 @@ function GameSetupTick()
     end
 
     if bAnyButtonClick then
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME
     end    
@@ -216,7 +216,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySyncFromScratch("")
+        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -249,12 +249,14 @@ CGameMode.DamagePlayer = function(iDamage)
 
     tGameResults.Score = tGameResults.Score - 10
 
-    if not tConfig.EliminationMode and tConfig.TeamHealth > 0 then 
-        tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
-        if tGameStats.CurrentLives <= 0 then
-            CGameMode.EndGame(false)
-        else 
-            CAudio.PlaySystemAsync(CAudio.MISCLICK)
+    if not tConfig.EliminationMode then
+        if tConfig.TeamHealth > 0 then 
+            tGameStats.CurrentLives = tGameStats.CurrentLives - iDamage
+            if tGameStats.CurrentLives <= 0 then
+                CGameMode.EndGame(false)
+            else 
+                CAudio.PlaySystemAsync(CAudio.MISCLICK)
+            end
         end
     else
         --CAudio.PlayAsync(CAudio.MISCLICK)
@@ -418,7 +420,7 @@ CEffect.NextEffectTimer = function()
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
             if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlaySyncFromScratch("")
+                CAudio.ResetSync()
                 CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
 
                 CCross.iBright = (tConfig.Bright-2) + (6 - tGameStats.StageLeftDuration)
@@ -959,7 +961,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_LINE][CEffect.FUNC_UNLOAD] = function()
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
 end
 ----
 
@@ -1012,7 +1014,7 @@ end
 
 -- выгрузка эффекта
 CEffect.tEffects[CEffect.EFFECT_LASER][CEffect.FUNC_UNLOAD] = function()
-    CAudio.PlaySyncFromScratch("")
+    CAudio.ResetSync()
 end
 
 ---- эффект: закрас
