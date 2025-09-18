@@ -156,11 +156,10 @@ function StartGame(gameJson, gameConfigJson)
 
             iX = iX + tGame.StartPositionSizeX + math.floor(tGame.StartPositionSizeX/3)
             if iX + tGame.StartPositionSizeX > tGame.iMaxX then
+                if iY + tGame.StartPositionSizeY > tGame.iMaxY then break; end
                 iX = iStartX
                 iY = tGame.iMaxY - tGame.StartPositionSizeY + 1
                 iPixelsY = 0
-
-                if iY + tGame.StartPositionSizeY > tGame.iMaxX then break; end
             end
         end
     else
