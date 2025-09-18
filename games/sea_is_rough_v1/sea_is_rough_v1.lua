@@ -7,6 +7,8 @@
 -- Идеи по доработке:
 --      1. Кооперативное прохождение
 
+require('avonlib')
+
 -- Логгер в консоль
 --      .print(string) - напечатать строку в консоль разработчика в браузере
 local log = require("log")
@@ -179,11 +181,29 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
         end
     end
 
+    if AL.RoomHasNFZ(GameObj) then
+        AL.LoadNFZInfo()
+    end
+
+    GameObj.iMinX = 1
+    GameObj.iMinY = 1
+    GameObj.iMaxX = GameObj.Cols
+    GameObj.iMaxY = GameObj.Rows
+    GameObj.CenterX = math.floor(GameObj.Cols/2)
+    GameObj.CenterY = math.floor(GameObj.Rows/2)
+
+    if AL.NFZ.bLoaded then
+        GameObj.iMinX = AL.NFZ.iMinX
+        GameObj.iMinY = AL.NFZ.iMinY
+        GameObj.iMaxX = AL.NFZ.iMaxX
+        GameObj.iMaxY = AL.NFZ.iMaxY
+    end
+
     if GameObj.StartPositions == nil then
         GameObj.StartPositions = {}
 
-        local iX = 2
-        local iY = math.floor(GameObj.Rows/2)
+        local iX = GameObj.iMinX + 1
+        local iY = GameObj.CenterY
         for iPlayerID = 1, 6 do
             GameObj.StartPositions[iPlayerID] = {}
             GameObj.StartPositions[iPlayerID].X = iX
@@ -191,9 +211,9 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
             GameObj.StartPositions[iPlayerID].Color = tColors[iPlayerID]
 
             iX = iX + (GameObj.StartPositionSize*2)
-            if iX + GameObj.StartPositionSize > GameObj.Cols then
-                iX = 2
-                iY = iY + (GameObj.StartPositionSize+1)
+            if iX + GameObj.StartPositionSize > GameObj.iMaxX then
+                iX = GameObj.CenterX - (GameObj.StartPositionSize*2)
+                iY = iY + (GameObj.StartPositionSize*2)
             end
         end
     else
