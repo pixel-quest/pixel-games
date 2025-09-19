@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"DiscSize": 1,
+	"DiscSize_Min": 1,
+	"DiscSize_Max": 3,
+	"DiscSize_Step": 1,
+	"DiscSize_ru": "Размер диска",
+	"DiscSize_en": "Disc Size",
+
+	"GateSize": 5,
+	"GateSize_Min": 3,
+	"GateSize_Max": 7,
+	"GateSize_Step": 2,
+	"GateSize_ru": "Размер Ворот",
+	"GateSize_en": "Gate Size",
+
+	"TargetScore": 3,
+	"TargetScore_Min": 1,
+	"TargetScore_Max": 25,
+	"TargetScore_Step": 1,
+	"TargetScore_ru": "Цель",
+	"TargetScore_en": "Target Score"
+}
