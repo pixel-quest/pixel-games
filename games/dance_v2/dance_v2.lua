@@ -138,6 +138,8 @@ function StartGame(gameJson, gameConfigJson)
 
     local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX
 
+    if tGame.ArenaMode then iStartX = iStartX + 1; end
+
     local iX = iStartX
     local iY = tGame.iMinY
     for iPlayerID = 1, 6 do
@@ -146,11 +148,16 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Y = iY
         tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
-        iX = iX + tGame.StartPositionsSizeX + 1
-        if iX + tGame.StartPositionsSizeX-1 > tGame.iMaxX then 
-            iX = iStartX
-            iY = iY + tGame.StartPositionsSizeY+1
-            if iY > tGame.iMaxY then break; end
+        if not tGame.ArenaMode then
+            iX = iX + tGame.StartPositionsSizeX + 1
+            if iX + tGame.StartPositionsSizeX-1 > tGame.iMaxX then 
+                iX = iStartX
+                iY = iY + tGame.StartPositionsSizeY+1
+                if iY > tGame.iMaxY then break; end
+            end
+        else
+            iX = iX + 6
+            if iX > tGame.iMaxX then break; end
         end
     end
 
