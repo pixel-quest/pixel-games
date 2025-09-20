@@ -513,6 +513,31 @@ CPaint.PlayerZones = function()
                     end
                 end
             end
+
+            if tPlayerInGame[iPlayerID] and tGameStats.StageLeftDuration > 0 and tGameStats.StageLeftDuration < 10 then
+                local iStartX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1
+                local iStartY = tGame.StartPositions[iPlayerID].Y + math.floor(tGame.StartPositionsSizeY/2) + 2
+                local iX = iStartX
+                local iY = iStartY
+
+                for iLetterX = 1, tLoadedLetters[tGameStats.StageLeftDuration].iSizeX do
+                    for iLetterY = 1, tLoadedLetters[tGameStats.StageLeftDuration].iSizeY do
+                        
+                        if tLoadedLetters[tGameStats.StageLeftDuration].tPaint[iLetterY][iLetterX] > 0 then
+                            tFloor[iX][iY].iColor = CColors.RED
+                            tFloor[iX][iY].iBright = tConfig.Bright
+                        end
+
+                        iY = iY-1
+                    end
+                    iX = iX - 1
+                    iY = iStartY
+                
+                    if iX < tGame.StartPositions[iPlayerID].X then
+                        iX = iStartX
+                    end
+                end
+            end
         else
             for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
                 for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
@@ -683,3 +708,122 @@ function DefectButton(defect)
         tButtons[defect.Button].iBright = CColors.BRIGHT0
     end    
 end
+
+tLoadedLetters = {}
+
+tLoadedLetters[1] =
+{
+    iSizeX = 3,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 0,},
+        {1, 1, 0,},
+        {0, 1, 0,},
+        {0, 1, 0,},
+        {1, 1, 1,}
+    }
+}
+
+tLoadedLetters[2] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 1, 0, 0},
+        {1, 1, 1, 1}
+    }
+}
+
+tLoadedLetters[3] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[4] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 0, 1, 0},
+        {0, 1, 1, 0},
+        {1, 0, 1, 0},
+        {1, 1, 1, 1},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[5] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {0, 0, 0, 1},
+        {1, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[6] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[7] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[8] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[9] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0}
+    }
+}
