@@ -417,7 +417,7 @@ CMap.iGenType = 0
 --CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
 
 CMap.GenerateRandomMap = function()
-    CMap.iGenType = 1--math.random(1, CMap.GEN_TYPE_MAX)
+    CMap.iGenType = 2--math.random(1, CMap.GEN_TYPE_MAX)
 
     CMap.GenerateMapWithType[CMap.iGenType]();
 
@@ -438,7 +438,7 @@ CMap.GenerateMapWithType = {}
 
 ---GEN TYPES
 
-----GEN TYPE - SAFEEDGES
+----GEN TYPE 1 - SAFEEDGES
 CMap.GenerateMapWithType[CMap.GEN_TYPE_SAFEEDGES] = function()
     local iCenterType = math.random(1, 3)
 
@@ -468,7 +468,7 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_SAFEEDGES] = function()
         local iShapeSizeX = math.ceil((tGame.iMaxX-tGame.iMinX-3)/iShapesCount)
         local iShapeSizeY = tGame.iMaxY-tGame.iMinY-3
         for i = 1, iShapesCount do
-            local tShape = CMap.CreateRandomPatternShape(iShapeSizeX, iShapeSizeY)
+            local tShape = CMap.CreatePatternShape(iShapeSizeX, iShapeSizeY)
             local iXOffset = (iShapeSizeX * i) - iShapeSizeX
             CBlock.NewBlockFormationFromShape(CBlock.LAYER_COINS, tGame.iMinX+2+iXOffset, tGame.iMinY+2, CBlock.BLOCK_TYPE_COIN, tShape)
         end
@@ -489,24 +489,71 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_SAFEEDGES] = function()
         end
 
         if iCenterType == 2 then
-            local tShape = CMap.CreateRandomPatternShape(tGame.iMaxX-tGame.iMinX-7, tGame.iMaxY-tGame.iMinY-7)
+            local tShape = CMap.CreatePatternShape(tGame.iMaxX-tGame.iMinX-7, tGame.iMaxY-tGame.iMinY-7)
             CBlock.NewBlockFormationFromShape(CBlock.LAYER_COINS, tGame.iMinX+4, tGame.iMinY+4, CBlock.BLOCK_TYPE_COIN, tShape)        
         end
     end
 end
 ----//
 
-----
+---- GENTYPE 2 - SQUAREFIELD
+CMap.GenerateMapWithType[CMap.GEN_TYPE_SQUAREFIELD] = function()
+    local tShape = CMap.CreatePatternShape(tGame.iMaxX-tGame.iMinX, tGame.iMaxY-tGame.iMinY+1, 10)
+    CBlock.NewBlockFormationFromShape(CBlock.LAYER_SAFEGROUND, tGame.iMinX+1, tGame.iMinY, CBlock.BLOCK_TYPE_SAFEGROUND, tShape)      
+
+    local iLavaType = math.random(1, 2)
+
+    if iLavaType == 1 then
+    local iRand = math.random(1,5)
+    if iRand <= 3 then
+        local iObjectId = CMap.CreateMovingRect(tGame.iMinX, tGame.iMinY, math.random(1,3), tGame.iMaxY-tGame.iMinY+1, 1, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+    end
+    if iRand >= 3 then
+        local iObjectId = CMap.CreateMovingRect(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinX+1, math.random(1,3), 0, 1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+    end    
+    else
+        for iPath = 0, math.floor(tGame.iMaxX/4)-1 do
+            local iSpawnX = ((iPath+1)*4)
+            local tPoints = {}
+            tPoints[1] = {iX = iSpawnX, iY = tGame.iMinY}
+            tPoints[2] = {iX = iSpawnX, iY = tGame.iMaxY-1}
+            local iPathId = CBlock.NewPath(tPoints)
+            local iObjectId = CMap.CreateMovingRect(iSpawnX, math.random(tGame.iMinY, tGame.iMaxY), 2, 2, 0, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathId = iPathId
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathPoint = math.random(1,2)
+        end
+    end
+    
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            if math.random(1,4) == 2 then
+                CMap.CreateCoin(iX, iY)
+            end
+        end
+    end
+end
+----//
+
+---- GENTYPE 3 - LL
+CMap.GenerateMapWithType[CMap.GEN_TYPE_LL] = function()
+
+end
 ----//
 
 ---//
 ---GENSHAPES
 
 ----RANDOM PATTERN SHAPE
-CMap.CreateRandomPatternShape = function(iSizeX, iSizeY)
+CMap.CreatePatternShape = function(iSizeX, iSizeY, iShapeRule)
     local tShape = {}
 
-    local iShapeRule = math.random(1,12)
+    if not iShapeRule or iShapeRule == 0 then
+        iShapeRule = math.random(1,12)
+    end
+
     local function checkShapeRule(iX, iY)
         if iShapeRule == 1 then -- horizontal stripes
             if iY % 2 == 0 and iX > 1 and iX < iSizeX and iY > 1 and iY < iSizeY then return 1; end
@@ -536,7 +583,7 @@ CMap.CreateRandomPatternShape = function(iSizeX, iSizeY)
             if (iX % 6 == 0 or (iX+1) % 6 == 0 or (iX-1) % 6 == 0) and (iY % 6 == 0 or (iY+1) % 6 == 0 or (iY-1) % 6 == 0) then return 1; end
             return 0           
         elseif iShapeRule == 10 then -- small squares
-            if (iX % 4 == 0 or (iX+1) % 4 == 0) and (iY % 4 == 0 or (iY+1) % 4 == 0) then return 1; end
+            if ((iX+2) % 4 == 0 or (iX+3) % 4 == 0) and ((iY+2) % 4 == 0 or (iY+3) % 4 == 0) then return 1; end
             return 0     
         elseif iShapeRule == 11 then -- random X lines
             if iY % 2 == 0 and math.random(1,3) == 2 then return 1; end
@@ -600,7 +647,7 @@ CBlock.tObjectStructure = {
     iPathPoint = 1,
     iVelX = 0,
     iVelY = 0,
-    bCollision = false,
+    bCollision = true,
     bCooldown = false,
 }
 
@@ -759,9 +806,10 @@ CBlock.CalculateMovableObjects = function()
 
                         local iNextX = CBlock.tObjects[iLayer][iObjectId].iX + CBlock.tObjects[iLayer][iObjectId].iVelX
                         local iNextY = CBlock.tObjects[iLayer][iObjectId].iY + CBlock.tObjects[iLayer][iObjectId].iVelY
-                        if (not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iNextX, iNextY) or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iNextX + #CBlock.tObjects[iLayer][iObjectId].tShape-1, iNextY)
+
+                        if CBlock.tObjects[iLayer][iObjectId].bCollision and ((not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iNextX, iNextY) or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iNextX + #CBlock.tObjects[iLayer][iObjectId].tShape-1, iNextY)
                         or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iNextX, iNextY + #CBlock.tObjects[iLayer][iObjectId].tShape[1]-1))
-                        or (CBlock.tObjects[iLayer][iObjectId].bCollision and CBlock.CheckObjectCollision(iLayer, iNextX, iNextY, iObjectId)) then
+                        or CBlock.CheckObjectCollision(iLayer, iNextX, iNextY, iObjectId)) then
                             CBlock.tObjects[iLayer][iObjectId].iVelX = -CBlock.tObjects[iLayer][iObjectId].iVelX
                             CBlock.tObjects[iLayer][iObjectId].iVelY = -CBlock.tObjects[iLayer][iObjectId].iVelY
                         else
