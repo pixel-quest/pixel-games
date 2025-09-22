@@ -217,7 +217,7 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady > 1 and CGameMode.bCanAutoStart) then
+    if bAnyButtonClick or ((iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions) and CGameMode.bCanAutoStart) then
         bAnyButtonClick = false
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
