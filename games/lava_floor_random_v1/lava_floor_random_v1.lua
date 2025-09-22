@@ -417,13 +417,22 @@ CMap.iGenType = 0
 --CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
 
 CMap.GenerateRandomMap = function()
-    CMap.iGenType = 2--math.random(1, CMap.GEN_TYPE_MAX)
+    CMap.iGenType = CMap.NewGenType(CMap.iGenType)
 
     CMap.GenerateMapWithType[CMap.iGenType]();
 
     CGameMode.iMapCoinCount = CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_COIN]
     CGameMode.iMapCoinReq = math.floor(CGameMode.iMapCoinCount/2)   
     CGameMode.iRoundTimeLimit = math.floor(CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_COIN] * tConfig.RoundTimePerCoin) 
+end
+
+CMap.NewGenType = function(iOldType)
+    local iNewType = 0
+
+    repeat iNewType = math.random(1, CMap.GEN_TYPE_MAX)
+    until iNewType ~= iOldType
+
+    return iNewType
 end
 
 CMap.CreateCoin = function(iX, iY)
@@ -478,6 +487,7 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_SAFEEDGES] = function()
         tPoints[2] = {iX = tGame.iMaxX-3, iY = tGame.iMinY+2}
         tPoints[3] = {iX = tGame.iMaxX-3, iY = tGame.iMaxY-3}
         tPoints[4] = {iX = tGame.iMinX+2, iY = tGame.iMaxY-3}
+        if math.random(1,2) == 2 then tPoints = ReverseTable(tPoints); end
         local iPathId = CBlock.NewPath(tPoints)
 
         local iObjectCount = 4
@@ -539,12 +549,62 @@ end
 
 ---- GENTYPE 3 - LL
 CMap.GenerateMapWithType[CMap.GEN_TYPE_LL] = function()
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            if ((iX >= tGame.iMinX+3 and iX <= tGame.iMaxX-3) and (iY >= tGame.iMinY+3 and iY <= tGame.iMaxY-3)) 
+            and ((iX == tGame.iMinX+3 or iX == tGame.iMinX+4) or (iX == tGame.iMaxX-3 or iX == tGame.iMaxX-4) or (iY == tGame.iMinY+3 or iY == tGame.iMinY+4) or (iY == tGame.iMaxY-3 or iY == tGame.iMaxY-4)) then
+                if not (iY >= tGame.iMaxY-5 and iX >= tGame.iMinX+5 and iX < tGame.CenterX) and not (iY <= tGame.iMinY+5 and iX >= tGame.CenterX+2 and iX <= tGame.iMaxX-5) then
+                    CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+                end
+            elseif math.random(1,4) == 2 then
+                CMap.CreateCoin(iX, iY)
+            end
+        end
+    end
 
+    local tPoints = {}
+    tPoints[1] = {iX = tGame.iMinX, iY = tGame.iMinY}
+    tPoints[2] = {iX = tGame.iMaxX-2, iY = tGame.iMinY}
+    tPoints[3] = {iX = tGame.iMaxX-2, iY = tGame.iMaxY-2}
+    tPoints[4] = {iX = tGame.iMinX, iY = tGame.iMaxY-2}
+    if math.random(1,2) == 2 then tPoints = ReverseTable(tPoints); end
+    local iPathId = CBlock.NewPath(tPoints)
+
+    for iObject = 1, 4 do
+        local iObjectId = CMap.CreateMovingRect(tPoints[iObject].iX, tPoints[iObject].iY, 3, 3, 0, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathId = iPathId
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathPoint = iObject
+    end
+
+    if math.random(1,3) == 2 then
+        tPoints = {}
+        tPoints[1] = {iX = tGame.iMinX+5, iY = tGame.iMinY+5}
+        tPoints[2] = {iX = tGame.iMaxX-6, iY = tGame.iMinY+5}
+        tPoints[3] = {iX = tGame.iMaxX-6, iY = tGame.iMaxY-6}
+        tPoints[4] = {iX = tGame.iMinX+5, iY = tGame.iMaxY-6}
+        if math.random(1,2) == 2 then tPoints = ReverseTable(tPoints); end
+        iPathId = CBlock.NewPath(tPoints)
+
+        local iObjectId = CMap.CreateMovingRect(tPoints[1].iX, tPoints[1].iY, 2, 2, 0, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathId = iPathId
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathPoint = 1
+    end
 end
 ----//
 
 ---//
 ---GENSHAPES
+
+----RECT SHAPE
+CMap.BuildRect = function(iStartX, iStartY, iSizeX, iSizeY, iLayer, iBlockType)
+    for iX = iStartX, iStartX + iSizeX-1 do
+        for iY = iStartY, iStartY + iSizeY-1 do
+            CBlock.NewBlock(iLayer, iX, iY, iBlockType)
+        end
+    end
+end
+----//
 
 ----RANDOM PATTERN SHAPE
 CMap.CreatePatternShape = function(iSizeX, iSizeY, iShapeRule)
@@ -603,9 +663,9 @@ CMap.CreatePatternShape = function(iSizeX, iSizeY, iShapeRule)
 
     return tShape
 end
-----
+----//
 
-----MOVING RECT
+----MOVING RECT OBJECT
 CMap.CreateMovingRect = function(iX, iY, iSizeX, iSizeY, iVelX, iVelY, iLayer, iBlockType)
     local tShape = {}
     for iX = 1, iSizeX do
@@ -1404,6 +1464,13 @@ function SetAllButtonColorBright(iColor, iBright, bCheckDefect)
             tButtons[i].iBright = iBright
         end
     end
+end
+
+function ReverseTable(t)
+    for i = 1, #t/2, 1 do
+        t[i], t[#t-i+1] = t[#t-i+1], t[i]
+    end
+    return t
 end
 --//
 
