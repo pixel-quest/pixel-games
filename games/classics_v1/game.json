@@ -23,13 +23,5 @@
     73,
     77
   ],
-  "StartPositions": [
-    {
-      "Color": "0x00FF00"
-    },
-    {
-      "Color": "0xFF00FF"
-    }
-  ],
   "StartPositionSizeY": 6
 }
