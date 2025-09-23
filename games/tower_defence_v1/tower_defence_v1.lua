@@ -297,7 +297,7 @@ CGameMode.PrepareGame = function()
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
     --CAudio.PlaySync("voices/press-button-for-start.mp3")
 
-    AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 2000, function()
+    AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 5000, function()
         CGameMode.bCanStart = true
     end)
 
@@ -460,9 +460,9 @@ end
 
 CGameMode.HealBase = function(iHealAmount)
     CGameMode.tBase.iHealth = CGameMode.tBase.iHealth + CGameMode.tSettings.BuffHealAmount
-    if CGameMode.tBase.iHealth > CGameMode.tSettings.BaseHealth then
-        CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
-    end
+    --if CGameMode.tBase.iHealth > CGameMode.tSettings.BaseHealth then
+    --    CGameMode.tBase.iHealth = CGameMode.tSettings.BaseHealth
+    --end
 
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
 end
