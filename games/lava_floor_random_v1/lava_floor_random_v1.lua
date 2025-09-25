@@ -410,7 +410,8 @@ CMap.GEN_TYPE_RANDOM = 0
 CMap.GEN_TYPE_SAFEEDGES = 1
 CMap.GEN_TYPE_SQUAREFIELD = 2
 CMap.GEN_TYPE_LL = 3
-CMap.GEN_TYPE_MAX = 3
+CMap.GEN_TYPE_DOORS = 4
+CMap.GEN_TYPE_MAX = 4
 
 CMap.iGenType = 0
 
@@ -593,6 +594,45 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_LL] = function()
 end
 ----//
 
+---- GENTYPE 4 - DOORS
+CMap.GenerateMapWithType[CMap.GEN_TYPE_DOORS] = function()
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            if (iX == tGame.CenterX or iX == tGame.CenterX+1) or (iY >= tGame.CenterY-1 and iY <= tGame.CenterY+1) then
+                CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+            end
+        end
+    end    
+
+    local iDoorSizeX = tGame.CenterX-1
+    local iDoorSizeY = tGame.CenterY-2
+
+    local function makeADoor(iX, iY, bOpen)
+        CBlock.NewBlockFormationFromShape(CBlock.LAYER_COINS, iX, iY, CBlock.BLOCK_TYPE_COIN, CMap.CreatePatternShape(iDoorSizeX, iDoorSizeY))
+
+        local tPoints = {}
+        tPoints[1] = {iX = iX, iY = iY, iWaitTime = 10}
+        tPoints[2] = {iX = iX-iDoorSizeX, iY = iY, iWaitTime = 10}
+        if iX > tGame.CenterX then tPoints[2].iX = iX+iDoorSizeX; end
+        local iPathId = CBlock.NewPath(tPoints)
+
+        local iObjectId = CMap.CreateMovingRect(iX, iY, iDoorSizeX, iDoorSizeY, 0, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathId = iPathId
+        CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathPoint = 1   
+        if bOpen then 
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iPathPoint = 2
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].iX = tPoints[2].iX
+        end
+    end
+
+    makeADoor(tGame.iMinX, tGame.iMinY, true)
+    makeADoor(tGame.CenterX+2, tGame.iMinY, false)
+    makeADoor(tGame.iMinX, tGame.CenterY+2, false)
+    makeADoor(tGame.CenterX+2, tGame.CenterY+2, true)
+end
+----//
+
 ---//
 ---GENSHAPES
 
@@ -709,6 +749,7 @@ CBlock.tObjectStructure = {
     iVelY = 0,
     bCollision = true,
     bCooldown = false,
+    iPathWaitLeft = 0,
 }
 
 CBlock.tPaths = {}
@@ -794,6 +835,7 @@ CBlock.NewPath = function(tPoints)
         CBlock.tPaths[iPathId][iPathPoint] = {}
         CBlock.tPaths[iPathId][iPathPoint].iX = tPoints[iPathPoint].iX
         CBlock.tPaths[iPathId][iPathPoint].iY = tPoints[iPathPoint].iY
+        CBlock.tPaths[iPathId][iPathPoint].iWaitTime = tPoints[iPathPoint].iWaitTime or 0
     end
 
     return iPathId
@@ -837,28 +879,33 @@ CBlock.CalculateMovableObjects = function()
             for iObjectId = 1, #CBlock.tObjects[iLayer] do
                 if CBlock.tObjects[iLayer][iObjectId] then
                     if CBlock.tObjects[iLayer][iObjectId].iPathId > 0 then
-                        local tPath = CBlock.tPaths[CBlock.tObjects[iLayer][iObjectId].iPathId]
-                        local tPathCurrentPoint = tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint]
-
-                        local iXPlus = 0
-                        if CBlock.tObjects[iLayer][iObjectId].iX < tPathCurrentPoint.iX then
-                            iXPlus = 1
-                        elseif CBlock.tObjects[iLayer][iObjectId].iX > tPathCurrentPoint.iX then
-                            iXPlus = -1
-                        end 
-                        local iYPlus = 0
-                        if CBlock.tObjects[iLayer][iObjectId].iY < tPathCurrentPoint.iY then
-                            iYPlus = 1
-                        elseif CBlock.tObjects[iLayer][iObjectId].iY > tPathCurrentPoint.iY then
-                            iYPlus = -1
-                        end 
-
-                        if iXPlus == 0 and iYPlus == 0 then
-                            CBlock.tObjects[iLayer][iObjectId].iPathPoint = CBlock.tObjects[iLayer][iObjectId].iPathPoint + 1
-                            if not tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint] then CBlock.tObjects[iLayer][iObjectId].iPathPoint = 1 end
+                        if CBlock.tObjects[iLayer][iObjectId].iPathWaitLeft > 0 then
+                            CBlock.tObjects[iLayer][iObjectId].iPathWaitLeft = CBlock.tObjects[iLayer][iObjectId].iPathWaitLeft - 1
                         else
-                            CBlock.tObjects[iLayer][iObjectId].iX = CBlock.tObjects[iLayer][iObjectId].iX + iXPlus
-                            CBlock.tObjects[iLayer][iObjectId].iY = CBlock.tObjects[iLayer][iObjectId].iY + iYPlus
+                            local tPath = CBlock.tPaths[CBlock.tObjects[iLayer][iObjectId].iPathId]
+                            local tPathCurrentPoint = tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint]
+
+                            local iXPlus = 0
+                            if CBlock.tObjects[iLayer][iObjectId].iX < tPathCurrentPoint.iX then
+                                iXPlus = 1
+                            elseif CBlock.tObjects[iLayer][iObjectId].iX > tPathCurrentPoint.iX then
+                                iXPlus = -1
+                            end 
+                            local iYPlus = 0
+                            if CBlock.tObjects[iLayer][iObjectId].iY < tPathCurrentPoint.iY then
+                                iYPlus = 1
+                            elseif CBlock.tObjects[iLayer][iObjectId].iY > tPathCurrentPoint.iY then
+                                iYPlus = -1
+                            end 
+
+                            if iXPlus == 0 and iYPlus == 0 then
+                                if tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint].iWaitTime then CBlock.tObjects[iLayer][iObjectId].iPathWaitLeft = tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint].iWaitTime; end
+                                CBlock.tObjects[iLayer][iObjectId].iPathPoint = CBlock.tObjects[iLayer][iObjectId].iPathPoint + 1
+                                if not tPath[CBlock.tObjects[iLayer][iObjectId].iPathPoint] then CBlock.tObjects[iLayer][iObjectId].iPathPoint = 1 end
+                            else
+                                CBlock.tObjects[iLayer][iObjectId].iX = CBlock.tObjects[iLayer][iObjectId].iX + iXPlus
+                                CBlock.tObjects[iLayer][iObjectId].iY = CBlock.tObjects[iLayer][iObjectId].iY + iYPlus
+                            end
                         end
                     elseif (CBlock.tObjects[iLayer][iObjectId].iVelX ~= 0 or CBlock.tObjects[iLayer][iObjectId].iVelY ~= 0) then
                         CBlock.tObjects[iLayer][iObjectId].iX = CBlock.tObjects[iLayer][iObjectId].iX + CBlock.tObjects[iLayer][iObjectId].iVelX
