@@ -564,15 +564,31 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     if CGameMode.tPlayerPosition[iPlayerID] ~= nil then
         local tLetter = tLoadedLetters[CGameMode.tPlayerPosition[iPlayerID]]
 
-        local iX = tGame.StartPositions[iPlayerID].X
-        local iY = tGame.StartPositions[iPlayerID].Y-1
+        if tGame.StartPositions[iPlayerID].Y > tGame.CenterY then
+            local iX = tGame.StartPositions[iPlayerID].X
+            local iY = tGame.StartPositions[iPlayerID].Y-1
 
-        for iLocalY = 1, tLetter.iSizeY do
-            for iLocalX = 1, tLetter.iSizeX do
-                if tLetter.tPaint[iLocalY][iLocalX] == 1 then
-                    if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY] then
-                        tFloor[iX+iLocalX][iY+iLocalY].iColor = iColor
-                        tFloor[iX+iLocalX][iY+iLocalY].iBright = iBright
+            for iLocalY = 1, tLetter.iSizeY do
+                for iLocalX = 1, tLetter.iSizeX do
+                    if tLetter.tPaint[iLocalY][iLocalX] == 1 then
+                        if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY] then
+                            tFloor[iX+iLocalX][iY+iLocalY].iColor = iColor
+                            tFloor[iX+iLocalX][iY+iLocalY].iBright = iBright
+                        end
+                    end
+                end
+            end
+        else
+            local iX = tGame.StartPositions[iPlayerID].X+1 + tLetter.iSizeX
+            local iY = tGame.StartPositions[iPlayerID].Y + tLetter.iSizeY
+
+            for iLocalY = 1, tLetter.iSizeY do
+                for iLocalX = 1, tLetter.iSizeX do
+                    if tLetter.tPaint[iLocalY][iLocalX] == 1 then
+                        if tFloor[iX-iLocalX] and tFloor[iX-iLocalX][iY-iLocalY] then
+                            tFloor[iX-iLocalX][iY-iLocalY].iColor = iColor
+                            tFloor[iX-iLocalX][iY-iLocalY].iBright = iBright
+                        end
                     end
                 end
             end
