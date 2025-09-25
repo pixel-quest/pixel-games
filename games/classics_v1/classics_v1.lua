@@ -87,6 +87,14 @@ local tButtonStruct = {
 
 local tArenaPlayerReady = {}
 
+local tPlayerColors = {}
+tPlayerColors[1] = CColors.GREEN
+tPlayerColors[2] = CColors.YELLOW
+tPlayerColors[3] = CColors.MAGENTA
+tPlayerColors[4] = CColors.CYAN
+tPlayerColors[5] = CColors.BLUE
+tPlayerColors[6] = CColors.RED
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -104,17 +112,53 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
+
     tGame.StartPositionSizeX = 3
 
-    local iX = math.floor(tGame.Cols/2) - (tGame.StartPositionSizeX*2)
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+    if tGame.ArenaMode then
+        local iX = math.floor(tGame.Cols/2) - (tGame.StartPositionSizeX*2)
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+            tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+        end
+    else
+        tGame.StartPositions = {}
+        for iPlayerID = 1, tConfig.PlayerCount do
+            tGame.StartPositions[iPlayerID] = {}
+            tGame.StartPositions[iPlayerID].Color = tPlayerColors[iPlayerID]
+            tGameStats.Players[iPlayerID].Color = tPlayerColors[iPlayerID]
 
-        if not tGame.ArenaMode then
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = math.floor(tGame.Rows/3)
-            iX = iX + (tGame.StartPositionSizeX*4)-1
+            tGame.StartPositions[iPlayerID].Y = math.floor((tGame.iMaxY-tGame.iMinY+1)/3)
+            if iPlayerID % 2 ~= 0 then
+                tGame.StartPositions[iPlayerID].X = tGame.CenterX - (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
+            else
+                tGame.StartPositions[iPlayerID].X = tGame.CenterX-1 + (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
+            end
+
+            if tGame.StartPositions[iPlayerID].X < tGame.iMinX or tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX > tGame.iMaxX then
+                CLog.print(tGame.StartPositions[iPlayerID].X)
+                tGame.StartPositions[iPlayerID] = nil
+                tGameStats.Players[iPlayerID].Color = CColors.NONE
+                tConfig.PlayerCount = iPlayerID-1
+                break;
+            end
         end
     end
 
@@ -200,8 +244,8 @@ function GameSetupTick()
             end
         end
     elseif not CGameMode.bCountDownStarted and CGameMode.bCanStart then
-        for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
-            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
+        for iX = tGame.CenterX, tGame.CenterX + 1 do
+            for iY = tGame.CenterY-1, tGame.CenterY do
                 tFloor[iX][iY].iColor = CColors.BLUE
                 tFloor[iX][iY].iBright = tConfig.Bright
                 if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
@@ -305,8 +349,7 @@ CGameMode.Start = function()
         AL.NewTimer(1000, function()
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-            if tGameStats.StageLeftDuration <= 0 then
-                CGameMode.EndGame()
+            if tGameStats.StageLeftDuration <= 0 and CGameMode.EndGame() then
                 return nil
             end
 
@@ -353,16 +396,20 @@ CGameMode.PlayerFinished = function(iPlayerID)
 end
 
 CGameMode.EndGame = function()
-    CAudio.StopBackground()
-
     local iMaxScore = -999
 
     for i = 1, #tGame.StartPositions do
         if tGameStats.Players[i].Score > iMaxScore then
             CGameMode.iWinnerID = i
             iMaxScore = tGameStats.Players[i].Score
+        elseif tGameStats.Players[i].Score == iMaxScore then
+            CAudio.PlayVoicesSyncFromScratch("draw_overtime.mp3")
+            tGameStats.StageLeftDuration = 15
+            return false
         end
     end
+
+    CAudio.StopBackground()
 
     iGameState = GAMESTATE_POSTGAME
 
@@ -377,6 +424,8 @@ CGameMode.EndGame = function()
     end)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+
+    return true
 end
 --//
 
