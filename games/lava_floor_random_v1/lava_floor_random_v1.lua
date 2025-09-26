@@ -412,7 +412,9 @@ CMap.GEN_TYPE_SQUAREFIELD = 2
 CMap.GEN_TYPE_LL = 3
 CMap.GEN_TYPE_DOORS = 4
 CMap.GEN_TYPE_CROSSHAIR = 5
-CMap.GEN_TYPE_MAX = 5
+CMap.GEN_TYPE_CENTERSAFE = 6
+CMap.GEN_TYPE_ARROWS = 7
+CMap.GEN_TYPE_MAX = 7
 
 CMap.iGenType = 0
 
@@ -432,9 +434,15 @@ CMap.NewGenType = function(iOldType)
     local iNewType = 0
 
     repeat iNewType = math.random(1, CMap.GEN_TYPE_MAX)
-    until iNewType ~= iOldType
+    until iNewType ~= iOldType and CMap.CheckRoomForGenType(iNewType)
 
-    return iNewType
+    return iNewType 
+end
+
+CMap.CheckRoomForGenType = function(iGenType)
+    if iGenType == CMap.GEN_TYPE_ARROWS and tGame.iMaxX-5 <= tGame.iMaxY then return false end
+
+    return true
 end
 
 CMap.CreateCoin = function(iX, iY)
@@ -655,6 +663,76 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_CROSSHAIR] = function()
     end  
 
     CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+end
+----//
+
+---- GENTYPE 6 - CENTERSAFE
+CMap.GenerateMapWithType[CMap.GEN_TYPE_CENTERSAFE] = function()
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            if (iX > tGame.CenterX-5 and iX <= tGame.CenterX+5) and (iY >= tGame.CenterY-1 and iY <= tGame.CenterY+1) then
+                CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+            elseif math.random(1,5) == 3 then
+                CMap.CreateCoin(iX, iY)
+            end
+        end
+    end    
+    if math.random(1,2) == 1 then 
+        for iX = 1, tGame.CenterY do
+            local iObjectId = CMap.CreateMovingRect(tGame.CenterX+iX, tGame.CenterY-iX, 1, 1, 1, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA) 
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+            iObjectId = CMap.CreateMovingRect(tGame.CenterX+iX, tGame.CenterY+iX, 1, 1, 1, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA) 
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+        end  
+    else
+        for iY = 1, tGame.CenterX do
+            local iObjectId = CMap.CreateMovingRect(tGame.CenterX-iY, iY, 1, 1, 0, 1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA) 
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+            iObjectId = CMap.CreateMovingRect(tGame.CenterX+iY, iY, 1, 1, 0, 1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA) 
+            CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+        end  
+    end
+end
+----//
+
+---- GENTYPE 7 - ARROWS
+CMap.GenerateMapWithType[CMap.GEN_TYPE_ARROWS] = function()
+    for iX = 0, tGame.CenterY do
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, tGame.CenterY-iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+1, tGame.CenterY-iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+2, tGame.CenterY-iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+        CBlock.NewBlock(CBlock.LAYER_GROUND, iX+3, tGame.CenterY-iX, CBlock.BLOCK_TYPE_LAVA)
+
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, tGame.CenterY+iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+1, tGame.CenterY+iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+2, tGame.CenterY+iX, CBlock.BLOCK_TYPE_SAFEGROUND)
+    end     
+
+    for iX = tGame.iMaxX+1, tGame.CenterY, -1 do
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+1, tGame.CenterY-(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)     
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, tGame.CenterY-(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)     
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX-1, tGame.CenterY-(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)     
+
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX+1, tGame.CenterY+(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)     
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, tGame.CenterY+(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)     
+        CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX-1, tGame.CenterY+(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_SAFEGROUND)   
+        CBlock.NewBlock(CBlock.LAYER_GROUND, iX-2, tGame.CenterY+(tGame.iMaxX-iX), CBlock.BLOCK_TYPE_LAVA)  
+    end       
+
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            if CBlock.IsEmpty(CBlock.LAYER_GROUND, iX, iY) then
+                CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            
+                if math.random(1,5) == 3 then
+                    CMap.CreateCoin(iX, iY)
+                end
+            end
+        end
+    end    
+
+    CMap.CreateMovingRect(tGame.CenterY+2, tGame.iMaxY, (tGame.iMaxX-tGame.CenterY*2)-2, 1 , 0, -1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)
 end
 ----//
 
