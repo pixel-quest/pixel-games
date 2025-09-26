@@ -411,7 +411,8 @@ CMap.GEN_TYPE_SAFEEDGES = 1
 CMap.GEN_TYPE_SQUAREFIELD = 2
 CMap.GEN_TYPE_LL = 3
 CMap.GEN_TYPE_DOORS = 4
-CMap.GEN_TYPE_MAX = 4
+CMap.GEN_TYPE_CROSSHAIR = 5
+CMap.GEN_TYPE_MAX = 5
 
 CMap.iGenType = 0
 
@@ -630,6 +631,30 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_DOORS] = function()
     makeADoor(tGame.CenterX+2, tGame.iMinY, false)
     makeADoor(tGame.iMinX, tGame.CenterY+2, false)
     makeADoor(tGame.CenterX+2, tGame.CenterY+2, true)
+end
+----//
+
+---- GENTYPE 5 - CROSSHAIR
+CMap.GenerateMapWithType[CMap.GEN_TYPE_CROSSHAIR] = function()
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+            if ((iX == tGame.CenterX or iX == tGame.CenterX+1) and (iY < tGame.CenterY-1 or iY > tGame.CenterY+1)) or ((iX < tGame.iMinX+6 or iX > tGame.iMaxX-6) and (iY >= tGame.CenterY-1 and iY <= tGame.CenterY+1)) then
+                CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+            elseif math.random(1,5) == 3 then
+                CMap.CreateCoin(iX, iY)
+            end
+        end
+    end      
+
+    local iObjectId = 0
+    if math.random(1,2) == 2 then
+        iObjectId = CMap.CreateMovingRect(tGame.iMinX, tGame.iMinY, 1, (tGame.iMaxY-tGame.iMinY+1), 1, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+    else
+        iObjectId = CMap.CreateMovingRect(tGame.iMinX, tGame.iMinY, (tGame.iMaxX-tGame.iMinX+1), 1, 0, 1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)  
+    end  
+
+    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
 end
 ----//
 
