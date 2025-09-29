@@ -894,7 +894,7 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil then return end
+    if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
 
     if click.Click then
