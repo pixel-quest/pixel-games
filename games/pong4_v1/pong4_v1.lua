@@ -168,8 +168,7 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady > 0 and CGameMode.bCanAutoStart) then
-        bAnyButtonClick = false
+    if iPlayersReady > 0 and CGameMode.bCanAutoStart then
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
         CGameMode.StartCountDown(10)
@@ -240,7 +239,7 @@ CGameMode.InitGameMode = function()
 
     CGameMode.iAlivePlayerCount = #tGame.StartPositions
 
-    local iBuildingSize = math.floor((tGame.iMaxY-tGame.iMinY)/3)
+    local iBuildingSize = 2--math.floor((tGame.iMaxY-tGame.iMinY)/3)
     CBuildings.NewBuilding(tGame.CenterX, tGame.iMinY, 2, iBuildingSize, 0, 0)
     CBuildings.NewBuilding(tGame.CenterX, tGame.iMaxY-iBuildingSize+1, 2, iBuildingSize, 0, 0)
 end
@@ -250,7 +249,7 @@ CGameMode.Announcer = function()
 
     CAudio.PlayVoicesSync("choose-color.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("pong4/pong4-rules.mp3")*1000 + 3000, function()
         CGameMode.bCanAutoStart = true
     end)    
 end
@@ -417,62 +416,56 @@ CBall.Thinker = function()
             local iNewY = CBall.iY + CBall.iVelY
             local bValid = true
 
-            if iNewY <= tGame.iMinY + 3 or iNewY >= tGame.iMaxY - 3 then
-                for iPlayerID = 1, #tGame.StartPositions do
-                    if CPods.tPods[iPlayerID] then
-                        if iNewX >= tGame.StartPositions[iPlayerID].X and iNewX <= tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 then
-                            if (tGame.StartPositions[iPlayerID].Y < tGame.CenterY and iNewY == tGame.iMinY) or (tGame.StartPositions[iPlayerID].Y > tGame.CenterY and iNewY == tGame.iMaxY) then
-                                CBall.ScoreGoal(iPlayerID)
-                                break;
-                            end
-                        end
-
-                        if iNewY == CPods.tPods[iPlayerID].iY then
-                            if (iNewX >= CPods.tPods[iPlayerID].iX and iNewX <= CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1) or (CBall.iX >= CPods.tPods[iPlayerID].iX and CBall.iX <= CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1) then
-                                if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
-
-                                if CBall.iX < CPods.tPods[iPlayerID].iX or CBall.iX > CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1 then
+            for iBuildingID = 1, #CBuildings.tBuildings do
+                if CBuildings.tBuildings[iBuildingID] then
+                    if (iNewY >= CBuildings.tBuildings[iBuildingID].iY and iNewY <= CBuildings.tBuildings[iBuildingID].iY + CBuildings.tBuildings[iBuildingID].iSizeY-1) or
+                        (CBall.iY >= CBuildings.tBuildings[iBuildingID].iY and CBall.iY <= CBuildings.tBuildings[iBuildingID].iY + CBuildings.tBuildings[iBuildingID].iSizeY-1) then
+                        if (iNewX >= CBuildings.tBuildings[iBuildingID].iX and iNewX <= CBuildings.tBuildings[iBuildingID].iX + CBuildings.tBuildings[iBuildingID].iSizeX-1) 
+                        or (CBall.iX >= CBuildings.tBuildings[iBuildingID].iX and CBall.iX <= CBuildings.tBuildings[iBuildingID].iX + CBuildings.tBuildings[iBuildingID].iSizeX-1) then
+                            if CBuildings.tBuildings[iBuildingID].iVelX ~= 0 then
+                                if CBall.iY == CBuildings.tBuildings[iBuildingID].iY then
+                                    CBall.iY = CBall.iY + CBall.iVelY
+                                    if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
+                                else
+                                    if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
+                                end
+                            else
+                                if CBall.iY ~= CBuildings.tBuildings[iBuildingID].iY and CBall.iY ~= (CBuildings.tBuildings[iBuildingID].iY + CBuildings.tBuildings[iBuildingID].iSizeY-1) then
+                                    if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
+                                else
                                     if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
                                 end
+                            end
 
-                                bValid = false
-                            end 
+                            bValid = false
+                        
+                            break;
                         end
                     end
                 end
             end
 
             if bValid then
-                for iBuildingID = 1, #CBuildings.tBuildings do
-                    if CBuildings.tBuildings[iBuildingID] then
-                        if (iNewY >= CBuildings.tBuildings[iBuildingID].iY and iNewY <= CBuildings.tBuildings[iBuildingID].iY + CBuildings.tBuildings[iBuildingID].iSizeY-1) or
-                            (CBall.iY >= CBuildings.tBuildings[iBuildingID].iY and CBall.iY <= CBuildings.tBuildings[iBuildingID].iY + CBuildings.tBuildings[iBuildingID].iSizeY-1) then
-                            if (iNewX >= CBuildings.tBuildings[iBuildingID].iX and iNewX <= CBuildings.tBuildings[iBuildingID].iX + CBuildings.tBuildings[iBuildingID].iSizeX-1) 
-                            or (CBall.iX >= CBuildings.tBuildings[iBuildingID].iX and CBall.iX <= CBuildings.tBuildings[iBuildingID].iX + CBuildings.tBuildings[iBuildingID].iSizeX-1) then
-                                if CBuildings.tBuildings[iBuildingID].iVelX ~= 0 then
-                                    if CBall.iY == CBuildings.tBuildings[iBuildingID].iY then
-                                        CBall.iY = CBall.iY + CBall.iVelY
-                                        if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
-                                    else
-                                        if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
-                                    end
-                                else
-                                    if CBuildings.tBuildings[iBuildingID].iY < tGame.CenterY then
-                                        if CBall.iY <= CBuildings.tBuildings[iBuildingID].iY+CBuildings.tBuildings[iBuildingID].iSizeY-1 then
-                                            if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
-                                        else
-                                            if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
-                                        end
-                                    else
-                                        if CBall.iY >= CBuildings.tBuildings[iBuildingID].iY then
-                                            if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
-                                        else
-                                            if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
-                                        end
-                                    end
+                if iNewY <= tGame.iMinY + 3 or iNewY >= tGame.iMaxY - 3 then
+                    for iPlayerID = 1, #tGame.StartPositions do
+                        if CPods.tPods[iPlayerID] then
+                            if iNewX >= tGame.StartPositions[iPlayerID].X and iNewX <= tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 then
+                                if (tGame.StartPositions[iPlayerID].Y < tGame.CenterY and iNewY == tGame.iMinY) or (tGame.StartPositions[iPlayerID].Y > tGame.CenterY and iNewY == tGame.iMaxY) then
+                                    CBall.ScoreGoal(iPlayerID)
+                                    break;
                                 end
+                            end
 
-                                bValid = false
+                            if iNewY == CPods.tPods[iPlayerID].iY then
+                                if (iNewX >= CPods.tPods[iPlayerID].iX and iNewX <= CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1) or (CBall.iX >= CPods.tPods[iPlayerID].iX and CBall.iX <= CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1) then
+                                    if CBall.iVelY == 1 then CBall.iVelY = -1; else CBall.iVelY = 1; end
+
+                                    if CBall.iX < CPods.tPods[iPlayerID].iX or CBall.iX > CPods.tPods[iPlayerID].iX + CPods.POD_SIZE-1 then
+                                        if CBall.iVelX == 1 then CBall.iVelX = -1; else CBall.iVelX = 1; end
+                                    end
+
+                                    bValid = false
+                                end 
                             end
                         end
                     end
@@ -797,6 +790,8 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
+
+    if click.Click then CGameMode.bCanAutoStart = true; end
 end
 
 function DefectButton(defect)

@@ -12,7 +12,7 @@
 	"Lives_ru": "Жизни игроков",
 	"Lives_en": "Lives",
 
-	"EnemySkill": 50,
+	"EnemySkill": 80,
 	"EnemySkill_Min": 0,
 	"EnemySkill_Max": 100,
 	"EnemySkill_Step": 5,
