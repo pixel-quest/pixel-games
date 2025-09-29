@@ -156,7 +156,7 @@ function NextTick()
 end
 
 function GameSetupTick()
-    SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright)
 
     if not CGameMode.bCountDownStarted then
         SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
@@ -319,6 +319,8 @@ CGameMode.EndGame = function()
 
     tGameResults.Won = true
     tGameResults.Color = tColors[CGameMode.iNextElimColorId]
+
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     iGameState = GAMESTATE_POSTGAME
     AL.NewTimer(10000, function()
@@ -528,12 +530,22 @@ CIntro.Start = function()
         local bCubesMoved = false
 
         for iCubeId = 1, 3 do
-            if CIntro.tCubes[iCubeId].iX ~= CIntro.tCubes[iCubeId].iTargetX then
+            if CIntro.tCubes[iCubeId].iY ~= CIntro.tCubes[iCubeId].iTargetY then
+                if CIntro.tCubes[iCubeId].iY < CIntro.tCubes[iCubeId].iTargetY then
+                    CIntro.tCubes[iCubeId].iY = CIntro.tCubes[iCubeId].iY + 1
+                else
+                    CIntro.tCubes[iCubeId].iY = CIntro.tCubes[iCubeId].iY - 1
+                end
+                bCubesMoved = true
+            elseif CIntro.tCubes[iCubeId].iX ~= CIntro.tCubes[iCubeId].iTargetX then
                 if CIntro.tCubes[iCubeId].iX < CIntro.tCubes[iCubeId].iTargetX then
                     CIntro.tCubes[iCubeId].iX = CIntro.tCubes[iCubeId].iX + 1
                 else
                     CIntro.tCubes[iCubeId].iX = CIntro.tCubes[iCubeId].iX - 1
                 end
+                bCubesMoved = true
+            elseif CIntro.tCubes[iCubeId].iY ~= CIntro.tCubes[iCubeId].iStartY then
+                CIntro.tCubes[iCubeId].iTargetY = CIntro.tCubes[iCubeId].iStartY
                 bCubesMoved = true
             end
         end
@@ -548,7 +560,7 @@ CIntro.Start = function()
             return nil
         end
 
-        return 300 - (20*tGameStats.StageNum)
+        return 150 - (20*tGameStats.StageNum)
     end)
 end
 
@@ -564,6 +576,8 @@ CIntro.SpawnCubes = function()
         CIntro.tCubes[iCubeId].iY = math.floor((tGame.iMaxY+1-tGame.iMinY)/2)
         CIntro.tCubes[iCubeId].iColor = CColors.WHITE
         CIntro.tCubes[iCubeId].iTargetX = CIntro.tCubes[iCubeId].iX
+        CIntro.tCubes[iCubeId].iTargetY = CIntro.tCubes[iCubeId].iY
+        CIntro.tCubes[iCubeId].iStartY = CIntro.tCubes[iCubeId].iY
 
         if iCubeId == 2 then
             CIntro.tCubes[iCubeId].iTrueColor = CGameMode.iNextElimColorId
@@ -587,7 +601,7 @@ CIntro.CubeColorCheck = function(iCubeId)
 end
 
 CIntro.ShuffleCubes = function()
-    local iShuffleCount = 8
+    local iShuffleCount = 8 + tGameStats.StageNum
 
     AL.NewTimer(1000, function()
         if CIntro.bNoCubeMovement then
@@ -596,7 +610,12 @@ CIntro.ShuffleCubes = function()
                 return nil
             else
                 CIntro.bNoCubeMovement = false
-                CIntro.SwitchTwoCubes(math.random(1,3), math.random(1,3))
+                
+                local iCubeId1 = math.random(1,3), iCubeId2
+                repeat iCubeId2 = math.random(1,3);
+                until iCubeId1 ~= iCubeId2;
+
+                CIntro.SwitchTwoCubes(iCubeId1, iCubeId2)
                 iShuffleCount = iShuffleCount - 1
             end
         end
@@ -606,13 +625,16 @@ CIntro.ShuffleCubes = function()
 end
 
 CIntro.SwitchTwoCubes = function(iCubeId1, iCubeId2)
-    CAudio.PlayVoicesSync("lfe/lfe-remember-color.mp3") --voice запомните цвет
-
     CIntro.tCubes[iCubeId1].iTargetX = CIntro.tCubes[iCubeId2].iX
+    CIntro.tCubes[iCubeId1].iTargetY = CIntro.tCubes[iCubeId2].iY - 2
+
     CIntro.tCubes[iCubeId2].iTargetX = CIntro.tCubes[iCubeId1].iX
+    CIntro.tCubes[iCubeId2].iTargetY = CIntro.tCubes[iCubeId1].iY + 2
 end
 
 CIntro.ShowTrueCubeColors = function()
+    CAudio.PlayVoicesSync("lfe/lfe-remember-color.mp3") --voice запомните цвет
+
     for iCubeId = 1, #CIntro.tCubes do
         CIntro.tCubes[iCubeId].iColor = tColors[CIntro.tCubes[iCubeId].iTrueColor]
     end
