@@ -1424,7 +1424,7 @@ function ButtonClick(click)
     if click.GamepadAddress and click.GamepadAddress > 0 and not bGamePaused then
         CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
     else
-        if tButtons[click.Button] == nil or bGamePaused then return end
+        if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
         tButtons[click.Button].bClick = click.Click
 
         if click.Click then
