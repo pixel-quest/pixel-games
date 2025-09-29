@@ -341,7 +341,7 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.LoadSongPixels = function()
-    for iBatchID = 1, #tGame.Song do
+    for iBatchID = 1, #tGame.Song+1 do
         if tGame.Song[iBatchID] then
             AL.NewTimer(tConfig.SongStartDelayMS + (tGame.Song[iBatchID][1] + tConfig.PixelMoveDelayMS), function()
                 CGameMode.SpawnBatch(iBatchID)
@@ -355,6 +355,7 @@ CGameMode.LoadSongPixels = function()
             end
 
             if iBatchID == #tGame.Song then
+                tGame.Song[iBatchID+1] = {tGame.Song[iBatchID][1]+1000, "F", "F", "F", "F"}
                 tGameStats.StageLeftDuration = math.floor(tGame.Song[iBatchID][1]/1000) + 10
             end
         end
@@ -389,6 +390,8 @@ CGameMode.SpawnBatch = function(iBatchID)
                 iColor = CColors.GREEN
             elseif string.match(tGame.Song[iBatchID][i], "R") then
                 iColor = CColors.YELLOW
+            elseif string.match(tGame.Song[iBatchID][i], "F") then
+                iColor = CColors.WHITE
             end
 
             if string.match(tGame.Song[iBatchID][i], "H") then
