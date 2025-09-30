@@ -244,7 +244,7 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("frogger/frogger.mp3")
     CAudio.PlayVoicesSync("frogger/frogger-rules.mp3")
 
-    AL.NewTimer(1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("frogger/frogger-rules.mp3")*1000 + 3000, function()
         CGameMode.bCanAutoStart = true
     end)
 end
@@ -311,6 +311,8 @@ CGameMode.RewardForTarget = function()
     tGameResults.Score = tGameResults.Score + 100
 
     tGameStats.StageLeftDuration = tGameStats.StageLeftDuration + math.floor(tConfig.TimeLimit/10)
+
+    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
     local iClearLaneID = math.random(1, #CLanes.tLanes)
     CLanes.ClearUnitsFromLane(iClearLaneID)
