@@ -89,22 +89,22 @@
       "Color": "0xFFFF00"
     },
     {
-      "X": 8,
+      "X": 10,
       "Y": 2,
       "Color": "0xFF00FF"
     },   
     {
-      "X": 16,
+      "X": 19,
       "Y": 3,
       "Color": "0x0000FF"
     },    
     {
-      "X": 16,
+      "X": 19,
       "Y": 11,
       "Color": "0x00FFFF"
     },    
     {
-      "X": 8,
+      "X": 10,
       "Y": 12,
       "Color": "0xFFFFFF"
     }        
@@ -112,7 +112,7 @@
   "StartPositionSizeX": 6,
   "StartPositionSizeY": 3,
 
-  "PreviewPosX": 8,
+  "PreviewPosX": 10,
   "PreviewPosY": 7,
   "PreviewColor": "0x00FF00"
 }
