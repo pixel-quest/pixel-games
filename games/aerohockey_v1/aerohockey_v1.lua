@@ -71,6 +71,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    iTime = 0,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -274,17 +275,18 @@ CGameMode.EndGame = function(iWinnerID)
 end
 
 CGameMode.StartRound = function()
-    CPhysics.tObjects[CGameMode.PO_BALL].iVelX = math.random(-1,1)
-    CPhysics.tObjects[CGameMode.PO_BALL].iVelY = math.random(-1,1)
+    CPhysics.tObjects[CGameMode.PO_BALL].iVelX = math.random(math.floor(CPhysics.MAX_VELOCITY/8), math.floor(CPhysics.MAX_VELOCITY/5))
+    CPhysics.tObjects[CGameMode.PO_BALL].iVelY = math.random(math.floor(CPhysics.MAX_VELOCITY/8), math.floor(CPhysics.MAX_VELOCITY/5))
+    if math.random(1,2) == 2 then CPhysics.tObjects[CGameMode.PO_BALL].iVelX = -CPhysics.tObjects[CGameMode.PO_BALL].iVelX; end
+    if math.random(1,2) == 2 then CPhysics.tObjects[CGameMode.PO_BALL].iVelY = -CPhysics.tObjects[CGameMode.PO_BALL].iVelY; end
 end
 
 CGameMode.GameLoop = function()
-    AL.NewTimer(200, function()
+    AL.NewTimer(100, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
         
         CPlayerControls.Tick()
-        CPhysics.Tick()
-        return 200
+        return 100
     end)    
 end
 
@@ -323,48 +325,28 @@ CPlayerControls.InitField = function()
     CPlayerControls.tZones[1].iY = tGame.iMinY
     CPlayerControls.tZones[1].iSizeX = tGame.CenterX-1 - math.floor(CPlayerControls.iMiddleSize/2)
     CPlayerControls.tZones[1].iSizeY = tGame.iMaxY
+    CPlayerControls.tZones[1].iTargetTime = CTime.unix()
 
     CPlayerControls.tZones[2] = {}
     CPlayerControls.tZones[2].iX = tGame.CenterX+1 + math.floor(CPlayerControls.iMiddleSize/2)
     CPlayerControls.tZones[2].iY = tGame.iMinY
     CPlayerControls.tZones[2].iSizeX = tGame.iMaxX - 1 - CPlayerControls.tZones[1].iX
     CPlayerControls.tZones[2].iSizeY = tGame.iMaxY
+    CPlayerControls.tZones[2].iTargetTime = CTime.unix()
 end
 
 CPlayerControls.Tick = function()
     for iZone = 1, #CPlayerControls.tZones do
-        local iMW1 = 0
-        local iMW1X = 0
-        local iMW1Y = 0
-        local iMW2 = 0
-        local iMW2X = 0
-        local iMW2Y = 0
-
         for iX = CPlayerControls.tZones[iZone].iX, CPlayerControls.tZones[iZone].iX + CPlayerControls.tZones[iZone].iSizeX-1 do
             for iY = CPlayerControls.tZones[iZone].iY, CPlayerControls.tZones[iZone].iY + CPlayerControls.tZones[iZone].iSizeY-1 do
                 if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect then
-                    if tFloor[iX][iY].iWeight > iMW1 then
-                        iMW1 = tFloor[iX][iY].iWeight
-                        iMW1X = iX
-                        iMW1Y = iY
-                    elseif tFloor[iX][iY].iWeight > iMW2 then
-                        iMW2 = tFloor[iX][iY].iWeight
-                        iMW2X = iX
-                        iMW2Y = iY
+                    if tFloor[iX][iY].iTime > CPlayerControls.tZones[iZone].iTargetTime then
+                        CPlayerControls.tZones[iZone].iTargetTime = tFloor[iX][iY].iTime
+                        CPhysics.tObjects[iZone].iVelX = (iX - CPhysics.tObjects[iZone].iX)*tGame.Rows
+                        CPhysics.tObjects[iZone].iVelY = (iY - CPhysics.tObjects[iZone].iY)*tGame.Cols
                     end
                 end
             end
-        end
-
-        if iMW1X ~= 0 and iMW2X ~= 0 then
-            CPhysics.tObjects[iZone].iX = iMW2X + math.floor((iMW1X - iMW2X)/2)
-            CPhysics.tObjects[iZone].iY = iMW2Y + math.floor((iMW1Y - iMW2Y)/2)
-        elseif iMW1X ~= 0 then
-            CPhysics.tObjects[iZone].iX = iMW1X
-            CPhysics.tObjects[iZone].iY = iMW1Y
-        elseif iMW2X ~= 0 then
-            CPhysics.tObjects[iZone].iX = iMW2X
-            CPhysics.tObjects[iZone].iY = iMW2Y
         end
     end 
 end
@@ -395,6 +377,8 @@ CPhysics.TYPE_PLAYER = 1
 CPhysics.TYPE_BALL = 2
 CPhysics.TYPE_GOAL = 3
 
+CPhysics.MAX_VELOCITY = 250
+
 CPhysics.NewPhysicsObject = function(iX, iY, iSize, iPhysicsType, iColor, iPlayerID)
     local iObjectID = #CPhysics.tObjects+1
     CPhysics.tObjects[iObjectID] = {}
@@ -405,73 +389,146 @@ CPhysics.NewPhysicsObject = function(iX, iY, iSize, iPhysicsType, iColor, iPlaye
     CPhysics.tObjects[iObjectID].iColor = iColor
     CPhysics.tObjects[iObjectID].iVelX = 0
     CPhysics.tObjects[iObjectID].iVelY = 0
-    CPhysics.tObjects[iObjectID].iTargetX = 0
-    CPhysics.tObjects[iObjectID].iTargetY = 0
     CPhysics.tObjects[iObjectID].iPlayerID = iPlayerID or 0
+
+    if iPhysicsType == CPhysics.TYPE_PLAYER or iPhysicsType == CPhysics.TYPE_BALL then
+        AL.NewTimer(100, function()
+            if iGameState > GAMESTATE_GAME then return nil; end
+            if CPhysics.tObjects[iObjectID].iVelX == 0 then return 100; end
+
+            if CPhysics.tObjects[iObjectID].iVelX > CPhysics.MAX_VELOCITY then CPhysics.tObjects[iObjectID].iVelX = CPhysics.MAX_VELOCITY; end
+            if CPhysics.tObjects[iObjectID].iVelX < -CPhysics.MAX_VELOCITY then CPhysics.tObjects[iObjectID].iVelX = -CPhysics.MAX_VELOCITY; end
+
+            local iXPlus = -1
+            if CPhysics.tObjects[iObjectID].iVelX > 0 then
+                iXPlus = 1
+            end
+
+            local bValidMove = CPhysics.CalculateObjectMove(iObjectID, iXPlus, 0)
+            if not bValidMove then
+                if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
+                    CAudio.PlaySystemAsync("dodge/ball-bounce.mp3")
+                end
+
+                return 25
+            end
+
+            CPhysics.tObjects[iObjectID].iVelX = CPhysics.tObjects[iObjectID].iVelX*0.95
+
+            return (CPhysics.MAX_VELOCITY + 50) - math.abs(CPhysics.tObjects[iObjectID].iVelX)
+        end)
+
+        AL.NewTimer(100, function()
+            if iGameState > GAMESTATE_GAME then return nil; end
+            if CPhysics.tObjects[iObjectID].iVelY == 0 then return 100; end
+
+            if CPhysics.tObjects[iObjectID].iVelY > CPhysics.MAX_VELOCITY then CPhysics.tObjects[iObjectID].iVelY = CPhysics.MAX_VELOCITY; end
+            if CPhysics.tObjects[iObjectID].iVelY < -CPhysics.MAX_VELOCITY then CPhysics.tObjects[iObjectID].iVelY = -CPhysics.MAX_VELOCITY; end
+
+            local iYPlus = -1
+            if CPhysics.tObjects[iObjectID].iVelY > 0 then
+                iYPlus = 1
+            end
+
+            local bValidMove = CPhysics.CalculateObjectMove(iObjectID, 0, iYPlus)
+            if not bValidMove then
+                if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
+                    CAudio.PlaySystemAsync("dodge/ball-bounce.mp3")
+                end
+
+                return 25
+            end
+
+            CPhysics.tObjects[iObjectID].iVelY = CPhysics.tObjects[iObjectID].iVelY*0.95
+
+            return (CPhysics.MAX_VELOCITY + 50) - math.abs(CPhysics.tObjects[iObjectID].iVelY)
+        end)        
+    end
 
     return iObjectID
 end
 
-CPhysics.Tick = function()
-    local moveObject = function(iObjectID)
-        CLog.print(iObjectID)
-        CPhysics.tObjects[iObjectID].iX = CPhysics.tObjects[iObjectID].iX + CPhysics.tObjects[iObjectID].iVelX
-        CPhysics.tObjects[iObjectID].iY = CPhysics.tObjects[iObjectID].iY + CPhysics.tObjects[iObjectID].iVelY
+CPhysics.CalculateObjectMove = function(iObjectID, iXPlus, iYPlus)
+    if iXPlus == 0 and iYPlus == 0 then return true; end
+
+    local iNewX = CPhysics.tObjects[iObjectID].iX + iXPlus
+    local iNewY = CPhysics.tObjects[iObjectID].iY + iYPlus
+
+    if iXPlus ~= 0 then
+        if iNewX < 1 or iNewX > tGame.Cols then
+            if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
+                CPhysics.ReverseObjectVelocity(iObjectID, true)
+            end
+
+            return false
+        end
+    else
+        if iNewY < 1 or iNewY > tGame.Rows then
+            if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
+                CPhysics.ReverseObjectVelocity(iObjectID, false)
+            end
+
+            return false
+        end
     end
 
-    for iObjectID = 1, #CPhysics.tObjects do
-        if CPhysics.tObjects[iObjectID] then
-            moveObject(iObjectID)
-        
-            if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
-                local bBounce = false
+    if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_PLAYER then
+        if (iNewX < CPlayerControls.tZones[iObjectID].iX or iNewX > CPlayerControls.tZones[iObjectID].iX+CPlayerControls.tZones[iObjectID].iSizeX-1) then
+            CPhysics.tObjects[iObjectID].iVelX = 0
+            return false 
+        elseif (iNewY < CPlayerControls.tZones[iObjectID].iY or iNewY > CPlayerControls.tZones[iObjectID].iY+CPlayerControls.tZones[iObjectID].iSizeY-1) then
+            CPhysics.tObjects[iObjectID].iVelY = 0
+            return false
+        end
+    end
 
-                for iColID = 1, #CPhysics.tObjects do
-                    if iColID ~= iObjectID and CPhysics.tObjects[iColID] then
-                        if CPhysics.tObjects[iColID].iPhysicsType == CPhysics.TYPE_PLAYER then
-                            if CPhysics.CircleCollisionCheck(CPhysics.tObjects[iObjectID].iX, CPhysics.tObjects[iObjectID].iY, CPhysics.tObjects[iObjectID].iSize, CPhysics.tObjects[iColID].iX, CPhysics.tObjects[iColID].iY, CPhysics.tObjects[iColID].iSize) then
-                                CPhysics.tObjects[iObjectID].iVelX = -CPhysics.tObjects[iObjectID].iVelX
-                                if (CPhysics.tObjects[iObjectID].iVelX > 0 and CPhysics.tObjects[iColID].iVelX > 0) or (CPhysics.tObjects[iObjectID].iVelX < 0 and CPhysics.tObjects[iColID].iVelX < 0) then
-                                    CPhysics.tObjects[iObjectID].iVelX = CPhysics.tObjects[iObjectID].iVelX + CPhysics.tObjects[iColID].iVelX
-                                    bBounce = true
-                                end
-                                if (CPhysics.tObjects[iObjectID].iVelY > 0 and CPhysics.tObjects[iColID].iVelY > 0) or (CPhysics.tObjects[iObjectID].iVelY < 0 and CPhysics.tObjects[iColID].iVelY < 0) then
-                                    CPhysics.tObjects[iObjectID].iVelY = CPhysics.tObjects[iObjectID].iVelY + CPhysics.tObjects[iColID].iVelY
-                                    bBounce = true
-                                end
+    if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_BALL then
+        for iColID = 1, #CPhysics.tObjects do
+            if CPhysics.tObjects[iColID].iPhysicsType == CPhysics.TYPE_PLAYER then
+                if CPhysics.CircleCollisionCheck(CPhysics.tObjects[iColID].iX, CPhysics.tObjects[iColID].iY, CPhysics.tObjects[iColID].iSize, iNewX, iNewY, CPhysics.tObjects[iObjectID].iSize) then
+                    CLog.print("coll")
+                    if iXPlus ~= 0 then
+                        CPhysics.ReverseObjectVelocity(iObjectID, true)
+                        CPhysics.tObjects[iObjectID].iVelX = CPhysics.tObjects[iObjectID].iVelX + math.floor(CPhysics.tObjects[iColID].iVelX*1.25)
+                    else
+                        CPhysics.ReverseObjectVelocity(iObjectID, false)
+                        CPhysics.tObjects[iObjectID].iVelY = CPhysics.tObjects[iObjectID].iVelY + math.floor(CPhysics.tObjects[iColID].iVelY*1.25)
+                    end
 
-                                moveObject(iObjectID)
-                            end
-                        elseif CPhysics.tObjects[iColID].iPhysicsType == CPhysics.TYPE_GOAL then
-                            if AL.RectIntersects2(CPhysics.tObjects[iObjectID].iX, CPhysics.tObjects[iObjectID].iY, 1, 1, CPhysics.tObjects[iColID].iX, CPhysics.tObjects[iColID].iY, 1, CPhysics.tObjects[iColID].iSize+1) then
-                                CGameMode.ScoreGoal(CPhysics.tObjects[iColID].iPlayerID)
-                                return;
-                            end
+                    return false
+                end
+            end
+        end
+
+        if iNewX == 1 or iNewX == tGame.Cols then
+            for iGateID = 1, #CPhysics.tObjects do
+                if CPhysics.tObjects[iGateID].iPhysicsType == CPhysics.TYPE_GOAL then
+                    if iNewX == CPhysics.tObjects[iGateID].iX then
+                        if iNewY >= CPhysics.tObjects[iGateID].iY and iNewY <= (CPhysics.tObjects[iGateID].iY + CPhysics.tObjects[iGateID].iSize-1) then
+                            CGameMode.ScoreGoal(CPhysics.tObjects[iGateID].iPlayerID)
+                            return true
                         end
                     end
-                end
-
-                if not bBounce then
-                    if (CPhysics.tObjects[iObjectID].iX == 1 and CPhysics.tObjects[iObjectID].iVelX < 0) or (CPhysics.tObjects[iObjectID].iX == tGame.Cols and CPhysics.tObjects[iObjectID].iVelX > 0) then
-                        CPhysics.tObjects[iObjectID].iVelX = -CPhysics.tObjects[iObjectID].iVelX
-                        bBounce = true
-                    end
-                    if (CPhysics.tObjects[iObjectID].iY == 1 and CPhysics.tObjects[iObjectID].iVelY < 0) or (CPhysics.tObjects[iObjectID].iY == tGame.Rows and CPhysics.tObjects[iObjectID].iVelY > 0) then
-                        CPhysics.tObjects[iObjectID].iVelY = -CPhysics.tObjects[iObjectID].iVelY
-                        bBounce = true
-                    end
-                end
-
-                if bBounce == true then
-                    CAudio.PlaySystemAsync("dodge/ball-bounce.mp3")
                 end
             end
         end
     end
+
+    CPhysics.tObjects[iObjectID].iX = iNewX
+    CPhysics.tObjects[iObjectID].iY = iNewY
+    return true
+end
+
+CPhysics.ReverseObjectVelocity = function(iObjectID, bX)
+    if bX then
+        CPhysics.tObjects[iObjectID].iVelX = (-CPhysics.tObjects[iObjectID].iVelX)*1.15 
+    else
+        CPhysics.tObjects[iObjectID].iVelY = (-CPhysics.tObjects[iObjectID].iVelY)*1.15 
+    end
 end
 
 CPhysics.Paint = function()
-    local paintPixel = function(iX, iY, iColor)
+    local paintPixel = function(iX, iY, iColor, iBright)
         if tFloor[iX] and tFloor[iX][iY] then
             tFloor[iX][iY].iColor = iColor
             tFloor[iX][iY].iBright = tConfig.Bright
@@ -624,6 +681,7 @@ function PixelClick(click)
 
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
+        tFloor[click.X][click.Y].iTime = CTime.unix()
     end
 end
 
