@@ -186,39 +186,39 @@ end
 CCircles.UpdateCircle = function(iCircleId)
     CCircles.tCircles[iCircleId].iSize = CCircles.tCircles[iCircleId].iSize + 1
 
-    if CCircles.tCircles[iCircleId].iSize >= tConfig.MaxCircleSize then
+    if CCircles.tCircles[iCircleId].iSize >= (tGame.Cols*1.5) then
         CCircles.tCircles[iCircleId] = nil
     end 
 end
 
 CCircles.PaintCircle = function(iCircleId)
-    local iX = CCircles.tCircles[iCircleId].iX
-    local iY = CCircles.tCircles[iCircleId].iY
-    local iSize = CCircles.tCircles[iCircleId].iSize
-    local iSize2 = 3-2*iSize
+    local iXM = CCircles.tCircles[iCircleId].iX
+    local iYM = CCircles.tCircles[iCircleId].iY
+    local iR = CCircles.tCircles[iCircleId].iSize
 
-    for i = 0, iSize do
-        CCircles.PaintCirclePixel(iCircleId, iX + i, iY + iSize)
-        CCircles.PaintCirclePixel(iCircleId, iX + i, iY - iSize)
-        CCircles.PaintCirclePixel(iCircleId, iX - i, iY + iSize)
-        CCircles.PaintCirclePixel(iCircleId, iX - i, iY - iSize)
+    local iX = -iR
+    local iY = 0
+    local iR2 = 2-2*iR
 
-        CCircles.PaintCirclePixel(iCircleId, iX + iSize, iY + i)
-        CCircles.PaintCirclePixel(iCircleId, iX + iSize, iY - i)
-        CCircles.PaintCirclePixel(iCircleId, iX - iSize, iY + i)
-        CCircles.PaintCirclePixel(iCircleId, iX - iSize, iY - i)
+    repeat
+        CCircles.PaintCirclePixel(iCircleId, iXM-iX, iYM+iY)
+        CCircles.PaintCirclePixel(iCircleId, iXM-iY, iYM-iX)
+        CCircles.PaintCirclePixel(iCircleId, iXM+iX, iYM-iY)
+        CCircles.PaintCirclePixel(iCircleId, iXM+iY, iYM+iX)
 
-        if iSize2 < 0 then
-            iSize2 = iSize2 + 4*i + 6
-        else
-            iSize2 = iSize2 + 4*(i-iSize) + 10
-            iSize = iSize - 1
+        iR = iR2
+        if iR <= iY then 
+            iY = iY+1
+            iR2 = iR2 + (iY * 2 + 1) 
         end
-    end
+        if iR > iX or iR2 > iY then 
+            iX = iX+1
+            iR2 = iR2 + (iX * 2 + 1) 
+        end
+    until iX > 0
 end
 
 CCircles.PaintCirclePixel = function(iCircleId, iX, iY)
-
     for iX2 = iX-1, iX+1 do
         if tFloor[iX2] and tFloor[iX2][iY] then
             tFloor[iX2][iY].iColor = CCircles.tCircles[iCircleId].iColor
