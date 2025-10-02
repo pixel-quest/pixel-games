@@ -179,11 +179,11 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady >= 4 and CGameMode.bCanAutoStart) then
+    if bAnyButtonClick or (iPlayersReady >= 2 and CGameMode.bCanAutoStart) then
         bAnyButtonClick = false
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
-        CGameMode.StartCountDown(3)
+        CGameMode.StartCountDown(15)
     end
 
     tGameResults.PlayersCount = iPlayersReady
@@ -284,7 +284,7 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("snow-forts/snowforts-guide.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
-    AL.NewTimer(CAudio.GetVoicesDuration("snow-forts/snowforts-guide.mp3"), function()
+    AL.NewTimer(CAudio.GetVoicesDuration("snow-forts/snowforts-guide.mp3")*1000 + 3000, function()
         CGameMode.bCanAutoStart = true
     end)
 end
@@ -506,6 +506,7 @@ CForts.GetNextShotVelocity = function(iFortID)
     elseif CForts.tForts[iFortID].iCrossHairPosX == CForts.tForts[iFortID].iX + CForts.iFortSize-1 then
         iVelX = 1
     end
+
     if CForts.tForts[iFortID].iCrossHairPosY == CForts.tForts[iFortID].iY then
         iVelY = -1
     elseif CForts.tForts[iFortID].iCrossHairPosY == CForts.tForts[iFortID].iY + CForts.iFortSize-1 then
@@ -521,11 +522,23 @@ CForts.CanThrowSnowBall = function(iFortID)
     if not tFloor[CForts.tForts[iFortID].iCrossHairPosX] or not tFloor[CForts.tForts[iFortID].iCrossHairPosX][CForts.tForts[iFortID].iCrossHairPosY] then return false; end
 
     local iVelX, iVelY = CForts.GetNextShotVelocity(iFortID)
-    local iNewX = CForts.tForts[iFortID].iCrossHairPosX + iVelX
-    local iNewY = CForts.tForts[iFortID].iCrossHairPosY + iVelY
-    if not tFloor[iNewX] or not tFloor[iNewX][iNewY] then return false; end
+    if not CForts.ValidShotVelocity(iFortID, iVelX, true) and not CForts.ValidShotVelocity(iFortID, iVelY, false) then return false; end
 
     return true    
+end
+
+CForts.ValidShotVelocity = function(iFortID, iVel, bX)
+    if iVel == 0 then return false; end
+
+    if bX then
+        local iNewX = CForts.tForts[iFortID].iCrossHairPosX + iVel
+        if not tFloor[iNewX] or not tFloor[iNewX][CForts.tForts[iFortID].iCrossHairPosY] then return false; end
+    else
+        local iNewY = CForts.tForts[iFortID].iCrossHairPosY + iVel
+        if not tFloor[CForts.tForts[iFortID].iCrossHairPosX][iNewY] then return false; end        
+    end
+
+    return true
 end
 
 CForts.ThrowSnowBall = function(iFortID)
@@ -536,6 +549,9 @@ CForts.ThrowSnowBall = function(iFortID)
     end)
 
     local iVelX, iVelY = CForts.GetNextShotVelocity(iFortID)
+    if not CForts.ValidShotVelocity(iFortID, iVelX, true) then iVelX = 0; end
+    if not CForts.ValidShotVelocity(iFortID, iVelY, false) then iVelY = 0; end
+    if iVelX ~= 0 and iVelY ~= 0 then iVelY = 0; end
     CProjectiles.NewProjectile(CForts.tForts[iFortID].iCrossHairPosX, CForts.tForts[iFortID].iCrossHairPosY, iVelX, iVelY, iFortID)
 end
 
