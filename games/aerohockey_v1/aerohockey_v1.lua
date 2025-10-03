@@ -326,6 +326,8 @@ CPlayerControls.InitField = function()
     CPlayerControls.tZones[1].iSizeX = tGame.CenterX-1 - math.floor(CPlayerControls.iMiddleSize/2)
     CPlayerControls.tZones[1].iSizeY = tGame.iMaxY
     CPlayerControls.tZones[1].iTargetTime = CTime.unix()
+    CPlayerControls.tZones[1].iTargetX = 0
+    CPlayerControls.tZones[1].iTargetY = 0
 
     CPlayerControls.tZones[2] = {}
     CPlayerControls.tZones[2].iX = tGame.CenterX+1 + math.floor(CPlayerControls.iMiddleSize/2)
@@ -333,17 +335,24 @@ CPlayerControls.InitField = function()
     CPlayerControls.tZones[2].iSizeX = tGame.iMaxX - 1 - CPlayerControls.tZones[1].iX
     CPlayerControls.tZones[2].iSizeY = tGame.iMaxY
     CPlayerControls.tZones[2].iTargetTime = CTime.unix()
+    CPlayerControls.tZones[2].iTargetX = 0
+    CPlayerControls.tZones[2].iTargetY = 0    
 end
 
 CPlayerControls.Tick = function()
     for iZone = 1, #CPlayerControls.tZones do
         for iX = CPlayerControls.tZones[iZone].iX, CPlayerControls.tZones[iZone].iX + CPlayerControls.tZones[iZone].iSizeX-1 do
             for iY = CPlayerControls.tZones[iZone].iY, CPlayerControls.tZones[iZone].iY + CPlayerControls.tZones[iZone].iSizeY-1 do
-                if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect then
-                    if tFloor[iX][iY].iTime > CPlayerControls.tZones[iZone].iTargetTime then
-                        CPlayerControls.tZones[iZone].iTargetTime = tFloor[iX][iY].iTime
-                        CPhysics.tObjects[iZone].iVelX = (iX - CPhysics.tObjects[iZone].iX)*tGame.Rows
-                        CPhysics.tObjects[iZone].iVelY = (iY - CPhysics.tObjects[iZone].iY)*tGame.Cols
+                if not (iX == CPlayerControls.tZones[iZone].iTargetX and iY == CPlayerControls.tZones[iZone].iTargetY) then 
+                    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and (CTime.unix() - tFloor[iX][iY].iTime) < 750 then
+                        if tFloor[iX][iY].iTime > CPlayerControls.tZones[iZone].iTargetTime then
+                            CPlayerControls.tZones[iZone].iTargetTime = tFloor[iX][iY].iTime
+                            CPlayerControls.tZones[iZone].iTargetX = iX
+                            CPlayerControls.tZones[iZone].iTargetY = iY
+
+                            CPhysics.tObjects[iZone].iVelX = (iX - CPhysics.tObjects[iZone].iX)*(tGame.Rows+tGame.Cols)
+                            CPhysics.tObjects[iZone].iVelY = (iY - CPhysics.tObjects[iZone].iY)*(tGame.Rows+tGame.Cols)
+                        end
                     end
                 end
             end
@@ -473,6 +482,13 @@ CPhysics.CalculateObjectMove = function(iObjectID, iXPlus, iYPlus)
     end
 
     if CPhysics.tObjects[iObjectID].iPhysicsType == CPhysics.TYPE_PLAYER then
+        if iNewX == CPlayerControls.tZones[iObjectID].iTargetX then
+            CPhysics.tObjects[iObjectID].iVelX = 0
+        end
+        if iNewY == CPlayerControls.tZones[iObjectID].iTargetY then
+            CPhysics.tObjects[iObjectID].iVelY = 0
+        end
+
         if (iNewX < CPlayerControls.tZones[iObjectID].iX or iNewX > CPlayerControls.tZones[iObjectID].iX+CPlayerControls.tZones[iObjectID].iSizeX-1) then
             CPhysics.tObjects[iObjectID].iVelX = 0
             return false 
@@ -500,14 +516,12 @@ CPhysics.CalculateObjectMove = function(iObjectID, iXPlus, iYPlus)
             end
         end
 
-        if iNewX == 1 or iNewX == tGame.Cols then
-            for iGateID = 1, #CPhysics.tObjects do
-                if CPhysics.tObjects[iGateID].iPhysicsType == CPhysics.TYPE_GOAL then
-                    if iNewX == CPhysics.tObjects[iGateID].iX then
-                        if iNewY >= CPhysics.tObjects[iGateID].iY and iNewY <= (CPhysics.tObjects[iGateID].iY + CPhysics.tObjects[iGateID].iSize-1) then
-                            CGameMode.ScoreGoal(CPhysics.tObjects[iGateID].iPlayerID)
-                            return true
-                        end
+        for iGateID = 1, #CPhysics.tObjects do
+            if CPhysics.tObjects[iGateID].iPhysicsType == CPhysics.TYPE_GOAL then
+                if iNewX == CPhysics.tObjects[iGateID].iX then
+                    if iNewY >= CPhysics.tObjects[iGateID].iY and iNewY <= (CPhysics.tObjects[iGateID].iY + CPhysics.tObjects[iGateID].iSize-1) then
+                        CGameMode.ScoreGoal(CPhysics.tObjects[iGateID].iPlayerID)
+                        return true
                     end
                 end
             end
