@@ -235,9 +235,22 @@ function PostGameTick()
 end
 
 function RangeFloor(setPixel, setButton)
-    for iX = 1, tGame.Cols do
-        for iY = 1, tGame.Rows do
-            setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+    if not tGame.MirrorGame then
+        for iX = 1, tGame.Cols do
+            for iY = 1, tGame.Rows do
+                setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            end
+        end
+    else
+        local iLocalX = 0
+        local iLocalY = 0
+        for iX = tGame.Cols, 1, -1 do
+            iLocalX = iLocalX + 1
+            for iY = tGame.Rows, 1, -1 do
+                iLocalY = iLocalY + 1
+                setPixel(iLocalX, iLocalY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            end
+            iLocalY = 0
         end
     end
 
@@ -996,32 +1009,40 @@ function PixelClick(click)
             return;
         end
         
+        local clickX = click.X
+        local clickY = click.Y
+
+        if tGame.MirrorGame then
+            clickX = tGame.Cols+1-click.X
+            clickY = tGame.Rows+1-click.Y
+        end
+
         if iGameState == GAMESTATE_SETUP then
             if click.Click then
-                tFloor[click.X][click.Y].bClick = true
-                tFloor[click.X][click.Y].bHold = false
-            elseif not tFloor[click.X][click.Y].bHold then
+                tFloor[clickX][clickY].bClick = true
+                tFloor[clickX][clickY].bHold = false
+            elseif not tFloor[clickX][clickY].bHold then
                 AL.NewTimer(500, function()
-                    if not tFloor[click.X][click.Y].bHold then
-                        tFloor[click.X][click.Y].bHold = true
+                    if not tFloor[clickX][clickY].bHold then
+                        tFloor[clickX][clickY].bHold = true
                         AL.NewTimer(750, function()
-                            if tFloor[click.X][click.Y].bHold then
-                                tFloor[click.X][click.Y].bClick = false
+                            if tFloor[clickX][clickY].bHold then
+                                tFloor[clickX][clickY].bClick = false
                             end
                         end)
                     end
                 end)
             end
-            tFloor[click.X][click.Y].iWeight = click.Weight
+            tFloor[clickX][clickY].iWeight = click.Weight
 
             return
         end
         
-        tFloor[click.X][click.Y].bClick = click.Click
-        tFloor[click.X][click.Y].iWeight = click.Weight
+        tFloor[clickX][clickY].bClick = click.Click
+        tFloor[clickX][clickY].iWeight = click.Weight
 
         if click.Click and not tFloor[click.X][click.Y].bDefect then
-            if tFloor[click.X][click.Y].fFunction then tFloor[click.X][click.Y].fFunction() end
+            if tFloor[clickX][clickY].fFunction then tFloor[clickX][clickY].fFunction() end
         end
     end
 end
