@@ -12,6 +12,13 @@
 	"TeamHealth_ru": "Жизни команды(0 для бесконечных)",
 	"TeamHealth_en": "Team Lives(0 for infinite)",
 
+	"BridgeSize": 4,
+	"BridgeSize_Min": 2,
+	"BridgeSize_Max": 6,
+	"BridgeSize_Step": 1,
+	"BridgeSize_ru": "Размер мостов",
+	"BridgeSize_en": "Bridge Size",
+
 	"JumpCount": 20,
 	"JumpCount_Min": 5,
 	"JumpCount_Max": 100,
