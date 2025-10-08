@@ -228,6 +228,11 @@ function PixelClick(click)
             tFloor[click.X][click.Y].iBright = 6
             AL.NewTimer(0, function()
                 tFloor[click.X][click.Y].iColor = tColors[math.random(1,#tColors)]
+
+                if tConfig.ForeverPixel then
+                    return 250;
+                end
+
                 tFloor[click.X][click.Y].iBright = tFloor[click.X][click.Y].iBright - 1
                 if tFloor[click.X][click.Y].iBright > 0 then
                     return 250

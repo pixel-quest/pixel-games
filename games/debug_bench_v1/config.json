@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"ForeverPixel": false,
+	"ForeverPixel_ru": "Пиксель светится бесконечно после нажатия",
+	"ForeverPixel_en": "Pixels stay pressed forever",
+
 	"ForeverButton": false,
 	"ForeverButton_ru": "Кнопка светится бесконечно после нажатия",
 	"ForeverButton_en": "Buttons stay pressed forever"
