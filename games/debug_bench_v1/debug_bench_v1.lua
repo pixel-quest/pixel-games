@@ -253,12 +253,19 @@ function ButtonClick(click)
 
     if tGameStats.StageNum == 2 and tButtons[click.Button].iColor == CColors.NONE then
         tButtons[click.Button].iColorCount = 6
+
         AL.NewTimer(0, function()
             tButtons[click.Button].iColor = tColors[math.random(1,#tColors)]
             if tButtons[click.Button].iColorCount > 0 then
                 tButtons[click.Button].iColorCount = tButtons[click.Button].iColorCount - 1
                 return 250
             end
+
+            if tConfig.ForeverButton then
+                tButtons[click.Button].iColorCount = 6
+                return 250
+            end
+
             tButtons[click.Button].iColor = CColors.NONE
             return nil
         end)

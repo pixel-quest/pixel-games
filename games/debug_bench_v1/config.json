@@ -3,5 +3,9 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-	"Bright_ru": "Яркость"
+	"Bright_ru": "Яркость",
+
+	"ForeverButton": false,
+	"ForeverButton_ru": "Кнопка светится бесконечно после нажатия",
+	"ForeverButton_en": "Buttons stay pressed forever"
 }
