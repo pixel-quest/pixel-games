@@ -217,7 +217,7 @@ CGameMode.bLavaCD = false
 CGameMode.tBridges = {}
 CGameMode.tCoin = {}
 
-CGameMode.BRIDGE_HEIGHT = 3
+CGameMode.BRIDGE_HEIGHT = 4
 
 CGameMode.InitGameMode = function()
     if tGame.DamageDelay == nil then tGame.DamageDelay = 250; end
@@ -225,6 +225,8 @@ CGameMode.InitGameMode = function()
     tGameStats.TotalLives = tConfig.TeamHealth
     tGameStats.CurrentLives = tConfig.TeamHealth
     tGameStats.TotalStars = tConfig.JumpCount
+
+    CGameMode.BRIDGE_HEIGHT = tConfig.BridgeSize
 
     CGameMode.BuildBridges()
 end
@@ -325,13 +327,13 @@ CGameMode.PaintAnimated = function()
 end
 
 CGameMode.BuildBridges = function()
-    local iY = CGameMode.BRIDGE_HEIGHT+1
+    local iY = CGameMode.BRIDGE_HEIGHT-1
 
     for iBridgeID = 1, 6 do
         CGameMode.tBridges[iBridgeID] = {}
         CGameMode.tBridges[iBridgeID].iY = iY
 
-        iY = iY + CGameMode.BRIDGE_HEIGHT*2
+        iY = iY + CGameMode.BRIDGE_HEIGHT + math.floor(CGameMode.BRIDGE_HEIGHT/2) + 1
         if iY + CGameMode.BRIDGE_HEIGHT-1 > tGame.iMaxY then break; end
     end
 end
@@ -356,7 +358,7 @@ end
 
 CGameMode.PaintCoin = function()
     if CGameMode.tCoin.iBridgeID then
-        local iY = CGameMode.tBridges[CGameMode.tCoin.iBridgeID].iY+1
+        local iY = CGameMode.tBridges[CGameMode.tCoin.iBridgeID].iY+math.floor(CGameMode.BRIDGE_HEIGHT/2)-1
         tFloor[CGameMode.tCoin.iX][iY].iColor = CColors.BLUE
         tFloor[CGameMode.tCoin.iX][iY].iBright = tConfig.Bright
 
