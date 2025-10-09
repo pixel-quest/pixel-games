@@ -132,7 +132,7 @@ local CONST_STAGE_FIRST = 1
 local StageStartTime = 0 -- время начала текущего этапа
 local GameStartTime = 0 --время начала игровых этапов
 local Circle
-local STAGE_DONE_SEC = 1
+local STAGE_DONE_SEC = 2
 
 --Звуки оставшихся очков, проигрываются только один раз
 local LeftAudioPlayed = { -- 3... 2... 1...
