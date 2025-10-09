@@ -42,7 +42,7 @@
 
 	"TeamHealth": 15,
 	"TeamHealth_Min": 0,
-	"TeamHealth_Max": 50,
+	"TeamHealth_Max": 250,
 	"TeamHealth_Step": 5,
 	"TeamHealth_ru": "Здоровье Команды (0 для бесконечного)",
 	"TeamHealth_en": "Team Health (0 for infinite)",

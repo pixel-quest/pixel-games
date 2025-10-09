@@ -393,7 +393,7 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     --CLog.print("next effect: "..iEffectId)
-    --iEffectId = 10
+    --iEffectId = 12
 
     CAudio.PlayVoicesSync("dodge/next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
@@ -1458,6 +1458,206 @@ end
 CEffect.tEffects[CEffect.EFFECT_GUN][CEffect.FUNC_UNLOAD] = function()
     CCross.bBlockMovement = false
     CCross.bHidden = false
+end
+----
+
+---- effect spore
+CEffect.EFFECT_SPORE = 11
+CEffect.tEffects[CEffect.EFFECT_SPORE] = {}
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_LENGTH] = 15
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlayVoicesSync("dodge/dodge_effect_spore.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_INIT] = function()
+    CCross.bBlockMovement = true
+    CCross.bHidden = true
+
+    CEffect.tCurrentEffectData.iBallSize = 1
+
+    CEffect.tCurrentEffectData.iBallX = CCross.iX
+    CEffect.tCurrentEffectData.iBallY = CCross.iY
+    
+    CEffect.tCurrentEffectData.tFood = {}
+    for iFoodID = 1, math.random(5,6) do
+        CEffect.tCurrentEffectData.tFood[iFoodID] = {}
+        CEffect.tCurrentEffectData.tFood[iFoodID].iX = math.random(1, tGame.Cols)
+        CEffect.tCurrentEffectData.tFood[iFoodID].iY = math.random(1, tGame.Rows)
+    end
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_SOUND] = function()
+    
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_DRAW] = function()
+    local iXM = CEffect.tCurrentEffectData.iBallX 
+    local iYM = CEffect.tCurrentEffectData.iBallY
+    local iR = CEffect.tCurrentEffectData.iBallSize
+
+    local iX = -iR
+    local iY = 0
+    local iR2 = 2-2*iR
+
+    local paintCirclePixel = function(iX, iY)
+        for iX2 = iX-1, iX+1 do
+            CEffect.PaintEffectPixel(iX2, iY)
+        end
+    end
+
+    repeat
+        paintCirclePixel(iXM-iX, iYM+iY)
+        paintCirclePixel(iXM-iY, iYM-iX)
+        paintCirclePixel(iXM+iX, iYM-iY)
+        paintCirclePixel(iXM+iY, iYM+iX)
+
+        iR = iR2
+        if iR <= iY then 
+            iY = iY+1
+            iR2 = iR2 + (iY * 2 + 1) 
+        end
+        if iR > iX or iR2 > iY then 
+            iX = iX+1
+            iR2 = iR2 + (iX * 2 + 1) 
+        end
+    until iX > 0
+
+    for iFoodID = 1, #CEffect.tCurrentEffectData.tFood do
+        if CEffect.tCurrentEffectData.tFood[iFoodID] then
+            CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.tFood[iFoodID].iX, CEffect.tCurrentEffectData.tFood[iFoodID].iY)
+        end
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_TICK] = function()
+    local function moveball(iXPlus, iYPlus)
+        if (CEffect.tCurrentEffectData.iBallX + iXPlus) >= 1 and (CEffect.tCurrentEffectData.iBallX + iXPlus) <= tGame.Cols then
+            CEffect.tCurrentEffectData.iBallX = CEffect.tCurrentEffectData.iBallX + iXPlus
+        end
+
+        if (CEffect.tCurrentEffectData.iBallY + iYPlus) >= 1 and (CEffect.tCurrentEffectData.iBallY + iYPlus) <= tGame.Rows then
+            CEffect.tCurrentEffectData.iBallY = CEffect.tCurrentEffectData.iBallY + iYPlus
+        end
+    end
+
+    if CCross.IsAiOn() then
+        local iXPlus = 0
+        local iYPlus = 0
+        if CCross.iAiDestX < CEffect.tCurrentEffectData.iBallX then iXPlus = -1;
+        elseif CCross.iAiDestX > CEffect.tCurrentEffectData.iBallX then iXPlus = 1; end
+        if CCross.iAiDestY < CEffect.tCurrentEffectData.iBallY then iYPlus = -1;
+        elseif CCross.iAiDestY > CEffect.tCurrentEffectData.iBallY then iYPlus = 1; end
+        if iXPlus == 0 and iYPlus == 0 then CCross.AiNewDest(); end
+
+        moveball(iXPlus, iYPlus)
+    else 
+        moveball(CPad.iXPlus, CPad.iYPlus)
+
+        if CPad.bTrigger then
+            CPad.bTrigger = false
+        end
+    end
+
+    local function collisionCheck(iC1X, iC1Y, iC1R, iC2X, iC2Y, iC2R)
+        return math.sqrt((iC2X - iC1X)^2 + (iC2Y - iC1Y)^2) <= iC1R + iC2R
+    end
+
+    for iFoodID = 1, #CEffect.tCurrentEffectData.tFood do
+        if CEffect.tCurrentEffectData.tFood[iFoodID] and collisionCheck(CEffect.tCurrentEffectData.iBallX, CEffect.tCurrentEffectData.iBallY, CEffect.tCurrentEffectData.iBallSize, CEffect.tCurrentEffectData.tFood[iFoodID].iX, CEffect.tCurrentEffectData.tFood[iFoodID].iY, 0) then
+            CEffect.tCurrentEffectData.tFood[iFoodID] = nil
+            CEffect.tCurrentEffectData.iBallSize = CEffect.tCurrentEffectData.iBallSize + 1
+            CAudio.PlaySystemAsync("snake/apple_crunch.mp3")
+        end
+    end
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_UNLOAD] = function()
+    CCross.bBlockMovement = false
+    CCross.bHidden = false    
+end
+----
+
+---- эффект: спиннер
+CEffect.EFFECT_SPINNER = 12
+CEffect.tEffects[CEffect.EFFECT_SPINNER] = {}
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.CONST_LENGTH] = 10
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.CONST_SPECIAL_ENDING_ON] = true
+
+-- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlayVoicesSync("dodge/dodge_effect_spinner.mp3")
+end
+
+-- прогрузка переменных эффекта
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_INIT] = function()
+    CEffect.tCurrentEffectData.tTargets = {}
+
+    CEffect.tCurrentEffectData.tTargets[1] = {iX = 1, iY = 1}
+    CEffect.tCurrentEffectData.tTargets[2] = {iX = tGame.Cols, iY = 1}
+    CEffect.tCurrentEffectData.tTargets[3] = {iX = tGame.Cols, iY = tGame.Rows}
+    CEffect.tCurrentEffectData.tTargets[4] = {iX = 1, iY = tGame.Rows}
+end
+
+-- звуковое сопровождение эффекта
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_SOUND] = function()
+    CAudio.PlaySystemSync("dodge/electro-laser.mp3")
+end
+
+-- отрисовка эффекта
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_DRAW] = function()
+    local function Line(iX1, iY1, iX2, iY2, fDraw)
+        local iDX, iSX = math.abs( iX2 - iX1 ), iX1 < iX2 and 1 or -1
+        local iDY, iSY = -math.abs( iY2 - iY1 ), iY1 < iY2 and 1 or -1
+        local iDXDY = iDX + iDY
+
+        for i = 1, tGame.Cols + tGame.Rows do  
+            local iE = iDXDY + iDXDY
+            if iE > iDY then
+                iDXDY, iX1 = iDXDY + iDY, iX1 + iSX
+            end
+            
+            if iE < iDX then
+                iDXDY, iY1 = iDXDY + iDX, iY1 + iSY
+            end
+            fDraw(iX1, iY1, 1)
+        end
+    end
+
+    for iTargetID = 1, #CEffect.tCurrentEffectData.tTargets do
+        Line(CCross.iX, CCross.iY, CEffect.tCurrentEffectData.tTargets[iTargetID].iX, CEffect.tCurrentEffectData.tTargets[iTargetID].iY, function(iX, iY)
+            CEffect.PaintEffectPixel(iX, iY)
+        end)
+    end
+end
+
+-- логический цикл эффекта
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_TICK] = function()
+    for iTargetID = 1, #CEffect.tCurrentEffectData.tTargets do
+        if CEffect.tCurrentEffectData.tTargets[iTargetID].iX < tGame.Cols+1 and CEffect.tCurrentEffectData.tTargets[iTargetID].iY == 0 then
+            CEffect.tCurrentEffectData.tTargets[iTargetID].iX = CEffect.tCurrentEffectData.tTargets[iTargetID].iX + 1
+        elseif CEffect.tCurrentEffectData.tTargets[iTargetID].iX >= tGame.Cols and CEffect.tCurrentEffectData.tTargets[iTargetID].iY < tGame.Rows+1 then
+            CEffect.tCurrentEffectData.tTargets[iTargetID].iY = CEffect.tCurrentEffectData.tTargets[iTargetID].iY + 1
+        elseif CEffect.tCurrentEffectData.tTargets[iTargetID].iY >= tGame.Rows and CEffect.tCurrentEffectData.tTargets[iTargetID].iX > 0 then
+            CEffect.tCurrentEffectData.tTargets[iTargetID].iX = CEffect.tCurrentEffectData.tTargets[iTargetID].iX - 1
+        elseif CEffect.tCurrentEffectData.tTargets[iTargetID].iY > 0 then
+            CEffect.tCurrentEffectData.tTargets[iTargetID].iY = CEffect.tCurrentEffectData.tTargets[iTargetID].iY - 1
+        end
+    end
+end
+
+-- выгрузка эффекта
+CEffect.tEffects[CEffect.EFFECT_SPINNER][CEffect.FUNC_UNLOAD] = function()
+    CAudio.ResetSync()
 end
 ----
 
