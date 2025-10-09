@@ -296,7 +296,7 @@ CGameMode.StartGame = function()
         end
     end
 
-    tGameStats.TotalStars = #tGame.LavaObjects*CGameMode.iRealPlayerCount
+    tGameStats.TotalStars = #tGame.LavaObjects*(CGameMode.iRealPlayerCount*tConfig.StarsPerPlayer)
     tGameStats.TotalLives = tConfig.Lives
     tGameStats.CurrentLives = tConfig.Lives
     --tGameStats.TotalLives = math.ceil(#tGame.LavaObjects*CGameMode.iRealPlayerCount*tConfig.HealthMultiplier)
@@ -342,7 +342,7 @@ CGameMode.ReachGoal = function(tButton)
         tButton.bGoal = false
         CGameMode.ResetSafeZoneTimer(tButton)
 
-        if tGameStats.CurrentStars % CGameMode.iRealPlayerCount == 0 then
+        if tGameStats.CurrentStars % (CGameMode.iRealPlayerCount*tConfig.StarsPerPlayer) == 0 then
             CGameMode.NextStage()
         end
     end

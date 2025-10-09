@@ -33,6 +33,13 @@
   "SafeZoneResetTimer_ru": "Длительность безопасной зоны",
   "SafeZoneResetTimer_en": "Safe Zone Duration",
   
+  "StarsPerPlayer": 2,
+  "StarsPerPlayer_Min": 1,
+  "StarsPerPlayer_Max": 15,
+  "StarsPerPlayer_Step": 1,
+  "StarsPerPlayer_ru": "Цель очков на игрока",
+  "StarsPerPlayer_en": "Stars target count per player",
+
   "Lives": 20,
   "Lives_Min": 0,
   "Lives_Max": 100,
