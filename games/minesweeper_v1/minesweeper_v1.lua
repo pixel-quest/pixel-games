@@ -207,7 +207,7 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+    --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
     if #tGame.StartPositions == 1 then
         GameSetupTickSinglePlayer()
