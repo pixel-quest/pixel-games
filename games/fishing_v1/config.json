@@ -1,0 +1,14 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"TargetScore": 15,
+	"TargetScore_Min": 5,
+	"TargetScore_Max": 50,
+	"TargetScore_Step": 5,
+	"TargetScore_ru": "Количество рыбов",
+	"TargetScore_en": "Target Score"
+}
