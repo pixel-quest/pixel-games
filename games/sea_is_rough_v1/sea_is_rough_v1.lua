@@ -231,10 +231,14 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlayVoicesSyncFromScratch("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
-    audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
-    audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
-    --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    if GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSync("choose-color.mp3")
+    else
+        audio.PlayVoicesSyncFromScratch("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
+        audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
+        audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+        --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    end
 
 end
 
