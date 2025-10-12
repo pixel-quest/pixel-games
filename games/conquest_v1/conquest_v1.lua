@@ -278,18 +278,22 @@ CGameMode.Init = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("virus/virus.mp3")
-    CAudio.PlayVoicesSync("virus/virus-guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("virus/virus.mp3")
+        CAudio.PlayVoicesSync("virus/virus-guide.mp3")
+        
+        AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
+    end
 
     if tConfig.TeamMode then
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     else
         CAudio.PlayVoicesSync("choose-color.mp3")
     end
-
-    AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
-        CGameMode.bCanStart = true
-    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

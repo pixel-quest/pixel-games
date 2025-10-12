@@ -15,6 +15,10 @@
 	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
 	"PlayerCount_en": "Player Count",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"TeamMode": true,
 	"TeamMode_ru": "Командый режим (все игроки в одной команде)",
 	"TeamMode_en": "Team mode (all players in one team)",
