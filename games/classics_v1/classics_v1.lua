@@ -168,17 +168,22 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlayVoicesSyncFromScratch("classics/classics-game.mp3")
-    if tGame.ArenaMode then
-        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSyncFromScratch("classics/classics-game.mp3")
+        if tGame.ArenaMode then
+            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+        else
+            CAudio.PlayVoicesSync("press-center-for-start.mp3")
+        end
+        --CAudio.PlaySync("voices/press-button-for-start.mp3")
+
+        AL.NewTimer((CAudio.GetVoicesDuration("classics/classics-game.mp3"))*1000, function()
+            CGameMode.bCanStart = true
+        end)
     else
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
-    end
-    --CAudio.PlaySync("voices/press-button-for-start.mp3")
-
-    AL.NewTimer((CAudio.GetVoicesDuration("classics/classics-game.mp3"))*1000, function()
         CGameMode.bCanStart = true
-    end)
+    end
 end
 
 function NextTick()

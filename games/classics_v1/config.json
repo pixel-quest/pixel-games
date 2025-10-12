@@ -18,6 +18,10 @@
   "WinDurationMS": 10000,
   "WinDurationMS_Hidden": true,
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "GameLength": 60,
   "GameLength_Min": 30,
   "GameLength_Max": 300,
