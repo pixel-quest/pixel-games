@@ -295,8 +295,15 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("snake/snake-game.mp3")
-    CAudio.PlayVoicesSync("snake/snake-guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("snake/snake-game.mp3")
+        CAudio.PlayVoicesSync("snake/snake-guide.mp3")
+        AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 3000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
+    end
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
@@ -304,15 +311,9 @@ CGameMode.Announcer = function()
 
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-    end
-
-    if (tGame.NewStart and #tGame.StartPositions == 1) then
+    elseif #tGame.StartPositions == 1 then
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
-
-    AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 3000, function()
-        CGameMode.bCanStart = true
-    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
