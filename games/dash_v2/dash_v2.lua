@@ -241,24 +241,29 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("dash/perebejka-game.mp3")
+    if not tConfig.SkipTutorial then 
+        CAudio.PlayVoicesSync("dash/perebejka-game.mp3")
 
-    local iAudioDur = 0
+        local iAudioDur = 0
 
-    if not tGame.DisableButtonsGameplay then
-        CAudio.PlayVoicesSync("dash/dash_rules_default.mp3")
-        CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
-        iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_default.mp3"))*1000 
+        if not tGame.DisableButtonsGameplay then
+            CAudio.PlayVoicesSync("dash/dash_rules_default.mp3")
+            CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
+            CAudio.PlayVoicesSync("press-button-for-start.mp3")
+            iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_default.mp3"))*1000 
+        else
+            CAudio.PlayVoicesSync("dash/dash_rules_nobuttons.mp3")
+            CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
+            iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_nobuttons.mp3"))*1000 
+        end
+
+        AL.NewTimer(iAudioDur + 2000, function()
+            CGameMode.bCanStart = true
+        end)
     else
-        CAudio.PlayVoicesSync("dash/dash_rules_nobuttons.mp3")
         CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
-        iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_nobuttons.mp3"))*1000 
-    end
-
-    AL.NewTimer(iAudioDur + 2000, function()
         CGameMode.bCanStart = true
-    end)
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

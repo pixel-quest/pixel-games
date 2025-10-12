@@ -72,6 +72,10 @@
   "StageSwitchHitRegDelay": 1500,
   "StageSwitchHitRegDelay_Hidden": true,
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "LavaLag": 400,
   "LavaLag_Min": 0,
   "LavaLag_Max": 1000,
