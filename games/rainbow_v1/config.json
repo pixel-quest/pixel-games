@@ -1,5 +1,7 @@
 {
   "Delay": 100,
   "NoSound": false,
-  "DarkClicks": false
+  "DarkClicks": false,
+
+  "Sound": ""
 }
