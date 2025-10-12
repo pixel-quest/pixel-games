@@ -23,6 +23,10 @@
 	"EliminationMode_ru": "Режим 'Выбывание' (Здоровье команды отуствует, при попадании на красный пиксель ведущий просит игрока покинуть комнату)",
 	"EliminationMode_en": "Elimination Mode (No team health, when player steps on red pixel - announcer asks them to leave the room)",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"WinDurationMS": 10000,
 	"WinDurationMS_Hidden": true,
 
