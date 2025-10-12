@@ -292,14 +292,17 @@ CGameMode.PrepareGame = function()
 
     CUnits.UnitSettings()
 
-    CAudio.PlayVoicesSync("tower-defence/tower-defence-game.mp3")
-    CAudio.PlayVoicesSync("tower-defence/tower-defence-tutorial.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
-    --CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("tower-defence/tower-defence-game.mp3")
+        CAudio.PlayVoicesSync("tower-defence/tower-defence-tutorial.mp3")
 
-    AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 5000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 5000, function()
+            CGameMode.bCanStart = true
+        end) 
+    else
         CGameMode.bCanStart = true
-    end)
+    end
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 
     CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
 
