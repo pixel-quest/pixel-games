@@ -16,6 +16,10 @@
   	"EndGameAfterFinish_ru": "Заканчивать игру после первого финишировшего",
   	"EndGameAfterFinish_en": "End game after first player finished",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
   	"HardMode": false,
   	"HardMode_ru": "Сложный режим, разбитые стёкла не остаются видимыми",
   	"HardMode_ru": "Hard Mode, broken windows are not visible"
