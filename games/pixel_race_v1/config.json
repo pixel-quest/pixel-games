@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
   	"Bright_Ru": "Яркость",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
   	"TimeLimit": 60,
   	"TimeLimit_Min": 30,
   	"TimeLimit_Max": 300,
