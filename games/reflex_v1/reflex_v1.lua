@@ -333,8 +333,16 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("reflex/reflex_gamename.mp3")
-    CAudio.PlayVoicesSync("reflex/reflex_guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("reflex/reflex_gamename.mp3")
+        CAudio.PlayVoicesSync("reflex/reflex_guide.mp3")
+
+        AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
+            CGameMode.bCanStart = true
+        end)        
+    else
+        CGameMode.bCanStart = true
+    end
     CAudio.PlayVoicesSync("choose-color.mp3")
 
     if tGame.ArenaMode then 
@@ -343,9 +351,7 @@ CGameMode.Announcer = function()
         --CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
 
-    AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
-        CGameMode.bCanStart = true
-    end)
+
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
