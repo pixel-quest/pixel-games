@@ -256,13 +256,18 @@ CGameMode.iAlivePlayerCount = 0
 CGameMode.iWinnerID = 0
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("pirates/pirates_guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("pirates/pirates_guide.mp3")
+
+        AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_guide.mp3")*1000 + 3000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
+        CGameMode.bCanAutoStart = true
+    end
+
     CAudio.PlayVoicesSync("choose-color.mp3")
     --CAudio.PlayVoicesSync("press-button-for-start.mp3")
-
-    AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_guide.mp3")*1000 + 3000, function()
-        CGameMode.bCanAutoStart = true
-    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

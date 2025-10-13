@@ -12,6 +12,10 @@
   	"PlayerCount_ru": "Количество кораблей",
   	"PlayerCount_en": "Ship Count",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
   	"ShipHealth": 10,
   	"ShipHealth_Min": 5,
   	"ShipHealth_Max": 25,
