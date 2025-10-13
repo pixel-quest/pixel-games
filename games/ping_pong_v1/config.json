@@ -5,6 +5,10 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",  
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "SoloGame": false,
   "SoloGame_ru": "Одиночная игра против компьютера/джойстика",
   "SoloGame_en": "Single player vs AI or controller",
