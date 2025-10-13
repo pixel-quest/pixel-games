@@ -4,6 +4,10 @@
 	"Bright_Max": 7,
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
   	    	
 	"AutoStartEnable": true,
 	"AutoStartEnable_ru": "Авто запуск игры при всех занятых зонах",

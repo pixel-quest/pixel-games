@@ -285,7 +285,14 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("pixel-battle/voice_pixel_battle.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("pixel-battle/voice_pixel_battle.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("pixel-battle/voice_pixel_battle.mp3")*1000, function()
+            CGameMode.bCanStartGame = true
+        end)
+    else
+        CGameMode.bCanStartGame = true
+    end
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
@@ -294,12 +301,8 @@ CGameMode.Announcer = function()
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     else
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        --CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
-
-    AL.NewTimer(CAudio.GetVoicesDuration("pixel-battle/voice_pixel_battle.mp3")*1000, function()
-        CGameMode.bCanStartGame = true
-    end)
 end
 
 CGameMode.PrepareGame = function()
