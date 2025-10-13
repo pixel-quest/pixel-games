@@ -143,14 +143,16 @@ function GameSetupTick()
             return
         end
 
-        for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
-            for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
+        if CGameMode.bCanStartGame then
+            for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
+                for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
+                    tFloor[iX][iY].iColor = CColors.BLUE
+                    tFloor[iX][iY].iBright = tConfig.Bright
 
-                if tFloor[iX][iY].bClick and CGameMode.bCanStartGame then
-                    CGameMode.StartCountDown(5)
-                    return;
+                    if tFloor[iX][iY].bClick and CGameMode.bCanStartGame then
+                        CGameMode.StartCountDown(5)
+                        return;
+                    end
                 end
             end
         end
@@ -190,12 +192,17 @@ CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("pipes/pipes_rules.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
-
-    AL.NewTimer((CAudio.GetVoicesDuration("pipes/pipes_rules.mp3")*1000), function()
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("pipes/pipes_rules.mp3")
+    
+        AL.NewTimer((CAudio.GetVoicesDuration("pipes/pipes_rules.mp3")*1000), function()
+            CGameMode.bCanStartGame = true
+        end)
+    else
         CGameMode.bCanStartGame = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
