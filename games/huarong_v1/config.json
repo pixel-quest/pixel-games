@@ -12,6 +12,10 @@
   "AutoStart_ru": "Автозапуск при всех занятых позициях",
   "AutoStart_en": "Autostart on all positions occupied",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "GameCountdown": 5,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
