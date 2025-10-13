@@ -22,6 +22,10 @@
   "RoundCount_ru": "Количество Раундов",
   "RoundCount_en": "Round Count",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "Health": 10,
   "Health_Min": 1,
   "Health_Max": 50,
