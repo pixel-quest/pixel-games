@@ -232,12 +232,17 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("ropejump/ropejump-guide.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("ropejump/ropejump-guide.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("ropejump/ropejump-guide.mp3")*1000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("ropejump/ropejump-guide.mp3")*1000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
         CGameMode.bCanAutoStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -372,6 +377,8 @@ CGameMode.CollectCoin = function(bAddScore)
         tGameStats.CurrentLives = tGameStats.CurrentLives + 1
         if tGameStats.CurrentLives > tGameStats.TotalLives then tGameStats.TotalLives = tGameStats.CurrentLives; end
         tGameResults.Score = tGameResults.Score + 50
+    
+        CAudio.PlaySystemAsync(CAudio.CLICK)
     end
     CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
 end
