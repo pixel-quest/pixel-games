@@ -304,7 +304,15 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("memorization/memorization_guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("memorization/memorization_guide.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("memorization/memorization_guide.mp3") * 1000 + 3000, function()
+            CGameMode.bCanStartGame = true
+        end)
+    else
+        CGameMode.bCanStartGame = true
+    end
+
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
@@ -315,10 +323,6 @@ CGameMode.Announcer = function()
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     end
-
-    AL.NewTimer(CAudio.GetVoicesDuration("memorization/memorization_guide.mp3") * 1000, function()
-        CGameMode.bCanStartGame = true
-    end)
 end
 
 CGameMode.PrepareGame = function()
@@ -426,7 +430,7 @@ CGameMode.PreviewSequenceForPlayer = function(iPlayerID)
             CGameMode.tPlayerSequencePreviewPoint[iPlayerID] = 0
             return nil
         else
-            CAudio.PlaySystemSync(CAudio.CLICK)
+            CAudio.PlaySystemAsync(CAudio.CLICK)
             bSwitch = false
             return 800
         end
@@ -437,7 +441,7 @@ CGameMode.PlayerClickButton = function(iPlayerID, iButtonId)
     if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.tPlayerCanMove[iPlayerID] then return; end
 
     if iButtonId == CGameMode.tPlayerSequence[iPlayerID][CGameMode.tPlayerSequenceLocalPoint[iPlayerID]+1] then
-        CAudio.PlaySystemSync(CAudio.CLICK)
+        CAudio.PlaySystemAsync(CAudio.CLICK)
         CGameMode.tPlayerSequenceLocalPoint[iPlayerID] = CGameMode.tPlayerSequenceLocalPoint[iPlayerID] + 1
         CGameMode.tPlayerSequenceAnimatedPoint[iPlayerID] = iButtonId
         CGameMode.tPlayerCanMove[iPlayerID] = false
@@ -463,7 +467,7 @@ CGameMode.PlayerClickButton = function(iPlayerID, iButtonId)
             CGameMode.tPlayerSequenceAnimatedPoint[iPlayerID] = 0
         end)
     else
-        CAudio.PlaySystemSync(CAudio.MISCLICK)
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
         CGameMode.PlayerOut(iPlayerID)
     end
 end
