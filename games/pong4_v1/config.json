@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"Lives": 5,
 	"Lives_Min": 1,
 	"Lives_Max": 20,
