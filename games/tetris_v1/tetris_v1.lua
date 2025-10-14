@@ -287,12 +287,23 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("tetris/tetris_intro_voice.mp3")
-    CAudio.PlayVoicesSync("choose-color.mp3")
+    if not tConfig.SkipTutorial then
+        local sVoiceName = "tetris/tetris_intro_voice.mp3"
+        if #tGame.StartPositions == 1 then
+            sVoiceName = "tetris/tetris_intro_voice_solo.mp3"
+        end
 
-    AL.NewTimer((CAudio.GetVoicesDuration("tetris/tetris_intro_voice.mp3")*1000) or 5000, function()
+        CAudio.PlayVoicesSync(sVoiceName)
+        AL.NewTimer((CAudio.GetVoicesDuration(sVoiceName)*1000) + 5000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
         CGameMode.bCanStart = true
-    end)
+    end
+
+    if #tGame.StartPositions > 1 then
+        CAudio.PlayVoicesSync("choose-color.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

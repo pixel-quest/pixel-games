@@ -4,7 +4,11 @@
 	"Bright_Max": 7,
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
-  	    
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"MoveDownTickRate": 350,
 	"MoveDownTickRate_Min": 100,
 	"MoveDownTickRate_Max": 3000,
