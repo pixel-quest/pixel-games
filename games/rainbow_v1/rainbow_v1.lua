@@ -96,7 +96,11 @@ local GameStats = {
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
 -- После этого NextTick(), RangeFloor() и GetStats() больше не вызываются, игра окончена
 local GameResults = {
-    Won = false,
+    Won = true,
+    AfterDelay = false,
+    PlayersCount = 0,
+    Score = 1,
+    Color = colors.NONE,
 }
 
 -- Локальные переменные для внутриигровой логики
@@ -129,6 +133,11 @@ function StartGame(gameJson, gameConfigJson)
 
     GradientLength = table.getn(GameObj.Colors)
     audio.PlaySyncFromScratch("") -- just reset audio player on start new game
+
+    if GameConfigObj.Sound ~= "" then
+        audio.PlayVoicesSyncFromScratch(GameConfigObj.Sound)
+        GameObj.TimeOut = time.unix() + audio.GetVoicesDuration(GameConfigObj.Sound)
+    end
 
     if not GameConfigObj.NoSound then
         audio.PlayRandomBackground()
@@ -176,8 +185,11 @@ function NextTick()
     GradientOffset = GradientOffset + 1
     LastChangesTimestamp = time.unix()
 
-    -- Эта заставка бесконечная
-    -- return GameResult
+    if GameObj.TimeOut then
+        if time.unix() > GameObj.TimeOut then
+            return GameResults
+        end
+    end
 end
 
 -- RangeFloor (служебный): метод для снятия снапшота пола
