@@ -12,6 +12,10 @@
 	"TeamHealth_ru": "Жизни команды(0 для бесконечных)",
 	"TeamHealth_en": "Team Lives(0 for infinite)",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"BridgeSize": 4,
 	"BridgeSize_Min": 2,
 	"BridgeSize_Max": 6,

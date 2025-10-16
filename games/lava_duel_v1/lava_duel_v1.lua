@@ -142,7 +142,9 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 6 * tConfig.RoundCount
     tGameStats.TotalStages = tConfig.RoundCount
 
-    CAudio.PlayVoicesSync("lavaduel/lavaduel-rules.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("lavaduel/lavaduel-rules.mp3")
+    end
 
     CAudio.PlayVoicesSync("choose-color.mp3")
     

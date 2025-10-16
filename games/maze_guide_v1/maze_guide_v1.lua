@@ -225,15 +225,19 @@ CGameMode.init = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("mazeguide/mazeguide_gamename.mp3")
-    CAudio.PlayVoicesSync("mazeguide/mazeguide_guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("mazeguide/mazeguide_gamename.mp3")
+        CAudio.PlayVoicesSync("mazeguide/mazeguide_guide.mp3")
+        AL.NewTimer((CAudio.GetVoicesDuration("mazeguide/mazeguide_guide.mp3"))*1000 + 3000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
+    end
+
     if not tConfig.AutoStart then
         CAudio.PlayVoicesSync("press-button-for-start.mp3")
     end
-
-    AL.NewTimer((CAudio.GetVoicesDuration("mazeguide/mazeguide_guide.mp3"))*1000, function()
-        CGameMode.bCanStart = true
-    end)
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

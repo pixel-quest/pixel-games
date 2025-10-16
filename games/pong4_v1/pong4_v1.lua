@@ -245,13 +245,17 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("pong4/pong4-rules.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("pong4/pong4-rules.mp3")
+
+        AL.NewTimer(CAudio.GetVoicesDuration("pong4/pong4-rules.mp3")*1000 + 3000, function()
+            CGameMode.bCanAutoStart = true
+        end)    
+    else
+        CGameMode.bCanAutoStart = true
+    end
 
     CAudio.PlayVoicesSync("choose-color.mp3")
-
-    AL.NewTimer(CAudio.GetVoicesDuration("pong4/pong4-rules.mp3")*1000 + 3000, function()
-        CGameMode.bCanAutoStart = true
-    end)    
 end
 
 CGameMode.PaintPositions = function()

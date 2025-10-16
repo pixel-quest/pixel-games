@@ -29,6 +29,10 @@
   "RoundCount_ru": "Количество Раундов",
   "RoundCount_en": "Round Count",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "LavaScorePenalty": -0.5,
   "LavaScorePenalty_Hidden": true,
 

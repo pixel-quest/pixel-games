@@ -9,6 +9,10 @@
 	"Vertical_ru": "Вертикальные дороги",
 	"Vertical_ru": "Vertical position",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"Lives": 15,
 	"Lives_Min": 1,
 	"Lives_Max": 100,

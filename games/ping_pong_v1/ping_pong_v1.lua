@@ -155,7 +155,10 @@ function StartGame(gameJson, gameConfigJson)
         end 
     end
 
-    CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
+    end
+    
     CAudio.PlayVoicesSync(CAudio.CHOOSE_COLOR) -- Выберите цвет
 end
 

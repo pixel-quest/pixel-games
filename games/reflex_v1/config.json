@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"RoundCountdown": 5,
 	"RoundCountdown_Min": 1,
 	"RoundCountdown_Max": 15,

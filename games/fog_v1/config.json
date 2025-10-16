@@ -26,6 +26,10 @@
 	"TeamHealth_en": "Team Lives",	
 	"TeamHealth_ru": "Количество жизней команды",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"UnitCount": 2,	
 	"UnitCount_Min": 1,	
 	"UnitCount_Max": 4,	

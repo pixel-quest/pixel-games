@@ -273,12 +273,17 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("lfe/lfe-rules.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    if not tConfig.SkipTutorial then 
+        CAudio.PlayVoicesSync("lfe/lfe-rules.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("lfe/lfe-rules.mp3")*1000 + 2000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("lfe/lfe-rules.mp3")*1000 + 2000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
         CGameMode.bCanAutoStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

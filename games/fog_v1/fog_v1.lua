@@ -222,12 +222,16 @@ end
 CGameMode.Announcer = function()
     CAudio.PlayMusic("halloween/fog_setup_song.mp3")
 
-    CAudio.PlayVoicesSync("halloween/fog_halloween_guide.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
-
-    AL.NewTimer((CAudio.GetVoicesDuration("halloween/fog_halloween_guide.mp3"))*1000, function()
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("halloween/fog_halloween_guide.mp3")
+        AL.NewTimer((CAudio.GetVoicesDuration("halloween/fog_halloween_guide.mp3"))*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
         CGameMode.bCanStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

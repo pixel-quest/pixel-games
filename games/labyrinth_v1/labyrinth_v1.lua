@@ -106,6 +106,8 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGame.iMinX = 1
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
@@ -127,8 +129,17 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
 
-    CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
-    CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
+        CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
+
+        AL.NewTimer((CAudio.GetVoicesDuration("labyrinth/labyrinth-rules.mp3"))*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
+    end
+
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
@@ -167,7 +178,7 @@ function GameSetupTick()
     
     CPaint.Objects()
 
-    if not CGameMode.bCountDownStarted then
+    if CGameMode.bCanStart and not CGameMode.bCountDownStarted then
         for iX = tGame.CenterX, tGame.CenterX+2 do
             for iY = tGame.CenterY, tGame.CenterY+2 do
                 tFloor[iX][iY].iColor = CColors.BLUE
@@ -218,6 +229,7 @@ CGameMode.bVictory = false
 CGameMode.bRoundOn = false
 CGameMode.iRound = 1
 CGameMode.bCountDownStarted = false
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     tGameStats.CurrentLives = tConfig.Health

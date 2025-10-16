@@ -12,6 +12,10 @@
 	"PlayerCount_ru": "Количество команд",
 	"PlayerCount_en": "Team Count",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"ButtonsCount": 6,
 	"ButtonsCount_Min": 5,
 	"ButtonsCount_Max": 9,

@@ -27,6 +27,10 @@
 	"AutoStart_ru": "Авто запуск если обе зоны управления заняты игроками",
 	"AutoStart_en": "Auto Start on both control zones activated by players",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"MovementTick": 250,	
 	"MovementTick_Hidden": true	
 }

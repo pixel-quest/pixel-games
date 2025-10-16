@@ -241,12 +241,16 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("frogger/frogger.mp3")
-    CAudio.PlayVoicesSync("frogger/frogger-rules.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("frogger/frogger.mp3")
+        CAudio.PlayVoicesSync("frogger/frogger-rules.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("frogger/frogger-rules.mp3")*1000 + 3000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("frogger/frogger-rules.mp3")*1000 + 3000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
         CGameMode.bCanAutoStart = true
-    end)
+    end
 end
 
 CGameMode.StartGame = function()

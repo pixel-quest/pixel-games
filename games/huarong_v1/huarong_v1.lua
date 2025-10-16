@@ -168,10 +168,13 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.bOneAxisMoveMode = tGame.OneAxisMoveMode
 
-    CAudio.PlayVoicesSync("huarong/huarong.mp3")
-    CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
+
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("huarong/huarong.mp3")
+        CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
+    end
     CAudio.PlayVoicesSync("choose-color.mp3")
-    CAudio.PlayVoicesSync("press-button-for-start.mp3")
+    --CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
     AL.NewTimer((CAudio.GetVoicesDuration("huarong/huarong-guide.mp3"))*1000 + 3000, function()
         CGameMode.bCanStart = true
