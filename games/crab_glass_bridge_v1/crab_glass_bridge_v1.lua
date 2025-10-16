@@ -113,11 +113,15 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end 
 
-    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
 
-    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 + 2000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 + 2000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
         CGameMode.bCanStart = true
-    end)
+    end
 end
 
 function NextTick()

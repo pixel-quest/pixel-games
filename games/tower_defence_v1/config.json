@@ -26,6 +26,10 @@
   "LivesMultiplier_ru": "Множитель жизней (чем больше тем больше жизней)",
   "LivesMultiplier_en": "Lives Multiplier",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "BaseColor": "0x00FF00",
   "BaseColor_Hidden": true,
 

@@ -232,9 +232,13 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
-    audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+    if not GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+    end
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
-    audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
+    if not GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
+    end
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 

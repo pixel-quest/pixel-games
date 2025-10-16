@@ -263,12 +263,17 @@ CGameMode.bCanAutoStart = false
 CGameMode.iWinnerID = 0
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("dance2/dance2_guide.mp3")
-    CAudio.PlayVoicesSync("choose-color.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("dance2/dance2_guide.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("dance2/dance2_guide.mp3") * 1000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("dance2/dance2_guide.mp3") * 1000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
         CGameMode.bCanAutoStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("choose-color.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

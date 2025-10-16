@@ -43,6 +43,10 @@
   "WinDurationSec": 10,
   "WinDurationSec_Hidden": true,
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "LavaDelay": 200,
   "LavaDelay_Min": 50,
   "LavaDelay_Max": 1000,

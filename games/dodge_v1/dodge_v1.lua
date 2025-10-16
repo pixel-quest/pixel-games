@@ -203,13 +203,17 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("dodge/dodge_gamename.mp3")
-    CAudio.PlayVoicesSync("dodge/dodge_rules.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
-
-    AL.NewTimer((CAudio.GetVoicesDuration("dodge/dodge_gamename.mp3")+CAudio.GetVoicesDuration("dodge/dodge_rules.mp3"))*1000, function()
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("dodge/dodge_gamename.mp3")
+        CAudio.PlayVoicesSync("dodge/dodge_rules.mp3")
+        AL.NewTimer((CAudio.GetVoicesDuration("dodge/dodge_gamename.mp3")+CAudio.GetVoicesDuration("dodge/dodge_rules.mp3"))*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
         CGameMode.bCanStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

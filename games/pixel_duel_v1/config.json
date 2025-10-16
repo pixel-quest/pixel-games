@@ -12,6 +12,10 @@
   "PointsToWin_ru": "Очков для победы",
   "PointsToWin_en": "Points to win",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "PlayerCount": 6,
   "PlayerCount_Min": 1,
   "PlayerCount_Max": 6,

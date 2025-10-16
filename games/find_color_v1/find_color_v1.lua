@@ -236,7 +236,9 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
-    audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+    if not GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+    end
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end

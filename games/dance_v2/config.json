@@ -16,6 +16,10 @@
 	"SongStartDelayMS_ru": "Задержка Начала Песни",
 	"SongStartDelayMS_en": "Song Start Delay",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
 	"PixelMoveDelayMS": 150,
 	"PixelMoveDelayMS_Hidden": true
 }

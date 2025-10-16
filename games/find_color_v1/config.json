@@ -19,6 +19,10 @@
   "BlockSize_ru": "Размер Блока",
   "BlockSize_en": "Block Size",
 
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
   "StagesQty": 10,
   "StagesQty_Min": 5,
   "StagesQty_Max": 20,

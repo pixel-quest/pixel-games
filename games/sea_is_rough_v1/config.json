@@ -33,5 +33,9 @@
   "StageDurationSec_en": "Stage duration, sec",
   "StopDurationSec_Step": 1,
   "StageDurationSec_Step": 1,
-  "WinDurationSec_Hidden": true
+  "WinDurationSec_Hidden": true,
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение",
+  "SkipTutorial_en": "Skip Tutorial"
+
 }

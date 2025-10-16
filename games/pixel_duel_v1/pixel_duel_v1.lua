@@ -202,9 +202,13 @@ function StartGame(gameJson, gameConfigJson)
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
-    audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+    if not GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+    end
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
-    audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    if not GameConfigObj.SkipTutorial then
+        audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    end
     -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 

@@ -12,6 +12,10 @@
   	"RoundCount_ru": "Количество бросков",
   	"RoundCount_en": "Throw count",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
   	"PlayerCount": 6,
    	"PlayerCount_Min": 2,
   	"PlayerCount_Max": 6,
