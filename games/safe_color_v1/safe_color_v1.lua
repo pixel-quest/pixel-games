@@ -196,28 +196,48 @@ function StartGame(gameJson, gameConfigJson)
         iMaxX = AL.NFZ.iMaxX
     end
 
-    if GameObj.StartPositions == nil then
+    if GameConfigObj.ChosenColors ~= nil then
         GameObj.StartPositions = {}
-
-        local iX = iMinX + 2
-        local iY = math.floor(GameObj.Rows/2)
-        for iPlayerID = 1, 6 do
+        for iPlayerID = 1, #GameConfigObj.ChosenColors do
             GameObj.StartPositions[iPlayerID] = {}
-            GameObj.StartPositions[iPlayerID].X = iX
-            GameObj.StartPositions[iPlayerID].Y = iY
-            GameObj.StartPositions[iPlayerID].Color = colors.GREEN
+            GameObj.StartPositions[iPlayerID].Color = tonumber(GameConfigObj.ChosenColors[iPlayerID])
 
-            iX = iX + (GameObj.StartPositionSize*2)
-            if iX + GameObj.StartPositionSize-1 > iMaxX then
-                iX = iMinX + 2
-                iY = iY + (GameObj.StartPositionSize+1)
-            end
+            GameStats.Players[iPlayerID].Color = GameObj.StartPositions[iPlayerID].Color
+            PlayerInGame[iPlayerID] = true
         end
     else
-        for iPlayerID = 1, #GameObj.StartPositions do
-            GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-        end 
-    end   
+        if GameObj.StartPositions == nil then
+            GameObj.StartPositions = {}
+
+            local iX = iMinX + 2
+            local iY = math.floor(GameObj.Rows/2)
+            for iPlayerID = 1, 6 do
+                GameObj.StartPositions[iPlayerID] = {}
+                GameObj.StartPositions[iPlayerID].X = iX
+                GameObj.StartPositions[iPlayerID].Y = iY
+                GameObj.StartPositions[iPlayerID].Color = colors.GREEN
+
+                iX = iX + (GameObj.StartPositionSize*2)
+                if iX + GameObj.StartPositionSize-1 > iMaxX then
+                    iX = iMinX + 2
+                    iY = iY + (GameObj.StartPositionSize+1)
+                end
+            end
+        else
+            for iPlayerID = 1, #GameObj.StartPositions do
+                GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
+            end 
+        end   
+
+        if not GameConfigObj.SkipTutorial then
+            audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+        end
+        audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+        if not GameConfigObj.SkipTutorial then
+            audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
+        end
+        --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
+    end
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
@@ -231,15 +251,6 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.CurrentLives = GameConfigObj.StartLives
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
-
-    if not GameConfigObj.SkipTutorial then
-        audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
-    end
-    audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
-    if not GameConfigObj.SkipTutorial then
-        audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
-    end
-    --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
 -- PauseGame (служебный): пауза игры
@@ -273,19 +284,23 @@ function NextTick()
         end
 
         StartPlayersCount = 0
-        -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
-        for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
-            local bright = colors.BRIGHT15
-            if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) or (not bDisPos and PlayerInGame[positionIndex]) then
-                GameStats.Players[positionIndex].Color = startPosition.Color
-                bright = GameConfigObj.Bright
-                PlayerInGame[positionIndex] = true
-                StartPlayersCount = StartPlayersCount + 1
-            elseif bDisPos then                
-                GameStats.Players[positionIndex].Color = colors.NONE
-                PlayerInGame[positionIndex] = false
+        if not GameConfigObj.ChosenColors then
+            -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
+            for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
+                local bright = colors.BRIGHT15
+                if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) or (not bDisPos and PlayerInGame[positionIndex]) then
+                    GameStats.Players[positionIndex].Color = startPosition.Color
+                    bright = GameConfigObj.Bright
+                    PlayerInGame[positionIndex] = true
+                    StartPlayersCount = StartPlayersCount + 1
+                elseif bDisPos then                
+                    GameStats.Players[positionIndex].Color = colors.NONE
+                    PlayerInGame[positionIndex] = false
+                end
+                setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
             end
-            setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
+        else
+            StartPlayersCount = #GameConfigObj.ChosenColors
         end
 
         if StartPlayersCount > 1 and (time.unix() - 10) >= iGameLoadTime and not GameStarted then
