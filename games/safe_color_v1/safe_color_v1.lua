@@ -205,6 +205,8 @@ function StartGame(gameJson, gameConfigJson)
             GameStats.Players[iPlayerID].Color = GameObj.StartPositions[iPlayerID].Color
             PlayerInGame[iPlayerID] = true
         end
+
+        GameResults.ChosenColors = GameConfigObj.ChosenColors
     else
         if GameObj.StartPositions == nil then
             GameObj.StartPositions = {}
