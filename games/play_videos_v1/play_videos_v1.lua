@@ -107,6 +107,8 @@ function StartGame(gameJson, gameConfigJson)
         ButtonsList[num] = help.ShallowCopy(Pixel)
     end
 
+    iPrevTickTime = time.unix()
+
     if AL.RoomHasNFZ(tGame) then
         AL.LoadNFZInfo()
     end
@@ -147,7 +149,11 @@ function NextTick()
             videoPlaying = false
             video.Stop()
 
-            if GameObj.ColorOptions ~= nil then
+            if GameObj.Initial then
+                audio.PlayVoicesSyncFromScratch("choose-color.mp3")
+                bPlayerColorsMode = true
+                PositionCountDown()
+            elseif GameObj.ColorOptions ~= nil then
                 if not bColorsLoaded then
                     audio.PlayVoicesSyncFromScratch("play-videos/collect-all-pixels.mp3")
                     LoadColorChoices()
@@ -160,10 +166,101 @@ function NextTick()
         end
     end
 
+    if bPlayerColorsMode then
+        PaintPositionChoices()
+        if GameStats.StageLeftDuration <= 0 then
+            tGameResults.ChosenColors = GetPostitionsArray()
+            tGameResults.Won = true
+            return tGameResults
+        end
+    end
+
     if tGameResults.selected_branch ~= nil then
         tGameResults.Won = true
         return tGameResults
     end
+
+    AL.CountTimers((time.unix() - iPrevTickTime) * 1000)
+    iPrevTickTime = time.unix()  
+end
+
+local bPlayerColorsMode = false
+local tPlayerInGame = {}
+local tPlayerColors = {}
+tPlayerColors[1] = colors.GREEN
+tPlayerColors[2] = colors.RED
+tPlayerColors[3] = colors.BLUE
+tPlayerColors[4] = colors.MAGENTA
+tPlayerColors[5] = colors.YELLOW
+tPlayerColors[6] = colors.CYAN
+
+function PaintPositionChoices()
+    local iStartX = GameObj.iMinX+2
+    local iStartY = GameObj.iMinY+1
+    local iSize = math.floor((GameObj.iMaxY-GameObj.iMinY+1)/3)
+
+    for iPlayerID = 1, #tPlayerColors do
+        local bClick = false
+
+        local iBright = 1
+        if tPlayerInGame[iPlayerID] then iBright = 3; end
+
+        for iX = iStartX, iStartX + iSize do
+            for iY = iStartY, iStartY+iSize do
+                FloorMatrix[iX][iY].Color = tPlayerColors[iPlayerID]
+                FloorMatrix[iX][iY].Bright = iBright
+
+                if FloorMatrix[iX][iY].Click and not FloorMatrix[iX][iY].Defect then
+                    bClick = true
+                end
+            end
+        end
+
+        if bClick then
+            tPlayerInGame[iPlayerID] = true
+        elseif GameStats.StageLeftDuration > 3 then
+            tPlayerInGame[iPlayerID] = false
+        end
+
+        iStartX = iStartX + iSize + 2
+        if iStartX + iSize > GameObj.iMaxX then
+            iStartX = GameObj.iMinX+2
+            iStartY = iStartY + 2 + iSize
+
+            if iStartY + iSize > GameObj.iMaxY then break; end
+        end
+    end
+end
+
+function PositionCountDown()
+    GameStats.StageLeftDuration = 15
+
+    AL.NewTimer(1000, function()
+        if GameStats.StageLeftDuration <= 0 then
+            return nil
+        else
+            if GameStats.StageLeftDuration <= 5 then
+                audio.ResetSync()
+                audio.PlayLeftAudio(GameStats.StageLeftDuration)
+            end
+
+            GameStats.StageLeftDuration = GameStats.StageLeftDuration - 1
+
+            return 1000
+        end
+    end)
+end
+
+function GetPostitionsArray()
+    local tPlayers = {}
+
+    for iPlayerID = 1, #tPlayerColors do
+        if tPlayerInGame[iPlayerID] then
+            tPlayers[#tPlayers+1] = tPlayerColors[iPlayerID]
+        end
+    end
+
+    return tPlayers
 end
 
 function LoadColorChoices()
@@ -242,16 +339,27 @@ function ResumeGame()
         pausedAt = nil
     end
     video.Resume()
+    iPrevTickTime = time.unix()
 end
 
 function SwitchStage()
 end
 
 function PixelClick(click)
-    FloorMatrix[click.X][click.Y].Click = click.Click
+    if FloorMatrix[click.X] and FloorMatrix[click.X][click.Y] then
+        if click.Click then
+            FloorMatrix[click.X][click.Y].Click = true
+        else
+            AL.NewTimer(500, function()
+                FloorMatrix[click.X][click.Y].Click = false
+            end)
+        end
 
-    if click.Click and FloorMatrix[click.X][click.Y].bIsColorPixel then
-        ClickColorPixel(click.X, click.Y)
+        if click.Click then
+            if FloorMatrix[click.X][click.Y].bIsColorPixel then
+                ClickColorPixel(click.X, click.Y)
+            end
+        end
     end
 end
 
