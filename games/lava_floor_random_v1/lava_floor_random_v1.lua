@@ -446,7 +446,7 @@ CMap.CheckRoomForGenType = function(iGenType)
 end
 
 CMap.CreateCoin = function(iX, iY)
-    if CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND then
+    if CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and not tFloor[iX][iY].bDefect then
         CBlock.NewBlock(CBlock.LAYER_COINS, iX, iY, CBlock.BLOCK_TYPE_COIN)
         return true
     end
@@ -1667,8 +1667,8 @@ function DefectPixel(defect)
         tFloor[defect.X][defect.Y].bProtectedFromLava = true
 
         if iGameState == GAMESTATE_SETUP then
-            if tFloor[click.X][click.Y].iCoinId > 0 and not CGameMode.tGameSetupCoins[tFloor[click.X][click.Y].iCoinId].bCollected then
-                CGameMode.PlayerCollectGameSetupCoin(tFloor[click.X][click.Y].iCoinId)
+            if tFloor[defect.X][defect.Y].iCoinId > 0 and not CGameMode.tGameSetupCoins[tFloor[defect.X][defect.Y].iCoinId].bCollected then
+                CGameMode.PlayerCollectGameSetupCoin(tFloor[defect.X][defect.Y].iCoinId)
             end
         else
             CBlock.RegisterBlockClick(defect.X, defect.Y)
