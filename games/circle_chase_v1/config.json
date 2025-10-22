@@ -1,0 +1,25 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"CircleSize": 3,
+	"CircleSize_Min": 2,
+	"CircleSize_Max": 3,
+	"CircleSize_Step": 1,
+	"CircleSize_ru": "Радиус Круга",
+	"CircleSize_en": "Circle Radius",
+
+	"SwitchDuration": 15,
+	"SwitchDuration_Min": 5,
+	"SwitchDuration_Max": 30,
+	"SwitchDuration_Step": 5,
+	"SwitchDuration_ru": "Длительность цвета",
+	"SwitchDuration_en": "Color duration",
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"
+}
