@@ -9,6 +9,8 @@
     }
   ],
 
+  "Initial": false,
+
   "AskedChoice": "На какой стул сам сядешь, на какой коллегу посадишь?",
   "ColorOptions":
   [
