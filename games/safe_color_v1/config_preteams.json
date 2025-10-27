@@ -1,0 +1,58 @@
+{
+  "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+  "Bright_ru": "Яркость",
+
+  "StartLives": 0,
+  "StartLives_Min": 0,
+  "StartLives_Max": 50,
+  "StartLives_Step": 5,   
+  "StartLives_ru": "Начальное количество жизней",
+  "StartLives_en": "Player lives count",
+
+  "ChosenColors":["0xFF00", "0x00FF00", "0x0000FF"],
+  
+  "PlayerCount": 0,
+  "PlayerCount_Min": 0,
+  "PlayerCount_Max": 6,
+  "PlayerCount_Step": 1,
+  "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
+  "PlayerCount_en": "Player Count",
+  
+  "StagesQty": 10,
+  "StagesQty_Min": 5,
+  "StagesQty_Max": 20,
+  "StagesQty_Step": 1,   
+  "StagesQty_ru": "Количество Раундов/Стадий",
+  "StagesQty_en": "Round/Stage Count",
+
+  "StageDurationSec": 4,
+  "StageDurationSec_Min": 2,
+  "StageDurationSec_Max": 8,
+  "StageDurationSec_Step": 1,  
+  "StageDurationSec_ru": "Длительность стадии",
+  "StageDurationSec_en": "Stage duration",
+  
+  "StopDurationSec": 4,
+  "StopDurationSec_Min": 2,
+  "StopDurationSec_Max": 8,
+  "StopDurationSec_Step": 1,  
+  "StopDurationSec_ru": "Длительность остановки",
+  "StopDurationSec_en": "Stop Duration",
+
+  "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true,
+
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение", 
+  "SkipTutorial_en": "Skip tutorial", 
+
+  "LavaDelay": 200,
+  "LavaDelay_Min": 50,
+  "LavaDelay_Max": 1000,
+  "LavaDelay_Step": 50,
+  "LavaDelay_ru": "Задержка лавы",
+  "LavaDelay_en": "Lava delay"
+}
