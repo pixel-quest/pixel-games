@@ -196,6 +196,7 @@ function StartGame(gameJson, gameConfigJson)
 
     if tConfig.ChosenColors ~= nil then
         tGameResults.ChosenColors = tConfig.ChosenColors
+        bAnyButtonClick = true
     end
 
     CGameMode.PrepareGame()
