@@ -144,6 +144,10 @@ function GameSetupTick()
     --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
     if CGameMode.bCanStart then
+        if tConfig.ChosenColors ~= nil then
+            bAnyButtonClick = true;
+        end
+
         for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
             for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
                 tFloor[iX][iY].iColor = CColors.BLUE
@@ -217,7 +221,9 @@ CGameMode.Announcer = function()
         CGameMode.bCanStart = true
     end
 
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    if not tConfig.ChosenColors then
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
