@@ -181,7 +181,6 @@ function GameSetupTick()
             tGameStats.Players[iPlayerID].Color = CGameMode.tPlayerColors[iPlayerID]
         elseif not CGameMode.bCountDownStarted then
             tPlayerInGame[iPlayerID] = false
-            iPlayersReadyCount = iPlayersReadyCount - 1
             tGameStats.Players[iPlayerID].Color = CColors.NONE
         end
 
@@ -193,8 +192,12 @@ function GameSetupTick()
         end
     end
 
-    if not CGameMode.bCountDownStarted and ((iPlayersReadyCount == iMaxPlayers and CGameMode.bCanAutoStart) or (bAnyButtonClick and iPlayersReadyCount > 1)) then
-        CGameMode.StartCountDown(5)
+    if not CGameMode.bCountDownStarted then 
+        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
+
+        if (iPlayersReadyCount == iMaxPlayers and CGameMode.bCanAutoStart) or (bAnyButtonClick and iPlayersReadyCount > 1) then
+            CGameMode.StartCountDown(5)
+        end
     end
 
     tGameResults.PlayersCount = iPlayersReadyCount
@@ -250,14 +253,15 @@ end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        --voice gamename rules
-        CAudio.PlayVoicesSync("choose-color.mp3")
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync("circle_chase/cc_rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("circle_chase/cc_rules.mp3")*1000 + 3000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
         CGameMode.bCanAutoStart = true
     end
+
+    CAudio.PlayVoicesSync("choose-color.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
