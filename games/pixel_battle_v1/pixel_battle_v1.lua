@@ -123,11 +123,19 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxY = AL.NFZ.iMaxY
     end
 
+    if tConfig.ChosenColors ~= nil then
+        tGame.PlayerCount = #tConfig.ChosenColors
+        for iPlayerID = 1, #tConfig.ChosenColors do
+            tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+        end
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
 
-        tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/(tGame.PlayerCount/2))-1
+        tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/math.ceil(tGame.PlayerCount/2))-1
         tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY)/2)
 
         local iX = tGame.iMinX
