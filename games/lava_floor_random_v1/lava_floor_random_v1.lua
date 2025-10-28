@@ -113,6 +113,11 @@ function StartGame(gameJson, gameConfigJson)
     tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
     tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
 
+    if tConfig.ChosenColors ~= nil then
+        tGameResults.ChosenColors = tConfig.ChosenColors
+
+    end
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -148,6 +153,10 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     --SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
     CPaint.GameSetup()
+
+    if tConfig.ChosenColors and CGameMode.bCanStart then
+        CGameMode.EndGameSetup()
+    end
 end
 
 function GameTick()
@@ -206,25 +215,34 @@ CGameMode.InitGameMode = function()
         --CLog.print("Seed: "..iSeed)
     end
 
-    CGameMode.tGameSetupCoins[1] = {}
-    CGameMode.tGameSetupCoins[1].bCollected = false
-    repeat
-        CGameMode.tGameSetupCoins[1].iX = math.random(math.floor(tGame.Cols/2)-3,math.floor(tGame.Cols/2)+3)
-        CGameMode.tGameSetupCoins[1].iY = math.random(math.floor(tGame.Rows/2)-3,math.floor(tGame.Rows/2)+3)
-    until not tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].bDefect 
-    tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].iCoinId = 1
-    tGameStats.TotalStars = 1
+    if not tConfig.ChosenColors then
+        CGameMode.tGameSetupCoins[1] = {}
+        CGameMode.tGameSetupCoins[1].bCollected = false
+        repeat
+            CGameMode.tGameSetupCoins[1].iX = math.random(math.floor(tGame.Cols/2)-3,math.floor(tGame.Cols/2)+3)
+            CGameMode.tGameSetupCoins[1].iY = math.random(math.floor(tGame.Rows/2)-3,math.floor(tGame.Rows/2)+3)
+        until not tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].bDefect 
+        tFloor[CGameMode.tGameSetupCoins[1].iX][CGameMode.tGameSetupCoins[1].iY].iCoinId = 1
+        tGameStats.TotalStars = 1
+    end
 
     tGameStats.TotalStages = tConfig.RoundCount
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("quest/quest-game.mp3")
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("quest/quest-game.mp3")
 
-    AL.NewTimer((CAudio.GetVoicesDuration("quest/quest-game.mp3"))*1000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("quest/quest-game.mp3"))*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
         CGameMode.bCanStart = true
-    end)
+    end
+
+    if not tConfig.ChosenColors then
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    end
 end
 
 CGameMode.GameSetupRandomCoins = function()
@@ -272,7 +290,6 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -283,7 +300,11 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
             CGameMode.StartRound()
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
+
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
