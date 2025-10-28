@@ -314,7 +314,7 @@ CGameMode.StartGame = function()
     CAudio.PlayDanceSync(tGame["SongName"])
     CGameMode.LoadSongPixels()
 
-    AL.NewTimer(0, function()
+    AL.NewTimer(30, function()
         CPixels.PixelMovement()
         return tConfig.PixelMoveDelayMS
     end)
@@ -456,7 +456,7 @@ CPixels.SpawnPixel = function(iPlayerID, iPixelType, iPixelX, iVelX, iVelY, iCol
     CPixels.tPixels[iPixelID] = {}
     CPixels.tPixels[iPixelID].iPlayerID = iPlayerID
     CPixels.tPixels[iPixelID].iX = tGame.StartPositions[iPlayerID].X + iPixelX-2
-    CPixels.tPixels[iPixelID].iY = tGame.StartPositions[iPlayerID].Y + CPixels.PIXEL_START_Y -1
+    CPixels.tPixels[iPixelID].iY = tGame.StartPositions[iPlayerID].Y + CPixels.PIXEL_START_Y
     CPixels.tPixels[iPixelID].iVelX = iVelX
     CPixels.tPixels[iPixelID].iVelY = iVelY
 
