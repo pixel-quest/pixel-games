@@ -104,6 +104,10 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix() 
 
+    if tConfig.ChosenColors ~= nil then
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     CGameMode.Announcer()
 end
 
