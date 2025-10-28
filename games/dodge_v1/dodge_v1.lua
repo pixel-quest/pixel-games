@@ -104,6 +104,10 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameResults.PlayersCount = tConfig.PlayerCount
 
+    if tConfig.ChosenColors ~= nil then
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
