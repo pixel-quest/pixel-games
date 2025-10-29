@@ -104,6 +104,10 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix() 
 
+    if tConfig.ChosenColors ~= nil then
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     CGameMode.Announcer()
 end
 
@@ -144,6 +148,11 @@ function GameSetupTick()
         end
 
         if CGameMode.bCanStartGame then
+            if tConfig.ChosenColors ~= nil then
+                CGameMode.StartCountDown(5)
+                return;
+            end
+
             for iX = math.floor(tGame.Cols/2), math.floor(tGame.Cols/2) + 1 do
                 for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 1 do
                     tFloor[iX][iY].iColor = CColors.BLUE
@@ -202,7 +211,9 @@ CGameMode.Announcer = function()
         CGameMode.bCanStartGame = true
     end
 
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    if not tConfig.ChosenColors then
+        CAudio.PlayVoicesSync("press-center-for-start.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)

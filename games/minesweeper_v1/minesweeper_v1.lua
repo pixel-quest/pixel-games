@@ -129,6 +129,17 @@ function StartGame(gameJson, gameConfigJson)
         iMaxY = AL.NFZ.iMaxY
     end
 
+    if tConfig.ChosenColors ~= nil then
+        tGame.PlayerCount = #tConfig.ChosenColors
+        for iPlayerID = 1, #tConfig.ChosenColors do
+            tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+            tPlayerInGame[iPlayerID] = true
+        end
+        tGameResults.ChosenColors = tConfig.ChosenColors
+
+        bAnyButtonClick = true
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
@@ -136,7 +147,7 @@ function StartGame(gameJson, gameConfigJson)
         local iX = iOffset + iMinX
         local iY = (tGame.SPAutoOffsetY or 1) + iMinY
 
-        for iPlayerID = 1, 6 do
+        for iPlayerID = 1, tGame.iPlayerCount or 6 do
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
@@ -255,7 +266,7 @@ function GameSetupTickMultiPlayer()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (tConfig.ChosenColors and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -354,6 +365,8 @@ CGameMode.InitPlayers = function()
 end
 
 CGameMode.AnnounceGameStart = function()
+    if tConfig.ChosenColors then return; end
+
     CAudio.PlayVoicesSync("minesweeper/minesweeper.mp3")
 
     if #tGame.StartPositions > 1 then
