@@ -44,6 +44,8 @@ local audio = require("audio")
 -- Константы яркости (0 - 7): BRIGHT0, BRIGHT15, BRIGHT30, BRIGHT45, BRIGHT60, BRIGHT70, BRIGHT85, BRIGHT100
 local colors = require("colors")
 
+local video = require("video")
+
 -- Полезные стандартные функции
 --      math.floor() – отбрасывает дробную часть и переводит значение в целочисленный тип
 --      math.random(upper) – генерирует целое число в диапазоне [1..upper]
@@ -137,6 +139,10 @@ function StartGame(gameJson, gameConfigJson)
     if GameConfigObj.Sound ~= "" then
         audio.PlayVoicesSyncFromScratch(GameConfigObj.Sound)
         GameObj.TimeOut = time.unix() + audio.GetVoicesDuration(GameConfigObj.Sound)
+    end
+
+    if GameObj.Video ~= "" then
+        video.Play(GameObj.Video)
     end
 
     if not GameConfigObj.NoSound then
