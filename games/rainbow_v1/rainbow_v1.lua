@@ -136,16 +136,17 @@ function StartGame(gameJson, gameConfigJson)
     GradientLength = table.getn(GameObj.Colors)
     audio.PlaySyncFromScratch("") -- just reset audio player on start new game
 
-    if GameConfigObj.Sound ~= "" then
+    if GameConfigObj.Sound and GameConfigObj.Sound ~= "" then
         audio.PlayVoicesSyncFromScratch(GameConfigObj.Sound)
         GameObj.TimeOut = time.unix() + audio.GetVoicesDuration(GameConfigObj.Sound)
     end
 
-    if GameObj.Video ~= "" then
-        video.Play(GameObj.Video)
+    if GameConfigObj.Video and GameConfigObj.Video ~= "" then
+        video.Play(GameConfigObj.Video)
+        GameStats.ScoreboardVariant = 0
     end
 
-    if not GameConfigObj.NoSound then
+    if not GameConfigObj.Sound and not GameConfigObj.NoSound then
         audio.PlayRandomBackground()
     end
 end
@@ -193,7 +194,11 @@ function NextTick()
 
     if GameObj.TimeOut then
         if time.unix() > GameObj.TimeOut then
-            return GameResults
+            GameStats.ScoreboardVariant = 10
+            if not GameConfigObj.NoSound then
+                audio.PlayRandomBackground()
+            end
+            GameObj.TimeOut = nil
         end
     end
 end

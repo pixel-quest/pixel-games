@@ -1,7 +1,19 @@
 {
   "Delay": 100,
-  "NoSound": false,
-  "DarkClicks": false,
+  "Delay_ru": "Длительность кадра",
+  "Delay_en": "Frame duration",
 
-  "Sound": ""
+  "NoSound": false,
+  "NoSound_ru": "Без музыки",
+  "NoSound_en": "Disable music",
+
+  "DarkClicks": false,
+  "DarkClicks_ru": "Тёмные клики",
+  "DarkClicks_en": "Dark clicks",
+
+  "Sound": "",
+  "Sound_Hidden": true,
+
+  "Video": "",
+  "Video_Hidden": true
 }
