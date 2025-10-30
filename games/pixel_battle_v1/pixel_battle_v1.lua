@@ -123,11 +123,20 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxY = AL.NFZ.iMaxY
     end
 
+    if tConfig.ChosenColors ~= nil then
+        tGame.PlayerCount = #tConfig.ChosenColors
+        for iPlayerID = 1, #tConfig.ChosenColors do
+            tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+            tPlayerInGame[iPlayerID] = true
+        end
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
 
-        tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/(tGame.PlayerCount/2))-1
+        tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/math.ceil(tGame.PlayerCount/2))-1
         tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY)/2)
 
         local iX = tGame.iMinX
@@ -194,7 +203,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (tConfig.ChosenColors and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -294,14 +303,16 @@ CGameMode.Announcer = function()
         CGameMode.bCanStartGame = true
     end
 
-    if #tGame.StartPositions > 1 then
-        CAudio.PlayVoicesSync("choose-color.mp3")
-    end
+    if not tConfig.ChosenColors then
+        if #tGame.StartPositions > 1 then
+            CAudio.PlayVoicesSync("choose-color.mp3")
+        end
 
-    if tGame.ArenaMode then 
-        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-    else
-        --CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        if tGame.ArenaMode then 
+            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+        else
+            --CAudio.PlayVoicesSync("press-button-for-start.mp3")
+        end
     end
 end
 
@@ -463,7 +474,7 @@ CPaint.PlayerGameZone = function(iPlayerID)
                 iColor = CColors.BLUE
             end
 
-            if CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) then
+            if CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) or tGameStats.StageLeftDuration > 0 then
                 iColor = tGame.StartPositions[iPlayerID].Color
             end
 

@@ -20,6 +20,10 @@
 		"RoundTimePerCoin_en": "Round time length per coin",
 		"RoundTimePerCoin_Hidden": true,
 
+	  	"SkipTutorial": false,
+	  	"SkipTutorial_ru": "Пропустить обучение", 
+	  	"SkipTutorial_en": "Skip tutorial", 
+
 		"Seed": 0,
 		"Seed_Min": 0,
 		"Seed_Max": 9999999,

@@ -128,6 +128,15 @@ function StartGame(gameJson, gameConfigJson)
         tGame.CenterY = AL.NFZ.iCenterY
     end
 
+    if tConfig.ChosenColors ~= nil then
+        tGame.PlayerCount = #tConfig.ChosenColors
+        for iPlayerID = 1, #tConfig.ChosenColors do
+            tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+            tPlayerInGame[iPlayerID] = true
+        end
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     tGame.StartPositions = {}
     tGame.StartPositionsSizeX = 4
     tGame.StartPositionsSizeY = tGame.iMaxY - tGame.iMinY + 1
@@ -142,7 +151,7 @@ function StartGame(gameJson, gameConfigJson)
 
     local iX = iStartX
     local iY = tGame.iMinY
-    for iPlayerID = 1, 6 do
+    for iPlayerID = 1, (tGame.PlayerCount or 6) do
         tGame.StartPositions[iPlayerID] = {}
         tGame.StartPositions[iPlayerID].X = iX
         tGame.StartPositions[iPlayerID].Y = iY
@@ -201,7 +210,7 @@ function GameSetupTick()
     local iPlayersReady = 0
 
     for iPlayerID = 1, #tGame.StartPositions do
-        if CheckPositionClick(tGame.StartPositions[iPlayerID], tGame.StartPositionsSizeX, tGame.StartPositionsSizeY) then
+        if CheckPositionClick(tGame.StartPositions[iPlayerID], tGame.StartPositionsSizeX, tGame.StartPositionsSizeY) or (tPlayerInGame[iPlayerID] and tConfig.ChosenColors) then
             tPlayerInGame[iPlayerID] = true
 
             tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
@@ -273,7 +282,9 @@ CGameMode.Announcer = function()
         CGameMode.bCanAutoStart = true
     end
 
-    CAudio.PlayVoicesSync("choose-color.mp3")
+    if not tConfig.ChosenColors then
+        CAudio.PlayVoicesSync("choose-color.mp3")
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -303,7 +314,7 @@ CGameMode.StartGame = function()
     CAudio.PlayDanceSync(tGame["SongName"])
     CGameMode.LoadSongPixels()
 
-    AL.NewTimer(0, function()
+    AL.NewTimer(30, function()
         CPixels.PixelMovement()
         return tConfig.PixelMoveDelayMS
     end)
@@ -445,7 +456,7 @@ CPixels.SpawnPixel = function(iPlayerID, iPixelType, iPixelX, iVelX, iVelY, iCol
     CPixels.tPixels[iPixelID] = {}
     CPixels.tPixels[iPixelID].iPlayerID = iPlayerID
     CPixels.tPixels[iPixelID].iX = tGame.StartPositions[iPlayerID].X + iPixelX-2
-    CPixels.tPixels[iPixelID].iY = tGame.StartPositions[iPlayerID].Y + CPixels.PIXEL_START_Y -1
+    CPixels.tPixels[iPixelID].iY = tGame.StartPositions[iPlayerID].Y + CPixels.PIXEL_START_Y
     CPixels.tPixels[iPixelID].iVelX = iVelX
     CPixels.tPixels[iPixelID].iVelY = iVelY
 

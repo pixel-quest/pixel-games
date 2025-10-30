@@ -122,6 +122,10 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if tConfig.ChosenColors ~= nil then
+        tGameResults.ChosenColors = tConfig.ChosenColors
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
         local iX = 1
@@ -131,6 +135,19 @@ function StartGame(gameJson, gameConfigJson)
             tGame.TeamCount = 1
             iX = math.floor(tGame.Cols/2.5)
             iY = math.floor(tGame.Rows/3)
+
+            tPlayerInGame[1] = true
+        else
+            if tConfig.ChosenColors then
+                tGame.TeamCount = #tConfig.ChosenColors
+                if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
+                if tConfig.ChosenColors then
+                    for iPlayerID = 1, #tConfig.ChosenColors do
+                        tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+                        tPlayerInGame[iPlayerID] = true
+                    end
+                end
+            end
         end
 
         for iPlayerID = 1, tGame.TeamCount do
@@ -198,7 +215,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (bCountDownStarted and tPlayerInGame[iPos]) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (bCountDownStarted and tPlayerInGame[iPos]) or (tConfig.ChosenColors and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -305,14 +322,16 @@ CGameMode.Announcer = function()
         CGameMode.bCanStart = true
     end
 
-    if #tGame.StartPositions > 1 then
-        CAudio.PlayVoicesSync("choose-color.mp3")
-    end
+    if not tConfig.ChosenColors then
+        if #tGame.StartPositions > 1 then
+            CAudio.PlayVoicesSync("choose-color.mp3")
+        end
 
-    if tGame.ArenaMode then 
-        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-    elseif #tGame.StartPositions == 1 then
-        CAudio.PlayVoicesSync("press-center-for-start.mp3")
+        if tGame.ArenaMode then 
+            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+        elseif #tGame.StartPositions == 1 then
+            CAudio.PlayVoicesSync("press-center-for-start.mp3")
+        end
     end
 end
 
