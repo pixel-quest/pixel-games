@@ -146,7 +146,7 @@ function StartGame(gameJson, gameConfigJson)
         GameStats.ScoreboardVariant = 0
     end
 
-    if not GameConfigObj.Sound and not GameConfigObj.NoSound then
+    if (not GameConfigObj.Sound or GameConfigObj.Sound == "") and (not GameConfigObj.NoSound or GameConfigObj.NoSound == false) then
         audio.PlayRandomBackground()
     end
 end
