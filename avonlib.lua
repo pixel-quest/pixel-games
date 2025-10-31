@@ -1,6 +1,8 @@
 _G.AL = {}
 local LOC = {}
 
+local CColors = require("colors")
+
 --STACK
 AL.Stack = function()
     local tStack = {}
@@ -164,5 +166,27 @@ NFZ_LoadMaxY = function()
     end    
 
     return iMaxY
+end
+--//
+
+--COLORS
+AL.Colors = {}
+
+AL.LoadColors = function()
+    if tGame.Colors ~= nil then
+        for iColor = 1, #tGame.Colors do
+            AL.Colors[iColor] = tonumber(tGame.Colors[iColor])
+        end
+    else
+        AL.Colors = 
+        {
+            CColors.MAGENTA,
+            CColors.BLUE,
+            CColors.GREEN,
+            CColors.CYAN,
+            CColors.YELLOW,
+            CColors.RED
+        };
+    end
 end
 --//
