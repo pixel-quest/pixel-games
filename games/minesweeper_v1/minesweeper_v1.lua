@@ -392,7 +392,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-        if CGameMode.iCountdown <= 0 then
+        if CGameMode.iCountdown <= 1 then
 
             if CGameMode.iRound == 1 then
                 CGameMode.StartGame()
