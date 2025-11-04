@@ -10,5 +10,12 @@
 	"TargetScore_Max": 50,
 	"TargetScore_Step": 5,
 	"TargetScore_ru": "Количество рыбов",
-	"TargetScore_en": "Target Score"
+	"TargetScore_en": "Target Fish Count",
+
+	"FishSpawnRateMS": 1000,
+	"FishSpawnRateMS_Min": 500,
+	"FishSpawnRateMS_Max": 5000,
+	"FishSpawnRateMS_Step": 250,
+	"FishSpawnRateMS_ru": "Задержка между появлением рыбов(в миллисекундах)",
+	"FishSpawnRateMS_en": "Delay between fish spawn(in milliseconds)"
 }

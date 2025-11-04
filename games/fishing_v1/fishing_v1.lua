@@ -296,7 +296,7 @@ CGameMode.GameLoop = function()
         return 150
     end)
 
-    AL.NewTimer(2500, function()
+    AL.NewTimer(tConfig.FishSpawnRateMS, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         local iY = tGame.CenterY-1
@@ -309,7 +309,7 @@ CGameMode.GameLoop = function()
         end
         CFish.NewFish(iX, iY, iVelX)
 
-        return math.random(500, 3000)
+        return math.random(math.floor(tConfig.FishSpawnRateMS*0.8), math.ceil(tConfig.FishSpawnRateMS*1.2))
     end)
 end
 
@@ -344,6 +344,7 @@ CHook.Launch = function(iX, iY, iVelY, iPlayerID)
     CHook.tHooks[iHookID].bBack = false
     CHook.tHooks[iHookID].iPlayerID = iPlayerID
     CHook.tHooks[iHookID].iFishID = 0
+    CHook.tHooks[iHookID].iFishCount = 0
 end
 
 CHook.Tick = function()
@@ -360,7 +361,7 @@ CHook.Tick = function()
                     CGameMode.tPlayerCooldown[CHook.tHooks[iHookID].iPlayerID] = false
 
                     if CHook.tHooks[iHookID].iFishID ~= 0 then
-                        CGameMode.AddPlayerScore(CHook.tHooks[iHookID].iPlayerID, 1)
+                        CGameMode.AddPlayerScore(CHook.tHooks[iHookID].iPlayerID, CHook.tHooks[iHookID].iFishCount)
                         CFish.tFish[CHook.tHooks[iHookID].iFishID] = nil
                     end
 
@@ -369,20 +370,24 @@ CHook.Tick = function()
             end
 
             if CHook.tHooks[iHookID] then
-                if CHook.tHooks[iHookID].iFishID == 0 then
-                    for iFishID = 1, #CFish.tFish do
-                        if CFish.tFish[iFishID] and not CFish.tFish[iFishID].bCaught then
-                            if CFish.tFish[iFishID].iY == CHook.tHooks[iHookID].iY+(CHook.tHooks[iHookID].iSize*CHook.tHooks[iHookID].iVelY)-CHook.tHooks[iHookID].iVelY then
-                                if CFish.tFish[iFishID].iX >= CHook.tHooks[iHookID].iX-2 and CFish.tFish[iFishID].iX+CFish.FISH_SIZE <= CHook.tHooks[iHookID].iX+1 then
+                for iFishID = 1, #CFish.tFish do
+                    if CFish.tFish[iFishID] and not CFish.tFish[iFishID].bCaught then
+                        if CFish.tFish[iFishID].iY == CHook.tHooks[iHookID].iY+(CHook.tHooks[iHookID].iSize*CHook.tHooks[iHookID].iVelY)-CHook.tHooks[iHookID].iVelY then
+                            if CFish.tFish[iFishID].iX >= CHook.tHooks[iHookID].iX-2 and CFish.tFish[iFishID].iX+CFish.FISH_SIZE <= CHook.tHooks[iHookID].iX+1 then
+                                CFish.tFish[iFishID].bCaught = true
+                                CAudio.PlaySystemAsync(CAudio.CLICK)
+                                CHook.tHooks[iHookID].iFishCount = CHook.tHooks[iHookID].iFishCount + 1
+
+                                if CHook.tHooks[iHookID].iFishID == 0 then
                                     CHook.tHooks[iHookID].iFishID = iFishID
-                                    CFish.tFish[iFishID].bCaught = true
-                                    CAudio.PlaySystemAsync(CAudio.CLICK)
-                                    break;
-                                end
+                                else
+                                    CFish.tFish[iFishID] = nil
+                                end                                
                             end
                         end
                     end
-                else
+                end
+                if CHook.tHooks[iHookID].iFishID ~= 0 then
                     CFish.tFish[CHook.tHooks[iHookID].iFishID].iX = CHook.tHooks[iHookID].iX-3
                     CFish.tFish[CHook.tHooks[iHookID].iFishID].iY = CHook.tHooks[iHookID].iY+(CHook.tHooks[iHookID].iSize*CHook.tHooks[iHookID].iVelY)-CHook.tHooks[iHookID].iVelY
                 end
