@@ -294,6 +294,8 @@ CGameMode.StartGame = function()
     tGameStats.StageLeftDuration = tConfig.SwitchDuration*(tGameResults.PlayersCount*2)
     tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
 
+    CCircle.SwitchPlayer()
+
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
         if tGameStats.StageLeftDuration == 0 then
@@ -323,6 +325,8 @@ CGameMode.StartGame = function()
 end
 
 CGameMode.EndGame = function()
+    CAudio.StopBackground()
+
     local iMaxScore = -1
 
     for iPlayerID = 1, 6 do
@@ -360,6 +364,7 @@ CCircle.CIRCLE_RADIUS = 3
 
 CCircle.iCurrentPlayerID = 1
 CCircle.iClickCount = 0
+CCircle.tColorUseCount = {}
 
 CCircle.NewTarget = function()
     CCircle.iTargetX = math.random(1, tGame.Cols)
@@ -368,11 +373,13 @@ end
 
 CCircle.SwitchPlayer = function()
     repeat 
-        CCircle.iCurrentPlayerID = CCircle.iCurrentPlayerID + 1 
-        if CCircle.iCurrentPlayerID > 6 then CCircle.iCurrentPlayerID = 1; end
-    until tPlayerInGame[CCircle.iCurrentPlayerID]
+        CCircle.iCurrentPlayerID = math.random(1,6)
+    until tPlayerInGame[CCircle.iCurrentPlayerID] and (CCircle.tColorUseCount[CCircle.iCurrentPlayerID] == nil or CCircle.tColorUseCount[CCircle.iCurrentPlayerID] < 2)
 
-    CAudio.PlaySystemSync("dodge/lightsaber-swing.mp3")
+    if CCircle.tColorUseCount[CCircle.iCurrentPlayerID] == nil then CCircle.tColorUseCount[CCircle.iCurrentPlayerID] = 0; end
+    CCircle.tColorUseCount[CCircle.iCurrentPlayerID] = CCircle.tColorUseCount[CCircle.iCurrentPlayerID]+1
+
+    CAudio.PlaySystemAsync("dodge/lightsaber-swing.mp3")
     CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[CCircle.iCurrentPlayerID])
 end
 
@@ -385,7 +392,6 @@ CCircle.Movement = function()
     elseif CCircle.iX > CCircle.iTargetX then
         iXPlus = -1
     end
-
 
     if iXPlus == 0 and iYPlus == 0 then
         CCircle.NewTarget()
