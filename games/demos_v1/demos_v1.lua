@@ -465,7 +465,7 @@ CPaint.tDemoList["rainbowwave"].COLORS =
 
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_LOAD] = function()
     CPaint.tDemoList["rainbowwave"].tVars = {}
-    CPaint.tDemoList["rainbowwave"].tVars.tParticles = {}
+    CPaint.tDemoList["rainbowwave"].tVars.tParticles = AL.Stack()
     CPaint.tDemoList["rainbowwave"].tVars.iNextY = 1
     CPaint.tDemoList["rainbowwave"].tVars.iNextYPlus = 1
     CPaint.tDemoList["rainbowwave"].tVars.iColorOffset = 1
@@ -489,29 +489,29 @@ CPaint.tDemoList["rainbowwave"][CPaint.FUNC_LOAD] = function()
     end)
 end
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_PAINT] = function()
-    for iParticleID = 1, #CPaint.tDemoList["rainbowwave"].tVars.tParticles do
-        if CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID] then
-            for iY = CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY, CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY + CPaint.tDemoList["rainbowwave"].SIZE-1 do
-                local iColorID = math.floor(((CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iY + CPaint.tDemoList["rainbowwave"].SIZE-1 - iY) + CPaint.tDemoList["rainbowwave"].tVars.iColorOffset) %(#CPaint.tDemoList["rainbowwave"].COLORS))
-                if iColorID == 0 then iColorID = #CPaint.tDemoList["rainbowwave"].COLORS end
-                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iColor = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][1]
-                tFloor[CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX][iY].iBright = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][2]
-            end
+    for iParticleID = 1, CPaint.tDemoList["rainbowwave"].tVars.tParticles.Size() do
+        local tParticle = CPaint.tDemoList["rainbowwave"].tVars.tParticles.Pop()
+        for iY = tParticle.iY, tParticle.iY + CPaint.tDemoList["rainbowwave"].SIZE-1 do
+            local iColorID = math.floor(((tParticle.iY + CPaint.tDemoList["rainbowwave"].SIZE-1 - iY) + CPaint.tDemoList["rainbowwave"].tVars.iColorOffset) %(#CPaint.tDemoList["rainbowwave"].COLORS))
+            if iColorID == 0 then iColorID = #CPaint.tDemoList["rainbowwave"].COLORS end
+            tFloor[tParticle.iX][iY].iColor = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][1]
+            tFloor[tParticle.iX][iY].iBright = CPaint.tDemoList["rainbowwave"].COLORS[iColorID][2]
         end
+        CPaint.tDemoList["rainbowwave"].tVars.tParticles.Push(tParticle)
     end
 end
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_THINK] = function()
-    local iNewParticleID = #CPaint.tDemoList["rainbowwave"].tVars.tParticles+1
-    CPaint.tDemoList["rainbowwave"].tVars.tParticles[iNewParticleID] = {}
-    CPaint.tDemoList["rainbowwave"].tVars.tParticles[iNewParticleID].iX = tGame.Cols+1
-    CPaint.tDemoList["rainbowwave"].tVars.tParticles[iNewParticleID].iY = CPaint.tDemoList["rainbowwave"].tVars.iNextY
+    local tNewParticle = {}
+    tNewParticle.iX = tGame.Cols+1
+    tNewParticle.iY = CPaint.tDemoList["rainbowwave"].tVars.iNextY
+    CPaint.tDemoList["rainbowwave"].tVars.tParticles.Push(tNewParticle)
 
-    for iParticleID = 1, #CPaint.tDemoList["rainbowwave"].tVars.tParticles do
-        if CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID] then
-            CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX = CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX-1
-            if CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID].iX < 1 then
-                CPaint.tDemoList["rainbowwave"].tVars.tParticles[iParticleID] = nil
-            end
+    for iParticleID = 1, CPaint.tDemoList["rainbowwave"].tVars.tParticles.Size() do
+        local tParticle = CPaint.tDemoList["rainbowwave"].tVars.tParticles.Pop()
+
+        tParticle.iX = tParticle.iX - 1
+        if tParticle.iX > 0 then
+            CPaint.tDemoList["rainbowwave"].tVars.tParticles.Push(tParticle)
         end
     end
 
