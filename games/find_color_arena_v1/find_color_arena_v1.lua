@@ -194,7 +194,7 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.TotalStages=GameConfigObj.StagesQty
 
     audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
-    audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+    --audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
 
     if GameObj.ArenaMode then 
         audio.PlayVoicesSync("press-zone-for-start.mp3")
