@@ -20,6 +20,13 @@
 	"Lives_ru": "Жизни",
 	"Lives_en": "Team Lives",
 
+	"TargetScore": 10,
+	"TargetScore_Min": 5,
+	"TargetScore_Max": 25,
+	"TargetScore_Step": 5,
+	"TargetScore_ru": "Цель для победы",
+	"TargetScore_en": "Target Score",
+
 	"TimeLimit": 90,
 	"TimeLimit_Min": 30,
 	"TimeLimit_Max": 180,

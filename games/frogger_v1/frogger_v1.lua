@@ -191,6 +191,7 @@ CGameMode.InitGameMode = function()
     tGameStats.TotalLives = tConfig.Lives
     tGameStats.StageTotalDuration = tConfig.TimeLimit
     tGameStats.StageLeftDuration = tConfig.TimeLimit
+    tGameStats.TotalStars = tConfig.TargetScore
 
     if tConfig.Vertical then
         CSafeZones.NewSafeZone(1, 1, CSafeZones.SAFE_ZONE_SIZE, tGame.Rows, true, true)
@@ -268,7 +269,7 @@ CGameMode.StartGame = function()
             return 3000
         end
 
-        return 1000
+        return 500
     end)    
 
     AL.NewTimer(1000, function()
@@ -276,7 +277,7 @@ CGameMode.StartGame = function()
 
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
         if tGameStats.StageLeftDuration == 0 then
-            CGameMode.EndGame(true)
+            CGameMode.EndGame(false, true)
             return nil;
         end
 
@@ -292,17 +293,25 @@ CGameMode.StartGame = function()
     end)
 end
 
-CGameMode.EndGame = function(bTimeOut)
+CGameMode.EndGame = function(bVictory, bTimeOut)
     iGameState = GAMESTATE_POSTGAME
     CAudio.StopBackground()
 
-    CAudio.PlaySystemSync("game-over.mp3")
-    if bTimeOut then
-        CAudio.PlayVoicesSync("notime.mp3")
-        tGameResults.Color = CColors.YELLOW
+    if bVictory then
+        CAudio.PlaySystemSync("game-success.mp3")
+        CAudio.PlayVoicesSync("victory.mp3")
+        tGameResults.Color = CColors.GREEN
+        tGameResults.Won = true
     else
-        CAudio.PlayVoicesSync("nolives.mp3")
-        tGameResults.Color = CColors.RED
+        CAudio.PlaySystemSync("game-over.mp3")
+        tGameResults.Won = false
+        if bTimeOut then
+            CAudio.PlayVoicesSync("notime.mp3")
+            tGameResults.Color = CColors.YELLOW
+        else
+            CAudio.PlayVoicesSync("nolives.mp3")
+            tGameResults.Color = CColors.RED
+        end
     end
 
     AL.NewTimer(5000, function()
@@ -311,29 +320,33 @@ CGameMode.EndGame = function(bTimeOut)
 end
 
 CGameMode.RewardForTarget = function()
-    tGameStats.TotalStars = tGameStats.TotalStars + 1
+    tGameStats.CurrentStars = tGameStats.CurrentStars + 1
     tGameResults.Score = tGameResults.Score + 100
 
-    tGameStats.StageLeftDuration = tGameStats.StageLeftDuration + math.floor(tConfig.TimeLimit/10)
+    if tGameStats.CurrentStars >= tGameStats.TotalStars then
+        CGameMode.EndGame(true, false)
+    else
+        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration + math.floor(tConfig.TimeLimit/10)
 
-    CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
+        CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
 
-    local iClearLaneID = math.random(1, #CLanes.tLanes)
-    CLanes.ClearUnitsFromLane(iClearLaneID)
-    CLanes.tLanes[iClearLaneID].iColor = CColors.RED
-    AL.NewTimer(1000, function()
-        CLanes.SpawnUnitsOnLane(iClearLaneID)
-    end)
-    AL.NewTimer(1500, function()
-        CLanes.tLanes[iClearLaneID].iColor = CColors.NONE
-    end)
+        local iClearLaneID = math.random(1, #CLanes.tLanes)
+        CLanes.ClearUnitsFromLane(iClearLaneID)
+        CLanes.tLanes[iClearLaneID].iColor = CColors.RED
+        AL.NewTimer(1000, function()
+            CLanes.SpawnUnitsOnLane(iClearLaneID)
+        end)
+        AL.NewTimer(1500, function()
+            CLanes.tLanes[iClearLaneID].iColor = CColors.NONE
+        end)
+    end
 end
 
 CGameMode.DamagePlayer = function()
     CAudio.PlaySystemAsync(CAudio.MISCLICK)
     tGameStats.CurrentLives = tGameStats.CurrentLives - 1
     if tGameStats.CurrentLives == 0 then
-        CGameMode.EndGame(false)
+        CGameMode.EndGame(false, false)
     end
 end
 --//
