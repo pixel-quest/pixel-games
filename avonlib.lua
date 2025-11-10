@@ -190,3 +190,41 @@ AL.LoadColors = function()
     end
 end
 --//
+
+--RULES
+AL.NewRulesScript = true
+AL.Rules = {}
+AL.Rules.iCountDownTime = 10
+
+AL.Rules.FillFloor = function(tFloor)
+    local tReturnFloor = {}
+    local bSkip = true
+
+    local function redPixel(iX, iY)
+        tReturnFloor[iX][iY] = CColors.RED
+    end
+
+    local function greenPixel(iX, iY)
+        tReturnFloor[iX][iY] = CColors.GREEN
+
+        if tFloor[iX][iY].Click or tFloor[iX][iY].bClick then
+            bSkip = false
+        end
+    end
+
+    for iX = 1, #tFloor do
+        tReturnFloor[iX] = {}
+        for iY = 1, #tFloor[iX] do
+            if tFloor[iX][iY] and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then
+                if iX <= (#tFloor/2) then
+                    redPixel(iX, iY)
+                else
+                    greenPixel(iX, iY)
+                end
+            end
+        end
+    end
+
+    return tReturnFloor, bSkip
+end
+--//
