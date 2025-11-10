@@ -305,10 +305,10 @@ CGameMode.StartGame = function()
         return 1000
     end)
 
-    AL.NewTimer(200, function()
+    AL.NewTimer(150, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end 
         CCircle.Movement()
-        return 200;
+        return 150;
     end)
 
     AL.NewTimer(500, function()
@@ -442,6 +442,8 @@ CCircle.Paint = function()
             end
         end
     end
+
+    paintCirclePixel(iXM, iYM)
 
     repeat
         paintCirclePixel(iXM-iX, iYM+iY)
