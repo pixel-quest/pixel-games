@@ -379,9 +379,6 @@ CCircle.ListPlayers = function()
     end
 
     CCircle.tPlayersList = TableConcat(ShuffleTable(CCircle.tPlayersList), ShuffleTable(CHelp.DeepCopy(CCircle.tPlayersList)))
-
-    CLog.print(#CCircle.tPlayersList)
-    CLog.print(table.concat(CCircle.tPlayersList, ", "))
 end
 
 CCircle.NewTarget = function()
