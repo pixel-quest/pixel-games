@@ -294,21 +294,19 @@ CGameMode.StartGame = function()
     tGameStats.StageLeftDuration = tConfig.SwitchDuration*(tGameResults.PlayersCount*2)
     tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
 
+    CCircle.ListPlayers()
     CCircle.SwitchPlayer()
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
-        if tGameStats.StageLeftDuration == 0 then
-            CGameMode.EndGame()
-            return nil;
-        end
+        if iGameState ~= GAMESTATE_GAME or tGameStats.StageLeftDuration == 0 then return nil; end
         return 1000
     end)
 
-    AL.NewTimer(200, function()
+    AL.NewTimer(150, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end 
         CCircle.Movement()
-        return 200;
+        return 150;
     end)
 
     AL.NewTimer(500, function()
@@ -318,8 +316,10 @@ CGameMode.StartGame = function()
     end)
 
     AL.NewTimer(tConfig.SwitchDuration*1000, function()
-        if iGameState ~= GAMESTATE_GAME then return nil; end
-        CCircle.SwitchPlayer()
+        if not CCircle.SwitchPlayer() then
+            CGameMode.EndGame()
+            return nil;
+        end 
         return tConfig.SwitchDuration*1000
     end)
 end
@@ -364,7 +364,22 @@ CCircle.CIRCLE_RADIUS = 3
 
 CCircle.iCurrentPlayerID = 1
 CCircle.iClickCount = 0
-CCircle.tColorUseCount = {}
+
+CCircle.tPlayersList = {}
+CCircle.iListPosition = 0
+
+CCircle.ListPlayers = function()
+    local i = 1
+
+    for iPlayerID = 1, 6 do
+        if tPlayerInGame[iPlayerID] then
+            CCircle.tPlayersList[i] = iPlayerID
+            i = i + 1
+        end
+    end
+
+    CCircle.tPlayersList = TableConcat(ShuffleTable(CCircle.tPlayersList), ShuffleTable(CHelp.DeepCopy(CCircle.tPlayersList)))
+end
 
 CCircle.NewTarget = function()
     CCircle.iTargetX = math.random(1, tGame.Cols)
@@ -372,15 +387,14 @@ CCircle.NewTarget = function()
 end
 
 CCircle.SwitchPlayer = function()
-    repeat 
-        CCircle.iCurrentPlayerID = math.random(1,6)
-    until tPlayerInGame[CCircle.iCurrentPlayerID] and (CCircle.tColorUseCount[CCircle.iCurrentPlayerID] == nil or CCircle.tColorUseCount[CCircle.iCurrentPlayerID] < 2)
-
-    if CCircle.tColorUseCount[CCircle.iCurrentPlayerID] == nil then CCircle.tColorUseCount[CCircle.iCurrentPlayerID] = 0; end
-    CCircle.tColorUseCount[CCircle.iCurrentPlayerID] = CCircle.tColorUseCount[CCircle.iCurrentPlayerID]+1
+    CCircle.iListPosition = CCircle.iListPosition + 1
+    if CCircle.iListPosition > #CCircle.tPlayersList then return false; end
+    CCircle.iCurrentPlayerID = CCircle.tPlayersList[CCircle.iListPosition]
 
     CAudio.PlaySystemAsync("dodge/lightsaber-swing.mp3")
     CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[CCircle.iCurrentPlayerID])
+
+    return true 
 end
 
 CCircle.Movement = function()
@@ -442,6 +456,8 @@ CCircle.Paint = function()
             end
         end
     end
+
+    paintCirclePixel(iXM, iYM)
 
     repeat
         paintCirclePixel(iXM-iX, iYM+iY)
@@ -530,6 +546,32 @@ function ReverseTable(t)
         t[i], t[#t-i+1] = t[#t-i+1], t[i]
     end
     return t
+end
+
+function ShuffleTable(t)
+    for i = #t, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+
+    return t
+end
+
+function TableConcat(...)
+    local tR = {}
+    local i = 1
+    local function addtable(t)
+        for j = 1, #t do
+            tR[i] = t[j]
+            i = i + 1
+        end
+    end
+
+    for _,t in pairs({...}) do
+        addtable(t)
+    end
+
+    return tR
 end
 --//
 

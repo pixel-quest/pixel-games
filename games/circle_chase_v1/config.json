@@ -5,9 +5,9 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
-	"CircleSize": 3,
+	"CircleSize": 4,
 	"CircleSize_Min": 2,
-	"CircleSize_Max": 3,
+	"CircleSize_Max": 5,
 	"CircleSize_Step": 1,
 	"CircleSize_ru": "Радиус Круга",
 	"CircleSize_en": "Circle Radius",
