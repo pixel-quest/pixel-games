@@ -12,5 +12,20 @@
 
   	"SwitchEffects": false,
   	"SwitchEffects_ru": "Чередовать эффекты",
-  	"SwitchEffects_en": "Auto switch effects"
+  	"SwitchEffects_en": "Auto switch effects",
+
+	"Sound": "",
+	"Sound_Hidden": true,
+
+	"Video": "",
+	"Video_Hidden": true,
+
+	"VideoDuration": 10,
+	"VideoDuration_Hidden": true,
+
+	"VideoLoop": false,
+	"VideoLoop_Hidden": true,
+
+	"GameDuration": 0,
+	"GameDuration_Hidden": true  	
 }
