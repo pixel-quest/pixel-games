@@ -117,6 +117,8 @@ local GradientLength = 0
 local GradientOffset = 0
 local LastChangesTimestamp = 0
 
+local VideoEndTime = 0
+
 -- StartGame (служебный): инициализация и старт игры
 function StartGame(gameJson, gameConfigJson)
     GameObj = json.decode(gameJson)
@@ -141,14 +143,14 @@ function StartGame(gameJson, gameConfigJson)
         GameObj.TimeOut = time.unix() + audio.GetVoicesDuration(GameConfigObj.Sound)
     end
 
-    if GameConfigObj.Video and GameConfigObj.Video ~= "" then
-        video.Play(GameConfigObj.Video)
-        GameStats.ScoreboardVariant = 0
-    end
-
     if (not GameConfigObj.Sound or GameConfigObj.Sound == "") and (not GameConfigObj.NoSound or GameConfigObj.NoSound == false) then
         audio.PlayRandomBackground()
     end
+end
+
+function VideoPlay(name)
+    video.Play(name)
+    VideoEndTime = time.unix() + GameConfigObj.VideoDuration
 end
 
 -- PauseGame (служебный): пауза игры
@@ -191,6 +193,21 @@ function NextTick()
 
     GradientOffset = GradientOffset + 1
     LastChangesTimestamp = time.unix()
+
+    if GameConfigObj.Video and GameConfigObj.Video ~= "" then
+        if VideoEndTime == 0 then
+            VideoPlay(GameConfigObj.Video)
+            GameStats.ScoreboardVariant = 0
+        else
+            if time.unix() > VideoEndTime then
+                if not GameConfigObj.VideoLoop then
+                    return GameResults;
+                else
+                    VideoPlay(GameConfigObj.Video)
+                end
+            end
+        end
+    end
 
     if GameObj.TimeOut then
         if time.unix() > GameObj.TimeOut then

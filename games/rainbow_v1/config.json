@@ -15,5 +15,11 @@
   "Sound_Hidden": true,
 
   "Video": "",
-  "Video_Hidden": true
+  "Video_Hidden": true,
+
+  "VideoDuration": 10,
+  "VideoDuration_Hudden": true,
+
+  "VideoLoop": false,
+  "VideoLoop_hidden": true
 }
