@@ -122,7 +122,6 @@ function StartGame(gameJson, gameConfigJson)
         iGameState = GAMESTATE_SETUP
         CGameMode.Announcer()
     else
-        CAudio.PlayVoicesSync("choose-rules.mp3")
         tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
         AL.NewTimer(1000, function()
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
