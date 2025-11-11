@@ -2,6 +2,7 @@ _G.AL = {}
 local LOC = {}
 
 local CColors = require("colors")
+local CVideos = require("video")
 
 --STACK
 AL.Stack = function()
@@ -198,18 +199,18 @@ AL.Rules.iCountDownTime = 10
 
 AL.Rules.FillFloor = function(tFloor)
     local tReturnFloor = {}
-    local bSkip = true
+    local bSkip = false
 
     local function redPixel(iX, iY)
         tReturnFloor[iX][iY] = CColors.RED
+    
+        if tFloor[iX][iY].Click or tFloor[iX][iY].bClick then
+            bSkip = true
+        end
     end
 
     local function greenPixel(iX, iY)
         tReturnFloor[iX][iY] = CColors.GREEN
-
-        if tFloor[iX][iY].Click or tFloor[iX][iY].bClick then
-            bSkip = false
-        end
     end
 
     for iX = 1, #tFloor do
