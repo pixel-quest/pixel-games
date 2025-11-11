@@ -54,7 +54,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 6,
+    ScoreboardVariant = 0,
 }
 
 local tGameResults = {
@@ -186,6 +186,7 @@ function RulesTick()
 end
 
 function GameSetupTick()
+    tGameStats.ScoreBoardVariant = 6
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
     if not CGameMode.bCountDownStarted then SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true) end
     CGameMode.PaintPositions()
