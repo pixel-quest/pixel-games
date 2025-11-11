@@ -18,8 +18,11 @@
   "Video_Hidden": true,
 
   "VideoDuration": 10,
-  "VideoDuration_Hudden": true,
+  "VideoDuration_Hidden": true,
 
   "VideoLoop": false,
-  "VideoLoop_hidden": true
+  "VideoLoop_Hidden": true,
+
+  "GameDuration": 0,
+  "GameDuration_Hidden": true
 }
