@@ -231,7 +231,7 @@ AL.Rules.FillFloor = function(tFloor)
         tReturnFloor[iX] = {}
         for iY = 1, #tFloor[iX] do
             if tFloor[iX][iY] and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then
-                if iX <= (#tFloor/2) then
+                if iY >= (#tFloor[iX]/2) then
                     redPixel(iX, iY)
                 else
                     greenPixel(iX, iY)

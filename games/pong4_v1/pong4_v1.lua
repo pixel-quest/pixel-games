@@ -133,6 +133,10 @@ function StartGame(gameJson, gameConfigJson)
                 return nil;
             end
 
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
             return 1000;
         end)
     end
@@ -803,7 +807,7 @@ function PixelClick(click)
             return;
         end
 
-        if iGameState == GAMESTATE_SETUP then
+        if iGameState <= GAMESTATE_SETUP then
             if click.Click then
                 tFloor[click.X][click.Y].bClick = true
                 tFloor[click.X][click.Y].bHold = false
