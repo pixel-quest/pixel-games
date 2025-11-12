@@ -838,8 +838,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then CGameMode.bCanAutoStart = true; end
 end
 
 function DefectButton(defect)
