@@ -39,14 +39,7 @@ local tGameStats = {
     TotalStars = 0,
     CurrentLives = 0,
     TotalLives = 0,
-    Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-        { Score = 0, Lives = 0, Color = CColors.NONE },
-    },
+    Players = {},
     TargetScore = 1,
     StageNum = 0,
     TotalStages = 0,
@@ -81,14 +74,6 @@ local tButtonStruct = {
 local bAnyButtonClick = false
 local tPlayerInGame = {}
 
-local tTeamColors = {}
-tTeamColors[1] = CColors.BLUE
-tTeamColors[2] = CColors.MAGENTA
-tTeamColors[3] = CColors.CYAN
-tTeamColors[4] = CColors.WHITE
-tTeamColors[5] = CColors.YELLOW
-tTeamColors[6] = CColors.GREEN
-
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -113,6 +98,8 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
+    AL.LoadColors()
+
     tGame.iMinX = 1
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
@@ -131,7 +118,6 @@ function StartGame(gameJson, gameConfigJson)
     if tConfig.ChosenColors ~= nil then
         tGame.PlayerCount = #tConfig.ChosenColors
         for iPlayerID = 1, #tConfig.ChosenColors do
-            tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
             tPlayerInGame[iPlayerID] = true
         end
         tGameResults.ChosenColors = tConfig.ChosenColors
@@ -151,11 +137,17 @@ function StartGame(gameJson, gameConfigJson)
 
     local iX = iStartX
     local iY = tGame.iMinY
-    for iPlayerID = 1, (tGame.PlayerCount or 6) do
+    for iPlayerID = 1, (tGame.PlayerCount or #AL.Colors) do
+        tGameStats.Players[iPlayerID] = { Score = 0, Lives = 0, Color = CColors.NONE };
+
         tGame.StartPositions[iPlayerID] = {}
         tGame.StartPositions[iPlayerID].X = iX
         tGame.StartPositions[iPlayerID].Y = iY
-        tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+        if tConfig.ChosenColors ~= nil then
+            tGame.StartPositions[iPlayerID].Color = tonumber(tConfig.ChosenColors[iPlayerID])
+        else
+            tGame.StartPositions[iPlayerID].Color = AL.Colors[iPlayerID]
+        end
 
         if not tGame.ArenaMode then
             iX = iX + tGame.StartPositionsSizeX + 1
@@ -582,7 +574,7 @@ end
 CPaint.Pixels = function()
     for iPixelID = 1, #CPixels.tPixels do
         if CPixels.tPixels[iPixelID] then
-            if tFloor[CPixels.tPixels[iPixelID].iX] and tFloor[CPixels.tPixels[iPixelID].iX][CPixels.tPixels[iPixelID].iY] then
+            if CPixels.tPixels[iPixelID].iY < tGame.StartPositions[CPixels.tPixels[iPixelID].iPlayerID].Y+tGame.StartPositionsSizeY and tFloor[CPixels.tPixels[iPixelID].iX] and tFloor[CPixels.tPixels[iPixelID].iX][CPixels.tPixels[iPixelID].iY] then
                 tFloor[CPixels.tPixels[iPixelID].iX][CPixels.tPixels[iPixelID].iY].iColor = CPixels.tPixels[iPixelID].iColor
                 tFloor[CPixels.tPixels[iPixelID].iX][CPixels.tPixels[iPixelID].iY].iBright = tConfig.Bright
                 tFloor[CPixels.tPixels[iPixelID].iX][CPixels.tPixels[iPixelID].iY].iPixelID = iPixelIDP

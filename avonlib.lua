@@ -1,6 +1,10 @@
 _G.AL = {}
 local LOC = {}
 
+local CColors = require("colors")
+local CVideos = require("video")
+local CAudio = require("audio")
+
 --STACK
 AL.Stack = function()
     local tStack = {}
@@ -164,5 +168,78 @@ NFZ_LoadMaxY = function()
     end    
 
     return iMaxY
+end
+--//
+
+--COLORS
+AL.Colors = {}
+
+AL.LoadColors = function()
+    if tGame.Colors ~= nil then
+        for iColor = 1, #tGame.Colors do
+            AL.Colors[iColor] = tonumber(tGame.Colors[iColor])
+        end
+    else
+        AL.Colors = 
+        {
+            CColors.MAGENTA,
+            CColors.BLUE,
+            CColors.GREEN,
+            CColors.CYAN,
+            CColors.YELLOW,
+            CColors.RED
+        };
+    end
+end
+--//
+
+--RULES
+AL.NewRulesScript = true
+AL.Rules = {}
+
+AL.Rules.iCountDownTime = 15
+AL.Rules.bVideoOn = false 
+AL.Rules.bSoundOn = false
+
+AL.Rules.FillFloor = function(tFloor)
+    local tReturnFloor = {}
+    local bSkip = false
+
+    if not AL.Rules.bVideoOn then
+        CVideos.Play("tutorial/skip.mp4")
+        AL.Rules.bVideoOn = true
+    end
+
+    if not AL.Rules.bSoundOn then
+        CAudio.PlayVoicesSync("tutorial/skip.mp3")
+        AL.Rules.bSoundOn = true
+    end
+
+    local function redPixel(iX, iY)
+        tReturnFloor[iX][iY] = CColors.RED
+    
+        if tFloor[iX][iY].Click or tFloor[iX][iY].bClick then
+            bSkip = true
+        end
+    end
+
+    local function greenPixel(iX, iY)
+        tReturnFloor[iX][iY] = CColors.GREEN
+    end
+
+    for iX = 1, #tFloor do
+        tReturnFloor[iX] = {}
+        for iY = 1, #tFloor[iX] do
+            if tFloor[iX][iY] and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then
+                if iY >= (#tFloor[iX]/2) then
+                    redPixel(iX, iY)
+                else
+                    greenPixel(iX, iY)
+                end
+            end
+        end
+    end
+
+    return tReturnFloor, bSkip
 end
 --//
