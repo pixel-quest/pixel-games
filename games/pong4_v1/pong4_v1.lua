@@ -190,7 +190,7 @@ function RulesTick()
 end
 
 function GameSetupTick()
-    tGameStats.ScoreBoardVariant = 6
+    tGameStats.ScoreboardVariant = 6
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
     if not CGameMode.bCountDownStarted then SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true) end
     CGameMode.PaintPositions()
