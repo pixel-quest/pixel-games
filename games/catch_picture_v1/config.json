@@ -1,0 +1,17 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial",
+
+	"PictureName": "elka",
+	"PictureName_List": ["elka"],
+	"PictureName_ru": "Картинка",
+	"PictureName_en": "Image"
+
+}
