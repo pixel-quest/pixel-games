@@ -195,8 +195,8 @@ end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        --voice gamename rules
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync("catch-pixel/catch-rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("catch-pixel/catch-rules.mp3")*1000 + 1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -238,6 +238,23 @@ CGameMode.StartGame = function()
 
         return 300
     end)
+
+    if tConfig.TimeLimit > 0 then
+        tGameStats.StageLeftDuration = tConfig.TimeLimit
+        tGameStats.StageTotalDuration = tConfig.TimeLimit
+
+        AL.NewTimer(1000, function()
+            if iGameState ~= GAMESTATE_GAME then return nil; end
+
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+            if tGameStats.StageLeftDuration == 0 then
+                CAudio.PlayVoicesSync("notime.mp3")
+                CGameMode.EndGame(false)
+            end
+
+            return 1000;
+        end)
+    end
 end
 
 CGameMode.EndGame = function(bVictory)
@@ -245,16 +262,18 @@ CGameMode.EndGame = function(bVictory)
 
     if bVictory then
         tGameResults.Won = true
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
         CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
     else
         tGameResults.Won = false
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
         CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
     end
 
     iGameState = GAMESTATE_POSTGAME
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)    
 end
@@ -277,7 +296,7 @@ CCoins.Paint = function()
             tFloor[tCoin.iX][tCoin.iY].iBright = tConfig.Bright
 
             if tFloor[tCoin.iX][tCoin.iY].bClick and not tFloor[tCoin.iX][tCoin.iY].bDefect then
-                CCoins.CoinCollected(tCoin.bTrueColor)
+                CCoins.CoinCollected(tCoin.bTrueColor, tCoin.iColor)
                 bAlive = false
             end
         end
@@ -318,7 +337,7 @@ CCoins.NewCoin = function(iX, iY)
     CCoins.tCoins.Push(tNewCoin)
 end
 
-CCoins.CoinCollected = function(bTrueColor)
+CCoins.CoinCollected = function(bTrueColor, iCoinColor)
     if iGameState ~= GAMESTATE_GAME then return; end
 
     if bTrueColor then
@@ -333,6 +352,14 @@ CCoins.CoinCollected = function(bTrueColor)
             CAudio.PlaySystemAsync(CAudio.CLICK)
         end
     else
+        if CPicture.iPixelsPainted > 0 then
+            CPicture.iPixelsPainted = CPicture.iPixelsPainted - 1
+            tGameStats.Players[1].Score = CPicture.iPixelsPainted
+            
+            CPicture.tPicture[CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iX][CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iY].bPainted = false
+            CPicture.tPicture[CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iX][CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iY].iColor = iCoinColor
+        end
+
         CAudio.PlaySystemAsync(CAudio.MISCLICK)
     end
 end

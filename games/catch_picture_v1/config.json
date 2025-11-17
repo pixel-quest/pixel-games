@@ -5,10 +5,20 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"WinDurationMS": 10000,
+	"WinDurationMS_Hidden": true,
+
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial",
 
+	"TimeLimit": 120,
+	"TimeLimit_Min": 0,
+	"TimeLimit_Max": 240,
+	"TimeLimit_Step": 30,
+	"TimeLimit_ru": "Лимит времени (0 - бесконечно)",
+	"TimeLimit_en": "Time Limit (0 - infinite)",
+	
 	"PictureName": "elka",
 	"PictureName_List": ["elka"],
 	"PictureName_ru": "Картинка",
