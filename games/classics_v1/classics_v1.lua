@@ -172,16 +172,13 @@ function StartGame(gameJson, gameConfigJson)
         CAudio.PlayVoicesSyncFromScratch("classics/classics-game.mp3")
         if tGame.ArenaMode then
             CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-        else
-            CAudio.PlayVoicesSync("press-center-for-start.mp3")
         end
         --CAudio.PlaySync("voices/press-button-for-start.mp3")
 
-        AL.NewTimer((CAudio.GetVoicesDuration("classics/classics-game.mp3"))*1000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("classics/classics-game.mp3"))*1000 + 5000, function()
             CGameMode.bCanStart = true
         end)
     else
-        CAudio.PlayVoicesSync("press-center-for-start.mp3")
         CGameMode.bCanStart = true
     end
 end
@@ -248,17 +245,9 @@ function GameSetupTick()
                 end
             end
         end
-    elseif not CGameMode.bCountDownStarted and CGameMode.bCanStart then
-        for iX = tGame.CenterX, tGame.CenterX + 1 do
-            for iY = tGame.CenterY-1, tGame.CenterY do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
-            end
-        end
     end
 
-    if bAnyButtonClick and not CGameMode.bCountDownStarted then
+    if not CGameMode.bCountDownStarted and CGameMode.bCanStart and (not tGame.ArenaMode or bAnyButtonClick) then
         CGameMode.CountDownNextRound()
     end
 end
