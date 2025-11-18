@@ -79,7 +79,6 @@ local tButtonStruct = {
     bDefect = false,
 }
 
-local bAnyButtonClick = false
 local tPlayerInGame = {}
 
 function StartGame(gameJson, gameConfigJson)
@@ -195,8 +194,8 @@ function GameSetupTick()
     if not CGameMode.bCountDownStarted then 
         SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
-        if (iPlayersReadyCount == iMaxPlayers and CGameMode.bCanAutoStart) or (bAnyButtonClick and iPlayersReadyCount > 1) then
-            CGameMode.StartCountDown(5)
+        if CGameMode.bCanAutoStart and iPlayersReadyCount > 1 then
+            CGameMode.StartCountDown(10)
         end
     end
 
@@ -254,7 +253,7 @@ end
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("circle_chase/cc_rules.mp3")
-        AL.NewTimer(CAudio.GetVoicesDuration("circle_chase/cc_rules.mp3")*1000 + 3000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("circle_chase/cc_rules.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -347,7 +346,7 @@ CGameMode.EndGame = function()
 
     SetGlobalColorBright(CGameMode.tPlayerColors[CGameMode.iWinnerID], tConfig.Bright)
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
@@ -628,8 +627,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true; end
 end
 
 function DefectButton(defect)

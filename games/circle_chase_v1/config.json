@@ -5,6 +5,9 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"CircleSize": 4,
 	"CircleSize_Min": 2,
 	"CircleSize_Max": 5,

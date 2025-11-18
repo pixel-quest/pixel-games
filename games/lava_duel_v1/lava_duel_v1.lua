@@ -142,8 +142,15 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 6 * tConfig.RoundCount
     tGameStats.TotalStages = tConfig.RoundCount
 
+    iPrevTickTime = CTime.unix()
+
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("lavaduel/lavaduel-rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("lavaduel/lavaduel-rules.mp3")*1000 + 3000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
     end
 
     CAudio.PlayVoicesSync("choose-color.mp3")
@@ -151,7 +158,6 @@ function StartGame(gameJson, gameConfigJson)
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
 
-        iPrevTickTime = CTime.unix()
         AL.NewTimer(5000, function()
             CGameMode.bArenaCanStart = true
         end)
@@ -231,7 +237,7 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount and tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
+    if (iPlayersReady > 0 and bAnyButtonClick) or (tGame.AutoStartPlayerCount and tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount and CGameMode.bCanStart) then
         tGameResults.PlayersCount = iPlayersReady
 
         bAnyButtonClick = false
@@ -287,6 +293,7 @@ CGameMode.iMapCoinCount = 0
 CGameMode.bArenaCanStart = false
 CGameMode.bCountdownStarted = false
 CGameMode.tPlayerLavaCD = {}
+CGameMode.bCanStart = false
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
@@ -988,10 +995,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if iGameState == GAMESTATE_SETUP and click.Click == true then
-        bAnyButtonClick = true
-    end    
 end
 
 function DefectButton(defect)
