@@ -219,7 +219,7 @@ function GameSetupTick()
         end
     end
 
-    if not CGameMode.bCountDownStarted and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or (CGameMode.bCanStart and iPlayersReady > 1 and iPlayersReady == #tGame.StartPositions)) then
+    if not CGameMode.bCountDownStarted and CGameMode.bCanStart and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or iPlayersReady > 1) then
         CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         bAnyButtonClick = false
@@ -282,7 +282,7 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("virus/virus.mp3")
         CAudio.PlayVoicesSync("virus/virus-guide.mp3")
         
-        AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 3000, function()
             CGameMode.bCanStart = true
         end)
     else
@@ -476,9 +476,9 @@ CField.PixelCapture = function(iX, iY, iPlayerID)
         if CField.tField[iX][iY].iPlayerID ~= 0 then
             tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score = tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score - 1
 
-            if CField.tField[iX][iY].iPlayerID > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score <= 10 then
-                CGameMode.DestroyTeam(CField.tField[iX][iY].iPlayerID)
-            end
+            --if CField.tField[iX][iY].iPlayerID > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score <= 10 then
+            --    CGameMode.DestroyTeam(CField.tField[iX][iY].iPlayerID)
+            --end
         end
 
         CField.tField[iX][iY].iPlayerID = iPlayerID
