@@ -157,7 +157,7 @@ function GameSetupTick()
         end
     end
 
-    if bAnyButtonClick then
+    if CGameMode.bCanStart and bAnyButtonClick then
         CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         iGameState = GAMESTATE_GAME

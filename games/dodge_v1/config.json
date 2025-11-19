@@ -27,7 +27,7 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
-	"WinDurationMS": 10000,
+	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
 
 	"CrossAFKTimer": 10,
