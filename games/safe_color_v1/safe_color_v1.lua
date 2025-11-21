@@ -83,7 +83,6 @@ local GameConfigObj = {
     StagesQty = 10, -- сколько очков необходимо набрать для победы
     StageDurationSec = 4,
     StopDurationSec = 4,
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -196,6 +195,8 @@ function StartGame(gameJson, gameConfigJson)
         iMaxX = AL.NFZ.iMaxX
     end
 
+    GameObj.StartTime = 3
+
     if GameConfigObj.ChosenColors ~= nil then
         GameObj.StartPositions = {}
         for iPlayerID = 1, #GameConfigObj.ChosenColors do
@@ -233,10 +234,13 @@ function StartGame(gameJson, gameConfigJson)
 
         if not GameConfigObj.SkipTutorial then
             audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
+            GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("safe-color/safe-color-game.mp3")
         end
         audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("stand_on_green_and_get_ready.mp3")
         if not GameConfigObj.SkipTutorial then
             audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
+            GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("stand_on_green_and_get_ready.mp3")
         end
         --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
     end
@@ -305,7 +309,7 @@ function NextTick()
             StartPlayersCount = #GameConfigObj.ChosenColors
         end
 
-        if StartPlayersCount > 1 and (time.unix() - 10) >= iGameLoadTime and not GameStarted then
+        if StartPlayersCount > 1 and (time.unix() - GameObj.StartTime) >= iGameLoadTime and not GameStarted then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
@@ -374,7 +378,7 @@ function NextTick()
         end
 
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = GameConfigObj.WinDurationMS/1000
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
