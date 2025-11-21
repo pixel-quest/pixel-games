@@ -257,11 +257,10 @@ function NextTick()
         if bAnyPlayerClick then
             StartPlayersCount = countActivePlayers()
 
-            if StageStartTime == 0 then
+            if not CountDownStarted then
                 StageStartTime = time.unix()
-            end     
-        else
-            CountDownStarted = false
+            end 
+        elseif not CountDownStarted then
             StartPlayersCount = 0
         end
 
