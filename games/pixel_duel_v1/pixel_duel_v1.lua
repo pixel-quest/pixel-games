@@ -232,11 +232,14 @@ function StartGame(gameJson, gameConfigJson)
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
+    GameObj.StartTime = 3
     if not GameConfigObj.SkipTutorial then
         audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("pixel-duel/pixel-duel-game.mp3")
     end
     if not GameConfigObj.ChosenColors then
         audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("choose-color.mp3")
     end
     -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
@@ -298,7 +301,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > 15) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
+        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
