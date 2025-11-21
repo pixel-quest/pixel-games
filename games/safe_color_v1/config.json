@@ -40,8 +40,8 @@
   "StopDurationSec_ru": "Длительность остановки",
   "StopDurationSec_en": "Stop Duration",
 
-  "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true,
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true,
 
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 

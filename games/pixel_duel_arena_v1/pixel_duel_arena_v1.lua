@@ -80,7 +80,6 @@ local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     PointsToWin = 10, -- сколько очков необходимо набрать для победы
     MoveAllPixels = false, -- hard режим – при нажатии пиксели других игроков тоже перемещаются в новые места
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -178,13 +177,9 @@ function StartGame(gameJson, gameConfigJson)
 
     audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
-    audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+    audio.PlayVoicesSync("press-zone-for-start.mp3")
 
-    if GameObj.ArenaMode then 
-        audio.PlayVoicesSync("press-zone-for-start.mp3")
-    else
-        audio.PlayVoicesSync("press-button-for-start.mp3")
-    end
+    StageStartTime = time.unix()
 end
 
 -- PauseGame (служебный): пауза игры
@@ -235,15 +230,17 @@ function NextTick()
 
                 iPlayersReady = iPlayersReady + 1
 
-                for iX = iCenterX, iCenterX+1 do
-                    for iY = iCenterY, iCenterY+1 do
-                        FloorMatrix[iX][iY].Color = colors.MAGENTA
-                        if tArenaPlayerReady[positionIndex] then
-                            FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
-                        end
+                if time.unix() - StageStartTime > (audio.GetVoicesDuration("pixel-duel/pixel-duel-game.mp3") + audio.GetVoicesDuration("choose-color.mp3") + audio.GetVoicesDuration("press-zone-for-start.mp3")) then
+                    for iX = iCenterX, iCenterX+1 do
+                        for iY = iCenterY, iCenterY+1 do
+                            FloorMatrix[iX][iY].Color = colors.MAGENTA
+                            if tArenaPlayerReady[positionIndex] then
+                                FloorMatrix[iX][iY].Bright = GameConfigObj.Bright+2
+                            end
 
-                        if FloorMatrix[iX][iY].Click and not FloorMatrix[iX][iY].Defect then 
-                            bArenaClick = true
+                            if FloorMatrix[iX][iY].Click and not FloorMatrix[iX][iY].Defect then 
+                                bArenaClick = true
+                            end
                         end
                     end
                 end
@@ -260,13 +257,11 @@ function NextTick()
         if bAnyPlayerClick then
             StartPlayersCount = countActivePlayers()
 
-            if StageStartTime == 0 then
+            if not CountDownStarted then
                 StageStartTime = time.unix()
-            end     
-        else
-            CountDownStarted = false
+            end 
+        elseif not CountDownStarted then
             StartPlayersCount = 0
-            StageStartTime = 0
         end
 
         --[[
@@ -302,7 +297,7 @@ function NextTick()
         -- Вся логика происходит в обработке клика
     elseif Stage == CONST_STAGE_WIN then -- этап выигрыша
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = (GameConfigObj.WinDurationMS/1000)
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
@@ -407,12 +402,6 @@ function ButtonClick(click)
         return -- не интересуют кнопки не из списка, иначе будет ошибка
     end
     ButtonsList[click.Button].Click = click.Click
-
-    -- нажали кнопку, стартуем обратный отсчет
-    if StartPlayersCount == 0 and click.Click then
-        StartPlayersCount = countActivePlayers()
-        StageStartTime = time.unix()
-    end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя

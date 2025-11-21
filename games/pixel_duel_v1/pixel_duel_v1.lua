@@ -76,7 +76,6 @@ local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     PointsToWin = 10, -- сколько очков необходимо набрать для победы
     MoveAllPixels = false, -- hard режим – при нажатии пиксели других игроков тоже перемещаются в новые места
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -233,14 +232,14 @@ function StartGame(gameJson, gameConfigJson)
 
     GameStats.TargetScore = GameConfigObj.PointsToWin
 
+    GameObj.StartTime = 3
     if not GameConfigObj.SkipTutorial then
         audio.PlayVoicesSyncFromScratch("pixel-duel/pixel-duel-game.mp3") -- Игра "Пиксель дуэль"
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("pixel-duel/pixel-duel-game.mp3")
     end
     if not GameConfigObj.ChosenColors then
         audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
-    end
-    if not GameConfigObj.SkipTutorial then
-        audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("choose-color.mp3")
     end
     -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
@@ -302,7 +301,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > 10) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
+        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
@@ -333,7 +332,7 @@ function NextTick()
         -- Вся логика происходит в обработке клика
     elseif Stage == CONST_STAGE_WIN then -- этап выигрыша
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = (GameConfigObj.WinDurationMS/1000)
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if not GameResults.AfterDelay then

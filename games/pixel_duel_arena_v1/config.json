@@ -16,6 +16,6 @@
   "MoveAllPixels_ru": "Двигать все пиксели",
   "MoveAllPixels_en": "Move all pixels",
   
-  "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true
 }

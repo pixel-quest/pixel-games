@@ -11,7 +11,6 @@
   "PointsToWin": 50,
   "PointsToWin_ru": "Очков для победы",
   "PointsToWin_en": "Points to win",
-  "WinDurationSec": 10,
   "PointsToWin_Max": 200,
   "PointsToWin_Min": 10,
   "StopDurationSec": 3,
@@ -33,5 +32,7 @@
   "StageDurationSec_en": "Stage duration, sec",
   "StopDurationSec_Step": 1,
   "StageDurationSec_Step": 1,
-  "WinDurationSec_Hidden": true
+
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true
 }
