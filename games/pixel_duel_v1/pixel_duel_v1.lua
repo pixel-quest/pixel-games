@@ -76,7 +76,6 @@ local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     PointsToWin = 10, -- сколько очков необходимо набрать для победы
     MoveAllPixels = false, -- hard режим – при нажатии пиксели других игроков тоже перемещаются в новые места
-    WinDurationSec = 5, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -330,7 +329,7 @@ function NextTick()
         -- Вся логика происходит в обработке клика
     elseif Stage == CONST_STAGE_WIN then -- этап выигрыша
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = (GameConfigObj.WinDurationMS/1000)
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if not GameResults.AfterDelay then

@@ -24,6 +24,6 @@
 
   "MoveAllPixels": false,
   
-  "WinDurationSec": 5,
-  "WinDurationSec_Hidden": true
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true
 }
