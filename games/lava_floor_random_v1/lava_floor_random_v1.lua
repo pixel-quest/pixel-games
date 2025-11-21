@@ -104,6 +104,11 @@ function StartGame(gameJson, gameConfigJson)
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
     tGame.iMaxY = tGame.Rows
+
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
     if AL.NFZ.bLoaded then
         tGame.iMinX = AL.NFZ.iMinX
         tGame.iMinY = AL.NFZ.iMinY
@@ -407,6 +412,14 @@ CGameMode.PlayerCollectCoin = function()
         CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         CGameMode.EndRound()
     end
+
+    if #CBlock.tInvisibleCoinList > 0 then
+        local id = math.random(1,#CBlock.tInvisibleCoinList)
+        local tCoin = CBlock.tInvisibleCoinList[id]
+
+        CBlock.tBlocks[CBlock.LAYER_COINS][tCoin.iX][tCoin.iY].bVisible = true
+        table.remove(CBlock.tInvisibleCoinList, id)
+    end
 end
 
 CGameMode.PlayerCollectLava = function(iX, iY)
@@ -435,7 +448,8 @@ CMap.GEN_TYPE_DOORS = 4
 CMap.GEN_TYPE_CROSSHAIR = 5
 CMap.GEN_TYPE_CENTERSAFE = 6
 CMap.GEN_TYPE_ARROWS = 7
-CMap.GEN_TYPE_MAX = 7
+CMap.GEN_TYPE_DASH = 8
+CMap.GEN_TYPE_MAX = 8
 
 CMap.iGenType = 0
 
@@ -466,9 +480,15 @@ CMap.CheckRoomForGenType = function(iGenType)
     return true
 end
 
-CMap.CreateCoin = function(iX, iY)
+CMap.CreateCoin = function(iX, iY, bInvisible)
     if CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType == CBlock.BLOCK_TYPE_GROUND and not tFloor[iX][iY].bDefect then
         CBlock.NewBlock(CBlock.LAYER_COINS, iX, iY, CBlock.BLOCK_TYPE_COIN)
+
+        if bInvisible then
+            CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bVisible = false
+            CBlock.tInvisibleCoinList[#CBlock.tInvisibleCoinList+1] = {iX = iX, iY = iY}
+        end
+
         return true
     end
     return false
@@ -757,6 +777,46 @@ CMap.GenerateMapWithType[CMap.GEN_TYPE_ARROWS] = function()
 end
 ----//
 
+---- GENTYPE 8 - DASH
+CMap.GenerateMapWithType[CMap.GEN_TYPE_DASH] = function()
+    local function generateSafeZone(iStartX, iStartY, iSize, iIncX, iIncY)
+        local j = 0
+        for iY = iStartY, iStartY+(iSize*iIncY), iIncY do
+            j = j + 1
+            for iX = iStartX, iStartX+(iSize*iIncX)-(j*iIncX), iIncX do
+                CBlock.NewBlock(CBlock.LAYER_SAFEGROUND, iX, iY, CBlock.BLOCK_TYPE_SAFEGROUND)
+            end
+        end
+    end
+    if math.random(1,2) == 1 then
+        generateSafeZone(tGame.iMinX, tGame.iMinY, tGame.CenterY, 1, 1) 
+        generateSafeZone(tGame.iMaxX, tGame.iMaxY, tGame.CenterY, -1, -1) 
+    else
+        generateSafeZone(tGame.iMaxX, tGame.iMinY, tGame.CenterY, -1, 1)
+        generateSafeZone(tGame.iMinX, tGame.iMaxY, tGame.CenterY, 1, -1) 
+    end
+
+    for iX = tGame.iMinX, tGame.iMaxX do
+        for iY = tGame.iMinY, tGame.iMaxY do
+            if CBlock.IsEmpty(CBlock.LAYER_GROUND, iX, iY) then
+                CBlock.NewBlock(CBlock.LAYER_GROUND, iX, iY, CBlock.BLOCK_TYPE_GROUND)
+                if math.random(1,7) == 3 then
+                    CMap.CreateCoin(iX, iY, true)
+                end
+            end
+        end
+    end  
+    local id = math.random(1, #CBlock.tInvisibleCoinList)
+    CBlock.tBlocks[CBlock.LAYER_COINS][CBlock.tInvisibleCoinList[id].iX][CBlock.tInvisibleCoinList[id].iY].bVisible = true
+    table.remove(CBlock.tInvisibleCoinList, id)
+
+    local iObjectId = CMap.CreateMovingRect(1, 1, 2, tGame.Rows, 1, 0, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA)
+    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+    iObjectId = CMap.CreateMovingRect(1, 1, tGame.Cols, 2, 0, 1, CBlock.LAYER_MOVING_LAVA, CBlock.BLOCK_TYPE_LAVA) 
+    CBlock.tObjects[CBlock.LAYER_MOVING_LAVA][iObjectId].bCollision = false
+end
+----//
+
 ---//
 ---GENSHAPES
 
@@ -902,6 +962,8 @@ CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.LAYER_MOVING_SAFEGROUND]             = CColor
 
 CBlock.tBlocksCountPerType = {}
 
+CBlock.tInvisibleCoinList = {}
+
 CBlock.NewBlock = function(iLayer, iX, iY, iBlockType)
     if CBlock.tBlocks[iLayer] == nil then CBlock.tBlocks[iLayer] = {} end
     if CBlock.tBlocks[iLayer][iX] == nil then CBlock.tBlocks[iLayer][iX] = {} end
@@ -911,6 +973,8 @@ CBlock.NewBlock = function(iLayer, iX, iY, iBlockType)
     CBlock.tBlocks[iLayer][iX][iY] = CHelp.ShallowCopy(CBlock.tBlockStructure)
     CBlock.tBlocks[iLayer][iX][iY].iBlockType = iBlockType
     CBlock.tBlocks[iLayer][iX][iY].iBright = tConfig.Bright
+
+    CBlock.tBlocks[iLayer][iX][iY].bVisible = true
 
     CBlock.tBlocksCountPerType[iBlockType] = (CBlock.tBlocksCountPerType[iBlockType] or 0) + 1
 
@@ -969,7 +1033,7 @@ CBlock.RegisterBlockClick = function(iX, iY)
     if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted then return; end
 
     for iLayer = CBlock.MAX_LAYER, 1, -1 do 
-        if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
+        if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and CBlock.tBlocks[iLayer][iX][iY].bVisible and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
             if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
                 CGameMode.PlayerCollectLava(iX, iY)
@@ -1101,6 +1165,7 @@ CBlock.Clear = function()
     CBlock.tPaths = {}
     CBlock.tBlocksCountPerType = {}
     CBlock.tBlockMovement = {}
+    CBlock.tInvisibleCoinList = {}
 end
 --//
 
@@ -1171,7 +1236,7 @@ CPaint.BlocksLayer = function(iLayer, iBrightOffset)
     for iX = 1, tGame.Cols do
         if CBlock.tBlocks[iLayer][iX] then
             for iY = 1, tGame.Rows do
-                if not tFloor[iX][iY].bAnimated and CBlock.IsValidPosition(iX, iY) and CBlock.tBlocks[iLayer][iX][iY] and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
+                if not tFloor[iX][iY].bAnimated and CBlock.IsValidPosition(iX, iY) and CBlock.tBlocks[iLayer][iX][iY] and CBlock.tBlocks[iLayer][iX][iY].bVisible and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
                     local iBright = CBlock.tBlocks[iLayer][iX][iY].iBright + (iBrightOffset or 0)
                     --if tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_LAVA then iBright = iBright - 2 end
 
