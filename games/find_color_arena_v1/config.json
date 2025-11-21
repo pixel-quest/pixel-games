@@ -19,8 +19,8 @@
   "StagesQty_ru": "Количество Раундов/Стадий",
   "StagesQty_en": "Round/Stage Count",
   
-  "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true,
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true,
   
   "CircleDrawDelayMs": 30,
   "CircleDrawDelayMs_Hidden": true,  
