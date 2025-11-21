@@ -71,7 +71,6 @@ local GameObj = {
 local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     StagesQty=10, -- сколько очков необходимо набрать для победы
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
     BlockSize = 2,
     CircleDrawDelayMs = 30,
     GameDurationSec = 10
@@ -236,10 +235,14 @@ function StartGame(gameJson, gameConfigJson)
 
     GameResults.PlayersCount = GameConfigObj.PlayerCount
 
+    GameObj.StartTime = 3
+
     if not GameConfigObj.SkipTutorial then
         audio.PlayVoicesSyncFromScratch("find-color/find-color-game.mp3") -- Игра "Найди цвет"
+        GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("find-color/find-color-game.mp3")
     end
     audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
+    GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("stand_on_green_and_get_ready.mp3")
     --audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
@@ -292,7 +295,7 @@ function NextTick()
             setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
         end
 
-        if StartPlayersCount > 1 and (time.unix() - 5) >= iGameLoadTime then
+        if StartPlayersCount > 1 and (time.unix() - GameObj.StartTime) >= iGameLoadTime then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
@@ -320,7 +323,7 @@ function NextTick()
         end
 
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = GameConfigObj.WinDurationMS/1000
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
@@ -496,12 +499,6 @@ function ButtonClick(click)
         return -- не интересуют клики кнопок вне этапа выбора цвета
     end
     ButtonsList[click.Button].Click = click.Click
-
-    -- нажали кнопку, стартуем обратный отсчет
-    if StartPlayersCount == 0 and click.Click then
-        StartPlayersCount = countActivePlayers()
-        StageStartTime = time.unix()
-    end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
