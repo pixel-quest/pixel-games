@@ -76,7 +76,7 @@ local GameConfigObj = {
     Bright = colors.BRIGHT70, -- не рекомендуется играть на полной яркости, обычно хватает 70%
     PointsToWin = 10, -- сколько очков необходимо набрать для победы
     MoveAllPixels = false, -- hard режим – при нажатии пиксели других игроков тоже перемещаются в новые места
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
+    WinDurationSec = 5, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -239,9 +239,6 @@ function StartGame(gameJson, gameConfigJson)
     if not GameConfigObj.ChosenColors then
         audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
     end
-    if not GameConfigObj.SkipTutorial then
-        audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
-    end
     -- audio.PlaySync("voices/press-button-for-start.mp3") -- Для старта игры, нажмите светящуюся кнопку на стене
 end
 
@@ -302,7 +299,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > 10) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
+        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > 15) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
