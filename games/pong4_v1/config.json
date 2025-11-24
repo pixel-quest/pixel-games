@@ -9,6 +9,9 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"Lives": 5,
 	"Lives_Min": 1,
 	"Lives_Max": 20,
