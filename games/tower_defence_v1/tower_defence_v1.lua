@@ -301,7 +301,7 @@ CGameMode.PrepareGame = function()
         CAudio.PlayVoicesSync("tower-defence/tower-defence-game.mp3")
         CAudio.PlayVoicesSync("tower-defence/tower-defence-tutorial.mp3")
 
-        AL.NewTimer((CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3"))*1000 + 5000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("tower-defence/tower-defence-tutorial.mp3")*1000 + CAudio.GetVoicesDuration("press-center-for-start.mp3")*1000 + 1000, function()
             CGameMode.bCanStart = true
         end) 
     else
@@ -1436,8 +1436,6 @@ function ButtonClick(click)
         tButtons[click.Button].bClick = click.Click
 
         if click.Click then
-            bAnyButtonClick = true
-
             if iGameState == GAMESTATE_GAME and CBuffs.bBuffDropped then
                 CBuffs.bBuffDropped = false
                 CBuffs.PlayerCollectBuff()
