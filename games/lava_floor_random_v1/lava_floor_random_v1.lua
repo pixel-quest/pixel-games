@@ -1008,7 +1008,11 @@ CBlock.NewBlockFormationFromShape = function(iLayer, iStartX, iStartY, iBlockTyp
         for iY = iStartY, iStartY+iShapeSizeY-1 do
             iShapeY = iShapeY + 1
             if tShape[iShapeX][iShapeY] == 1 and CBlock.IsValidPosition(iX, iY) then
-                CBlock.NewBlock(iLayer, iX, iY, iBlockType)
+                if iBlockType == CBlock.BLOCK_TYPE_COIN then
+                    CMap.CreateCoin(iX, iY, false)
+                else
+                    CBlock.NewBlock(iLayer, iX, iY, iBlockType)
+                end
             end
         end
         iShapeY = 0
@@ -1757,7 +1761,15 @@ function DefectPixel(defect)
                 CGameMode.PlayerCollectGameSetupCoin(tFloor[defect.X][defect.Y].iCoinId)
             end
         else
-            CBlock.RegisterBlockClick(defect.X, defect.Y)
+            if CGameMode.bRoundStarted then
+                CBlock.RegisterBlockClick(defect.X, defect.Y)
+            else
+                if CBlock.tBlocks[CBlock.LAYER_COINS][defect.X] and CBlock.tBlocks[CBlock.LAYER_COINS][defect.X][defect.Y] then
+                    CBlock.tBlocks[CBlock.LAYER_COINS][defect.X][defect.Y].bCollected = true 
+                    CGameMode.PlayerCollectCoin()
+
+                end
+            end
         end
     end
 end
