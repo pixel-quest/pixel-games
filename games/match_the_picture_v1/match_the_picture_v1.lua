@@ -146,7 +146,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
     if #tGame.StartPositions == 1 then
         GameSetupTickSinglePlayer()
@@ -173,8 +172,12 @@ function GameSetupTickSinglePlayer()
         CGameMode.iAlivePlayerCount = 1
 
         iGameState = GAMESTATE_GAME
-        CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
-        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+        if not tConfig.SkipTutorial then
+            CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
+            CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+        else
+            CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
+        end
     end
 end
 
@@ -184,7 +187,7 @@ function GameSetupTickMultiPlayer()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bStartCountStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -198,16 +201,11 @@ function GameSetupTickMultiPlayer()
         end
     end
 
-    if iPlayersReady > 1 and (bAnyButtonClick or (tConfig.AutoStart and iPlayersReady == #tGame.StartPositions and CGameMode.bCanStart)) then
-        bAnyButtonClick = false
-        CGameMode.iAlivePlayerCount = iPlayersReady
-        iGameState = GAMESTATE_GAME
-
-        CAudio.ResetSync()
-        CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
-        
-        CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+    if not CGameMode.bStartCountStarted and iPlayersReady > 1 and CGameMode.bCanStart then
+        CGameMode.CountDownGame(10)
     end
+
+    CGameMode.iAlivePlayerCount = iPlayersReady
 end
 
 function GameTick()
@@ -253,6 +251,7 @@ CGameMode.tPlayerFieldScore = {}
 CGameMode.bPlayerMovesCount = false
 CGameMode.bCanStart = false
 CGameMode.tTeamScores = {}
+CGameMode.bStartCountStarted = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -270,15 +269,41 @@ CGameMode.AnnounceGameStart = function()
 
     if #tGame.StartPositions > 1 then
         CAudio.PlayVoicesSync("choose-color.mp3")
-        if not tConfig.AutoStart then
-            CAudio.PlayVoicesSync("press-button-for-start.mp3")
-        end
     else
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
     end
 
-    AL.NewTimer((CAudio.GetVoicesDuration("match-the-picture/match-the-picture.mp3"))*1000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("match-the-picture/match-the-picture.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
         CGameMode.bCanStart = true
+    end)
+end
+
+CGameMode.CountDownGame = function(time)
+    CGameMode.bStartCountStarted = true
+
+    tGameStats.StageLeftDuration = time
+
+    AL.NewTimer(1000, function()
+        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        if tGameStats.StageLeftDuration == 0 then
+            iGameState = GAMESTATE_GAME
+            CAudio.ResetSync()
+
+            if not tConfig.SkipTutorial then
+                CAudio.PlayVoicesSync("match-the-picture/match-the-picture-guide.mp3")
+                CGameMode.StartNextRoundCountDown(tConfig.GameCountdown)
+            else
+                CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
+            end
+            
+            return nil
+        end
+
+        if tGameStats.StageLeftDuration <= 5 then
+            CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+        end
+
+        return 1000;
     end)
 end
 
@@ -896,10 +921,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)
