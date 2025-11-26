@@ -5,6 +5,13 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial", 
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"RoundCount": 5,
 	"RoundCount_Min": 1,
 	"RoundCount_Max": 25,
