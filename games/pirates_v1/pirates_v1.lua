@@ -25,13 +25,14 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
+local GAMESTATE_RULES = 0
 local GAMESTATE_SETUP = 1
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_SETUP
+local iGameState = GAMESTATE_RULES
 local iPrevTickTime = 0
 
 local bAnyButtonClick = false
@@ -153,10 +154,36 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = tConfig.ShipHealth
 
     CShips.Init()
-    CGameMode.Announcer()
+
+    if tConfig.SkipTutorial or not AL.NewRulesScript then
+        iGameState = GAMESTATE_SETUP
+        CGameMode.Announcer()
+    else
+        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+        AL.NewTimer(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+
+            if tGameStats.StageLeftDuration == 0 then
+                iGameState = GAMESTATE_SETUP
+                CGameMode.Announcer()
+            
+                return nil;
+            end
+
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
+            return 1000;
+        end)
+    end
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_RULES then
+        RulesTick()
+    end
+
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
@@ -183,16 +210,32 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
+function RulesTick()
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    local tNewFloor, bSkip = AL.Rules.FillFloor(tFloor)
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tNewFloor[iX] and tNewFloor[iX][iY] then
+                tFloor[iX][iY].iColor = tNewFloor[iX][iY]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+    end
+
+    tConfig.SkipTutorial = bSkip
+end
+
 function GameSetupTick()
     SetGlobalColorBright(CColors.BLUE, tConfig.Bright-2) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
+    SetAllButtonColorBright(CColors.NONE, tConfig.Bright, true)
 
    local iPlayersReady = 0
 
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bCountdownStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -206,16 +249,12 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 1 and bAnyButtonClick) or (iPlayersReady  == #tGame.StartPositions and CGameMode.bCanAutoStart) then
-        bAnyButtonClick = false
+    if not CGameMode.bCountdownStarted and iPlayersReady > 1 and CGameMode.bCanAutoStart then
 
-        CGameMode.iAlivePlayerCount = iPlayersReady
-
-        iGameState = GAMESTATE_GAME
-        CShips.Spawn()
-        CGameMode.Thinkers()
-        CGameMode.StartCountDown(5)
+        CGameMode.StartCountDown(10)
     end    
+
+    CGameMode.iAlivePlayerCount = iPlayersReady
 end
 
 function GameTick()
@@ -250,6 +289,7 @@ end
 CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCanAutoStart = false
+CGameMode.bCountdownStarted = false
 CGameMode.bGameStarted = false
 
 CGameMode.iAlivePlayerCount = 0
@@ -259,7 +299,7 @@ CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("pirates/pirates_guide.mp3")
 
-        AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_guide.mp3")*1000 + 3000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_guide.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
             CGameMode.bCanAutoStart = true
         end)
     else
@@ -271,10 +311,10 @@ CGameMode.Announcer = function()
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
+    CGameMode.bCountdownStarted = true
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -282,7 +322,11 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
+
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -307,6 +351,10 @@ CGameMode.Thinkers = function()
 end
 
 CGameMode.StartGame = function()
+    iGameState = GAMESTATE_GAME
+    CShips.Spawn()
+    CGameMode.Thinkers()
+
     CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
@@ -323,13 +371,15 @@ CGameMode.EndGame = function()
 
     iGameState = GAMESTATE_POSTGAME
 
+    CAudio.StopBackground()
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end) 
 end
@@ -723,10 +773,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click and not tButtons[click.Button].bDefect then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)
