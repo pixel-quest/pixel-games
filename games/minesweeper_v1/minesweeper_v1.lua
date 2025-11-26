@@ -218,7 +218,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
 
     if #tGame.StartPositions == 1 then
         GameSetupTickSinglePlayer()
@@ -270,7 +269,7 @@ function GameSetupTickMultiPlayer()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (tConfig.ChosenColors and tPlayerInGame[iPos]) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (tConfig.ChosenColors and tPlayerInGame[iPos]) or (CGameMode.bStartCountStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -304,18 +303,11 @@ function GameSetupTickMultiPlayer()
         end
     end
 
-    if CGameMode.bCanStart and (iPlayersReady == #tGame.StartPositions or bAnyButtonClick) then
-        bAnyButtonClick = false
-        CGameMode.iAlivePlayerCount = iPlayersReady
-        iGameState = GAMESTATE_GAME
-
-        if not tConfig.SkipTutorial then
-            CAudio.PlayVoicesSyncFromScratch("minesweeper/minesweeper-guide.mp3")
-            CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
-        else
-            CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
-        end
+    if not CGameMode.bStartCountStarted and CGameMode.bCanStart and (iPlayersReady > 1 or bAnyButtonClick) then
+        CGameMode.CountDownGame(10)
     end
+
+    CGameMode.iAlivePlayerCount = iPlayersReady
 end
 
 function GameTick()
@@ -361,6 +353,7 @@ CGameMode.iFinishedCount = 0
 CGameMode.tPlayerFinished = {}
 CGameMode.bArenaCanStart = false
 CGameMode.bCanStart = false
+CGameMode.bStartCountStarted = false
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -371,6 +364,33 @@ CGameMode.InitPlayers = function()
     for iPlayerID = 1, CGameMode.iPlayerCount do
         tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
     end
+end
+
+CGameMode.CountDownGame = function(time)
+    CGameMode.bStartCountStarted = true
+
+    tGameStats.StageLeftDuration = time
+
+    AL.NewTimer(1000, function()
+        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        if tGameStats.StageLeftDuration == 0 then
+            iGameState = GAMESTATE_GAME
+            if not tConfig.SkipTutorial then
+                CAudio.PlayVoicesSyncFromScratch("minesweeper/minesweeper-guide.mp3")
+                CGameMode.StartNextRoundCountDown(1 + CAudio.GetVoicesDuration("minesweeper/minesweeper-guide.mp3") + tConfig.RoundCountdown)
+            else
+                CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
+            end
+            
+            return nil
+        end
+
+        if tGameStats.StageLeftDuration <= 5 then
+            CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+        end
+
+        return 1000;
+    end)
 end
 
 CGameMode.AnnounceGameStart = function()
@@ -972,10 +992,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click and CGameMode.bCanStart then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)
