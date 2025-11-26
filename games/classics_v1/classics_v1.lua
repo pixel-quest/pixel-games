@@ -147,12 +147,12 @@ function StartGame(gameJson, gameConfigJson)
 
             tGame.StartPositions[iPlayerID].Y = math.floor((tGame.iMaxY-tGame.iMinY+1)/3)
             if iPlayerID % 2 ~= 0 then
-                tGame.StartPositions[iPlayerID].X = tGame.CenterX - (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
+                tGame.StartPositions[iPlayerID].X = (tGame.CenterX+math.floor(tGame.StartPositionSizeX/2)) - (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
             else
-                tGame.StartPositions[iPlayerID].X = tGame.CenterX-1 + (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
+                tGame.StartPositions[iPlayerID].X = (tGame.CenterX-math.floor(tGame.StartPositionSizeX/2)-1) + (tGame.StartPositionSizeX+1)*math.ceil(iPlayerID/2)
             end
 
-            if tGame.StartPositions[iPlayerID].X < tGame.iMinX or tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX > tGame.iMaxX then
+            if tGame.StartPositions[iPlayerID].X < tGame.iMinX or tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX-1 > tGame.iMaxX then
                 CLog.print(tGame.StartPositions[iPlayerID].X)
                 tGame.StartPositions[iPlayerID] = nil
                 tGameStats.Players[iPlayerID].Color = CColors.NONE
