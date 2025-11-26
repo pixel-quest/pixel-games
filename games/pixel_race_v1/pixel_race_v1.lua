@@ -156,7 +156,6 @@ end
 function GameSetupTick()
     SetGlobalColorBright(CColors.YELLOW, tConfig.Bright-3)
     SetAllButtonColorBright(CColors.NONE, tConfig.Bright, false)
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     CPaint.Track()
     CPaint.StartPositions()
 
@@ -179,10 +178,7 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady > 1 and CGameMode.bCanAutoStart) then
-        bAnyButtonClick = false
-        if iPlayersReady < 2 or CGameMode.bCountDownStarted then return; end
-
+    if not CGameMode.bCountDownStarted and iPlayersReady > 1 and CGameMode.bCanAutoStart then
         CGameMode.StartCountDown(10)
     end
 
@@ -260,7 +256,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -268,7 +263,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -320,7 +318,7 @@ CGameMode.EndGame = function()
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
@@ -608,10 +606,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click and not tButtons[click.Button].bDefect then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)
