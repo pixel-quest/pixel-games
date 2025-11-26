@@ -158,13 +158,16 @@ function StartGame(gameJson, gameConfigJson)
         end 
     end   
 
+    iPrevTickTime = CTime.unix()
+
     tGameStats.TotalStages = CGameMode.GAMEMODE_COUNT
 
     CAudio.PlayVoicesSync("olympics/olympics.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
-    if not tConfig.AutoStart then
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
-    end
+
+    AL.NewTimer(CAudio.GetVoicesDuration("olympics/olympics.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+        CGameMode.bCanStart = true
+    end)
 end
 
 function NextTick()
@@ -196,9 +199,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    if not bCountDownStared then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-    end
 
     local iPlayersReady = 0
 
@@ -217,13 +217,12 @@ function GameSetupTick()
         CPaint.PlayerZone(iPos, iBright)
     end
 
-    if not bCountDownStared and (iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions) and (bAnyButtonClick or tConfig.AutoStart) then
-        bAnyButtonClick = false
+    if not bCountDownStared and CGameMode.bCanStart and iPlayersReady > 1 then
         bCountDownStared = true
 
         tGameResults.PlayersCount = iPlayersReady
 
-        CGameMode.StartCountDown(tConfig.GameCountdown)
+        CGameMode.StartCountDown(tConfig.RoundCountdown)
     end    
 end
 
@@ -277,6 +276,8 @@ CGameMode.tGameModeClick = {}
 
 CGameMode.iStartHeight = 1
 
+CGameMode.bCanStart = false
+
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
     CGameMode.PrepareNextRound()
@@ -284,7 +285,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
-        if CGameMode.iCountdown <= 0 then
+        if CGameMode.iCountdown <= 1 then
             if CGameMode.iRound == 0 then
                 CGameMode.StartGame()
             end
@@ -292,15 +293,16 @@ CGameMode.StartCountDown = function(iCountDownTime)
             CGameMode.StartNextRound()
             return nil
         else
-            if CGameMode.iCountdown <= 5 then
+            if CGameMode.iCountdown <= tConfig.RoundCountdown then
+                CAudio.ResetSync()
                 if CGameMode.AllPlayersOnStart() then
-                    CAudio.ResetSync()
                     CAudio.PlayLeftAudio(CGameMode.iCountdown)
                 else
                     CAudio.PlayVoicesSync("olympics/get-back.mp3")
                     return 3000
                 end
             end
+
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -470,7 +472,7 @@ end
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LONGJUMP] = function()
     CGameMode.iStartHeight = 3
 
-    CGameMode.iCountdown = CGameMode.iCountdown + 7
+    CGameMode.iCountdown = CGameMode.iCountdown + CAudio.GetVoicesDuration("olympics/longjump-guide.mp3")
     CAudio.PlayVoicesSync("olympics/longjump-guide.mp3")
 end
 
@@ -540,6 +542,8 @@ end
 CGameMode.LongJumpPlayerLanded = function(iPlayerID, iY)
     --CLog.print(iPlayerID.." landed at "..iY)
 
+    CAudio.PlaySystemAsync(CAudio.CLICK)
+
     CGameMode.PlayerData[iPlayerID].iLandingSpotY = iY
     local iDistance = iY
     CGameMode.AddScoreToPlayer(iPlayerID, iDistance)
@@ -554,7 +558,7 @@ end
 
 --SHUTTLE GAMEMODE
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_SHUTTLE_RACE] = function()
-    CGameMode.iCountdown = CGameMode.iCountdown + 5
+    CGameMode.iCountdown = CGameMode.iCountdown + CAudio.GetVoicesDuration("olympics/shuttle-guide.mp3")
     CAudio.PlayVoicesSync("olympics/shuttle-guide.mp3")
 end
 
@@ -636,7 +640,7 @@ end
 
 --LAVA STRIPES
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_LAVA_STRIPES] = function()
-    CGameMode.iCountdown = CGameMode.iCountdown + 6
+    CGameMode.iCountdown = CGameMode.iCountdown + CAudio.GetVoicesDuration("olympics/olympics-lava-guide.mp3")
     CAudio.PlayVoicesSync("olympics/olympics-lava-guide.mp3")
 end
 
@@ -742,7 +746,7 @@ end
 
 --CLASSICS
 CGameMode.tGameModeAnnouncer[CGameMode.GAMEMODE_CLASSICS] = function()
-    CGameMode.iCountdown = CGameMode.iCountdown + 5
+    CGameMode.iCountdown = CGameMode.iCountdown + CAudio.GetVoicesDuration("olympics/olympics-classics-guide.mp3")
     CAudio.PlayVoicesSync("olympics/olympics-classics-guide.mp3")
 end
 
@@ -1081,10 +1085,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)
