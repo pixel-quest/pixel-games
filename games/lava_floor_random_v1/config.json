@@ -1,35 +1,38 @@
-	{
-		"Bright": 5,
-		"Bright_Min": 1,
-		"Bright_Max": 7,
-		"Bright_Step": 1,
-	  	"Bright_ru": "Яркость",
-	  	    	
-		"RoundCount": 5,
-		"RoundCount_Min": 1,
-		"RoundCount_Max": 25,
-		"RoundCount_Step": 1,
-		"RoundCount_ru": "Количество Раундов",
-		"RoundCount_en": "Round Count",
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+  	"Bright_ru": "Яркость",
+  	    	
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
 
-		"RoundTimePerCoin": 1.5,
-		"RoundTimePerCoin_Min": 1,
-		"RoundTimePerCoin_Max": 3,
-		"RoundTimePerCoin_Step": 0.5,
-		"RoundTimePerCoin_ru": "Длительность раунда за монетку",
-		"RoundTimePerCoin_en": "Round time length per coin",
-		"RoundTimePerCoin_Hidden": true,
+	"RoundCount": 5,
+	"RoundCount_Min": 1,
+	"RoundCount_Max": 25,
+	"RoundCount_Step": 1,
+	"RoundCount_ru": "Количество Раундов",
+	"RoundCount_en": "Round Count",
 
-	  	"SkipTutorial": false,
-	  	"SkipTutorial_ru": "Пропустить обучение", 
-	  	"SkipTutorial_en": "Skip tutorial", 
+	"RoundTimePerCoin": 1.5,
+	"RoundTimePerCoin_Min": 1,
+	"RoundTimePerCoin_Max": 3,
+	"RoundTimePerCoin_Step": 0.5,
+	"RoundTimePerCoin_ru": "Длительность раунда за монетку",
+	"RoundTimePerCoin_en": "Round time length per coin",
+	"RoundTimePerCoin_Hidden": true,
 
-		"Seed": 0,
-		"Seed_Min": 0,
-		"Seed_Max": 9999999,
-		"Seed_ru": "Номер уровня(0 = случайный)",
-		"Seed_en": "Generation seed(0 = random)",
+  	"SkipTutorial": false,
+  	"SkipTutorial_ru": "Пропустить обучение", 
+  	"SkipTutorial_en": "Skip tutorial", 
 
-		"RoundCountdown": 8,
-		"RoundCountdown_Hidden": true
-	}
+	"Seed": 0,
+	"Seed_Min": 0,
+	"Seed_Max": 9999999,
+	"Seed_ru": "Номер уровня(0 = случайный)",
+	"Seed_en": "Generation seed(0 = random)",
+
+	"RoundCountdown": 5,
+	"RoundCountdown_Hidden": true
+}
