@@ -2012,7 +2012,6 @@ function ButtonClick(click)
     else
         if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
         tButtons[click.Button].bClick = click.Click
-        bAnyButtonClick = true
 
         if click.Click and iGameState == GAMESTATE_GAME and CEffect.bEffectOn and CEffect.bReadyToEnd and CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_BUTTON then
             CEffect.SpecialEndingButtonPressButton()
