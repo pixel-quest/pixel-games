@@ -140,7 +140,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
     
     CCamera.DrawWorld()
     CPaint.UI()
@@ -234,10 +233,6 @@ CGameMode.Announcer = function()
     else
         CGameMode.bCanStart = true
     end
-
-    if not tConfig.AutoStart then
-        CAudio.PlayVoicesSync("press-button-for-start.mp3")
-    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -317,7 +312,7 @@ CGameMode.EndGame = function(bVictory)
 
     tGameResults.Won = bVictory
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 
@@ -426,7 +421,7 @@ CPaint.UI = function()
         end
     end
 
-    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and bActive1 and bActive2 and CGameMode.bCanStart then
+    if iGameState == GAMESTATE_SETUP and bActive1 and bActive2 and CGameMode.bCanStart then
         bAnyButtonClick = true
     end
 end
@@ -718,10 +713,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

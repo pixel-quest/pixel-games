@@ -5,6 +5,9 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
+  	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"Difficulty": 2,
 	"Difficulty_Min": 1,
 	"Difficulty_Max": 4,
@@ -22,10 +25,6 @@
 	"ControlPanelWidth_Step": 1,	
 	"ControlPanelWidth_ru": "Размер зоны управления пикселем",
 	"ControlPanelWidth_en": "Pixel control zone size",
-
-	"AutoStart": true,
-	"AutoStart_ru": "Авто запуск если обе зоны управления заняты игроками",
-	"AutoStart_en": "Auto Start on both control zones activated by players",
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 
