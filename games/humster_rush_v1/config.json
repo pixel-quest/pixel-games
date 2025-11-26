@@ -5,6 +5,9 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
 
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true,
+
   "delay": 5,
   "delay_Min": 3,
   "delay_Max": 15,
