@@ -330,13 +330,12 @@ end
 
 CGameMode.EndGame = function(iWinnerID)
     CGameMode.iWinnerID = iWinnerID
-
-    CAudio.StopBackground()
     iGameState = GAMESTATE_POSTGAME  
 
-    CAudio.ResetSync()
+    CAudio.StopBackground()
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     tGameResults.Won = true
     tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
