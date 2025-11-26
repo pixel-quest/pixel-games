@@ -174,7 +174,7 @@ function StartGame(gameJson, gameConfigJson)
         CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
 
         AL.NewTimer(CAudio.GetVoicesDuration("huarong/huarong-guide.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
-            
+            CGameMode.bCanStart = true
         end)
     else
         CGameMode.bCanStart = true
