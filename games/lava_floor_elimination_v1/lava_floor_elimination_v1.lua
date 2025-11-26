@@ -159,8 +159,6 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
 
     if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-
         if CGameMode.bCanAutoStart then
             for iX = tGame.CenterX-1, tGame.CenterX + 1 do
                 for iY = tGame.CenterY, tGame.CenterY + 2 do
@@ -236,17 +234,6 @@ function SwitchStage()
     
 end
 
-function ShuffleColorsArray(tArrayIn)
-    local tArray = CHelp.DeepCopy(tArrayIn)
-    for iColorId = 1, #tArray do
-        local iRand = math.random(1,#tArray)
-        local iColor = tArray[iColorId]
-        tArray[iColorId] = tArray[iRand]
-        tArray[iRand] = iColor 
-    end
-    return tArray
-end
-
 local tColors = {}
 tColors[1] = CColors.BLUE
 tColors[2] = CColors.MAGENTA
@@ -254,9 +241,7 @@ tColors[3] = CColors.CYAN
 tColors[4] = CColors.WHITE
 tColors[5] = CColors.YELLOW
 tColors[6] = CColors.GREEN
-tColors = ShuffleColorsArray(tColors)
-
-local tColorsForObjects = ShuffleColorsArray(tColors)
+local tColorsForObjects = tColors
 
 --GAMEMODE
 CGameMode = {}
@@ -267,6 +252,9 @@ CGameMode.iNextElimColorId = 1
 CGameMode.tEliminatedColorIds = {}
 
 CGameMode.InitGameMode = function()
+    tColors = ShuffleTable(tColors)
+    tColorsForObjects = ShuffleTable(tColors)
+
     tGameStats.TotalStages = #tColors-1
 
     CGameMode.PlaceRandomObjects()
@@ -325,10 +313,11 @@ CGameMode.EndGame = function()
     tGameResults.Won = true
     tGameResults.Color = tColors[CGameMode.iNextElimColorId]
 
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     iGameState = GAMESTATE_POSTGAME
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)   
 end
@@ -803,6 +792,15 @@ function RotateTable(t)
    end
    return tR
 end
+
+function ShuffleTable(t)
+    for i = #t, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+
+    return t
+end
 --//
 
 
@@ -864,8 +862,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true; end
 end
 
 function DefectButton(defect)
