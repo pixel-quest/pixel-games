@@ -19,18 +19,14 @@
   "TeamCount_ru": "Количество команд",
   "TeamCount_en": "Team Count",
 
-  "AutoStart": true,
-  "AutoStart_ru": "Автозапуск при всех занятых позициях",
-  "AutoStart_en": "Autostart on all positions occupied",
-
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "GameCountdown": 5,
+  "GameCountdown": 15,
   "GameCountdown_Hidden": true,
 
-  "WinDurationMS": 10000,
+  "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
 
   "GameLength": 60,

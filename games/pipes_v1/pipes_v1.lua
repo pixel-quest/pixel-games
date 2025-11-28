@@ -142,11 +142,6 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
 
     if not CGameMode.bCountDownStarted then
-        if bAnyButtonClick then
-            CGameMode.StartCountDown(5)
-            return
-        end
-
         if CGameMode.bCanStartGame then
             if tConfig.ChosenColors ~= nil then
                 CGameMode.StartCountDown(5)
@@ -286,7 +281,7 @@ CGameMode.EndGame = function(bVictory)
 
     tGameResults.Won = bVictory
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
@@ -763,8 +758,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true; end
 end
 
 function DefectButton(defect)

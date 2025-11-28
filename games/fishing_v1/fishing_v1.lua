@@ -149,11 +149,9 @@ function GameSetupTick()
 
     CPaint.PlayerZones()
 
-    local bAllPlayers = true
     local iPlayerCount = 0
     for iPlayerID = 1, 6 do
         if not tPlayerInGame[iPlayerID] then 
-            bAllPlayers = false
             tGameStats.Players[iPlayerID].Color = CColors.NONE
         else
             iPlayerCount = iPlayerCount + 1
@@ -162,8 +160,8 @@ function GameSetupTick()
     end
 
     if not CGameMode.bCountDownStarted then    
-        if (bAllPlayers and CGameMode.bCanAutoStart) or (bAnyButtonClick and iPlayerCount > 0) then
-            CGameMode.StartCountDown(5)
+        if CGameMode.bCanAutoStart and iPlayerCount > 1 then
+            CGameMode.StartCountDown(10)
         end
     end
 
@@ -228,8 +226,9 @@ CGameMode.Announcer = function()
     CAudio.PlayVoicesSync("fishing/fishing-rules.mp3")
     CAudio.PlayVoicesSync("choose-color.mp3")
 
-    AL.NewTimer(CAudio.GetVoicesDuration("fishing/fishing-rules.mp3") * 1000 + 3000, function()
+    AL.NewTimer((CAudio.GetVoicesDuration("fishing/fishing-rules.mp3")*1000) + (CAudio.GetVoicesDuration("choose-color.mp3")*1000), function()
         CGameMode.bCanAutoStart = true
+        return nil
     end)    
 end
 
@@ -278,16 +277,16 @@ CGameMode.EndGame = function(iWinnerID)
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
 
 CGameMode.GameLoop = function()
-    AL.NewTimer(200, function()
+    AL.NewTimer(50, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
         CHook.Tick()
-        return 200
+        return 50
     end)
 
     AL.NewTimer(150, function()
@@ -333,6 +332,9 @@ end
 --HOOK
 CHook = {}
 CHook.tHooks = {}
+CHook.iTicks = 0
+
+CHook.TICKS_TO_MOVE = 5
 
 CHook.Launch = function(iX, iY, iVelY, iPlayerID)
     local iHookID = #CHook.tHooks+1
@@ -348,24 +350,30 @@ CHook.Launch = function(iX, iY, iVelY, iPlayerID)
 end
 
 CHook.Tick = function()
+    CHook.iTicks = CHook.iTicks + 1
+    local bMove = CHook.iTicks >= CHook.TICKS_TO_MOVE
+    if bMove then CHook.iTicks = 0; end
+
     for iHookID = 1, #CHook.tHooks do
         if CHook.tHooks[iHookID] then
-            if not CHook.tHooks[iHookID].bBack then
-                CHook.tHooks[iHookID].iSize = CHook.tHooks[iHookID].iSize + 1
-                if CHook.tHooks[iHookID].iSize == CGameMode.HOOK_MAX_SIZE then
-                    CHook.tHooks[iHookID].bBack = true
-                end
-            else
-                CHook.tHooks[iHookID].iSize = CHook.tHooks[iHookID].iSize - 1
-                if CHook.tHooks[iHookID].iSize == -1 then
-                    CGameMode.tPlayerCooldown[CHook.tHooks[iHookID].iPlayerID] = false
-
-                    if CHook.tHooks[iHookID].iFishID ~= 0 then
-                        CGameMode.AddPlayerScore(CHook.tHooks[iHookID].iPlayerID, CHook.tHooks[iHookID].iFishCount)
-                        CFish.tFish[CHook.tHooks[iHookID].iFishID] = nil
+            if bMove then
+                if not CHook.tHooks[iHookID].bBack then
+                    CHook.tHooks[iHookID].iSize = CHook.tHooks[iHookID].iSize + 1
+                    if CHook.tHooks[iHookID].iSize == CGameMode.HOOK_MAX_SIZE then
+                        CHook.tHooks[iHookID].bBack = true
                     end
+                else
+                    CHook.tHooks[iHookID].iSize = CHook.tHooks[iHookID].iSize - 1
+                    if CHook.tHooks[iHookID].iSize == -1 then
+                        CGameMode.tPlayerCooldown[CHook.tHooks[iHookID].iPlayerID] = false
 
-                    CHook.tHooks[iHookID] = nil
+                        if CHook.tHooks[iHookID].iFishID ~= 0 then
+                            CGameMode.AddPlayerScore(CHook.tHooks[iHookID].iPlayerID, CHook.tHooks[iHookID].iFishCount)
+                            CFish.tFish[CHook.tHooks[iHookID].iFishID] = nil
+                        end
+
+                        CHook.tHooks[iHookID] = nil
+                    end
                 end
             end
 
@@ -373,7 +381,7 @@ CHook.Tick = function()
                 for iFishID = 1, #CFish.tFish do
                     if CFish.tFish[iFishID] and not CFish.tFish[iFishID].bCaught then
                         if CFish.tFish[iFishID].iY == CHook.tHooks[iHookID].iY+(CHook.tHooks[iHookID].iSize*CHook.tHooks[iHookID].iVelY)-CHook.tHooks[iHookID].iVelY then
-                            if CFish.tFish[iFishID].iX >= CHook.tHooks[iHookID].iX-2 and CFish.tFish[iFishID].iX+CFish.FISH_SIZE <= CHook.tHooks[iHookID].iX+1 then
+                            if CFish.tFish[iFishID].iX >= CHook.tHooks[iHookID].iX-3 and CFish.tFish[iFishID].iX+CFish.FISH_SIZE <= CHook.tHooks[iHookID].iX then
                                 CFish.tFish[iFishID].bCaught = true
                                 CAudio.PlaySystemAsync(CAudio.CLICK)
                                 CHook.tHooks[iHookID].iFishCount = CHook.tHooks[iHookID].iFishCount + 1
@@ -501,6 +509,10 @@ CPaint.PlayerZones = function()
                                 CGameMode.PlayerFire(iX, iLaunchY, iVelY, iPlayerID)
                             end
                         end
+                    end
+                else
+                    if (iY < tGame.CenterY and iY > iStartY + math.floor(CGameMode.PLAYER_ZONE_SIZE_Y)/2 -1) or (iY > tGame.CenterY and iY < iStartY + math.floor(CGameMode.PLAYER_ZONE_SIZE_Y)/2) then
+                        tFloor[iX][iY].iColor = CColors.NONE
                     end
                 end
             end

@@ -121,6 +121,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    iPrevTickTime = CTime.unix()
+
     tGame.StartPositionSize = 3
 
     CGameMode.iMinX = 1
@@ -157,6 +159,12 @@ function StartGame(gameJson, gameConfigJson)
 
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSyncFromScratch("ping-pong/ping-pong-game.mp3") -- Игра "Пинг-понг"
+
+        AL.NewTimer(CAudio.GetVoicesDuration("ping-pong/ping-pong-game.mp3")*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
     end
     
     CAudio.PlayVoicesSync(CAudio.CHOOSE_COLOR) -- Выберите цвет
@@ -205,7 +213,7 @@ function GameSetupTick()
         end
     end
 
-    if iPlayersReady == 2 or (tConfig.SoloGame and iPlayersReady == 1) then
+    if CGameMode.bCanStart and (iPlayersReady == 2 or (tConfig.SoloGame and iPlayersReady == 1)) then
         iGameState = GAMESTATE_GAME
         CPod.ResetPods()
         CBall.NewBall()
@@ -253,6 +261,8 @@ CGameMode = {}
 CGameMode.RoundStartedAt = CTime.unix()
 CGameMode.iCountdown = -1
 CGameMode.GameWinner = -1
+
+CGameMode.bCanStart = false
 
 CGameMode.iMinX = 0
 CGameMode.iMinY = 0
@@ -319,7 +329,7 @@ CGameMode.EndGame = function(iWinnerID)
 
     iGameState = GAMESTATE_POSTGAME
 
-    AL.NewTimer(tConfig.WinDurationSec*1000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
         return nil
     end)

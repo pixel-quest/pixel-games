@@ -114,28 +114,8 @@ function NextTick()
     iPrevTickTime = time.unix()
 
     if gameState.State == -1 then 
-        for i, num in pairs(GameObj.Buttons) do
-            if ButtonsList[num].Defect == false then
-                 ButtonsList[num].Color = colors.BLUE
-                 ButtonsList[num].Bright = GameConfigObj.Bright
-            end
-        end
         AutoStartTimer()
         gameState.State = 0
-    end
-    if gameState.State == 0 then 
-        for i, num in pairs(GameObj.Buttons) do
-            if ButtonsList[num].Defect == true then
-                 ButtonsList[num].Color = colors.NONE
-                 ButtonsList[num].Bright = 0
-            end
-        end
-    end
-    if gameState.State >= 1 then
-        for i, num in pairs(GameObj.Buttons) do
-            ButtonsList[num].Color = colors.NONE
-            ButtonsList[num].Bright = GameConfigObj.Bright
-        end
     end
 
     if not bGameOver and gameState.Tick < time.unix() then
@@ -165,7 +145,7 @@ end
 
 function AutoStartTimer()
     if GameObj.AutoStartTimer and GameObj.AutoStartTimer > 0 then
-        AL.NewTimer(GameObj.AutoStartTimer*1000, function()
+        AL.NewTimer(audio.GetVoicesDuration("hamster/hamster-guide.mp3")*1000, function()
             if gameState.State < 1 then
                 PlayerStartGame()
             end
@@ -208,7 +188,7 @@ function WinGame()
     LoadLevelPainting(5)
 
     gameState.State = 100
-    AL.NewTimer(10000, function()
+    AL.NewTimer(GameConfigObj.WinDurationMS, function()
         gameState.State = 1000
     end)
 end
@@ -283,8 +263,6 @@ end
 
 function ButtonClick(click)
     if not ButtonsList[click.Button] or not click.Click or gameState.State >= 1 or ButtonsList[click.Button].Defect then return; end
-
-    PlayerStartGame()
 end
 
 function DefectPixel(defect)

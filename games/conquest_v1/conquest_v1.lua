@@ -181,16 +181,13 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-    end
 
     CPaint.Units()  
 
     local iPlayersReady = 0
 
     if tConfig.TeamMode then
-        if CGameMode.bCanStart then
+        if CGameMode.bCanStart and not CGameMode.bCountDownStarted then
             for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
                 for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
                     tFloor[iX][iY].iColor = CColors.BLUE
@@ -831,10 +828,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click and not CGameMode.bCountDownStarted then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

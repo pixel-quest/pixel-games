@@ -5,7 +5,7 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
 
-  "WinDurationMS": 10000,
+  "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
 
   "StartPositionSize": 4,
@@ -14,11 +14,7 @@
   "StartPositionSize_Step": 1,
   "StartPositionSize_ru": "Размер Игровых Позиций",
   "StartPositionSize_en": "Player Position Size",
-
-  "AutoStart": true,
-  "AutoStart_ru": "Автозапуск",
-  "AutoStart_en": "Autostart",
-
+  
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 

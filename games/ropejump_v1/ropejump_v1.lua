@@ -156,27 +156,9 @@ function GameSetupTick()
     CGameMode.PaintBridges()
     CGameMode.PaintAnimated()
 
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
-    
-        if CGameMode.bCanAutoStart then
-            for iX = tGame.CenterX-1, tGame.CenterX + 1 do
-                for iY = tGame.CenterY, tGame.CenterY + 2 do
-                    tFloor[iX][iY].iColor = CColors.BLUE
-                    tFloor[iX][iY].iBright = tConfig.Bright
-                    if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
-                end
-            end
-        end
+    if not CGameMode.bCountDownStarted and CGameMode.bCanAutoStart then
+        CGameMode.StartCountDown(5)
     end    
-
-    if bAnyButtonClick then
-        bAnyButtonClick = false
-
-        if not CGameMode.bCountDownStarted then
-            CGameMode.StartCountDown(5)
-        end
-    end
 end
 
 function GameTick()
@@ -241,8 +223,6 @@ CGameMode.Announcer = function()
     else
         CGameMode.bCanAutoStart = true
     end
-
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -293,7 +273,7 @@ CGameMode.EndGame = function(bVictory)
     end
 
     iGameState = GAMESTATE_POSTGAME
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)        
 end
@@ -583,8 +563,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true; end
 end
 
 function DefectButton(defect)

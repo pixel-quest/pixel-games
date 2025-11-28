@@ -292,7 +292,7 @@ CGameMode.StartNextRoundCountDown = function(iCountDownTime)
 
     CGameMode.iCountdown = iCountDownTime
 
-    CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
+    --CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
@@ -337,7 +337,7 @@ CGameMode.EndGame = function(bVictory)
     end
 
     iGameState = GAMESTATE_POSTGAME
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)        
 end

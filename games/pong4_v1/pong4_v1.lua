@@ -379,6 +379,7 @@ CGameMode.EndGame = function(iWinnerID)
     tGameResults.Color = CGameMode.tPlayerColors[iWinnerID]
     tGameResults.Won = not CPods.tPods[iWinnerID].bAI
 
+    CAudio.StopBackground()
     CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[iWinnerID])
     CAudio.PlayVoicesSync(CAudio.VICTORY)    
@@ -387,7 +388,7 @@ CGameMode.EndGame = function(iWinnerID)
 
     SetGlobalColorBright(CGameMode.tPlayerColors[iWinnerID], tConfig.Bright)
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end

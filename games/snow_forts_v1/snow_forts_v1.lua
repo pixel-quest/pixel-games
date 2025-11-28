@@ -179,8 +179,7 @@ function GameSetupTick()
         if tPlayerInGame[iPlayerID] then iPlayersReady = iPlayersReady + 1; end
     end
 
-    if bAnyButtonClick or (iPlayersReady >= 2 and CGameMode.bCanAutoStart) then
-        bAnyButtonClick = false
+    if iPlayersReady >= 2 and CGameMode.bCanAutoStart then
         if iPlayersReady < 1 or CGameMode.bCountDownStarted then return; end
 
         CGameMode.StartCountDown(15)
@@ -282,11 +281,16 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    CAudio.PlayVoicesSync("snow-forts/snowforts-guide.mp3")
-    CAudio.PlayVoicesSync("choose-color.mp3")
-    AL.NewTimer(CAudio.GetVoicesDuration("snow-forts/snowforts-guide.mp3")*1000 + 3000, function()
+    if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("snow-forts/snowforts-guide.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("snow-forts/snowforts-guide.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+            CGameMode.bCanAutoStart = true
+        end)
+    else
         CGameMode.bCanAutoStart = true
-    end)
+    end
+
+    CAudio.PlayVoicesSync("choose-color.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -294,7 +298,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.PlaySystemSyncFromScratch("")
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -302,7 +305,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -324,18 +330,17 @@ end
 
 CGameMode.EndGame = function(iWinnerID)
     CGameMode.iWinnerID = iWinnerID
-
-    CAudio.StopBackground()
     iGameState = GAMESTATE_POSTGAME  
 
-    CAudio.ResetSync()
+    CAudio.StopBackground()
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGameStats.Players[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)
 
     tGameResults.Won = true
     tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)  
 
@@ -377,6 +382,8 @@ CGameMode.SpawnSnowBall = function()
 end
 
 CGameMode.PlayerCollectSnowball = function(iFortID)
+    CAudio.PlaySystemAsync(CAudio.CLICK)
+
     CGameMode.iCurrentSnowballSpawnedCount = CGameMode.iCurrentSnowballSpawnedCount - 1
     CForts.tForts[iFortID].iSnowballsSpawned = CForts.tForts[iFortID].iSnowballsSpawned - 1 
 

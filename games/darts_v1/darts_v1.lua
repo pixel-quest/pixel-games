@@ -201,9 +201,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
-    end
     
     CPaint.BG()
 
@@ -224,7 +221,7 @@ function GameSetupTick()
         CPaint.PlayerZone(iPlayerID, iBright)
     end
 
-    if not CGameMode.bCountDownStarted and ((iPlayersReady > 1 and CGameMode.bCanStart) or bAnyButtonClick) then
+    if not CGameMode.bCountDownStarted and iPlayersReady > 1 and CGameMode.bCanStart then
         CGameMode.StartCountDown(10)
     end
 end
@@ -299,7 +296,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -307,7 +303,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -324,32 +323,42 @@ CGameMode.StartGame = function()
 end
 
 CGameMode.EndGame = function()
-    CAudio.StopBackground()
-
     local iMaxScore = -999
+    local bSameMaxScore = false
 
     for i = 1, #tGame.StartPositions do
         if tGameStats.Players[i].Score > iMaxScore then
             CGameMode.iWinnerID = i
             iMaxScore = tGameStats.Players[i].Score
             tGameResults.Score = tGameStats.Players[i].Score
+            bSameMaxScore = false
+        elseif tGameStats.Players[i].Score == iMaxScore then
+            bSameMaxScore = true
         end
+    end
+
+    if bSameMaxScore then
+        CAudio.PlayVoicesSync("draw_overtime.mp3")
+        return false
     end
 
     iGameState = GAMESTATE_POSTGAME  
 
-    CAudio.ResetSync()
+    CAudio.StopBackground()
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
-    CAudio.PlaySync(CAudio.VICTORY)
+    CAudio.PlayVoicesSync(CAudio.VICTORY)    
 
     tGameResults.Won = true
     tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)  
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright) 
+
+    return true
 end
 
 CGameMode.NextPlayerMove = function()
@@ -365,13 +374,15 @@ CGameMode.FindNextPlayerToMove = function()
     repeat CGameMode.iPlayerIDToMove = CGameMode.iPlayerIDToMove + 1; if CGameMode.iPlayerIDToMove > #tGame.StartPositions then CGameMode.iPlayerIDToMove = 1; tGameStats.StageNum = tGameStats.StageNum+1 end
     until tPlayerInGame[CGameMode.iPlayerIDToMove]
 
+    if tGameStats.StageNum > tGameStats.TotalStages then
+        tGameStats.StageNum = tGameStats.StageNum-1
+        if CGameMode.EndGame() then return; end
+    end
+
     if tGameStats.StageNum <= tGameStats.TotalStages then
         CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iPlayerIDToMove].Color)
         tGameStats.TargetColor = tGame.StartPositions[CGameMode.iPlayerIDToMove].Color
         CGameMode.WaitForPlayerMove(true)
-    else
-        tGameStats.StageNum = tGameStats.StageNum-1
-        CGameMode.EndGame()
     end
 end
 
@@ -638,8 +649,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true end
 end
 
 function DefectButton(defect)

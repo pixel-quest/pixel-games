@@ -201,9 +201,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
-    end
 
     local iPlayersReady = 0
 
@@ -337,7 +334,7 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("reflex/reflex_gamename.mp3")
         CAudio.PlayVoicesSync("reflex/reflex_guide.mp3")
 
-        AL.NewTimer((CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")+2)*1000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("reflex/reflex_guide.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
             CGameMode.bCanStart = true
         end)        
     else
@@ -361,7 +358,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.bCountDownStarted = true
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if tGame.ArenaMode and CGameMode.iRountCount == 1 then
@@ -381,7 +377,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
             return nil
         else
-            --CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -492,7 +491,7 @@ CGameMode.EndGame = function()
 
     SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)    
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)       
 end
@@ -776,8 +775,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then bAnyButtonClick = true end
 end
 
 function DefectButton(defect)

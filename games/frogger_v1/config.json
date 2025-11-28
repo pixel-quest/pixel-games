@@ -5,6 +5,9 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"Vertical": false,
 	"Vertical_ru": "Вертикальные дороги",
 	"Vertical_ru": "Vertical position",
