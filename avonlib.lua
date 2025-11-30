@@ -203,7 +203,7 @@ AL.Rules.bSoundOn = false
 
 AL.Rules.FillFloor = function(tFloor)
     local tReturnFloor = {}
-    local bSkip = false
+    local iSkip = 0
 
     if not AL.Rules.bVideoOn then
         CVideos.Play("tutorial/skip.mp4")
@@ -218,19 +218,22 @@ AL.Rules.FillFloor = function(tFloor)
     local function redPixel(iX, iY)
         tReturnFloor[iX][iY] = CColors.RED
     
-        if tFloor[iX][iY].Click or tFloor[iX][iY].bClick then
-            bSkip = true
+        if iSkip == 0 and (tFloor[iX][iY].Click or tFloor[iX][iY].bClick) and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then
+            iSkip = 2
         end
     end
 
     local function greenPixel(iX, iY)
         tReturnFloor[iX][iY] = CColors.GREEN
+        if (tFloor[iX][iY].Click or tFloor[iX][iY].bClick) and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then 
+            iSkip = 1
+        end
     end
 
     for iX = 1, #tFloor do
         tReturnFloor[iX] = {}
         for iY = 1, #tFloor[iX] do
-            if tFloor[iX][iY] and not tFloor[iX][iY].Defect and not tFloor[iX][iY].bDefect then
+            if tFloor[iX][iY] then
                 if iY >= (#tFloor[iX]/2) then
                     redPixel(iX, iY)
                 else
@@ -240,6 +243,6 @@ AL.Rules.FillFloor = function(tFloor)
         end
     end
 
-    return tReturnFloor, bSkip
+    return tReturnFloor, iSkip==2
 end
 --//
