@@ -1992,6 +1992,11 @@ function PixelClick(click)
         if click.Click and CEffect.bEffectOn and tFloor[click.X][click.Y].iCoinId > 0 then
             CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, click.X, click.Y)
         end
+
+        if tConfig.NewTracking and click.Click and not tFloor[click.X][click.Y].bDefect then
+            CCross.iAiDestX = click.X
+            CCross.iAiDestY = click.Y
+        end
     end
 end
 

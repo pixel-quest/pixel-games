@@ -19,6 +19,10 @@
 	"CrossMovementSpeed_ru": "Скорость Движения Прицела и эффектов",
 	"CrossMovementSpeed_en": "Crosshair and effects movespeed",
 
+	"NewTracking": true,
+	"NewTracking_ru": "Отслеживание по последнему нажатию",
+	"NewTracking_en": "Most recent click tracking",
+
 	"EliminationMode": false,
 	"EliminationMode_ru": "Режим 'Выбывание' (Здоровье команды отуствует, при попадании на красный пиксель ведущий просит игрока покинуть комнату)",
 	"EliminationMode_en": "Elimination Mode (No team health, when player steps on red pixel - announcer asks them to leave the room)",
