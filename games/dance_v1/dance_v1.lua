@@ -120,13 +120,7 @@ function StartGame(gameJson, gameConfigJson)
     end
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
-    if tGame.StartPositions == nil then
-        SetupPlayerPositions()
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end    
-    end
+    SetupPlayerPositions()
 
     iPrevTickTime = CTime.unix()
 
