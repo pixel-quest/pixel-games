@@ -200,17 +200,7 @@ function GameSetupTick()
     SetAllButtonColorBright(CColors.NONE, CColors.BRIGHT0)
     CPaint.PlayerZones()
 
-    if CGameMode.bCanStart and tGame.StartButtonFloorX then
-        for iX = tGame.StartButtonFloorX, tGame.StartButtonFloorX + 1 do
-            for iY = tGame.StartButtonFloorY, tGame.StartButtonFloorY + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
-            end
-        end
-    end
-
-    if bAnyButtonClick then
+    if CGameMode.bCanStart then
         if not CGameMode.bCountDownStarted then
             CAudio.ResetSync()
             CGameMode.StartCountDown(5)
