@@ -127,10 +127,9 @@ function StartGame(gameJson, gameConfigJson)
         iMinY = AL.NFZ.iMinY
         iMaxX = AL.NFZ.iMaxX
         iMaxY = AL.NFZ.iMaxY
-
-        tGame.CenterX = AL.NFZ.iCenterX
-        tGame.CenterY = AL.NFZ.iCenterY
     end
+    tGame.CenterX = math.floor((iMaxX-iMinX+1)/2)
+    tGame.CenterY = math.ceil((iMaxY-iMinY+1)/2)
 
     tGame.StartPositions = {}
     tGame.StartPositionSizeX = math.floor(iMaxX*0.8) - iMinX
@@ -735,6 +734,12 @@ CPaint.PlayerZones = function()
     for i = 1, #tGame.StartPositions do
         if CPaint.PlayerZone(i, tConfig.Bright) then
             iZonesClicked = iZonesClicked + 1
+        end
+    end
+
+    if #tGame.StartPositions == 2 then 
+        for iX = 1, tGame.Cols do
+            tFloor[iX][tGame.CenterY].iColor = CColors.GREEN
         end
     end
 end
