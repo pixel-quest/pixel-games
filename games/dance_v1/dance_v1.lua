@@ -460,7 +460,6 @@ CTutorial.Skip = function()
     CAudio.ResetSync() -- обрыв звука
 
     CAudio.PlayVoicesSync("choose-color.mp3")
-    CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
     CTutorial.bDisableErrorSound = false
 
@@ -787,7 +786,7 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
     if string.match(iPixelType, "L") and not tConfig.EasyMode then
         CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
     elseif string.match(iPixelType, "R")  and not tConfig.EasyMode then
-        CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW
+        CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
     elseif string.match(iPixelType, "H") then
         CGameMode.tPixels[iPixelID].iColor = CColors.BLUE
     end
