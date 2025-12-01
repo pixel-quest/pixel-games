@@ -128,7 +128,7 @@ function StartGame(gameJson, gameConfigJson)
                 
                 if not tConfig.SkipTutorial then
                     CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
-                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 - 10000, function()
+                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000, function()
                         CGameMode.bCanStart = true
                     end)
                 else
