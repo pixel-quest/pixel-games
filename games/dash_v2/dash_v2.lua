@@ -783,7 +783,7 @@ function PixelClick(click)
     if click.Click and iGameState == GAMESTATE_GAME then
         if tFloor[click.X][click.Y].iColor == CColors.RED then
             CLava.PlayerStepDelay(click.X, click.Y)
-        elseif tFloor[click.X][click.Y].tSafeZoneButton ~= nil and tGame.DisableButtonsGameplay then
+        elseif tFloor[click.X][click.Y].tSafeZoneButton ~= nil and tGame.DisableButtonsGameplay and tFloor[click.X][click.Y].tSafeZoneButton.bGoal then
             CGameMode.ReachGoal(tFloor[click.X][click.Y].tSafeZoneButton)
         end
     end
