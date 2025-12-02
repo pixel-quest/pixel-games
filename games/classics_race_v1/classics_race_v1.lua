@@ -164,6 +164,8 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
+    CAudio.PlayVoicesSync("classics-race/classics-race-game.mp3")
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_GAME
         CGameMode.CountDownNextRound()
@@ -178,7 +180,6 @@ function StartGame(gameJson, gameConfigJson)
                     iGameState = GAMESTATE_GAME
                     CGameMode.CountDownNextRound()
                 else
-                    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
                     CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
 
                     iGameState = GAMESTATE_SETUP
@@ -373,7 +374,6 @@ CGameMode.CountDownNextRound = function()
     tGameStats.StageLeftDuration = CGameMode.iCountdown
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
         
         if CGameMode.iCountdown <= 0 then
@@ -385,6 +385,7 @@ CGameMode.CountDownNextRound = function()
             return nil
         else
             if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
                 CAudio.PlayLeftAudio(CGameMode.iCountdown)
             end
             CGameMode.iCountdown = CGameMode.iCountdown - 1 
