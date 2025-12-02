@@ -114,6 +114,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end
 
+    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_gamename.mp3")
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_SETUP
         CGameMode.bCanStart = true
