@@ -98,7 +98,11 @@ function StartGame(gameJson, gameConfigJson)
 
     if tConfig.Video ~= "" then
         tGameStats.ScoreBoardVariant = 0
-        CVideos.Play(tConfig.Video)
+        VideoPlay(name)
+    end
+
+    if tConfig.Sound and tConfig.Sound ~= "" then
+        CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
     end
 
     if tConfig.GameDuration > 0 then
