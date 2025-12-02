@@ -98,7 +98,7 @@ function StartGame(gameJson, gameConfigJson)
 
     if tConfig.Video ~= "" then
         tGameStats.ScoreBoardVariant = 0
-        VideoPlay(name)
+        VideoPlay(tConfig.Video)
     end
 
     if tConfig.Sound and tConfig.Sound ~= "" then
@@ -138,10 +138,6 @@ end
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     CPaint.Demo()
-
-    if tConfig.Video ~= "" and not bVideoPlaying and tConfig.VideoLoop then
-        CVideos.Play(tConfig.Video)
-    end
 end
 
 function PostGameTick()
@@ -166,11 +162,17 @@ end
 
 local bVideoPlaying
 function VideoPlay(name)
+    if bVideoPlaying then return; end
+
     CVideos.Play(name)
     bVideoPlaying = true
     if tConfig.VideoDuration then
         AL.NewTimer(tConfig.VideoDuration, function()
             bVideoPlaying = false
+
+            if tConfig.VideoLoop then
+                VideoPlay(tConfig.Video)
+            end
         end)
     end
 end
