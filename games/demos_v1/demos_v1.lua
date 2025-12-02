@@ -167,7 +167,7 @@ function VideoPlay(name)
     CVideos.Play(name)
     bVideoPlaying = true
     if tConfig.VideoDuration then
-        AL.NewTimer(tConfig.VideoDuration, function()
+        AL.NewTimer(tConfig.VideoDuration*1000, function()
             bVideoPlaying = false
 
             if tConfig.VideoLoop then
