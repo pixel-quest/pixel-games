@@ -88,7 +88,6 @@ local GameConfigObj = {
     StagesQty = 10, -- сколько очков необходимо набрать для победы
     StageDurationSec = 4,
     StopDurationSec = 4,
-    WinDurationSec = 10, -- длительность этапа победы перед завершением игры
 }
 
 -- Структура статистики игры (служебная): используется для отображения информации на табло
@@ -193,14 +192,7 @@ function StartGame(gameJson, gameConfigJson)
     GameStats.CurrentLives = GameConfigObj.StartLives
 
     audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
-    --audio.PlayVoicesSync("stand_on_green_and_get_ready.mp3") -- Встаньте на зеленую зону и приготовьтесь
-    audio.PlayVoicesSync("listen_carefully_color.mp3") -- Внимательно меня слушайте, я скажу вам цвет, на который нужно будет встать
-    
-    if GameObj.ArenaMode then 
-        audio.PlayVoicesSync("press-zone-for-start.mp3")
-    else
-        audio.PlayVoicesSync("press-button-for-start.mp3")
-    end
+    audio.PlayVoicesSync("press-zone-for-start.mp3")
 end
 
 -- PauseGame (служебный): пауза игры
@@ -346,7 +338,7 @@ function NextTick()
         processClicksAndEffects()
 
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = GameConfigObj.WinDurationMS/1000
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру
@@ -408,12 +400,6 @@ function ButtonClick(click)
         return -- не интересуют кнопки не из списка, иначе будет ошибка
     end
     ButtonsList[click.Button].Click = click.Click
-
-    -- нажали кнопку, стартуем обратный отсчет
-    if StartPlayersCount == 0 and click.Click then
-        StartPlayersCount = countActivePlayers()
-        StageStartTime = time.unix()
-    end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя

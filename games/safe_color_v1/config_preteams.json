@@ -11,6 +11,8 @@
   "StartLives_Step": 5,   
   "StartLives_ru": "Начальное количество жизней",
   "StartLives_en": "Player lives count",
+
+  "ChosenColors":["0xFF00", "0x00FF00", "0x0000FF"],
   
   "PlayerCount": 0,
   "PlayerCount_Min": 0,
@@ -40,8 +42,8 @@
   "StopDurationSec_ru": "Длительность остановки",
   "StopDurationSec_en": "Stop Duration",
 
-  "WinDurationMS": 5000,
-  "WinDurationMS_Hidden": true,
+  "WinDurationSec": 10,
+  "WinDurationSec_Hidden": true,
 
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 

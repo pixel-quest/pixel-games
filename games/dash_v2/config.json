@@ -16,7 +16,7 @@
   "AutoStartPlayerCount_ru": "Количество игроков для авто-старта",
   "AutoStartPlayerCount_en": "Players needed for auto-start",
 
-  "WinDurationMS": 10000,
+  "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
 
   "GameCountdown": 10,

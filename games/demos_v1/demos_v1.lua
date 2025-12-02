@@ -12,6 +12,7 @@ local CJson = require("json")
 local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
+local CVideos = require("video")
 
 local tGame = {
     Cols = 24,
@@ -94,6 +95,17 @@ function StartGame(gameJson, gameConfigJson)
     iPrevTickTime = CTime.unix()
     CPaint.LoadDemo(tConfig.DemoName)
     CPaint.DemoThinker()
+
+    if tConfig.Video ~= "" then
+        tGameStats.ScoreBoardVariant = 0
+        CVideos.Play(tConfig.Video)
+    end
+
+    if tConfig.GameDuration > 0 then
+        AL.NewTimer(tConfig.GameDuration * 1000, function()
+            iGameState = GAMESTATE_FINISH
+        end)
+    end
 end
 
 function NextTick()
@@ -122,6 +134,10 @@ end
 function GameTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
     CPaint.Demo()
+
+    if tConfig.Video ~= "" and not bVideoPlaying and tConfig.VideoLoop then
+        CVideos.Play(tConfig.Video)
+    end
 end
 
 function PostGameTick()
@@ -142,6 +158,17 @@ end
 
 function SwitchStage()
     
+end
+
+local bVideoPlaying
+function VideoPlay(name)
+    CVideos.Play(name)
+    bVideoPlaying = true
+    if tConfig.VideoDuration then
+        AL.NewTimer(tConfig.VideoDuration, function()
+            bVideoPlaying = false
+        end)
+    end
 end
 
 --PAINT

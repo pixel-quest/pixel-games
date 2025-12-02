@@ -5,6 +5,9 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
 	"PlayerCount": 0,
 	"PlayerCount_Min": 0,
 	"PlayerCount_Max": 6,

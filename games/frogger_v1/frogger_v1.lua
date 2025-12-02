@@ -314,7 +314,7 @@ CGameMode.EndGame = function(bVictory, bTimeOut)
         end
     end
 
-    AL.NewTimer(5000, function()
+    AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)
 end

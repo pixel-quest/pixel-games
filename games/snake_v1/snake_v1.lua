@@ -203,9 +203,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if tGame.TeamCount and tGame.TeamCount > 1 and not bCountDownStarted then
-        SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
-    end
     local iPlayersReady = 0
 
     if tGame.ArenaMode then
@@ -254,7 +251,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and ((CGameMode.bCanStart and (iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions)) or bAnyButtonClick) then
+    if not bCountDownStarted and iPlayersReady > 0 and CGameMode.bCanStart then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -315,7 +312,7 @@ CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("snake/snake-game.mp3")
         CAudio.PlayVoicesSync("snake/snake-guide.mp3")
-        AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 3000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 7000, function()
             CGameMode.bCanStart = true
         end)
     else

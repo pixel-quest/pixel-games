@@ -5,7 +5,7 @@
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
 
-  "WinDurationMS": 10000,
+  "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
 
   "GameCountdown": 5,

@@ -133,7 +133,7 @@ function StartGame(gameJson, gameConfigJson)
         CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
         CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
 
-        AL.NewTimer((CAudio.GetVoicesDuration("labyrinth/labyrinth-rules.mp3"))*1000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("labyrinth/labyrinth-rules.mp3"))*1000 + 5000, function()
             CGameMode.bCanStart = true
         end)
     else
@@ -188,7 +188,7 @@ function GameSetupTick()
         end
     end
 
-    if bAnyButtonClick then
+    if CGameMode.bCanStart and bAnyButtonClick then
         bAnyButtonClick = false
 
         if not CGameMode.bCountDownStarted then
@@ -1248,7 +1248,7 @@ function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
 
-    if click.Click then
+    if CGameMode.bCanStart and click.Click then
         bAnyButtonClick = true
     end
 end

@@ -20,8 +20,8 @@
   "PadAFKTimer_ru": "Длительность Отсутсвия Геймпада (Через сколько времени неиспользования геймпада передовать управление ИИ)",
   "PadAFKTimer_en": "GamePad Afk Timer (When no inputs are coming from Pad for this long - give the controls to AI)",
 
-  "WinDurationSec": 10,
-  "WinDurationSec_Hidden": true,
+  "WinDurationMS": 5000,
+  "WinDurationMS_Hidden": true,
 
   "PodSize": 2,
   "PodSize_Hidden": true,

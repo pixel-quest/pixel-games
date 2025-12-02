@@ -169,16 +169,17 @@ function StartGame(gameJson, gameConfigJson)
     CGameMode.bOneAxisMoveMode = tGame.OneAxisMoveMode
 
 
+    CAudio.PlayVoicesSync("huarong/huarong.mp3")
     if not tConfig.SkipTutorial then
-        CAudio.PlayVoicesSync("huarong/huarong.mp3")
         CAudio.PlayVoicesSync("huarong/huarong-guide.mp3")
+
+        AL.NewTimer(CAudio.GetVoicesDuration("huarong/huarong-guide.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
     end
     CAudio.PlayVoicesSync("choose-color.mp3")
-    --CAudio.PlayVoicesSync("press-button-for-start.mp3")
-
-    AL.NewTimer((CAudio.GetVoicesDuration("huarong/huarong-guide.mp3"))*1000 + 3000, function()
-        CGameMode.bCanStart = true
-    end)
 end
 
 function NextTick()
@@ -210,9 +211,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if not bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-    end
 
     local iPlayersReady = 0
 
@@ -234,10 +232,11 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and (iPlayersReady > 0 or iPlayersReady == #tGame.StartPositions) and (bAnyButtonClick or (tConfig.AutoStart and CGameMode.bCanStart)) then
-        tGameResults.PlayersCount = iPlayersReady
+    if not bCountDownStarted and iPlayersReady > 0 and CGameMode.bCanStart then
         CGameMode.StartCountDown(10)
     end    
+
+    tGameResults.PlayersCount = iPlayersReady
 end
 
 function GameTick()
@@ -289,7 +288,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -297,7 +295,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -372,6 +373,8 @@ CGameMode.EndGame = function(iPlayerID)
 
     iGameState = GAMESTATE_POSTGAME
 
+    CAudio.StopBackground()
+    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
     CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
@@ -824,10 +827,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

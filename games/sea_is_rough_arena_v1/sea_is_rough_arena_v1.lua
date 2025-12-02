@@ -87,7 +87,6 @@ local GameConfigObj = {
     FillingPercentage = 50, -- процент заполнения пола цветными пикселями
     MovePixels = true, -- переменная, отвечающая за движение пикселя после нажатия
     StageDurationSec = 8, -- продолжительность этапа
-    WinDurationSec = 10, -- продолжительность этапа победы перед завершением игры
     StopDurationSec = 3, -- продолжительность "заморозки"
 }
 
@@ -197,13 +196,7 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
 
     audio.PlayVoicesSyncFromScratch("sea-is-rough/statues-game.mp3") -- Игра "Море волнуется"
     audio.PlayVoicesSync("choose-color.mp3") -- Выберите цвет
-    audio.PlayVoicesSync("get_ready_remember_color.mp3") -- Приготовьтесь и запомните свой цвет, вам будет нужно его искать
-
-    if GameObj.ArenaMode then 
-        audio.PlayVoicesSync("press-zone-for-start.mp3")
-    else
-        audio.PlayVoicesSync("press-button-for-start.mp3")
-    end
+    audio.PlayVoicesSync("press-zone-for-start.mp3")
 end
 
 
@@ -345,7 +338,7 @@ function NextTick()
         end
     elseif GameStats.StageNum == CONST_STAGE_WIN then -- этап победы
         local timeSinceStageStart = time.unix() - StageStartTime
-        GameStats.StageTotalDuration = GameConfigObj.WinDurationSec
+        GameStats.StageTotalDuration = GameConfigObj.WinDurationMS/1000
         GameStats.StageLeftDuration = GameStats.StageTotalDuration - timeSinceStageStart
 
         if GameStats.StageLeftDuration <= 0 then -- время завершать игру

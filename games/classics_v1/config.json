@@ -15,7 +15,7 @@
   "GameCountdown": 5,
   "GameCountdown_Hidden": true,
 
-  "WinDurationMS": 10000,
+  "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
 
   "SkipTutorial": false,

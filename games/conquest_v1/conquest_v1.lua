@@ -181,16 +181,13 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-    end
 
     CPaint.Units()  
 
     local iPlayersReady = 0
 
     if tConfig.TeamMode then
-        if CGameMode.bCanStart then
+        if CGameMode.bCanStart and not CGameMode.bCountDownStarted then
             for iX = math.floor(tGame.Cols/2)-1, math.floor(tGame.Cols/2) + 1 do
                 for iY = math.floor(tGame.Rows/2), math.floor(tGame.Rows/2) + 2 do
                     tFloor[iX][iY].iColor = CColors.BLUE
@@ -219,7 +216,7 @@ function GameSetupTick()
         end
     end
 
-    if not CGameMode.bCountDownStarted and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or (CGameMode.bCanStart and iPlayersReady > 1 and iPlayersReady == #tGame.StartPositions)) then
+    if not CGameMode.bCountDownStarted and CGameMode.bCanStart and ((bAnyButtonClick and (tConfig.TeamMode or iPlayersReady > 1)) or iPlayersReady > 1) then
         CAudio.ResetSync()
         CGameMode.StartCountDown(5)
         bAnyButtonClick = false
@@ -282,7 +279,7 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("virus/virus.mp3")
         CAudio.PlayVoicesSync("virus/virus-guide.mp3")
         
-        AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 500, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("virus/virus-guide.mp3"))*1000 + 3000, function()
             CGameMode.bCanStart = true
         end)
     else
@@ -476,9 +473,9 @@ CField.PixelCapture = function(iX, iY, iPlayerID)
         if CField.tField[iX][iY].iPlayerID ~= 0 then
             tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score = tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score - 1
 
-            if CField.tField[iX][iY].iPlayerID > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score <= 10 then
-                CGameMode.DestroyTeam(CField.tField[iX][iY].iPlayerID)
-            end
+            --if CField.tField[iX][iY].iPlayerID > 1 and tGameStats.Players[iPlayerID].Score >= 20 and tGameStats.Players[CField.tField[iX][iY].iPlayerID].Score <= 10 then
+            --    CGameMode.DestroyTeam(CField.tField[iX][iY].iPlayerID)
+            --end
         end
 
         CField.tField[iX][iY].iPlayerID = iPlayerID
@@ -831,10 +828,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click and not CGameMode.bCountDownStarted then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

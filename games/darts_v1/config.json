@@ -5,6 +5,9 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
   	"RoundCount": 3,
   	"RoundCount_Min": 2,
   	"RoundCount_Max": 6,

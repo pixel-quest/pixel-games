@@ -22,6 +22,7 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
+local GAMESTATE_RULES = 0
 local GAMESTATE_TUTORIAL = 1
 local GAMESTATE_SETUP = 2
 local GAMESTATE_GAME = 3
@@ -29,7 +30,7 @@ local GAMESTATE_POSTGAME = 4
 local GAMESTATE_FINISH = 5
 
 local bGamePaused = false
-local iGameState = GAMESTATE_TUTORIAL
+local iGameState = GAMESTATE_RULES
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 local tPlayerInGame = {}
@@ -127,14 +128,44 @@ function StartGame(gameJson, gameConfigJson)
         end    
     end
 
+    iPrevTickTime = CTime.unix()
+
     local err = CAudio.PreloadFile("audio_v2/"..tGame["SongName"])
     if err ~= nil then error(err); end
 
-    CAudio.PlayVoicesSync("choose-color.mp3")
-    if tGame.ArenaMode then 
-        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+    CAudio.PlayVoicesSync("dance/dance_game.mp3")
+
+    if tConfig.SkipTutorial or not AL.NewRulesScript then
+        iGameState = GAMESTATE_TUTORIAL
+        CAudio.PlayVoicesSync("choose-color.mp3")
+        if tGame.ArenaMode then 
+            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+        else
+            --CAudio.PlaySync("voices/press-button-for-start.mp3")
+        end
     else
-        --CAudio.PlaySync("voices/press-button-for-start.mp3")
+        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+        AL.NewTimer(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+
+            if tGameStats.StageLeftDuration == 0 then
+                iGameState = GAMESTATE_TUTORIAL
+                CAudio.PlayVoicesSync("choose-color.mp3")
+                if tGame.ArenaMode then 
+                    CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+                else
+                    --CAudio.PlaySync("voices/press-button-for-start.mp3")
+                end
+            
+                return nil;
+            end
+
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
+            return 1000;
+        end)
     end
 end
 
@@ -160,6 +191,10 @@ function SetupPlayerPositions()
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_RULES then
+        RulesTick()
+    end
+
     if iGameState == GAMESTATE_TUTORIAL then
         TutorialTick()
     end
@@ -194,7 +229,25 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
+function RulesTick()
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    local tNewFloor, bSkip = AL.Rules.FillFloor(tFloor)
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tNewFloor[iX] and tNewFloor[iX][iY] then
+                tFloor[iX][iY].iColor = tNewFloor[iX][iY]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+    end
+
+    tConfig.SkipTutorial = bSkip
+end
+
 function TutorialTick()
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright)
+
     local iPlayersReady = 0
 
     if tGame.ArenaMode then
@@ -255,7 +308,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if bAnyButtonClick or (tConfig.AutoStart and iPlayersReady > 1 and not CTutorial.bStarted) then
+    if iPlayersReady > 1 and not CTutorial.bStarted then
         if tGame.ArenaMode then
             if not bCountDownStarted then
                 CGameMode.CountDown(5)
@@ -281,7 +334,6 @@ function TutorialTick()
 
     if CTutorial.bStarted and CSongSync.bOn then
         GameTick()
-        SetAllButtonsColorBright(CColors.BLUE, tConfig.Bright)
     else
         CPaint.Borders()
     end
@@ -1108,10 +1160,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if iGameState <= GAMESTATE_SETUP and click.Click == true then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

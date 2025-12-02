@@ -1,10 +1,8 @@
 --[[
-    Название: Погоня за кругом
+    Название: Поймай Рисунок
     Автор: Avondale, дискорд - avonda
     Описание механики: 
-        Игроки бегают за кругом/от круга
-        У круга переодически меняется цвет, а за нажатия по этому кругу - игроку с этим цветом даются очки
-        соотвественно игрокам нужно избегать круга пока он не станет их цвета, после этого наоборот за кругом нужно гнатся
+        Ловить пиксели правильного цвета чтобы собрать рисунок
 ]]
 math.randomseed(os.time())
 require("avonlib")
@@ -42,18 +40,18 @@ local tGameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = CColors.NONE },
+        { Score = 0, Lives = 0, Color = CColors.GREEN },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 1,
+    TargetScore = 0,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 6,
+    ScoreboardVariant = 5,
 }
 
 local tGameResults = {
@@ -78,8 +76,6 @@ local tButtonStruct = {
     bClick = false,
     bDefect = false,
 }
-
-local tPlayerInGame = {}
 
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
@@ -148,68 +144,22 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    CPicture.Paint()
 
-    local iStartX = tGame.iMinX + 2
-    local iStartY = tGame.iMinY + 1
-    local POS_SIZE = math.floor((tGame.iMaxY-tGame.iMinY+1) / 3)
-
-    local iMaxPlayers = 0
-    local iPlayersReadyCount = 0
-
-    for iPlayerID = 1, 6 do
-        iMaxPlayers = iMaxPlayers + 1
-
-        local iBright = 1
-        if tPlayerInGame[iPlayerID] then iBright = 3; end
-
-        local bClick = false
-        for iX = iStartX, iStartX + POS_SIZE-1 do
-            for iY = iStartY, iStartY + POS_SIZE-1 do
-                tFloor[iX][iY].iColor = CGameMode.tPlayerColors[iPlayerID]
-                tFloor[iX][iY].iBright = iBright
-
-                if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick then
-                    bClick = true
-                end
-            end
-        end
-
-        if bClick then
-            tPlayerInGame[iPlayerID] = true
-            iPlayersReadyCount = iPlayersReadyCount + 1
-            tGameStats.Players[iPlayerID].Color = CGameMode.tPlayerColors[iPlayerID]
-        elseif not CGameMode.bCountDownStarted then
-            tPlayerInGame[iPlayerID] = false
-            tGameStats.Players[iPlayerID].Color = CColors.NONE
-        end
-
-        iStartX = iStartX + 2 + POS_SIZE
-        if iStartX+POS_SIZE-1 >= tGame.iMaxX then
-            iStartX = tGame.iMinX+2
-            iStartY = iStartY + 3 + POS_SIZE
-            if iStartY+POS_SIZE-1 >= tGame.iMaxY then break; end
-        end
+    if CGameMode.bCanAutoStart and not CGameMode.bCountDownStarted then
+        CGameMode.StartCountDown(5)
     end
-
-    if not CGameMode.bCountDownStarted then 
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-
-        if CGameMode.bCanAutoStart and iPlayersReadyCount > 1 then
-            CGameMode.StartCountDown(10)
-        end
-    end
-
-    tGameResults.PlayersCount = iPlayersReadyCount
 end
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)    
-
-    CCircle.Paint()
+    CPicture.Paint()
+    CCoins.Paint()
 end
 
 function PostGameTick()
-    
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)   
+    CPicture.Paint()
 end
 
 function RangeFloor(setPixel, setButton)
@@ -233,34 +183,25 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bCountDownStarted = false
 CGameMode.bCanAutoStart = false
-CGameMode.iWinnerID = 0
 
 CGameMode.tPlayerColors = {}
-CGameMode.tPlayerColors[1] = CColors.BLUE
-CGameMode.tPlayerColors[2] = CColors.MAGENTA
-CGameMode.tPlayerColors[3] = CColors.CYAN
-CGameMode.tPlayerColors[4] = CColors.RED
-CGameMode.tPlayerColors[5] = CColors.YELLOW
-CGameMode.tPlayerColors[6] = CColors.GREEN
 
 CGameMode.InitGameMode = function()
-    CCircle.CIRCLE_RADIUS = tConfig.CircleSize
-    CCircle.iX = tGame.CenterX
-    CCircle.iY = tGame.CenterY
-    CCircle.NewTarget()
+    CPicture.tColors = {CColors.RED, CColors.BLUE, CColors.YELLOW, CColors.MAGENTA}
+    CPicture.PAINTED_COLOR = CColors.GREEN
+
+    CPicture.Load(tConfig.PictureName)
 end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        CAudio.PlayVoicesSync("circle_chase/cc_rules.mp3")
-        AL.NewTimer(CAudio.GetVoicesDuration("circle_chase/cc_rules.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+        CAudio.PlayVoicesSync("catch-pixel/catch-rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("catch-pixel/catch-rules.mp3")*1000 + 1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
         CGameMode.bCanAutoStart = true
     end
-
-    CAudio.PlayVoicesSync("choose-color.mp3")
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -290,193 +231,225 @@ CGameMode.StartGame = function()
     CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
-    tGameStats.StageLeftDuration = tConfig.SwitchDuration*(tGameResults.PlayersCount*2)
-    tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
-
-    CCircle.ListPlayers()
-    CCircle.SwitchPlayer()
-
-    AL.NewTimer(1000, function()
-        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
-        if iGameState ~= GAMESTATE_GAME or tGameStats.StageLeftDuration == 0 then return nil; end
-        return 1000
-    end)
-
-    AL.NewTimer(150, function()
-        if iGameState ~= GAMESTATE_GAME then return nil; end 
-        CCircle.Movement()
-        return 150;
-    end)
-
-    AL.NewTimer(500, function()
+    AL.NewTimer(300, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
-        CCircle.Think()
-        return 500;
+    
+        CCoins.Tick()
+
+        return 300
     end)
 
-    AL.NewTimer(tConfig.SwitchDuration*1000, function()
-        if not CCircle.SwitchPlayer() then
-            CGameMode.EndGame()
-            return nil;
-        end 
-        return tConfig.SwitchDuration*1000
-    end)
+    if tConfig.TimeLimit > 0 then
+        tGameStats.StageLeftDuration = tConfig.TimeLimit
+        tGameStats.StageTotalDuration = tConfig.TimeLimit
+
+        AL.NewTimer(1000, function()
+            if iGameState ~= GAMESTATE_GAME then return nil; end
+
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+            if tGameStats.StageLeftDuration == 0 then
+                CAudio.PlayVoicesSync("notime.mp3")
+                CGameMode.EndGame(false)
+            end
+
+            return 1000;
+        end)
+    end
 end
 
-CGameMode.EndGame = function()
+CGameMode.EndGame = function(bVictory)
     CAudio.StopBackground()
 
-    local iMaxScore = -1
-
-    for iPlayerID = 1, 6 do
-        if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
-            iMaxScore = tGameStats.Players[iPlayerID].Score
-            CGameMode.iWinnerID = iPlayerID
-        end
+    if bVictory then
+        tGameResults.Won = true
+        CAudio.PlaySystemSync(CAudio.GAME_SUCCESS)
+        CAudio.PlayVoicesSync(CAudio.VICTORY)
+        tGameResults.Color = CColors.GREEN
+    else
+        tGameResults.Won = false
+        CAudio.PlaySystemSync(CAudio.GAME_OVER)
+        CAudio.PlayVoicesSync(CAudio.DEFEAT)
+        tGameResults.Color = CColors.RED
     end
 
-    tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
-    tGameResults.Won = true
-
-    CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
-    CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[CGameMode.iWinnerID])
-    CAudio.PlayVoicesSync(CAudio.VICTORY)
-
     iGameState = GAMESTATE_POSTGAME
-
-    SetGlobalColorBright(CGameMode.tPlayerColors[CGameMode.iWinnerID], tConfig.Bright)
-
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
-    end)
+    end)    
 end
 --//
 
---Circle
-CCircle = {}
+--COINS
+CCoins = {}
+CCoins.tCoins = AL.Stack()
 
-CCircle.iX = 0
-CCircle.iY = 0
-CCircle.iTargetX = 0
-CCircle.iTargetY = 0
-CCircle.CIRCLE_RADIUS = 3
+CCoins.Paint = function()
+    for iCoinID = 1, CCoins.tCoins.Size() do
+        local tCoin = CCoins.tCoins.Pop()
+        local bAlive = true
 
-CCircle.iCurrentPlayerID = 1
-CCircle.iClickCount = 0
+        if tCoin.iY > 0 and tCoin.iY <= tGame.Rows then 
+            tFloor[tCoin.iX][tCoin.iY].iColor = tCoin.iColor
+            if tCoin.bTrueColor then
+                tFloor[tCoin.iX][tCoin.iY].iColor = CPicture.PAINTED_COLOR
+            end
+            tFloor[tCoin.iX][tCoin.iY].iBright = tConfig.Bright
 
-CCircle.tPlayersList = {}
-CCircle.iListPosition = 0
-
-CCircle.ListPlayers = function()
-    local i = 1
-
-    for iPlayerID = 1, 6 do
-        if tPlayerInGame[iPlayerID] then
-            CCircle.tPlayersList[i] = iPlayerID
-            i = i + 1
-        end
-    end
-
-    CCircle.tPlayersList = TableConcat(ShuffleTable(CCircle.tPlayersList), ShuffleTable(CHelp.DeepCopy(CCircle.tPlayersList)))
-end
-
-CCircle.NewTarget = function()
-    CCircle.iTargetX = math.random(1, tGame.Cols)
-    CCircle.iTargetY = math.random(1, tGame.Rows)
-end
-
-CCircle.SwitchPlayer = function()
-    CCircle.iListPosition = CCircle.iListPosition + 1
-    if CCircle.iListPosition > #CCircle.tPlayersList then return false; end
-    CCircle.iCurrentPlayerID = CCircle.tPlayersList[CCircle.iListPosition]
-
-    CAudio.PlaySystemAsync("dodge/lightsaber-swing.mp3")
-    CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[CCircle.iCurrentPlayerID])
-
-    return true 
-end
-
-CCircle.Movement = function()
-    local iXPlus = 0
-    local iYPlus = 0
-
-    if CCircle.iX < CCircle.iTargetX then
-        iXPlus = 1
-    elseif CCircle.iX > CCircle.iTargetX then
-        iXPlus = -1
-    end
-
-    if iXPlus == 0 and iYPlus == 0 then
-        CCircle.NewTarget()
-    else
-        if CCircle.iY < CCircle.iTargetY then
-            iYPlus = 1
-        elseif CCircle.iY > CCircle.iTargetY then
-            iYPlus = -1
+            if tFloor[tCoin.iX][tCoin.iY].bClick and not tFloor[tCoin.iX][tCoin.iY].bDefect then
+                CCoins.CoinCollected(tCoin.bTrueColor, tCoin.iColor)
+                bAlive = false
+            end
         end
 
-        CCircle.iX = CCircle.iX + iXPlus
-        CCircle.iY = CCircle.iY + iYPlus
+        if bAlive then
+            CCoins.tCoins.Push(tCoin)
+        end
     end
 end
 
-CCircle.Think = function()
-    tGameStats.Players[CCircle.iCurrentPlayerID].Score = tGameStats.Players[CCircle.iCurrentPlayerID].Score + CCircle.iClickCount
-
-    if tGameStats.Players[CCircle.iCurrentPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[CCircle.iCurrentPlayerID].Score
-    end
-
-    tGameResults.Score = tGameResults.Score + CCircle.iClickCount
-end
-
-CCircle.Paint = function()
-    CCircle.iClickCount = 0
-
-    local iXM = CCircle.iX
-    local iYM = CCircle.iY
-    local iR = CCircle.CIRCLE_RADIUS
-
-    local iX = -iR
-    local iY = 0
-    local iR2 = 2-2*iR
-
-    local paintCirclePixel = function(iX, iY)
-        for iX2 = iX-1, iX+1 do
-            for iY2 = iY-1, iY+1 do
-                if tFloor[iX2] and tFloor[iX2][iY2] and tFloor[iX2][iY2].iColor == CColors.NONE then
-                    tFloor[iX2][iY2].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
-                    tFloor[iX2][iY2].iBright = tConfig.Bright
-
-                    if tFloor[iX2][iY2].bClick and not tFloor[iX2][iY2].bDefect then
-                        CCircle.iClickCount = CCircle.iClickCount + 1
-                    end
-                end
+CCoins.Tick = function()
+    for iX = 1, tGame.Cols do
+        if iX < CPicture.iStartX or iX > CPicture.iStartX + CPicture.iSizeX then
+            if math.random(1,6) == 3 then
+                CCoins.NewCoin(iX, -5)
             end
         end
     end
 
-    paintCirclePixel(iXM, iYM)
+    for iCoinID = 1, CCoins.tCoins.Size() do
+        local tCoin = CCoins.tCoins.Pop()
 
-    repeat
-        paintCirclePixel(iXM-iX, iYM+iY)
-        paintCirclePixel(iXM-iY, iYM-iX)
-        paintCirclePixel(iXM+iX, iYM-iY)
-        paintCirclePixel(iXM+iY, iYM+iX)
+        tCoin.iY = tCoin.iY + 1
 
-        iR = iR2
-        if iR <= iY then 
-            iY = iY+1
-            iR2 = iR2 + (iY * 2 + 1) 
+        if tCoin.iY <= tGame.Rows then
+            CCoins.tCoins.Push(tCoin)
         end
-        if iR > iX or iR2 > iY then 
-            iX = iX+1
-            iR2 = iR2 + (iX * 2 + 1) 
-        end
-    until iX > 0
+    end
 end
 
+CCoins.NewCoin = function(iX, iY)
+    local tNewCoin = {}
+    tNewCoin.iX = iX
+    tNewCoin.iY = iY
+    tNewCoin.bTrueColor = (math.random(1,3) == 2)
+    tNewCoin.iColor = CPicture.GetRandomColor()
 
+    CCoins.tCoins.Push(tNewCoin)
+end
+
+CCoins.CoinCollected = function(bTrueColor, iCoinColor)
+    if iGameState ~= GAMESTATE_GAME then return; end
+
+    if bTrueColor then
+        CPicture.iPixelsPainted = CPicture.iPixelsPainted + 1
+        tGameStats.Players[1].Score = CPicture.iPixelsPainted
+
+        CPicture.tPicture[CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted+1].iX][CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted+1].iY].bPainted = true
+
+        if CPicture.iPixelsPainted == #CPicture.tPixels then
+            CGameMode.EndGame(true)
+        else
+            CAudio.PlaySystemAsync(CAudio.CLICK)
+        end
+    else
+        if CPicture.iPixelsPainted > 0 then
+            CPicture.iPixelsPainted = CPicture.iPixelsPainted - 1
+            tGameStats.Players[1].Score = CPicture.iPixelsPainted
+            
+            CPicture.tPicture[CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iX][CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iY].bPainted = false
+            CPicture.tPicture[CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iX][CPicture.tPixels[#CPicture.tPixels-CPicture.iPixelsPainted].iY].iColor = iCoinColor
+        end
+
+        CAudio.PlaySystemAsync(CAudio.MISCLICK)
+    end
+end
+--//
+
+--PICTURE
+CPicture = {}
+CPicture.tPicture = {}
+CPicture.tPixels = {}
+CPicture.tColors = {}
+
+CPicture.PAINTED_COLOR = 0
+
+CPicture.iStartX = 0
+CPicture.iStartY = 0
+CPicture.iSizeX = 0
+
+CPicture.iPixelsPainted = 0
+
+CPicture.Paint = function()
+    for iPixelID = 1, #CPicture.tPixels do
+        local iX = CPicture.tPixels[iPixelID].iX
+        local iY = CPicture.tPixels[iPixelID].iY
+
+        local tPixel = CPicture.tPicture[iX][iY]
+        if tPixel.bPaintable then
+            local iColor = CPicture.PAINTED_COLOR
+            if not tPixel.bPainted then
+                iColor = tPixel.iColor
+            end
+
+            tFloor[CPicture.iStartX+iX][CPicture.iStartY+iY].iColor = iColor
+            tFloor[CPicture.iStartX+iX][CPicture.iStartY+iY].iBright = tConfig.Bright+1
+        end
+    end
+end
+
+CPicture.Load = function(sPresetName)
+    CPicture.tPicture = {}
+
+    for iY = 1, #CPicture.tPresets[sPresetName] do
+        for iX = 1, #CPicture.tPresets[sPresetName][iY] do
+            if not CPicture.tPicture[iX] then CPicture.tPicture[iX] = {} end
+
+            CPicture.tPicture[iX][iY] = {}
+            CPicture.tPicture[iX][iY].bPaintable = (CPicture.tPresets[sPresetName][iY][iX] == 1)
+            CPicture.tPicture[iX][iY].bPainted = false
+            CPicture.tPicture[iX][iY].iColor = CPicture.GetRandomColor()
+            
+            if CPicture.tPicture[iX][iY].bPaintable then
+                CPicture.tPicture[iX][iY].iPixelID = #CPicture.tPixels+1
+                
+                CPicture.tPixels[CPicture.tPicture[iX][iY].iPixelID] = {}
+                CPicture.tPixels[CPicture.tPicture[iX][iY].iPixelID].iX = iX
+                CPicture.tPixels[CPicture.tPicture[iX][iY].iPixelID].iY = iY
+            end
+        end
+    end
+
+    CPicture.iSizeX = #CPicture.tPicture
+    local iSizeY = #CPicture.tPicture[1]
+
+    tGameStats.TargetScore = #CPicture.tPixels
+
+    CPicture.iStartX = tGame.CenterX - math.ceil(CPicture.iSizeX/2)
+    CPicture.iStartY = tGame.CenterY - math.ceil(iSizeY/2)
+end
+
+CPicture.GetRandomColor = function()
+    return CPicture.tColors[math.random(1,#CPicture.tColors)]
+end
+
+CPicture.tPresets = {}
+CPicture.tPresets["elka"] = 
+{
+    {0,0,0,0,0,1,1,0,0,0,0,0},
+    {0,0,0,0,0,1,1,0,0,0,0,0},
+    {0,0,0,0,1,1,1,1,0,0,0,0},
+    {0,0,0,0,1,1,1,1,0,0,0,0},
+    {0,0,0,1,1,1,1,1,1,0,0,0},
+    {0,0,0,1,1,1,1,1,1,0,0,0},
+    {0,0,1,1,1,1,1,1,1,1,0,0},
+    {0,0,1,1,1,1,1,1,1,1,0,0},
+    {0,1,1,1,1,1,1,1,1,1,1,0},
+    {0,1,1,1,1,1,1,1,1,1,1,0},
+    {1,1,1,1,1,1,1,1,1,1,1,1},
+    {0,0,0,1,1,1,1,1,1,0,0,0},
+    {0,0,0,1,1,1,1,1,1,0,0,0},
+    {0,0,0,1,1,1,1,1,1,0,0,0},
+}
 --//
 
 --UTIL прочие утилиты

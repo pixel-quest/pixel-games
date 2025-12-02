@@ -36,13 +36,14 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
+local GAMESTATE_RULES = 0
 local GAMESTATE_SETUP = 1
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_SETUP
+local iGameState = GAMESTATE_RULES
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 
@@ -111,20 +112,46 @@ function StartGame(gameJson, gameConfigJson)
 
     for iPlayerID = 1, #tGame.StartPositions do
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end 
+    end
 
-    if not tConfig.SkipTutorial then
-        CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
-
-        AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 + 2000, function()
-            CGameMode.bCanStart = true
-        end)
-    else
+    if tConfig.SkipTutorial or not AL.NewRulesScript then
+        iGameState = GAMESTATE_SETUP
         CGameMode.bCanStart = true
+    else
+        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+        AL.NewTimer(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+
+            if tGameStats.StageLeftDuration == 0 then
+
+                iGameState = GAMESTATE_SETUP
+                
+                if not tConfig.SkipTutorial then
+                    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
+                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 - 10000, function()
+                        CGameMode.bCanStart = true
+                    end)
+                else
+                    CGameMode.bCanStart = true
+                end
+            
+                return nil;
+            end
+
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
+            return 1000;
+        end)
     end
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_RULES then
+        RulesTick()
+    end
+
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
@@ -151,8 +178,26 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
+function RulesTick()
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    local tNewFloor, bSkip = AL.Rules.FillFloor(tFloor)
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tNewFloor[iX] and tNewFloor[iX][iY] then
+                tFloor[iX][iY].iColor = tNewFloor[iX][iY]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+    end
+
+    tConfig.SkipTutorial = bSkip
+end
+
+
 function GameSetupTick()
     SetAllFloorColorBright(CColors.WHITE, 1) -- красим всё поле в один цвет
+    SetAllButtonColorBright(CColors.NONE, CColors.BRIGHT0)
     CPaint.PlayerZones()
 
     if CGameMode.bCanStart and tGame.StartButtonFloorX then
@@ -169,10 +214,7 @@ function GameSetupTick()
         if not CGameMode.bCountDownStarted then
             CAudio.ResetSync()
             CGameMode.StartCountDown(5)
-            SetAllButtonColorBright(CColors.NONE, tConfig.Bright)
         end
-    else
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true)
     end
 end
 
@@ -344,7 +386,7 @@ CGameMode.EndGame = function(bVictory)
 
     iGameState = GAMESTATE_POSTGAME
 
-    AL.NewTimer(10000, function()
+    AL.NewTimer(tConfig.WinDurationMS + CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_endgame.mp3")*1000, function()
         iGameState = GAMESTATE_FINISH
     end)
 end
@@ -536,10 +578,6 @@ function SetGlobalColorBright(iColor, iBright)
                 tFloor[iX][iY].iColor = iColor
                 tFloor[iX][iY].iBright = iBright
             end
-
-            if CEffect.bEffectOn == false then
-                tFloor[iX][iY].iCoinId = 0
-            end
         end
     end
 
@@ -618,10 +656,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if click.Click then
-        bAnyButtonClick = true
-    end
 end
 
 function DefectButton(defect)

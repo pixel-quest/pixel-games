@@ -31,6 +31,7 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
+local GAMESTATE_RULES = 0
 local GAMESTATE_SETUP = 1 
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
@@ -38,7 +39,7 @@ local GAMESTATE_FINISH = 4
 local GAMESTATE_TUTORIAL = 5
 
 local bGamePaused = false
-local iGameState = GAMESTATE_SETUP
+local iGameState = GAMESTATE_RULES
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 
@@ -164,16 +165,48 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
-    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
-    CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
-    --CAudio.PlaySync("voices/press-button-for-start.mp3")
+    if tConfig.SkipTutorial or not AL.NewRulesScript then
+        iGameState = GAMESTATE_GAME
+        CGameMode.CountDownNextRound()
+    else
+        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+        AL.NewTimer(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-    AL.NewTimer((CAudio.GetVoicesDuration("classics-race/classics-race-guide.mp3"))*1000 + 2000, function()
-        CGameMode.bCanStart = true
-    end)
+            if tGameStats.StageLeftDuration == 0 then
+
+                if tConfig.SkipTutorial then 
+                    iGameState = GAMESTATE_GAME
+                    CGameMode.CountDownNextRound()
+                else
+                    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
+                    CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
+
+                    iGameState = GAMESTATE_SETUP
+
+                    AL.NewTimer(CAudio.GetVoicesDuration("classics-race/classics-race-guide.mp3")*1000 + 3000, function()
+                        iGameState = GAMESTATE_TUTORIAL
+                        CTutorial.Start()
+                    end)
+                end
+            
+                return nil;
+            end
+
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
+            return 1000;
+        end)
+    end
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_RULES then
+        RulesTick()
+    end
+
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
@@ -204,21 +237,25 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
+function RulesTick()
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    local tNewFloor, bSkip = AL.Rules.FillFloor(tFloor)
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tNewFloor[iX] and tNewFloor[iX][iY] then
+                tFloor[iX][iY].iColor = tNewFloor[iX][iY]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+    end
+
+    tConfig.SkipTutorial = bSkip
+end
+
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
     CPaint.PlayerZones()
-    SetAllButtonColorBright(CColors.GREEN, tConfig.Bright)
-
-    if bAnyButtonClick then
-        bAnyButtonClick = false
-        iGameState = GAMESTATE_TUTORIAL
-
-        if tConfig.SkipTutorial then
-            CTutorial.End()
-        else
-            CTutorial.Start()
-        end
-    end
 end
 
 function TutorialTick()
@@ -226,14 +263,6 @@ function TutorialTick()
     if not CTutorial.bSkipDelayOn then SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) end
     CPaint.PlayerZones()
     CPaint.Blocks()
-
-    if bAnyButtonClick then
-        bAnyButtonClick = false
-
-        if not CTutorial.bSkipDelayOn then
-            CTutorial.End()
-        end
-    end
 end
 
 function GameTick()
@@ -356,7 +385,9 @@ CGameMode.CountDownNextRound = function()
 
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1 
 
             return 1000
@@ -705,10 +736,6 @@ CPaint.PlayerZones = function()
         if CPaint.PlayerZone(i, tConfig.Bright) then
             iZonesClicked = iZonesClicked + 1
         end
-    end
-
-    if iGameState == GAMESTATE_SETUP and tConfig.AutoStart and iZonesClicked == #tGame.StartPositions and CGameMode.bCanStart then
-        bAnyButtonClick = true
     end
 end
 

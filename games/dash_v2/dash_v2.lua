@@ -162,9 +162,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if not bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright) 
-    end
 
     local iPlayersReady = 0
 
@@ -194,7 +191,7 @@ function GameSetupTick()
         end
     end
 
-    if not bCountDownStarted and iPlayersReady > 0 and (bAnyButtonClick or (CGameMode.bCanStart and tConfig.AutoStartPlayerCount > 0 and iPlayersReady >= tConfig.AutoStartPlayerCount)) then
+    if not bCountDownStarted and iPlayersReady > 0 and CGameMode.bCanStart then
         bCountDownStarted = true
         bAnyButtonClick = false
         CGameMode.StartCountDown(tConfig.GameCountdown)
@@ -235,6 +232,7 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.bVictory = false
 CGameMode.iRealPlayerCount = 0
+CGameMode.bCanStart = false
 
 CGameMode.InitGameMode = function()
     tGameStats.TotalStages = #tGame.LavaObjects
@@ -249,15 +247,14 @@ CGameMode.Announcer = function()
         if not tGame.DisableButtonsGameplay then
             CAudio.PlayVoicesSync("dash/dash_rules_default.mp3")
             CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
-            CAudio.PlayVoicesSync("press-button-for-start.mp3")
             iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_default.mp3"))*1000 
         else
             CAudio.PlayVoicesSync("dash/dash_rules_nobuttons.mp3")
             CAudio.PlayVoicesSync("stand_on_green_and_get_ready.mp3")
-            iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_nobuttons.mp3"))*1000 
+            iAudioDur = (CAudio.GetVoicesDuration("dash/dash_rules_nobuttons.mp3"))*1000
         end
 
-        AL.NewTimer(iAudioDur + 2000, function()
+        AL.NewTimer(iAudioDur + CAudio.GetVoicesDuration("stand_on_green_and_get_ready.mp3")*1000, function()
             CGameMode.bCanStart = true
         end)
     else
@@ -801,8 +798,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused then return end
     tButtons[click.Button].bClick = click.Click
-
-    bAnyButtonClick = true
 
     if iGameState == GAMESTATE_GAME and tButtons[click.Button].bGoal then
         CGameMode.ReachGoal(tButtons[click.Button])

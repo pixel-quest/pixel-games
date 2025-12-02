@@ -142,8 +142,15 @@ function StartGame(gameJson, gameConfigJson)
     tGameStats.TargetScore = 6 * tConfig.RoundCount
     tGameStats.TotalStages = tConfig.RoundCount
 
+    iPrevTickTime = CTime.unix()
+
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("lavaduel/lavaduel-rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("lavaduel/lavaduel-rules.mp3")*1000 + CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+            CGameMode.bCanStart = true
+        end)
+    else
+        CGameMode.bCanStart = true
     end
 
     CAudio.PlayVoicesSync("choose-color.mp3")
@@ -151,7 +158,6 @@ function StartGame(gameJson, gameConfigJson)
     if tGame.ArenaMode then 
         CAudio.PlayVoicesSync("press-zone-for-start.mp3")
 
-        iPrevTickTime = CTime.unix()
         AL.NewTimer(5000, function()
             CGameMode.bArenaCanStart = true
         end)
@@ -190,7 +196,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
-    if CGameMode.iRound == 0 then SetAllButonColorBright(CColors.GREEN, tConfig.Bright) end
 
     local iPlayersReady = 0
 
@@ -231,13 +236,15 @@ function GameSetupTick()
         end
     end
 
-    if (iPlayersReady > 0 and bAnyButtonClick) or (iPlayersReady >= iPlayerCount and CGameMode.iRound > 0) or (tGame.AutoStartPlayerCount and tGame.AutoStartPlayerCount > 0 and iPlayersReady >= tGame.AutoStartPlayerCount) then
+    if (iPlayersReady > 0 and CGameMode.bCanStart) then
         tGameResults.PlayersCount = iPlayersReady
 
         bAnyButtonClick = false
         iPlayerCount = iPlayersReady
-        iGameState = GAMESTATE_GAME
-        CGameMode.CountDownNextRound()
+
+        if not CGameMode.bStartCountStarted then
+            CGameMode.CountDownGame(10)
+        end
     end
 end
 
@@ -287,6 +294,31 @@ CGameMode.iMapCoinCount = 0
 CGameMode.bArenaCanStart = false
 CGameMode.bCountdownStarted = false
 CGameMode.tPlayerLavaCD = {}
+CGameMode.bCanStart = false
+CGameMode.bStartCountStarted = false
+
+CGameMode.CountDownGame = function(time)
+    CGameMode.bStartCountStarted = true
+
+    tGameStats.StageLeftDuration = time
+
+    AL.NewTimer(1000, function()
+        tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        if tGameStats.StageLeftDuration == 0 then
+            iGameState = GAMESTATE_GAME
+            CGameMode.CountDownNextRound()
+            
+            return nil
+        end
+
+        if tGameStats.StageLeftDuration <= 5 then
+            CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+        end
+
+        return 1000;
+    end)
+end
+
 
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
@@ -988,10 +1020,6 @@ end
 function ButtonClick(click)
     if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
     tButtons[click.Button].bClick = click.Click
-
-    if iGameState == GAMESTATE_SETUP and click.Click == true then
-        bAnyButtonClick = true
-    end    
 end
 
 function DefectButton(defect)
