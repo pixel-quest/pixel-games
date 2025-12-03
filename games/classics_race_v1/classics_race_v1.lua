@@ -127,10 +127,9 @@ function StartGame(gameJson, gameConfigJson)
         iMinY = AL.NFZ.iMinY
         iMaxX = AL.NFZ.iMaxX
         iMaxY = AL.NFZ.iMaxY
-
-        tGame.CenterX = AL.NFZ.iCenterX
-        tGame.CenterY = AL.NFZ.iCenterY
     end
+    tGame.CenterX = math.floor((iMaxX-iMinX+1)/2)
+    tGame.CenterY = math.ceil((iMaxY-iMinY+1)/2)
 
     tGame.StartPositions = {}
     tGame.StartPositionSizeX = math.floor(iMaxX*0.8) - iMinX
@@ -165,6 +164,8 @@ function StartGame(gameJson, gameConfigJson)
 
     tGameStats.TargetScore = 1
 
+    CAudio.PlayVoicesSync("classics-race/classics-race-game.mp3")
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_GAME
         CGameMode.CountDownNextRound()
@@ -179,7 +180,6 @@ function StartGame(gameJson, gameConfigJson)
                     iGameState = GAMESTATE_GAME
                     CGameMode.CountDownNextRound()
                 else
-                    CAudio.PlayVoicesSyncFromScratch("classics-race/classics-race-game.mp3")
                     CAudio.PlayVoicesSync("classics-race/classics-race-guide.mp3")
 
                     iGameState = GAMESTATE_SETUP
@@ -374,7 +374,6 @@ CGameMode.CountDownNextRound = function()
     tGameStats.StageLeftDuration = CGameMode.iCountdown
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
         
         if CGameMode.iCountdown <= 0 then
@@ -386,6 +385,7 @@ CGameMode.CountDownNextRound = function()
             return nil
         else
             if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
                 CAudio.PlayLeftAudio(CGameMode.iCountdown)
             end
             CGameMode.iCountdown = CGameMode.iCountdown - 1 
@@ -735,6 +735,12 @@ CPaint.PlayerZones = function()
     for i = 1, #tGame.StartPositions do
         if CPaint.PlayerZone(i, tConfig.Bright) then
             iZonesClicked = iZonesClicked + 1
+        end
+    end
+
+    if #tGame.StartPositions == 2 then 
+        for iX = 1, tGame.Cols do
+            tFloor[iX][tGame.CenterY].iColor = CColors.GREEN
         end
     end
 end

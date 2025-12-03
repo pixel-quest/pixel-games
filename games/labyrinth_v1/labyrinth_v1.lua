@@ -133,14 +133,12 @@ function StartGame(gameJson, gameConfigJson)
         CAudio.PlayVoicesSync("labyrinth/labyrinth.mp3")
         CAudio.PlayVoicesSync("labyrinth/labyrinth-rules.mp3")
 
-        AL.NewTimer((CAudio.GetVoicesDuration("labyrinth/labyrinth-rules.mp3"))*1000 + 5000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("labyrinth/labyrinth-rules.mp3"))*1000 + 1000, function()
             CGameMode.bCanStart = true
         end)
     else
         CGameMode.bCanStart = true
     end
-
-    CAudio.PlayVoicesSync("press-center-for-start.mp3")
 end
 
 function NextTick()
@@ -172,25 +170,10 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright)
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-    end
     
     CPaint.Objects()
 
-    if CGameMode.bCanStart and not CGameMode.bCountDownStarted then
-        for iX = tGame.CenterX, tGame.CenterX+2 do
-            for iY = tGame.CenterY, tGame.CenterY+2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
-            end
-        end
-    end
-
-    if CGameMode.bCanStart and bAnyButtonClick then
-        bAnyButtonClick = false
-
+    if CGameMode.bCanStart then
         if not CGameMode.bCountDownStarted then
             CGameMode.StartCountDown(5)
         end

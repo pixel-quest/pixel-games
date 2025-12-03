@@ -120,13 +120,7 @@ function StartGame(gameJson, gameConfigJson)
     end
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
-    if tGame.StartPositions == nil then
-        SetupPlayerPositions()
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end    
-    end
+    SetupPlayerPositions()
 
     iPrevTickTime = CTime.unix()
 
@@ -143,6 +137,10 @@ function StartGame(gameJson, gameConfigJson)
         else
             --CAudio.PlaySync("voices/press-button-for-start.mp3")
         end
+
+        AL.NewTimer((CAudio.GetVoicesDuration("dance/dance_game.mp3")+CAudio.GetVoicesDuration("choose-color.mp3"))*1000, function()
+            CTutorial.bCanStart = true
+        end)
     else
         tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
         AL.NewTimer(1000, function()
@@ -157,6 +155,10 @@ function StartGame(gameJson, gameConfigJson)
                     --CAudio.PlaySync("voices/press-button-for-start.mp3")
                 end
             
+                AL.NewTimer(CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+                    CTutorial.bCanStart = true
+                end)
+
                 return nil;
             end
 
@@ -308,7 +310,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if iPlayersReady > 1 and not CTutorial.bStarted then
+    if CTutorial.bCanStart and iPlayersReady > 1 and not CTutorial.bStarted then
         if tGame.ArenaMode then
             if not bCountDownStarted then
                 CGameMode.CountDown(5)
@@ -410,6 +412,7 @@ CTutorial.bTrueStarted = false
 CTutorial.bDisableErrorSound = true
 CTutorial.bKillTutorialTimers = false
 CTutorial.bEnded = false
+CTutorial.bCanStart = false
 
 CTutorial.PreStart = function()
     CAudio.ResetSync() -- обрыв звука
@@ -421,7 +424,7 @@ CTutorial.PreStart = function()
         CTutorial.bSkipDelayOn = false
     end)
 
-    AL.NewTimer(13000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("dance/dance_tutorial_part1.mp3")*1000, function()
         if CTutorial.bKillTutorialTimers then return nil; end
         CTutorial.bDisableErrorSound = false
         CTutorial.bPreStarted = true
@@ -466,7 +469,6 @@ CTutorial.Skip = function()
     CAudio.ResetSync() -- обрыв звука
 
     CAudio.PlayVoicesSync("choose-color.mp3")
-    CAudio.PlayVoicesSync("press-button-for-start.mp3")
 
     CTutorial.bDisableErrorSound = false
 
@@ -793,7 +795,7 @@ CGameMode.SpawnPixelForPlayer = function(iPlayerID, iPointX, iBatchID, iPixelTyp
     if string.match(iPixelType, "L") and not tConfig.EasyMode then
         CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
     elseif string.match(iPixelType, "R")  and not tConfig.EasyMode then
-        CGameMode.tPixels[iPixelID].iColor = CColors.YELLOW
+        CGameMode.tPixels[iPixelID].iColor = CColors.GREEN
     elseif string.match(iPixelType, "H") then
         CGameMode.tPixels[iPixelID].iColor = CColors.BLUE
     end

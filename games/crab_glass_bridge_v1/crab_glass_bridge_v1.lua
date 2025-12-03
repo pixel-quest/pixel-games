@@ -114,6 +114,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
     end
 
+    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_gamename.mp3")
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_SETUP
         CGameMode.bCanStart = true
@@ -128,7 +130,7 @@ function StartGame(gameJson, gameConfigJson)
                 
                 if not tConfig.SkipTutorial then
                     CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
-                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000 - 10000, function()
+                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000, function()
                         CGameMode.bCanStart = true
                     end)
                 else
@@ -200,17 +202,7 @@ function GameSetupTick()
     SetAllButtonColorBright(CColors.NONE, CColors.BRIGHT0)
     CPaint.PlayerZones()
 
-    if CGameMode.bCanStart and tGame.StartButtonFloorX then
-        for iX = tGame.StartButtonFloorX, tGame.StartButtonFloorX + 1 do
-            for iY = tGame.StartButtonFloorY, tGame.StartButtonFloorY + 2 do
-                tFloor[iX][iY].iColor = CColors.BLUE
-                tFloor[iX][iY].iBright = tConfig.Bright
-                if tFloor[iX][iY].bClick then bAnyButtonClick = true; end
-            end
-        end
-    end
-
-    if bAnyButtonClick then
+    if CGameMode.bCanStart then
         if not CGameMode.bCountDownStarted then
             CAudio.ResetSync()
             CGameMode.StartCountDown(5)

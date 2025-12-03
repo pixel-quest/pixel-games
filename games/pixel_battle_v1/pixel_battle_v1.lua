@@ -217,7 +217,7 @@ function GameSetupTick()
         end
     end
 
-    if not CGameMode.bCountdownStarted and (iPlayersReady > 0 and CGameMode.bCanStartGame) then
+    if not CGameMode.bCountdownStarted and (iPlayersReady > 1 and CGameMode.bCanStartGame) then
         bAnyButtonClick = false
 
         CGameMode.StartCountDown(5)

@@ -155,6 +155,8 @@ function StartGame(gameJson, gameConfigJson)
 
     CShips.Init()
 
+    CAudio.PlayVoicesSync("pirates/pirates_name.mp3")
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_SETUP
         CGameMode.Announcer()
