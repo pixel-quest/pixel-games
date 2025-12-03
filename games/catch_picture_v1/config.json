@@ -12,6 +12,10 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial",
 
+	"EnablePenalty": true,
+	"EnablePenalty_ru": "Штрафовать за неверный цвет",
+	"EnablePenalty_en": "Wrong pixel penalty",
+
 	"TimeLimit": 120,
 	"TimeLimit_Min": 0,
 	"TimeLimit_Max": 240,
