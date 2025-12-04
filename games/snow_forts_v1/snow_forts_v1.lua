@@ -23,13 +23,14 @@ local tGame = {
 local tConfig = {}
 
 -- стейты или этапы игры
+local GAMESTATE_RULES = 0
 local GAMESTATE_SETUP = 1
 local GAMESTATE_GAME = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_SETUP
+local iGameState = GAMESTATE_RULES
 local iPrevTickTime = 0
 
 local tGameStats = {
@@ -123,11 +124,40 @@ function StartGame(gameJson, gameConfigJson)
         tGame.CenterY = AL.NFZ.iCenterY
     end
 
-    CGameMode.InitGameMode()
-    CGameMode.Announcer()
+    CAudio.PlayVoicesSync("snow-forts/snowforts-name.mp3")
+
+    if tConfig.SkipTutorial or not AL.NewRulesScript then
+        iGameState = GAMESTATE_SETUP
+        CGameMode.InitGameMode()
+        CGameMode.Announcer()
+    else
+        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+        AL.NewTimer(1000, function()
+            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+
+            if tGameStats.StageLeftDuration == 0 then
+                iGameState = GAMESTATE_SETUP
+                CGameMode.InitGameMode()
+                CGameMode.Announcer()
+            
+                return nil;
+            end
+
+            if tGameStats.StageLeftDuration <= 5 then
+                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+            end
+
+            return 1000;
+        end)
+    end
+
 end
 
 function NextTick()
+    if iGameState == GAMESTATE_RULES then
+        RulesTick()
+    end
+
     if iGameState == GAMESTATE_SETUP then
         GameSetupTick()
     end
@@ -152,6 +182,22 @@ function NextTick()
 
     AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
+end
+
+function RulesTick()
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    local tNewFloor, bSkip = AL.Rules.FillFloor(tFloor)
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tNewFloor[iX] and tNewFloor[iX][iY] then
+                tFloor[iX][iY].iColor = tNewFloor[iX][iY]
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+    end
+
+    tConfig.SkipTutorial = bSkip
 end
 
 function GameSetupTick()
