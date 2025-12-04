@@ -165,6 +165,23 @@ local function ResetGame()
     tStats.StageLeftDuration = 0
 end
 
+function DrawScene()
+    ResetFloor()
+
+    for _, pipe in ipairs(tPipes) do
+        DrawPipe(pipe)
+    end
+
+    DrawBird()
+    DrawFlapZone()
+
+    if iGameState == GAMESTATE_SETUP then
+        for y = 1, tGame.Rows do
+            DrawPixel(tBird.x, y, CColors.CYAN)
+        end
+    end
+end
+
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
     tConfig = CJson.decode(gameConfigJson)
@@ -257,23 +274,6 @@ local function CheckCollision()
     end
 
     return false
-end
-
-local function DrawScene()
-    ResetFloor()
-
-    for _, pipe in ipairs(tPipes) do
-        DrawPipe(pipe)
-    end
-
-    DrawBird()
-    DrawFlapZone()
-
-    if iGameState == GAMESTATE_SETUP then
-        for y = 1, tGame.Rows do
-            DrawPixel(tBird.x, y, CColors.CYAN)
-        end
-    end
 end
 
 function NextTick()
