@@ -12,6 +12,7 @@ local GAMESTATE_SETUP = 1
 local GAMESTATE_PLAY = 2
 local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
+local GAMESTATE_READY = 5
 
 local tGame = {
     Cols = 24,
@@ -58,6 +59,9 @@ local iPrevTickTime = 0
 local iGameState = GAMESTATE_SETUP
 local fPipeSpawnTimer = 0
 local fPipeStepAccum = 0
+local fFinishBlinkTime = 0
+local fFinishBlinkAccum = 0
+local bFinishStripeOn = true
 local UpdatePhysics
 local CheckCollision
 
@@ -99,14 +103,11 @@ local function ResetButtons()
 end
 
 local function SetupFlapZone()
-    local iStartX = math.max(1, math.floor(tGame.Cols / 2))
-    local iEndX = math.min(iStartX + 1, tGame.Cols)
-    if iEndX - iStartX < 1 then
-        iStartX = math.max(1, iStartX - 1)
-    end
+    local iStartX = 1
+    local iEndX = math.min(2, tGame.Cols)
 
-    local iStartY = math.max(1, tGame.Rows - 1)
-    local iEndY = tGame.Rows
+    local iEndY = math.max(1, tGame.Rows - 2)
+    local iStartY = math.max(1, iEndY - 1)
 
     tFlapZone = {
         x1 = iStartX,
@@ -150,6 +151,22 @@ local function DrawFlapZone()
     end
 end
 
+local function DrawFinishStripe(bVisible)
+    if not bVisible then return end
+
+    local iWidth = math.min(3, tGame.Cols)
+    local iStartX = math.max(1, math.floor((tGame.Cols - iWidth) / 2) + 1)
+    local iEndX = math.min(tGame.Cols, iStartX + iWidth - 1)
+
+    for iX = iStartX, iEndX do
+        for iY = 1, tGame.Rows do
+            local bLight = ((iX + iY) % 2 == 0)
+            local iColor = bLight and CColors.WHITE or CColors.BLACK
+            DrawPixel(iX, iY, iColor)
+        end
+    end
+end
+
 local function SpawnPipe()
     local iGapCenter = math.random(4, tGame.Rows - 3)
     table.insert(tPipes, { x = tGame.Cols + 2, gapY = iGapCenter, scored = false })
@@ -161,6 +178,9 @@ local function ResetGame()
     tPipes = {}
     fPipeSpawnTimer = 0
     fPipeStepAccum = 0
+    fFinishBlinkTime = 0
+    fFinishBlinkAccum = 0
+    bFinishStripeOn = true
     tStats.Players[1].Score = 0
     tGameResults.Score = 0
     tStats.StageTotalDuration = 0
@@ -174,6 +194,8 @@ function DrawScene()
         DrawPipe(pipe)
     end
 
+    local bStripe = (iGameState == GAMESTATE_SETUP) or (iGameState == GAMESTATE_READY and bFinishStripeOn)
+    DrawFinishStripe(bStripe)
     DrawBird()
     DrawFlapZone()
 end
@@ -193,6 +215,27 @@ function StartGame(gameJson, gameConfigJson)
 end
 
 function GameSetupTick()
+    DrawScene()
+end
+
+local function GameReadyTick(fDelta)
+    fFinishBlinkTime = fFinishBlinkTime + fDelta
+    fFinishBlinkAccum = fFinishBlinkAccum + fDelta
+
+    local fProgress = math.min(fFinishBlinkTime / 3, 1)
+    local fPeriod = math.max(0.1, 0.6 - 0.4 * fProgress)
+    if fFinishBlinkAccum >= fPeriod then
+        fFinishBlinkAccum = fFinishBlinkAccum - fPeriod
+        bFinishStripeOn = not bFinishStripeOn
+    end
+
+    if fFinishBlinkTime >= 3 then
+        bFinishStripeOn = false
+        iGameState = GAMESTATE_PLAY
+        tBird.vy = -tConfig.FlapImpulse
+        return
+    end
+
     DrawScene()
 end
 
@@ -286,6 +329,11 @@ function NextTick()
         return
     end
 
+    if iGameState == GAMESTATE_READY then
+        GameReadyTick(fDelta)
+        return
+    end
+
     if iGameState == GAMESTATE_PLAY then
         GameTick(fDelta)
         return
@@ -330,8 +378,14 @@ function PixelClick(tClick)
     end
 
     if iGameState == GAMESTATE_SETUP then
-        iGameState = GAMESTATE_PLAY
-        tBird.vy = -tConfig.FlapImpulse
+        iGameState = GAMESTATE_READY
+        fFinishBlinkTime = 0
+        fFinishBlinkAccum = 0
+        bFinishStripeOn = true
+        return
+    end
+
+    if iGameState == GAMESTATE_READY then
         return
     end
 
