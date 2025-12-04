@@ -56,6 +56,7 @@ local bGamePaused = false
 local iPrevTickTime = 0
 local iGameState = GAMESTATE_SETUP
 local fPipeSpawnTimer = 0
+local fPipeStepAccum = 0
 
 local tBird = {
     x = 6,
@@ -130,6 +131,7 @@ local function ResetGame()
     tBird.vy = 0
     tPipes = {}
     fPipeSpawnTimer = 0
+    fPipeStepAccum = 0
     tStats.Players[1].Score = 0
     tGameResults.Score = 0
     tStats.StageTotalDuration = 0
@@ -176,10 +178,15 @@ local function UpdatePhysics(fDelta)
     tBird.vy = tBird.vy + tConfig.Gravity * fDelta
     tBird.y = tBird.y + tBird.vy * fDelta
 
-    for i = #tPipes, 1, -1 do
-        tPipes[i].x = tPipes[i].x - tConfig.PipeSpeed * fDelta
-        if tPipes[i].x < -2 then
-            table.remove(tPipes, i)
+    fPipeStepAccum = fPipeStepAccum + (tConfig.PipeSpeed * fDelta)
+    local iShift = math.floor(fPipeStepAccum)
+    if iShift > 0 then
+        fPipeStepAccum = fPipeStepAccum - iShift
+        for i = #tPipes, 1, -1 do
+            tPipes[i].x = tPipes[i].x - iShift
+            if tPipes[i].x < -2 then
+                table.remove(tPipes, i)
+            end
         end
     end
 
