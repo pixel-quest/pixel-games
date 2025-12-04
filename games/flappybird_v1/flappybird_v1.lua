@@ -51,6 +51,7 @@ local tGameResults = {
 }
 
 local tFloor = {}
+local tButtons = {}
 local bGamePaused = false
 local iPrevTickTime = 0
 local iGameState = GAMESTATE_SETUP
@@ -64,12 +65,32 @@ local tBird = {
 
 local tPipes = {}
 
+local tFloorStruct = { iColor = CColors.NONE, iBright = CColors.BRIGHT0, bClick = false, bDefect = false, iWeight = 0 }
+local tButtonStruct = { iColor = CColors.NONE, iBright = CColors.BRIGHT0, bClick = false, bDefect = false }
+
 local function ResetFloor()
     for iX = 1, tGame.Cols do
         tFloor[iX] = {}
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY] = { iColor = CColors.NONE, iBright = CColors.BRIGHT0 }
+            tFloor[iX][iY] = {
+                iColor = tFloorStruct.iColor,
+                iBright = tFloorStruct.iBright,
+                bClick = false,
+                bDefect = false,
+                iWeight = 0,
+            }
         end
+    end
+end
+
+local function ResetButtons()
+    for _, iId in pairs(tGame.Buttons) do
+        tButtons[iId] = {
+            iColor = tButtonStruct.iColor,
+            iBright = tButtonStruct.iBright,
+            bClick = false,
+            bDefect = false,
+        }
     end
 end
 
@@ -120,11 +141,29 @@ function StartGame(gameJson, gameConfigJson)
     tConfig = CJson.decode(gameConfigJson)
 
     ResetFloor()
+    ResetButtons()
     ResetGame()
 
     iPrevTickTime = CTime.unix()
     iGameState = GAMESTATE_SETUP
 
+end
+
+function GameSetupTick()
+    DrawScene()
+end
+
+function GameTick(fDelta)
+    tStats.StageTotalDuration = tStats.StageTotalDuration + fDelta
+    UpdatePhysics(fDelta)
+    if CheckCollision() then
+        FinishGame()
+    end
+    DrawScene()
+end
+
+function PostGameTick()
+    DrawScene()
 end
 
 local function FinishGame()
@@ -203,24 +242,17 @@ function NextTick()
     end
 
     if iGameState == GAMESTATE_SETUP then
-        DrawScene()
+        GameSetupTick()
         return
     end
 
     if iGameState == GAMESTATE_PLAY then
-        tStats.StageTotalDuration = tStats.StageTotalDuration + fDelta
-        UpdatePhysics(fDelta)
-        if CheckCollision() then
-            FinishGame()
-            DrawScene()
-            return
-        end
-        DrawScene()
+        GameTick(fDelta)
         return
     end
 
     if iGameState == GAMESTATE_POSTGAME then
-        DrawScene()
+        PostGameTick()
         if not tGameResults.AfterDelay then
             tGameResults.AfterDelay = true
             return tGameResults
@@ -240,6 +272,10 @@ function RangeFloor(setPixel, setButton)
             setPixel(iX, iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
         end
     end
+
+    for i, tButton in pairs(tButtons) do
+        setButton(i, tButton.iColor, tButton.iBright)
+    end
 end
 
 function GetStats()
@@ -258,6 +294,36 @@ function PixelClick(tClick)
     if iGameState == GAMESTATE_PLAY then
         tBird.vy = -tConfig.FlapImpulse
         CAudio.PlaySystemAsync(CAudio.CLICK)
+    end
+end
+
+function DefectPixel(defect)
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+        if defect.Defect then
+            tFloor[defect.X][defect.Y].iColor = CColors.NONE
+            tFloor[defect.X][defect.Y].iBright = CColors.BRIGHT0
+        end
+    end
+end
+
+function ButtonClick(click)
+    if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
+
+    tButtons[click.Button].bClick = click.Click
+
+    if click.Click then
+        PixelClick({ X = tBird.x, Y = math.floor(tBird.y + 0.5), Click = true })
+    end
+end
+
+function DefectButton(defect)
+    if tButtons[defect.Button] == nil then return end
+    tButtons[defect.Button].bDefect = defect.Defect
+
+    if defect.Defect then
+        tButtons[defect.Button].iColor = CColors.NONE
+        tButtons[defect.Button].iBright = CColors.BRIGHT0
     end
 end
 
