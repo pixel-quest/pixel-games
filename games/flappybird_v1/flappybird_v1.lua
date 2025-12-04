@@ -52,6 +52,7 @@ local tGameResults = {
 
 local tFloor = {}
 local tButtons = {}
+local tFlapZone = { x1 = 1, x2 = 2, y1 = 1, y2 = 2 }
 local bGamePaused = false
 local iPrevTickTime = 0
 local iGameState = GAMESTATE_SETUP
@@ -95,6 +96,24 @@ local function ResetButtons()
     end
 end
 
+local function SetupFlapZone()
+    local iStartX = math.max(1, math.floor(tGame.Cols / 2))
+    local iEndX = math.min(iStartX + 1, tGame.Cols)
+    if iEndX - iStartX < 1 then
+        iStartX = math.max(1, iStartX - 1)
+    end
+
+    local iStartY = math.max(1, tGame.Rows - 1)
+    local iEndY = tGame.Rows
+
+    tFlapZone = {
+        x1 = iStartX,
+        x2 = iEndX,
+        y1 = iStartY,
+        y2 = iEndY,
+    }
+end
+
 local function DrawPixel(iX, iY, iColor)
     if tFloor[iX] and tFloor[iX][iY] then
         tFloor[iX][iY].iColor = iColor
@@ -121,6 +140,14 @@ local function DrawBird()
     end
 end
 
+local function DrawFlapZone()
+    for iX = tFlapZone.x1, tFlapZone.x2 do
+        for iY = tFlapZone.y1, tFlapZone.y2 do
+            DrawPixel(iX, iY, CColors.MAGENTA)
+        end
+    end
+end
+
 local function SpawnPipe()
     local iGapCenter = math.random(4, tGame.Rows - 3)
     table.insert(tPipes, { x = tGame.Cols + 2, gapY = iGapCenter, scored = false })
@@ -144,6 +171,7 @@ function StartGame(gameJson, gameConfigJson)
 
     ResetFloor()
     ResetButtons()
+    SetupFlapZone()
     ResetGame()
 
     iPrevTickTime = CTime.unix()
@@ -159,7 +187,8 @@ function GameTick(fDelta)
     tStats.StageTotalDuration = tStats.StageTotalDuration + fDelta
     UpdatePhysics(fDelta)
     if CheckCollision() then
-        FinishGame()
+        ResetGame()
+        iGameState = GAMESTATE_SETUP
     end
     DrawScene()
 end
@@ -177,6 +206,13 @@ end
 local function UpdatePhysics(fDelta)
     tBird.vy = tBird.vy + tConfig.Gravity * fDelta
     tBird.y = tBird.y + tBird.vy * fDelta
+
+    if tBird.y < 1 then
+        tBird.y = 1
+        if tBird.vy < 0 then
+            tBird.vy = 0
+        end
+    end
 
     fPipeStepAccum = fPipeStepAccum + (tConfig.PipeSpeed * fDelta)
     local iShift = math.floor(fPipeStepAccum)
@@ -199,7 +235,7 @@ end
 
 local function CheckCollision()
     local iY = math.floor(tBird.y + 0.5)
-    if iY < 1 or iY > tGame.Rows then
+    if iY > tGame.Rows then
         return true
     end
 
@@ -231,6 +267,7 @@ local function DrawScene()
     end
 
     DrawBird()
+    DrawFlapZone()
 
     if iGameState == GAMESTATE_SETUP then
         for y = 1, tGame.Rows do
@@ -292,6 +329,10 @@ end
 function PixelClick(tClick)
     if not tClick.Click or bGamePaused then return end
 
+    if tClick.X < tFlapZone.x1 or tClick.X > tFlapZone.x2 or tClick.Y < tFlapZone.y1 or tClick.Y > tFlapZone.y2 then
+        return
+    end
+
     if iGameState == GAMESTATE_SETUP then
         iGameState = GAMESTATE_PLAY
         tBird.vy = -tConfig.FlapImpulse
@@ -320,7 +361,7 @@ function ButtonClick(click)
     tButtons[click.Button].bClick = click.Click
 
     if click.Click then
-        PixelClick({ X = tBird.x, Y = math.floor(tBird.y + 0.5), Click = true })
+        PixelClick({ X = tFlapZone.x1, Y = tFlapZone.y1, Click = true })
     end
 end
 
