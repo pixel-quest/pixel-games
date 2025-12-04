@@ -58,6 +58,8 @@ local iPrevTickTime = 0
 local iGameState = GAMESTATE_SETUP
 local fPipeSpawnTimer = 0
 local fPipeStepAccum = 0
+local UpdatePhysics
+local CheckCollision
 
 local tBird = {
     x = 6,
@@ -174,12 +176,6 @@ function DrawScene()
 
     DrawBird()
     DrawFlapZone()
-
-    if iGameState == GAMESTATE_SETUP then
-        for y = 1, tGame.Rows do
-            DrawPixel(tBird.x, y, CColors.CYAN)
-        end
-    end
 end
 
 function StartGame(gameJson, gameConfigJson)
@@ -220,7 +216,7 @@ local function FinishGame()
     tGameResults.Won = false
 end
 
-local function UpdatePhysics(fDelta)
+function UpdatePhysics(fDelta)
     tBird.vy = tBird.vy + tConfig.Gravity * fDelta
     tBird.y = tBird.y + tBird.vy * fDelta
 
@@ -250,7 +246,7 @@ local function UpdatePhysics(fDelta)
     end
 end
 
-local function CheckCollision()
+function CheckCollision()
     local iY = math.floor(tBird.y + 0.5)
     if iY > tGame.Rows then
         return true
