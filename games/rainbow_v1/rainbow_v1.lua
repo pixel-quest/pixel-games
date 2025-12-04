@@ -206,6 +206,10 @@ function NextTick()
                 if GameConfigObj.VideoLoop then
                     VideoPlay(GameConfigObj.Video)
                 end
+
+                if GameConfigObj.AudioLoop then
+                    audio.PlayVoicesSyncFromScratch(GameConfigObj.Sound)
+                end
             end
         end
     end
