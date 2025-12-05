@@ -200,6 +200,7 @@ AL.Rules = {}
 AL.Rules.iCountDownTime = 15
 AL.Rules.bVideoOn = false 
 AL.Rules.bSoundOn = false
+AL.Rules.videoSkipDuration = 9.5
 
 AL.Rules.FillFloor = function(tFloor)
     local tReturnFloor = {}
@@ -209,7 +210,7 @@ AL.Rules.FillFloor = function(tFloor)
         CVideos.Play("tutorial/skip.mp4")
         AL.Rules.bVideoOn = true
 
-        AL.NewTimer(AL.Rules.iCountDownTime*1000, function()
+        AL.NewTimer(AL.Rules.videoSkipDuration*1000, function()
             CVideos.Stop()
         end)
     end
