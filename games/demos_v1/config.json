@@ -26,6 +26,9 @@
 	"VideoLoop": false,
 	"VideoLoop_Hidden": true,
 
+	"AudioLoop": false,
+	"AudioLoop_Hidden": true,
+
 	"GameDuration": 0,
 	"GameDuration_Hidden": true  	
 }

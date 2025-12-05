@@ -173,6 +173,9 @@ function VideoPlay(name)
             if tConfig.VideoLoop then
                 VideoPlay(tConfig.Video)
             end
+            if tConfig.Sound and tConfig.Sound ~= "" and tConfig.AudioLoop then
+                CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
+            end
         end)
     end
 end
