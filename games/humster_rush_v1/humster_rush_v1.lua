@@ -144,13 +144,11 @@ function NextTick()
 end
 
 function AutoStartTimer()
-    if GameObj.AutoStartTimer and GameObj.AutoStartTimer > 0 then
-        AL.NewTimer(audio.GetVoicesDuration("hamster/hamster-guide.mp3")*1000, function()
-            if gameState.State < 1 then
-                PlayerStartGame()
-            end
-        end)
-    end
+    AL.NewTimer(audio.GetVoicesDuration("hamster/hamster-guide.mp3")*1000, function()
+        if gameState.State < 1 then
+            PlayerStartGame()
+        end
+    end)
 end
 
 function PlayerStartGame()
