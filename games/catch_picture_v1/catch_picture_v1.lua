@@ -352,7 +352,7 @@ CCoins.CoinCollected = function(bTrueColor, iCoinColor)
             CAudio.PlaySystemAsync(CAudio.CLICK)
         end
     else
-        if CPicture.iPixelsPainted > 0 then
+        if tConfig.EnablePenalty and CPicture.iPixelsPainted > 0 then
             CPicture.iPixelsPainted = CPicture.iPixelsPainted - 1
             tGameStats.Players[1].Score = CPicture.iPixelsPainted
             
