@@ -356,13 +356,19 @@ end
 
 function RangeFloor(setPixel, setButton)
     for iX = 1, tGame.Cols do
+        local tRow = tFloor[iX] or {}
         for iY = 1, tGame.Rows do
-            setPixel(iX, iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            local tCell = tRow[iY] or tFloorStruct
+            local iColor = tCell.iColor or CColors.NONE
+            local iBright = tCell.iBright or CColors.BRIGHT0
+            setPixel(iX, iY, iColor, iBright)
         end
     end
 
     for i, tButton in pairs(tButtons) do
-        setButton(i, tButton.iColor, tButton.iBright)
+        local iColor = tButton.iColor or CColors.NONE
+        local iBright = tButton.iBright or CColors.BRIGHT0
+        setButton(i, iColor, iBright)
     end
 end
 
