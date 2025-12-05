@@ -213,7 +213,7 @@ end
 
 function VideoSelectBranch()
     local iMax = -1
-    local iShift = -1
+    local iShift = tConfig.ColorOptions[1].shift
 
     for iOptionID = 1, #tConfig.ColorOptions do
         if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > iMax then
