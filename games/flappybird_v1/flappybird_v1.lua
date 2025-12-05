@@ -167,9 +167,10 @@ local function DrawFinishStripe(bVisible)
     end
 end
 
-local function SpawnPipe()
+local function SpawnPipe(iX)
     local iGapCenter = math.random(4, tGame.Rows - 3)
-    table.insert(tPipes, { x = tGame.Cols + 2, gapY = iGapCenter, scored = false })
+    local iSpawnX = iX or (tGame.Cols + 2)
+    table.insert(tPipes, { x = iSpawnX, gapY = iGapCenter, scored = false })
 end
 
 local function ResetGame()
@@ -181,6 +182,8 @@ local function ResetGame()
     fFinishBlinkTime = 0
     fFinishBlinkAccum = 0
     bFinishStripeOn = true
+    local iInitialPipeX = math.max(1, tGame.Cols - 2)
+    SpawnPipe(iInitialPipeX)
     tStats.Players[1].Score = 0
     tGameResults.Score = 0
     tStats.StageTotalDuration = 0
