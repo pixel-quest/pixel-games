@@ -727,6 +727,51 @@ CPaint.tDemoList["rainbowdemo"][CPaint.FUNC_CLICK] = function(iX, iY)
 end
 --//
 
+--RAINBOW
+CPaint.tDemoList["rainbow"] = {}
+CPaint.tDemoList["rainbow"].THINK_DELAY = 100
+CPaint.tDemoList["rainbow"].COLOR = "0xffffff"
+CPaint.tDemoList["rainbow"].COLORS = {CColors.WHITE, CColors.CYAN, CColors.BLUE, CColors.MAGENTA, CColors.RED, CColors.YELLOW, CColors.GREEN}
+CPaint.tDemoList["rainbow"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["rainbow"].tVars = {}
+
+    CPaint.tDemoList["rainbow"].tVars.tColors = {}
+    for iColorID = 1, #CPaint.tDemoList["rainbow"].COLORS do
+        for iBright = CColors.BRIGHT30, CColors.BRIGHT100 do
+            table.insert(CPaint.tDemoList["rainbow"].tVars.tColors, {iColor = CPaint.tDemoList["rainbow"].COLORS[iColorID], iBright = iBright})
+        end
+        for iBright = CColors.BRIGHT100, CColors.BRIGHT30, -1 do
+            table.insert(CPaint.tDemoList["rainbow"].tVars.tColors, {iColor = CPaint.tDemoList["rainbow"].COLORS[iColorID], iBright = iBright})
+        end
+    end
+
+    CPaint.tDemoList["rainbow"].tVars.iColorOffset = 0
+end
+CPaint.tDemoList["rainbow"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            local id = tonumber((iX+iY+CPaint.tDemoList["rainbow"].tVars.iColorOffset) % #CPaint.tDemoList["rainbow"].tVars.tColors + 1)
+            tFloor[iX][iY].iColor = CPaint.tDemoList["rainbow"].tVars.tColors[id].iColor
+            tFloor[iX][iY].iBright = CPaint.tDemoList["rainbow"].tVars.tColors[id].iBright
+        end
+    end
+
+    for iButtonID, tButton in pairs(tButtons) do
+        local id = tonumber((iButtonID+CPaint.tDemoList["rainbow"].tVars.iColorOffset) % #CPaint.tDemoList["rainbow"].tVars.tColors + 1)
+        tButtons[iButtonID].iColor = CPaint.tDemoList["rainbow"].tVars.tColors[id].iColor
+        tButtons[iButtonID].iBright = CPaint.tDemoList["rainbow"].tVars.tColors[id].iBright
+    end
+end
+CPaint.tDemoList["rainbow"][CPaint.FUNC_THINK] = function()
+    CPaint.tDemoList["rainbow"].tVars.iColorOffset = CPaint.tDemoList["rainbow"].tVars.iColorOffset + 1
+
+    return true
+end
+CPaint.tDemoList["rainbow"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
+
 ----//
 
 --UTIL прочие утилиты
