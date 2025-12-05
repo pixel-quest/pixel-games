@@ -131,6 +131,12 @@ function NextTick()
         return tGameResults
     end     
 
+    if tGameResults.selected_branch ~= nil then
+        tGameResults.Won = true
+        tGameResults.AfterDelay = false
+        return tGameResults
+    end
+
     AL.CountTimers((CTime.unix() - iPrevTickTime) * 1000)
     iPrevTickTime = CTime.unix()
 end
@@ -176,8 +182,47 @@ function VideoPlay(name)
             if tConfig.Sound and tConfig.Sound ~= "" and tConfig.AudioLoop then
                 CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
             end
+
+            if tGame.ColorOptions ~= nil then
+                CPaint.UnloadDemo(function()
+                    --CAudio.PlayVoicesSyncFromScratch("choose-color.mp3")
+                    CPaint.LoadDemo("_choice")
+
+                    local iTime = 10
+
+                    AL.NewTimer(1000, function()
+                        iTime = iTime -1
+                        tGameStats.StageLeftDuration = iTime
+
+                        if iTime == 0 then
+                            VideoSelectBranch()
+                        else
+                            if iTime <= 5 then
+                                CAudio.ResetSync()
+                                CAudio.PlayLeftAudio(iTime)
+                            end
+
+                            return 1000
+                        end
+                    end)
+                end)
+            end
         end)
     end
+end
+
+function VideoSelectBranch()
+    local iMax = -1
+    local iShift = -1
+
+    for iOptionID = 1, #tGame.ColorOptions do
+        if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > iMax then
+            iMax = CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID]
+            iShift = tGame.ColorOptions[iOptionID].shift
+        end
+    end
+
+    tGameResults.selected_branch = iShift
 end
 
 --PAINT
@@ -231,6 +276,45 @@ end
 
 ----DEMO LIST
 CPaint.tDemoList = {}
+
+--CHOICE
+CPaint.tDemoList["_choice"] = {}
+CPaint.tDemoList["_choice"].THINK_DELAY = 120
+CPaint.tDemoList["_choice"].COLOR = "0xffffff"
+CPaint.tDemoList["_choice"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["_choice"].tVars = {}
+    CPaint.tDemoList["_choice"].tVars.iOptionsCount = (#tGame.ColorOptions or 2)
+    CPaint.tDemoList["_choice"].tVars.tOptionsClicks = {}
+end
+CPaint.tDemoList["_choice"][CPaint.FUNC_PAINT] = function()
+    local iSizeY = tGame.Rows
+    local iSizeX = tGame.Cols/CPaint.tDemoList["_choice"].tVars.iOptionsCount
+
+    local iStartX = 1
+    local iStartY = 1
+
+    for iOptionID = 1, CPaint.tDemoList["_choice"].tVars.iOptionsCount do
+        for iX = iStartX, iStartX+iSizeX-1 do
+            for iY = iStartY, iStartY+iSizeY-1 do
+                tFloor[iX][iY].iColor = tonumber(tGame.ColorOptions[iOptionID].color)
+                tFloor[iX][iY].iBright = tConfig.Bright
+
+                if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                    CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] = (CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] or 0) + 1
+                end
+            end
+        end
+        iStartX = iStartX + iSizeX
+    end
+end
+CPaint.tDemoList["_choice"][CPaint.FUNC_THINK] = function()
+
+    return true
+end
+CPaint.tDemoList["_choice"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
 
 --MATRIX
 CPaint.tDemoList["matrix"] = {}
