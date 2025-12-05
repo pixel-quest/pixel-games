@@ -93,7 +93,32 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     iPrevTickTime = CTime.unix()
-    CPaint.LoadDemo(tConfig.DemoName)
+
+    if tConfig.ColorOptions ~= nil then
+        --CAudio.PlayVoicesSyncFromScratch("choose-color.mp3")
+        CPaint.LoadDemo("_choice")
+
+        local iTime = 10
+
+        AL.NewTimer(1000, function()
+            iTime = iTime -1
+            tGameStats.StageLeftDuration = iTime
+
+            if iTime == 0 then
+                VideoSelectBranch()
+            else
+                if iTime <= 5 then
+                    CAudio.ResetSync()
+                    CAudio.PlayLeftAudio(iTime)
+                end
+
+                return 1000
+            end
+        end)
+    else
+        CPaint.LoadDemo(tConfig.DemoName)
+    end
+    
     CPaint.DemoThinker()
 
     if tConfig.Video ~= "" then
@@ -182,31 +207,6 @@ function VideoPlay(name)
             if tConfig.Sound and tConfig.Sound ~= "" and tConfig.AudioLoop then
                 CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
             end
-
-            if tGame.ColorOptions ~= nil then
-                CPaint.UnloadDemo(function()
-                    --CAudio.PlayVoicesSyncFromScratch("choose-color.mp3")
-                    CPaint.LoadDemo("_choice")
-
-                    local iTime = 10
-
-                    AL.NewTimer(1000, function()
-                        iTime = iTime -1
-                        tGameStats.StageLeftDuration = iTime
-
-                        if iTime == 0 then
-                            VideoSelectBranch()
-                        else
-                            if iTime <= 5 then
-                                CAudio.ResetSync()
-                                CAudio.PlayLeftAudio(iTime)
-                            end
-
-                            return 1000
-                        end
-                    end)
-                end)
-            end
         end)
     end
 end
@@ -215,10 +215,10 @@ function VideoSelectBranch()
     local iMax = -1
     local iShift = -1
 
-    for iOptionID = 1, #tGame.ColorOptions do
+    for iOptionID = 1, #tConfig.ColorOptions do
         if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > iMax then
             iMax = CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID]
-            iShift = tGame.ColorOptions[iOptionID].shift
+            iShift = tConfig.ColorOptions[iOptionID].shift
         end
     end
 
@@ -283,7 +283,7 @@ CPaint.tDemoList["_choice"].THINK_DELAY = 120
 CPaint.tDemoList["_choice"].COLOR = "0xffffff"
 CPaint.tDemoList["_choice"][CPaint.FUNC_LOAD] = function()
     CPaint.tDemoList["_choice"].tVars = {}
-    CPaint.tDemoList["_choice"].tVars.iOptionsCount = (#tGame.ColorOptions or 2)
+    CPaint.tDemoList["_choice"].tVars.iOptionsCount = (#tConfig.ColorOptions or 2)
     CPaint.tDemoList["_choice"].tVars.tOptionsClicks = {}
 end
 CPaint.tDemoList["_choice"][CPaint.FUNC_PAINT] = function()
@@ -296,7 +296,7 @@ CPaint.tDemoList["_choice"][CPaint.FUNC_PAINT] = function()
     for iOptionID = 1, CPaint.tDemoList["_choice"].tVars.iOptionsCount do
         for iX = iStartX, iStartX+iSizeX-1 do
             for iY = iStartY, iStartY+iSizeY-1 do
-                tFloor[iX][iY].iColor = tonumber(tGame.ColorOptions[iOptionID].color)
+                tFloor[iX][iY].iColor = tonumber(tConfig.ColorOptions[iOptionID].color)
                 tFloor[iX][iY].iBright = tConfig.Bright
 
                 if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
