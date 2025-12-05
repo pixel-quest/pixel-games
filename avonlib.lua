@@ -208,6 +208,10 @@ AL.Rules.FillFloor = function(tFloor)
     if not AL.Rules.bVideoOn then
         CVideos.Play("tutorial/skip.mp4")
         AL.Rules.bVideoOn = true
+
+        AL.NewTimer(AL.Rules.iCountDownTime*1000, function()
+            CVideos.Stop()
+        end)
     end
 
     if not AL.Rules.bSoundOn then
