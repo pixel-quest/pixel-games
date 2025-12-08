@@ -43,7 +43,7 @@ local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_RULES
+local iGameState = -1
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 
@@ -116,35 +116,42 @@ function StartGame(gameJson, gameConfigJson)
 
     CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_gamename.mp3")
 
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
-        iGameState = GAMESTATE_SETUP
-        CGameMode.bCanStart = true
+        AL.NewTimer(CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_gamename.mp3")*1000, function()
+            iGameState = GAMESTATE_SETUP
+            CGameMode.bCanStart = true
+        end)
     else
-        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
-        AL.NewTimer(1000, function()
-            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        AL.NewTimer(CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_gamename.mp3")*1000, function()
+            iGameState = GAMESTATE_RULES
+            tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+            AL.NewTimer(1000, function()
+                tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-            if tGameStats.StageLeftDuration == 0 then
+                if tGameStats.StageLeftDuration == 0 then
 
-                iGameState = GAMESTATE_SETUP
-                
-                if not tConfig.SkipTutorial then
-                    CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
-                    AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000, function()
+                    iGameState = GAMESTATE_SETUP
+                    
+                    if not tConfig.SkipTutorial then
+                        CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_guide.mp3")
+                        AL.NewTimer((CAudio.GetVoicesDuration("glassbridge/glassbridge_voice_guide.mp3"))*1000, function()
+                            CGameMode.bCanStart = true
+                        end)
+                    else
                         CGameMode.bCanStart = true
-                    end)
-                else
-                    CGameMode.bCanStart = true
+                    end
+                
+                    return nil;
                 end
-            
-                return nil;
-            end
 
-            if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
-            end
+                if tGameStats.StageLeftDuration <= 5 then
+                    CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+                end
 
-            return 1000;
+                return 1000;
+            end)
         end)
     end
 end
