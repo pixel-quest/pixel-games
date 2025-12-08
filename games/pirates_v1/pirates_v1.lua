@@ -32,7 +32,7 @@ local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_RULES
+local iGameState = -1
 local iPrevTickTime = 0
 
 local bAnyButtonClick = false
@@ -157,26 +157,31 @@ function StartGame(gameJson, gameConfigJson)
 
     CAudio.PlayVoicesSync("pirates/pirates_name.mp3")
 
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_SETUP
         CGameMode.Announcer()
     else
-        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
-        AL.NewTimer(1000, function()
-            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        AL.NewTimer(CAudio.GetVoicesDuration("pirates/pirates_name.mp3")*1000, function()
+            iGameState = GAMESTATE_RULES
+            tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+            AL.NewTimer(1000, function()
+                tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-            if tGameStats.StageLeftDuration == 0 then
-                iGameState = GAMESTATE_SETUP
-                CGameMode.Announcer()
-            
-                return nil;
-            end
+                if tGameStats.StageLeftDuration == 0 then
+                    iGameState = GAMESTATE_SETUP
+                    CGameMode.Announcer()
+                
+                    return nil;
+                end
 
-            if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
-            end
+                if tGameStats.StageLeftDuration <= 5 then
+                    CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+                end
 
-            return 1000;
+                return 1000;
+            end)
         end)
     end
 end
