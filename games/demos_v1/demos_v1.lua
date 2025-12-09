@@ -212,13 +212,22 @@ function VideoPlay(name)
 end
 
 function VideoSelectBranch()
-    local iMax = -1
     local iShift = tConfig.ColorOptions[1].shift
+    --[[
+    local iMax = -1
 
     for iOptionID = 1, #tConfig.ColorOptions do
         if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > iMax then
             iMax = CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID]
             iShift = tConfig.ColorOptions[iOptionID].shift
+        end
+    end
+    ]]
+
+    for iOptionID = 1, #tConfig.ColorOptions do
+        if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > 0 then
+            iShift = tConfig.ColorOptions[iOptionID].shift
+            break;
         end
     end
 
