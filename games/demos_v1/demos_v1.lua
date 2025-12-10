@@ -212,8 +212,9 @@ function VideoPlay(name)
 end
 
 function VideoSelectBranch()
-    local iMax = -1
     local iShift = tConfig.ColorOptions[1].shift
+    --[[
+    local iMax = -1
 
     for iOptionID = 1, #tConfig.ColorOptions do
         if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > iMax then
@@ -221,7 +222,16 @@ function VideoSelectBranch()
             iShift = tConfig.ColorOptions[iOptionID].shift
         end
     end
+    ]]
 
+    for iOptionID = 1, #tConfig.ColorOptions do
+        if CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] and CPaint.tDemoList["_choice"].tVars.tOptionsClicks[iOptionID] > 0 then
+            iShift = tConfig.ColorOptions[iOptionID].shift
+            break;
+        end
+    end
+
+    CLog.print("Chosen branch: "..iShift)
     tGameResults.selected_branch = iShift
 end
 
@@ -288,10 +298,18 @@ CPaint.tDemoList["_choice"][CPaint.FUNC_LOAD] = function()
 end
 CPaint.tDemoList["_choice"][CPaint.FUNC_PAINT] = function()
     local iSizeY = tGame.Rows
-    local iSizeX = tGame.Cols/CPaint.tDemoList["_choice"].tVars.iOptionsCount
+    local iSizeX = tGame.Cols
+
+    if CPaint.tDemoList["_choice"].tVars.iOptionsCount  <= 2 then
+        iSizeY = math.floor(iSizeY/CPaint.tDemoList["_choice"].tVars.iOptionsCount)
+    else
+        iSizeX = math.floor(iSizeX/CPaint.tDemoList["_choice"].tVars.iOptionsCount)
+    end
 
     local iStartX = 1
     local iStartY = 1
+
+    CPaint.tDemoList["_choice"].tVars.tOptionsClicks = {}
 
     for iOptionID = 1, CPaint.tDemoList["_choice"].tVars.iOptionsCount do
         for iX = iStartX, iStartX+iSizeX-1 do
@@ -304,7 +322,11 @@ CPaint.tDemoList["_choice"][CPaint.FUNC_PAINT] = function()
                 end
             end
         end
-        iStartX = iStartX + iSizeX
+        if CPaint.tDemoList["_choice"].tVars.iOptionsCount  <= 2 then 
+            iStartY = iStartY + iSizeY+1
+        else
+            iStartX = iStartX + iSizeX
+        end
     end
 end
 CPaint.tDemoList["_choice"][CPaint.FUNC_THINK] = function()
