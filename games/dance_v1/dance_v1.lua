@@ -129,7 +129,7 @@ function StartGame(gameJson, gameConfigJson)
 
     CAudio.PlayVoicesSync("dance/dance_game.mp3")
 
-    if tConfig.SkipTutorial or not AL.NewRulesScript then
+    if tConfig.SkipTutorial or not AL.NewRulesScript or tGame.ArenaMode then
         iGameState = GAMESTATE_TUTORIAL
         CAudio.PlayVoicesSync("choose-color.mp3")
         if tGame.ArenaMode then 
@@ -178,6 +178,7 @@ function SetupPlayerPositions()
     end
 
     local iX = 1
+    if tGame.ArenaMode then iX = 2 end
 
     tGame.StartPositions = {}
     for iPlayerID = 1, 6 do
@@ -189,6 +190,7 @@ function SetupPlayerPositions()
         end
 
         iX = iX + tGame.StartPositionSize + 1
+        if tGame.ArenaMode then iX = iX + 1 end
     end
 end
 
@@ -277,33 +279,6 @@ function TutorialTick()
                 end
 
                 CPaint.PlayerZone(iPos, iBright)
-
-                if tPlayerInGame[iPos] and tGame.ArenaMode then
-                    local iCenterX = tPos.X + math.floor(tGame.StartPositionSize/3)
-                    local iCenterY = tPos.Y + math.floor(tGame.StartPositionSize/2)-1
-
-                    local bArenaClick = false
-                    for iX = iCenterX, iCenterX+1 do
-                        for iY = iCenterY, iCenterY+1 do
-                            tFloor[iX][iY].iColor = CColors.MAGENTA
-                            tFloor[iX][iY].iBright = tConfig.Bright
-
-                            if tArenaPlayerReady[iPos] then
-                                tFloor[iX][iY].iBright = tConfig.Bright+2
-                            end
-
-                            if tFloor[iX][iY].bClick then 
-                                bArenaClick = true
-                            end
-                        end
-                    end
-
-                    if bArenaClick then
-                        bAnyButtonClick = true
-                    end
-
-                    tArenaPlayerReady[iPos] = bArenaClick
-                end  
             end
         end
     end
