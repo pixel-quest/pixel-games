@@ -231,7 +231,7 @@ CGameMode.StartGame = function()
     CAudio.PlayVoicesSync(CAudio.START_GAME)
     CAudio.PlayRandomBackground()
 
-    AL.NewTimer(300, function()
+    AL.NewTimer(30, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
     
         CCoins.Tick()
@@ -282,6 +282,7 @@ end
 --COINS
 CCoins = {}
 CCoins.tCoins = AL.Stack()
+CCoins.bSpawn = true
 
 CCoins.Paint = function()
     for iCoinID = 1, CCoins.tCoins.Size() do
@@ -308,12 +309,17 @@ CCoins.Paint = function()
 end
 
 CCoins.Tick = function()
-    for iX = 1, tGame.Cols do
-        if iX < CPicture.iStartX or iX > CPicture.iStartX + CPicture.iSizeX then
-            if math.random(1,6) == 3 then
-                CCoins.NewCoin(iX, -5)
+    if CCoins.bSpawn then
+        CCoins.bSpawn = false
+        for iX = 1, tGame.Cols do
+            if iX < CPicture.iStartX or iX > CPicture.iStartX + CPicture.iSizeX then
+                if math.random(1,5) == 3 then
+                    CCoins.NewCoin(iX, -5)
+                end
             end
         end
+    else
+        CCoins.bSpawn = true
     end
 
     for iCoinID = 1, CCoins.tCoins.Size() do

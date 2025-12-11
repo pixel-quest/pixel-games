@@ -16,9 +16,9 @@
 	"EnablePenalty_ru": "Штрафовать за неверный цвет",
 	"EnablePenalty_en": "Wrong pixel penalty",
 
-	"TimeLimit": 120,
+	"TimeLimit": 150,
 	"TimeLimit_Min": 0,
-	"TimeLimit_Max": 240,
+	"TimeLimit_Max": 300,
 	"TimeLimit_Step": 30,
 	"TimeLimit_ru": "Лимит времени (0 - бесконечно)",
 	"TimeLimit_en": "Time Limit (0 - infinite)",
