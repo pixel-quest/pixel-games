@@ -3,16 +3,22 @@
   "start_lives_Min": 0,
   "start_lives_Max": 100,
   "start_lives_Step": 5,
+  "start_lives_ru": "Начальные жизни",
+  "start_lives_en": "Starting lives",
 
   "frame_duration_coeff": 3,
   "frame_duration_coeff_Min": 1,
   "frame_duration_coeff_Max": 5,
   "frame_duration_coeff_Step": 1,
+  "frame_duration_coeff_ru": "Коэффициент длительности кадра",
+  "frame_duration_coeff_en": "Frame duration coefficient",
 
   "stage_duration_coeff": 2,
   "stage_duration_coeff_Min": 1,
   "stage_duration_coeff_Max": 5,
   "stage_duration_coeff_Step": 1,
+  "stage_duration_coeff_ru": "Коэффициент длительности этапа",
+  "stage_duration_coeff_en": "Stage duration coefficient",
 
   "burn_delay": 300,
   "burn_delay_Hidden": true,

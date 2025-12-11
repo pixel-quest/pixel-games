@@ -3,11 +3,14 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_ru": "Яркость",
+        "Bright_ru": "Яркость",
+        "Bright_en": "Brightness",
 
   	"DemoName": "rainbowwave",
-  	"DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "rainbowdemo", "matrix2"],
-  	"DemoName_ru": "Выбор заставки",
+        "DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "rainbowdemo", "matrix2"],
+        "DemoName_List_ru": "Доступные заставки",
+        "DemoName_List_en": "Available demos",
+        "DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
 
   	"SwitchEffects": false,

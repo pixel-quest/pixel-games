@@ -3,7 +3,8 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_ru": "Яркость",
+        "Bright_ru": "Яркость",
+        "Bright_en": "Brightness",
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 
@@ -19,6 +20,7 @@
 	"RoundCount_ru": "Количество Раундов",
 	"RoundCount_en": "Round Count",
 
-	"LavaAlwaysVisible": false,
-	"LavaAlwaysVisible_ru": "Лаву всегда видно"
+        "LavaAlwaysVisible": false,
+        "LavaAlwaysVisible_ru": "Лаву всегда видно",
+        "LavaAlwaysVisible_en": "Lava always visible"
 }

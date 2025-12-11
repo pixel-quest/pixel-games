@@ -1,3 +1,5 @@
 {
-    "bright": 75
+    "bright": 75,
+    "bright_ru": "Яркость",
+    "bright_en": "Brightness"
 }

@@ -3,7 +3,8 @@
   "Bright_Min": 1,
   "Bright_Max": 7,
   "Bright_Step": 1,
-  "Bright_ru": "Яркость",  
+  "Bright_ru": "Яркость",
+  "Bright_en": "Brightness",
 
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 
@@ -33,8 +34,8 @@
   "PointsToWinRound_Min": 1,
   "PointsToWinRound_Max": 50,
   "PointsToWinRound_Step": 1,
-  "PointsToWin_ru": "Очков для победы",
-  "PointsToWin_en": "Points to win",  
+  "PointsToWinRound_ru": "Очков для победы",
+  "PointsToWinRound_en": "Points to win",
 
   "InitialBallDelayMS": 250,
   "InitialBallDelayMS_Min": 120,

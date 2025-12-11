@@ -3,14 +3,15 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-	"Bright_ru": "Яркость",
+        "Bright_ru": "Яркость",
+        "Bright_en": "Brightness",
 
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
 
-	"Vertical": false,
-	"Vertical_ru": "Вертикальные дороги",
-	"Vertical_ru": "Vertical position",
+        "Vertical": false,
+        "Vertical_ru": "Вертикальные дороги",
+        "Vertical_en": "Vertical position",
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 

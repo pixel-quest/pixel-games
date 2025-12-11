@@ -3,5 +3,6 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-	"Bright_ru": "Яркость"
+        "Bright_ru": "Яркость",
+        "Bright_en": "Brightness"
 }

@@ -4,6 +4,7 @@
   "Bright_Max": 7,
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
+  "Bright_en": "Brightness",
 
   "PointsToWin": 10,
   "PointsToWin_Min": 5,
@@ -21,8 +22,11 @@
   "PlayerCount_Max": 6,
   "PlayerCount_Step": 2,
   "PlayerCount_ru": "Количество игроков",
+  "PlayerCount_en": "Player count",
 
   "MoveAllPixels": false,
+  "MoveAllPixels_ru": "Двигать всех пикселей",
+  "MoveAllPixels_en": "Move all pixels",
   
   "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true

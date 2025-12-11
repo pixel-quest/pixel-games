@@ -4,6 +4,7 @@
   "Bright_Max": 7,
   "Bright_Step": 1,
   "Bright_ru": "Яркость",
+  "Bright_en": "Brightness",
 
   "WinDurationMS": 5000,
   "WinDurationMS_Hidden": true,
@@ -38,6 +39,8 @@
   "EasyMode_en": "Easy Mode (No left/right leg colored pixels)",
 
   "RowColorSwitch": true,
+  "RowColorSwitch_ru": "Смена цвета рядов",
+  "RowColorSwitch_en": "Row color switching",
   "OutOfZoneSound": true,
   "OutOfZoneSound_ru": "Включить звук выхода с зоны",
   "OutOfZoneSound_en": "Enable 'Out Of Zone' warning sound"

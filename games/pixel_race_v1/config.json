@@ -3,7 +3,8 @@
 	"Bright_Min": 1,
 	"Bright_Max": 7,
 	"Bright_Step": 1,
-  	"Bright_Ru": "Яркость",
+        "Bright_ru": "Яркость",
+        "Bright_en": "Brightness",
 
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
@@ -12,10 +13,10 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
-  	"TimeLimit": 60,
-  	"TimeLimit_Min": 30,
-  	"TimeLimit_Max": 300,
-  	"TimeLimit_Step": 10,
-  	"TimeLimit_Ru": "Лимит Времени",
-  	"TimeLimit_En": "Time Limit"
+        "TimeLimit": 60,
+        "TimeLimit_Min": 30,
+        "TimeLimit_Max": 300,
+        "TimeLimit_Step": 10,
+        "TimeLimit_ru": "Лимит Времени",
+        "TimeLimit_en": "Time Limit"
 }
