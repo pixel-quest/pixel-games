@@ -30,7 +30,7 @@ local GAMESTATE_POSTGAME = 4
 local GAMESTATE_FINISH = 5
 
 local bGamePaused = false
-local iGameState = GAMESTATE_RULES
+local iGameState = -1
 local iPrevTickTime = 0
 local bAnyButtonClick = false
 local tPlayerInGame = {}
@@ -129,46 +129,46 @@ function StartGame(gameJson, gameConfigJson)
 
     CAudio.PlayVoicesSync("dance/dance_game.mp3")
 
-    if tConfig.SkipTutorial or not AL.NewRulesScript or tGame.ArenaMode then
-        iGameState = GAMESTATE_TUTORIAL
-        CAudio.PlayVoicesSync("choose-color.mp3")
-        if tGame.ArenaMode then 
-            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+
+    AL.NewTimer(CAudio.GetVoicesDuration("dance/dance_game.mp3")*1000, function()
+        if tConfig.SkipTutorial or not AL.NewRulesScript or tGame.ArenaMode then
+            iGameState = GAMESTATE_TUTORIAL
+            CAudio.PlayVoicesSync("choose-color.mp3")
+
+            AL.NewTimer((CAudio.GetVoicesDuration("dance/dance_game.mp3")+CAudio.GetVoicesDuration("choose-color.mp3"))*1000, function()
+                CTutorial.bCanStart = true
+            end)
         else
-            --CAudio.PlaySync("voices/press-button-for-start.mp3")
-        end
+            iGameState = GAMESTATE_RULES
+            tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+            AL.NewTimer(1000, function()
+                tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-        AL.NewTimer((CAudio.GetVoicesDuration("dance/dance_game.mp3")+CAudio.GetVoicesDuration("choose-color.mp3"))*1000, function()
-            CTutorial.bCanStart = true
-        end)
-    else
-        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
-        AL.NewTimer(1000, function()
-            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+                if tGameStats.StageLeftDuration == 0 then
+                    iGameState = GAMESTATE_TUTORIAL
+                    CAudio.PlayVoicesSync("choose-color.mp3")
+                    if tGame.ArenaMode then 
+                        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
+                    else
+                        --CAudio.PlaySync("voices/press-button-for-start.mp3")
+                    end
+                
+                    AL.NewTimer(CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
+                        CTutorial.bCanStart = true
+                    end)
 
-            if tGameStats.StageLeftDuration == 0 then
-                iGameState = GAMESTATE_TUTORIAL
-                CAudio.PlayVoicesSync("choose-color.mp3")
-                if tGame.ArenaMode then 
-                    CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-                else
-                    --CAudio.PlaySync("voices/press-button-for-start.mp3")
+                    return nil;
                 end
-            
-                AL.NewTimer(CAudio.GetVoicesDuration("choose-color.mp3")*1000, function()
-                    CTutorial.bCanStart = true
-                end)
 
-                return nil;
-            end
+                if tGameStats.StageLeftDuration <= 5 then
+                    CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+                end
 
-            if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
-            end
-
-            return 1000;
-        end)
-    end
+                return 1000;
+            end)
+        end
+    end)
 end
 
 function SetupPlayerPositions()
@@ -286,14 +286,6 @@ function TutorialTick()
     tGameResults.PlayersCount = iPlayersReady
 
     if CTutorial.bCanStart and iPlayersReady > 1 and not CTutorial.bStarted then
-        if tGame.ArenaMode then
-            if not bCountDownStarted then
-                CGameMode.CountDown(5)
-            end
-            
-            return nil
-        end
-
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
