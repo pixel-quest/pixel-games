@@ -595,6 +595,10 @@ function switchStage(newStage)
     GameStats.TargetColor=TargetColor
 
     audio.ResetSync() -- очистим очередь звуков, чтобы обрезать долгие речи на старте
+    local StagesLeft = GameStats.TotalStages-newStage+1
+    if StagesLeft > 0 and StagesLeft <= 3 then
+        audio.PlayVoicesSync(StagesLeft.."-rounds-left.mp3") 
+    end
     audio.PlaySyncColorSound(GameStats.TargetColor)
 
     local NewColor
