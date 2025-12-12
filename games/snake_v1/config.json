@@ -22,6 +22,9 @@
   "GameCountdown": 10,
   "GameCountdown_Hidden": true,
 
+  "GameCountdownSolo": 5,
+  "GameCountdown_Hidden": true,
+
   "TargetScore": 20,
   "TargetScore_Min": 5,
   "TargetScore_Max": 150,
