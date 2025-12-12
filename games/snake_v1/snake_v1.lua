@@ -205,10 +205,6 @@ function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет
     local iPlayersReady = 0
 
-    if tGame.ArenaMode then
-        bAnyButtonClick = false
-    end
-
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
@@ -223,38 +219,17 @@ function GameSetupTick()
             end
 
             CPaint.PlayerZone(iPos, iBright, false)
-        
-            if tPlayerInGame[iPos] and tGame.ArenaMode then
-                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
-                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
-
-                local bArenaClick = false
-                for iX = iCenterX, iCenterX+1 do
-                    for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = CColors.MAGENTA
-                        if tArenaPlayerReady[iPos] then
-                            tFloor[iX][iY].iBright = tConfig.Bright+2
-                        end
-
-                        if tFloor[iX][iY].bClick then 
-                            bArenaClick = true
-                        end
-                    end
-                end
-
-                if bArenaClick and CGameMode.bCanStart or tArenaPlayerReady[iPos] then
-                    bAnyButtonClick = true 
-                    tArenaPlayerReady[iPos] = true
-                    iPlayersReady = iPlayersReady + 1
-                end
-            end
         end
     end
 
     if not bCountDownStarted and iPlayersReady > 0 and CGameMode.bCanStart then
         bCountDownStarted = true
         bAnyButtonClick = false
-        CGameMode.StartCountDown(tConfig.GameCountdown)
+        if #tGame.StartPositions == 1 then
+            CGameMode.StartCountDown(tConfig.GameCountdownSolo)
+        else
+            CGameMode.StartCountDown(tConfig.GameCountdown)
+        end
     end
 end
 
@@ -312,7 +287,7 @@ CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("snake/snake-game.mp3")
         CAudio.PlayVoicesSync("snake/snake-guide.mp3")
-        AL.NewTimer((CAudio.GetVoicesDuration("snake/snake-guide.mp3"))*1000 + 7000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("snake/snake-game.mp3")*1000 + CAudio.GetVoicesDuration("snake/snake-guide.mp3")*1000, function()
             CGameMode.bCanStart = true
         end)
     else
@@ -324,9 +299,7 @@ CGameMode.Announcer = function()
             CAudio.PlayVoicesSync("choose-color.mp3")
         end
 
-        if tGame.ArenaMode then 
-            CAudio.PlayVoicesSync("press-zone-for-start.mp3")
-        elseif #tGame.StartPositions == 1 then
+        if #tGame.StartPositions == 1 then
             CAudio.PlayVoicesSync("press-center-for-start.mp3")
         end
     end
@@ -336,22 +309,17 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(100, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
-
-        if tGame.ArenaMode then
-            if not bAnyButtonClick then
-                bCountDownStarted = false              
-                return nil
-            end
-        end
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -531,8 +499,8 @@ CSnake.iXPlus = -1
 CSnake.iYPlus = 0
 
 CSnake.Create = function()
-    CSnake.iHeadX = math.floor(tGame.Cols/2)
-    CSnake.iHeadY = math.floor(tGame.Rows/2)
+    CSnake.iHeadX = tGame.Cols
+    CSnake.iHeadY = tGame.Rows
     CSnake.iLength = tConfig.SnakeLength-1
 
     for i = 1, CSnake.iLength do
