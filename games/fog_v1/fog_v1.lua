@@ -155,9 +155,6 @@ end
 
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, tConfig.Bright) -- красим всё поле в один цвет    
-    if not CGameMode.bCountDownStarted then
-        SetAllButtonColorBright(CColors.GREEN, tConfig.Bright) 
-    end
     CWorld.Draw()
 
     if CGameMode.bCanStart and not CGameMode.bCountDownStarted then
@@ -310,6 +307,8 @@ CGameMode.PlayerAddScore = function(iAmount)
 
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
         CGameMode.EndGame(true)
+    elseif tGameStats.TotalStars - tGameStats.CurrentStars <= 3 then
+        CAudio.PlayLeftAudio(tGameStats.TotalStars - tGameStats.CurrentStars)
     end
 end
 
