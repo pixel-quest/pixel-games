@@ -187,6 +187,7 @@ function SetupPlayerPositions()
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tPlayerIDtoColor[iPlayerID]
+            if tGame.ArenaMode then tGame.StartPositions[iPlayerID].Y = tGame.StartPositions[iPlayerID].Y - 2 end
         end
 
         iX = iX + tGame.StartPositionSize + 1
@@ -285,7 +286,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if CTutorial.bCanStart and iPlayersReady > 1 and not CTutorial.bStarted then
+    if CTutorial.bCanStart and (iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions) and not CTutorial.bStarted then
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
