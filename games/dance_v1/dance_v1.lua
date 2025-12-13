@@ -187,6 +187,7 @@ function SetupPlayerPositions()
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tPlayerIDtoColor[iPlayerID]
+            if tGame.ArenaMode then tGame.StartPositions[iPlayerID].Y = tGame.StartPositions[iPlayerID].Y - 2 end
         end
 
         iX = iX + tGame.StartPositionSize + 1
