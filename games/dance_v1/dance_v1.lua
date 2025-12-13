@@ -286,7 +286,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if CTutorial.bCanStart and iPlayersReady > 1 and not CTutorial.bStarted then
+    if CTutorial.bCanStart and (iPlayersReady > 1 or iPlayersReady == #tGame.StartPositions) and not CTutorial.bStarted then
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
