@@ -101,33 +101,153 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+
+    tGame.SafeZoneSizeX = 2
+    tGame.SafeZoneSizeY = 2
+
+    local iPrevButton = -1
+
     for _, iButton in pairs(tGame.Buttons) do
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
         local iX = iButton
         local iY = 1
 
+        local iSide = 1
+
         if iX > tGame.Cols*2 + tGame.Rows then
             iX = 1
             iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
+            iSide = 4
         elseif iX > tGame.Cols + tGame.Rows then
             iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
             iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
+            iSide = 3
         elseif iX > tGame.Cols then
             iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
             iY = iButton - tGame.Cols 
+            iSide = 2
+        end
+
+        if iX >= tGame.iMaxX then
+            iX = tGame.iMaxX-1 
+        end
+        if iY >= tGame.iMaxY then
+            iY = tGame.iMaxY-1
+        end
+        if iX < tGame.iMinX then
+            iX = tGame.iMinX
+        end
+        if iY < tGame.iMinY then
+            iY = tGame.iMinY
         end
 
         tButtons[iButton].iSafeZoneX = iX
         tButtons[iButton].iSafeZoneY = iY
-
-        if tGame.SafeZoneOffsets[tostring(iButton)] then
-            tButtons[iButton].iSafeZoneX = tButtons[iButton].iSafeZoneX + tGame.SafeZoneOffsets[tostring(iButton)].X
-            tButtons[iButton].iSafeZoneY = tButtons[iButton].iSafeZoneY + tGame.SafeZoneOffsets[tostring(iButton)].Y
-        end
+        tButtons[iButton].iSide = iSide
     end
 
     tGameResults.PlayersCount = tConfig.PlayerCount
+
+    tGame.LavaObjects = {}
+    tGame.LavaObjects[1] = 
+    {
+        {
+            PosX = 1,
+            PosY = 1,
+            SizeX = tGame.Cols,
+            SizeY = 2,
+            VelX = 0,
+            VelY = 1,
+            IgnoreBoundsX = false,
+            IgnoreBoundsY = false,
+            Collision = false
+        }
+    }
+    tGame.LavaObjects[2] = 
+    {
+        {
+            PosX = 1,
+            PosY = 1,
+            SizeX = 2,
+            SizeY = tGame.Rows,
+            VelX = 1,
+            VelY = 0,
+            IgnoreBoundsX = false,
+            IgnoreBoundsY = false,
+            Collision = false
+        }
+    }
+    tGame.LavaObjects[3] = 
+    {
+        {
+            PosX = 1,
+            PosY = -1,
+            SizeX = 3,
+            SizeY = tGame.Cols,
+            VelX = -1,
+            VelY = 0,
+            IgnoreBoundsX = true,
+            IgnoreBoundsY = true,
+            Collision = false,
+            Diagonal = true,
+            DiagonalDirection = 1
+        }
+    }
+    tGame.LavaObjects[4] = 
+    {
+        {
+            PosX = 3,
+            PosY = -1,
+            SizeX = 3,
+            SizeY = tGame.Cols,
+            VelX = -1,
+            VelY = 0,
+            IgnoreBoundsX = true,
+            IgnoreBoundsY = true,
+            Collision = false,
+            Diagonal = true,
+            DiagonalDirection = -1
+        }
+    }
+    tGame.LavaObjects[5] = 
+    {
+        {
+            PosX = 1,
+            PosY = 1,
+            SizeX = tGame.Cols,
+            SizeY = 2,
+            VelX = 0,
+            VelY = 1,
+            IgnoreBoundsX = false,
+            IgnoreBoundsY = false,
+            Collision = false
+        },
+        {
+            PosX = 1,
+            PosY = 1,
+            SizeX = 2,
+            SizeY = tGame.Rows,
+            VelX = 1,
+            VelY = 0,
+            IgnoreBoundsX = false,
+            IgnoreBoundsY = false,
+            Collision = false
+        }
+    }
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()    
