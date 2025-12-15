@@ -113,11 +113,7 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
-    if not tGame.MirrorGame then
-        tGame.Direction = 1
-    else
-        tGame.Direction = 2
-    end
+    tGame.Direction = 1
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
     SetupPlayerPositions()
@@ -187,6 +183,7 @@ function SetupPlayerPositions()
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tPlayerIDtoColor[iPlayerID]
+            if tGame.ArenaMode then tGame.StartPositions[iPlayerID].Y = tGame.StartPositions[iPlayerID].Y - 2 end
         end
 
         iX = iX + tGame.StartPositionSize + 1
@@ -285,7 +282,7 @@ function TutorialTick()
 
     tGameResults.PlayersCount = iPlayersReady
 
-    if CTutorial.bCanStart and iPlayersReady > 1 and not CTutorial.bStarted then
+    if CTutorial.bCanStart and iPlayersReady > 0 and not CTutorial.bStarted then
         bAnyButtonClick = false
 
         if not CTutorial.bStarted then
@@ -355,9 +352,22 @@ function PostGameTick()
 end
 
 function RangeFloor(setPixel, setButton)
-    for iX = 1, tGame.Cols do
-        for iY = 1, tGame.Rows do
-            setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+    if not tGame.MirrorGame then
+        for iX = 1, tGame.Cols do
+            for iY = 1, tGame.Rows do
+                setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            end
+        end
+    else
+        local iLocalX = 0
+        local iLocalY = 0
+        for iX = tGame.Cols, 1, -1 do
+            iLocalX = iLocalX + 1
+            for iY = tGame.Rows, 1, -1 do
+                iLocalY = iLocalY + 1
+                setPixel(iLocalX, iLocalY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
+            end
+            iLocalY = 0
         end
     end
 
@@ -1101,23 +1111,31 @@ function PixelClick(click)
             return;
         end
         
+        local clickX = click.X
+        local clickY = click.Y
+
+        if tGame.MirrorGame then
+            clickX = tGame.Cols+1-click.X
+            clickY = tGame.Rows+1-click.Y
+        end
+
         if iGameState == GAMESTATE_TUTORIAL and not CTutorial.bStarted then
             if click.Click then
-                tFloor[click.X][click.Y].bClick = true
+                tFloor[clickX][clickY].bClick = true
             else
                 AL.NewTimer(500, function()
-                    tFloor[click.X][click.Y].bClick = false
+                    tFloor[clickX][clickY].bClick = false
                 end)
             end
 
             return
         end
 
-        tFloor[click.X][click.Y].bClick = click.Click
-        tFloor[click.X][click.Y].iWeight = click.Weight
+        tFloor[clickX][clickY].bClick = click.Click
+        tFloor[clickX][clickY].iWeight = click.Weight
 
         if click.Click then
-            CGameMode.PlayerHitRow(click.X, click.Y, true)
+            CGameMode.PlayerHitRow(clickX, clickY, true)
         end
     end
 end
