@@ -23,6 +23,11 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
+  "Direction": "left",
+  "Direction_List": ["left","right"],
+  "Direction_ru": "Направление",
+  "Direction_en": "Direction",
+
   "GameCountdown": 15,
   "GameCountdown_Hidden": true,
 

@@ -362,9 +362,9 @@ CGameMode.bCanStart = false
 CGameMode.iFinishPosition = 1
 
 CGameMode.InitGameMode = function()
-    if tGame.Direction == "right" then
+    if tConfig.Direction == "right" then
         CGameMode.iFinishPosition = tGame.StartPositionSizeX
-    elseif tGame.Direction == "left" then
+    elseif tConfig.Direction == "left" then
         CGameMode.iFinishPosition = 1
     end
 end
@@ -643,9 +643,9 @@ end
 
 CBlock.AnimateVisibility = function(iPlayerID)
     local iX = 1
-    if tGame.Direction == "right" then
+    if tConfig.Direction == "right" then
         iX = tGame.StartPositions[iPlayerID].X
-    elseif tGame.Direction == "left" then
+    elseif tConfig.Direction == "left" then
         iX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1
     end
 
@@ -660,12 +660,12 @@ CBlock.AnimateVisibility = function(iPlayerID)
             end
         end
 
-        if tGame.Direction == "right" then
+        if tConfig.Direction == "right" then
             if iX < tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
                 iX = iX + 1
                 return CPaint.ANIMATION_DELAY
             end
-        elseif tGame.Direction == "left" then
+        elseif tConfig.Direction == "left" then
             if iX > tGame.StartPositions[iPlayerID].X then
                 iX = iX - 1
                 return CPaint.ANIMATION_DELAY
@@ -752,11 +752,11 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     local iXStart = 1
     local iXEnd = 1
     local iXInc = 1
-    if tGame.Direction == "right" then
+    if tConfig.Direction == "right" then
         iXStart = tGame.StartPositions[iPlayerID].X-1
         iXEnd = 1
         iXInc = -1
-    elseif tGame.Direction == "left" then
+    elseif tConfig.Direction == "left" then
         iXStart = tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX
         iXEnd = tGame.Cols
         iXInc = 1
