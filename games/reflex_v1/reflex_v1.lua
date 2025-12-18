@@ -569,7 +569,7 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
     if CGameMode.tPlayerPosition[iPlayerID] ~= nil then
         local tLetter = tLoadedLetters[CGameMode.tPlayerPosition[iPlayerID]]
 
-        if tGame.StartPositions[iPlayerID].Y > tGame.CenterY then
+        if tGame.PreviewHeight < tGame.StartPositions[iPlayerID].Y  then
             local iX = tGame.StartPositions[iPlayerID].X
             local iY = tGame.StartPositions[iPlayerID].Y-1
 
