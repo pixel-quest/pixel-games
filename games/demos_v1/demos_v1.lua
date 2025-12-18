@@ -253,9 +253,15 @@ CPaint.bForceSwitch = false
 CPaint.LoadDemo = function(sDemoName)
     CPaint.sLoadedDemo = sDemoName
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_LOAD]()
+
+    if not tConfig.NoMusic then
+        CAudio.PlayRandomBackground()
+    end
 end
 
 CPaint.Demo = function()
+    if iGameState ~= GAMESTATE_GAME then return; end
+
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_PAINT]()
 
     if CPaint.sLoadedDemo ~= "_choice" and tConfig.PictureName and tConfig.PictureName ~= "none" and tPictures[tConfig.PictureName] ~= nil then

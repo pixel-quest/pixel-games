@@ -26,6 +26,10 @@
   	"SwitchEffectsTimer_ru": "Время чередования эффектов",
   	"SwitchEffectsTimer_en": "Auto switch effects timer",
 
+	"NoMusic": false,
+	"NoMusic_ru": "Без музыки",
+	"NoMusic_en": "Disable music",
+
 	"Sound": "",
 	"Sound_Hidden": true,
 
