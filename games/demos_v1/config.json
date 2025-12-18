@@ -5,8 +5,8 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
-  	"DemoName": "rainbowwave",
-  	"DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "matrix2"],
+  	"DemoName": "rainbow",
+  	"DemoName_List": ["rainbow", "rainbowwave", "watercircles", "matrix", "derby", "rainbowsnake", "matrix2"],
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
 

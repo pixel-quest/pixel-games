@@ -907,6 +907,97 @@ CPaint.tDemoList["rainbow"][CPaint.FUNC_CLICK] = function(iX, iY)
     
 end
 --//
+
+--WATERCIRCLES
+CPaint.tDemoList["watercircles"] = {}
+CPaint.tDemoList["watercircles"].THINK_DELAY = 120
+CPaint.tDemoList["watercircles"].COLORS = {CColors.WHITE, CColors.CYAN, CColors.BLUE, CColors.MAGENTA, CColors.RED, CColors.YELLOW, CColors.GREEN}
+CPaint.tDemoList["watercircles"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["watercircles"].tVars = {}
+    CPaint.tDemoList["watercircles"].tVars.tCircles = AL.Stack()
+    CPaint.tDemoList["watercircles"].tVars.iLastX = -1
+    CPaint.tDemoList["watercircles"].tVars.iLastY = -1
+    CPaint.tDemoList["watercircles"].tVars.bCD = false
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_PAINT] = function()
+    for iCircleId = 1, CPaint.tDemoList["watercircles"].tVars.tCircles.Size() do
+        local tCircle = CPaint.tDemoList["watercircles"].tVars.tCircles.Pop()
+
+        local function paintCirclePixel(iX, iY)
+            for iX2 = iX-1, iX+1 do
+                for iY2 = iY-1, iY+1 do
+                    if tFloor[iX2] and tFloor[iX2][iY2] then
+                        tFloor[iX2][iY2].iColor = tCircle.iColor
+                        
+                        tFloor[iX2][iY2].iBright = tConfig.Bright-2
+                        if iX2 == iX or iY2 == iY then
+                            tFloor[iX2][iY2].iBright = tConfig.Bright
+                        end
+                    end
+                end
+            end
+        end
+
+        local iXM = tCircle.iX
+        local iYM = tCircle.iY
+        local iR = tCircle.iSize
+
+        local iX = -iR
+        local iY = 0
+        local iR2 = 2-2*iR
+
+        repeat
+            paintCirclePixel(iXM-iX, iYM+iY)
+            paintCirclePixel(iXM-iY, iYM-iX)
+            paintCirclePixel(iXM+iX, iYM-iY)
+            paintCirclePixel(iXM+iY, iYM+iX)
+
+            iR = iR2
+            if iR <= iY then 
+                iY = iY+1
+                iR2 = iR2 + (iY * 2 + 1) 
+            end
+            if iR > iX or iR2 > iY then 
+                iX = iX+1
+                iR2 = iR2 + (iX * 2 + 1) 
+            end
+        until iX > 0
+
+        CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tCircle)
+    end
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_THINK] = function()
+    for iCircleId = 1, CPaint.tDemoList["watercircles"].tVars.tCircles.Size() do
+        local tCircle = CPaint.tDemoList["watercircles"].tVars.tCircles.Pop()
+        tCircle.iSize = tCircle.iSize + 1
+
+        if tCircle.iSize < math.floor(tGame.Cols*1.5) then
+            CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tCircle)
+        end 
+    end
+
+    return true
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_CLICK] = function(iX, iY)
+    if CPaint.tDemoList["watercircles"].tVars.bCD or (iX == CPaint.tDemoList["watercircles"].tVars.iLastX and iY == CPaint.tDemoList["watercircles"].tVars.iLastY) then return; end
+    CPaint.tDemoList["watercircles"].tVars.iLastX = iX; CPaint.tDemoList["watercircles"].tVars.iLastY = iY;
+
+    local tNewCircle = {}
+    tNewCircle.iX = iX
+    tNewCircle.iY = iY
+    tNewCircle.iSize = 1
+    tNewCircle.iColor = CPaint.tDemoList["watercircles"].COLORS[math.random(1,#CPaint.tDemoList["watercircles"].COLORS)]
+    CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tNewCircle)
+
+    CPaint.tDemoList["watercircles"].tVars.bCD = true
+    AL.NewTimer(400, function()
+        if iGameState ~= GAMESTATE_GAME or not CPaint.tDemoList["watercircles"].tVars or CPaint.sLoadedDemo ~= "watercircles" then return; end
+
+        CPaint.tDemoList["watercircles"].tVars.bCD = false
+    end)
+end
+--//
+
 ----//
 
 --UTIL прочие утилиты
