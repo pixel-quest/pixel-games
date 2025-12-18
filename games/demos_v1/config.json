@@ -6,13 +6,20 @@
   	"Bright_ru": "Яркость",
 
   	"DemoName": "rainbowwave",
-  	"DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "rainbowdemo", "matrix2"],
+  	"DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "matrix2"],
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
 
   	"SwitchEffects": false,
   	"SwitchEffects_ru": "Чередовать эффекты",
   	"SwitchEffects_en": "Auto switch effects",
+
+  	"SwitchEffectsTimer": 60,
+  	"SwitchEffectsTimer_Min": 10,
+  	"SwitchEffectsTimer_Max": 600,
+  	"SwitchEffectsTimer_Step": 10,
+  	"SwitchEffectsTimer_ru": "Время чередования эффектов",
+  	"SwitchEffectsTimer_en": "Auto switch effects timer",
 
 	"Sound": "",
 	"Sound_Hidden": true,
