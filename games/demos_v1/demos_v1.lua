@@ -294,7 +294,7 @@ end
 CPaint.UnloadDemo = function(fCallback)
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
 
-    CPaint.tDemoList[CPaint.sLoadedDemo].tVars = nil
+    --CPaint.tDemoList[CPaint.sLoadedDemo].tVars = nil
     iGameState = GAMESTATE_POSTGAME
     AL.NewTimer(250, function()
         iGameState = GAMESTATE_GAME
