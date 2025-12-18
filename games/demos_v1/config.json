@@ -10,6 +10,11 @@
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
 
+  	"PictureName": "none",
+  	"PictureName_List": ["none", "arrow1", "arrow2", "arrow3"],
+  	"PictureName_ru": "Выбор картинки",
+  	"PictureName_en": "Picture Name",
+
   	"SwitchEffects": false,
   	"SwitchEffects_ru": "Чередовать эффекты",
   	"SwitchEffects_en": "Auto switch effects",
