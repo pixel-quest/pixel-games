@@ -1690,6 +1690,8 @@ CCross.bBlockMovement = false
 CCross.bHidden = false
 CCross.iTicksNewDest = 0
 CCross.MovementDelay = 200
+CCross.iLastClickX = 0
+CCross.iLastClickY = 0
 
 CCross.Move = function(iXPlus, iYPlus)
     if CCross.bBlockMovement then return; end
@@ -1738,6 +1740,15 @@ CCross.IsAiOn = function()
 end
 
 CCross.AiNewDest = function()
+    if tConfig.NewTracking then 
+        if CCross.iLastClickX == 0 then CCross.iLastClickX = math.random(1,tGame.Cols) end
+        if CCross.iLastClickY == 0 then CCross.iLastClickY = math.random(1,tGame.Rows) end
+
+        CCross.iAiDestX = CCross.iLastClickX
+        CCross.iAiDestY = CCross.iLastClickY
+        return;
+    end
+
     local iMax = -999
 
     for iX = 1, tGame.Cols do
@@ -1993,9 +2004,9 @@ function PixelClick(click)
             CEffect.SpecialEndingCollectCoin(tFloor[click.X][click.Y].iCoinId, click.X, click.Y)
         end
 
-        if tConfig.NewTracking and click.Click and not tFloor[click.X][click.Y].bDefect then
-            CCross.iAiDestX = click.X
-            CCross.iAiDestY = click.Y
+        if click.Click and not tFloor[click.X][click.Y].bDefect then
+            CCross.iLastClickX = click.X
+            CCross.iLastClickY = click.Y
         end
     end
 end
