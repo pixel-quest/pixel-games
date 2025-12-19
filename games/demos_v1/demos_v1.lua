@@ -13,6 +13,7 @@ local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
 local CVideos = require("video")
+local CEvents = require("events")
 
 local tGame = {
     Cols = 24,
@@ -135,6 +136,10 @@ function StartGame(gameJson, gameConfigJson)
             iGameState = GAMESTATE_FINISH
         end)
     end
+
+    if tConfig.Events ~= nil then
+        InitEvents()
+    end
 end
 
 function NextTick()
@@ -236,6 +241,19 @@ function VideoSelectBranch()
 
     CLog.print("Chosen branch: "..iShift)
     tGameResults.selected_branch = iShift
+end
+
+function InitEvents()
+    for _,tEvent in pairs(tConfig.Events) do
+        AL.NewTimer(tEvent.ts*1000, function() 
+            CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {})
+
+            if tEvent.repeat_count and tEvent.repeat_count > 0 then
+                tEvent.repeat_count = tEvent.repeat_count - 1
+                return tEvent.repeat_delay*1000
+            end
+        end)
+    end
 end
 
 --PAINT
