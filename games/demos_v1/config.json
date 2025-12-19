@@ -5,10 +5,15 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
-  	"DemoName": "rainbowwave",
-  	"DemoName_List": ["rainbowwave", "matrix", "rainbow", "derby", "rainbowsnake", "matrix2"],
+  	"DemoName": "rainbow",
+  	"DemoName_List": ["rainbow", "rainbowwave", "watercircles", "matrix", "derby", "rainbowsnake", "matrix2"],
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
+
+  	"PictureName": "none",
+  	"PictureName_List": ["none", "arrow1", "arrow2", "arrow3"],
+  	"PictureName_ru": "Выбор картинки",
+  	"PictureName_en": "Picture Name",
 
   	"SwitchEffects": false,
   	"SwitchEffects_ru": "Чередовать эффекты",
@@ -20,6 +25,10 @@
   	"SwitchEffectsTimer_Step": 10,
   	"SwitchEffectsTimer_ru": "Время чередования эффектов",
   	"SwitchEffectsTimer_en": "Auto switch effects timer",
+
+	"NoMusic": false,
+	"NoMusic_ru": "Без музыки",
+	"NoMusic_en": "Disable music",
 
 	"Sound": "",
 	"Sound_Hidden": true,
