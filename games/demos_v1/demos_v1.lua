@@ -13,6 +13,7 @@ local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
 local CVideos = require("video")
+local CEvents = require("events")
 
 local tGame = {
     Cols = 24,
@@ -135,6 +136,10 @@ function StartGame(gameJson, gameConfigJson)
             iGameState = GAMESTATE_FINISH
         end)
     end
+
+    if tConfig.Events ~= nil then
+        InitEvents()
+    end
 end
 
 function NextTick()
@@ -238,6 +243,19 @@ function VideoSelectBranch()
     tGameResults.selected_branch = iShift
 end
 
+function InitEvents()
+    for _,tEvent in pairs(tConfig.Events) do
+        AL.NewTimer(tEvent.ts*1000, function() 
+            CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {})
+
+            if tEvent.repeat_count and tEvent.repeat_count > 0 then
+                tEvent.repeat_count = tEvent.repeat_count - 1
+                return tEvent.repeat_delay*1000
+            end
+        end)
+    end
+end
+
 --PAINT
 CPaint = {}
 
@@ -253,10 +271,42 @@ CPaint.bForceSwitch = false
 CPaint.LoadDemo = function(sDemoName)
     CPaint.sLoadedDemo = sDemoName
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_LOAD]()
+
+    if not tConfig.NoMusic then
+        CAudio.PlayRandomBackground()
+    end
 end
 
 CPaint.Demo = function()
+    if iGameState ~= GAMESTATE_GAME then return; end
+
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_PAINT]()
+
+    if CPaint.sLoadedDemo ~= "_choice" and tConfig.PictureName and tConfig.PictureName ~= "none" and tPictures[tConfig.PictureName] ~= nil then
+        CPaint.Picture(tConfig.PictureName)
+    end
+end
+
+CPaint.Picture = function(sPictureName)
+    local iSizeX = #tPictures[sPictureName][1]
+    local iSizeY = #tPictures[sPictureName]
+    local iStartX = 1
+    local iStartY = 1
+
+    local iPicX = 0
+    local iPicY = 0
+
+    for iY = iStartY, iStartY+iSizeY-1 do
+        iPicY = iPicY + 1
+        for iX = iStartX, iStartX+iSizeX-1 do
+            iPicX = iPicX + 1
+            if tFloor[iX] and tFloor[iX][iY] and tPictures[sPictureName][iPicY] and tPictures[sPictureName][iPicY][iPicX] and tPictures[sPictureName][iPicY][iPicX] ~= "0xEMPTY1" then
+                tFloor[iX][iY].iColor = tonumber(tPictures[sPictureName][iPicY][iPicX])
+                tFloor[iX][iY].iBright = tConfig.Bright
+            end
+        end
+        iPicX = 0
+    end
 end
 
 CPaint.UnloadDemo = function(fCallback)
@@ -598,36 +648,36 @@ CPaint.tDemoList["rainbowwave"].THINK_DELAY = 100
 CPaint.tDemoList["rainbowwave"].SIZE = 1
 CPaint.tDemoList["rainbowwave"].COLORS = 
 {
+    {CColors.RED, 1}, 
     {CColors.RED, 3}, 
-    {CColors.RED, 4}, 
-    {CColors.RED, 5}, 
-    {CColors.RED, 4}, 
-    {CColors.RED, 3},  
+    {CColors.RED, 6}, 
+    {CColors.RED, 3}, 
+    {CColors.RED, 1},  
+    {CColors.YELLOW, 1}, 
     {CColors.YELLOW, 3}, 
-    {CColors.YELLOW, 4}, 
-    {CColors.YELLOW, 5}, 
-    {CColors.YELLOW, 4}, 
-    {CColors.YELLOW, 3},  
+    {CColors.YELLOW, 6}, 
+    {CColors.YELLOW, 3}, 
+    {CColors.YELLOW, 1},  
+    {CColors.GREEN, 1}, 
     {CColors.GREEN, 3}, 
-    {CColors.GREEN, 4}, 
-    {CColors.GREEN, 5}, 
-    {CColors.GREEN, 4}, 
+    {CColors.GREEN, 6}, 
     {CColors.GREEN, 3}, 
+    {CColors.GREEN, 1}, 
+    {CColors.CYAN, 1}, 
     {CColors.CYAN, 3}, 
-    {CColors.CYAN, 4}, 
-    {CColors.CYAN, 5}, 
-    {CColors.CYAN, 4}, 
+    {CColors.CYAN, 6}, 
     {CColors.CYAN, 3}, 
+    {CColors.CYAN, 1}, 
+    {CColors.BLUE, 1}, 
     {CColors.BLUE, 3}, 
-    {CColors.BLUE, 4}, 
-    {CColors.BLUE, 5}, 
-    {CColors.BLUE, 4}, 
+    {CColors.BLUE, 6}, 
     {CColors.BLUE, 3}, 
+    {CColors.BLUE, 1}, 
+    {CColors.MAGENTA, 1}, 
     {CColors.MAGENTA, 3}, 
-    {CColors.MAGENTA, 4}, 
-    {CColors.MAGENTA, 5}, 
-    {CColors.MAGENTA, 4}, 
+    {CColors.MAGENTA, 6}, 
     {CColors.MAGENTA, 3}, 
+    {CColors.MAGENTA, 1}, 
 }
 
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_LOAD] = function()
@@ -907,6 +957,154 @@ CPaint.tDemoList["rainbow"][CPaint.FUNC_CLICK] = function(iX, iY)
     
 end
 --//
+
+--WATERCIRCLES
+CPaint.tDemoList["watercircles"] = {}
+CPaint.tDemoList["watercircles"].THINK_DELAY = 120
+CPaint.tDemoList["watercircles"].COLORS = {CColors.WHITE, CColors.CYAN, CColors.BLUE, CColors.MAGENTA, CColors.RED, CColors.YELLOW, CColors.GREEN}
+CPaint.tDemoList["watercircles"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["watercircles"].tVars = {}
+    CPaint.tDemoList["watercircles"].tVars.tCircles = AL.Stack()
+    CPaint.tDemoList["watercircles"].tVars.iLastX = -1
+    CPaint.tDemoList["watercircles"].tVars.iLastY = -1
+    CPaint.tDemoList["watercircles"].tVars.bCD = false
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_PAINT] = function()
+    for iCircleId = 1, CPaint.tDemoList["watercircles"].tVars.tCircles.Size() do
+        local tCircle = CPaint.tDemoList["watercircles"].tVars.tCircles.Pop()
+
+        local function paintCirclePixel(iX, iY)
+            for iX2 = iX-1, iX+1 do
+                for iY2 = iY-1, iY+1 do
+                    if tFloor[iX2] and tFloor[iX2][iY2] then
+                        tFloor[iX2][iY2].iColor = tCircle.iColor
+                        
+                        tFloor[iX2][iY2].iBright = tConfig.Bright-2
+                        if iX2 == iX or iY2 == iY then
+                            tFloor[iX2][iY2].iBright = tConfig.Bright
+                        end
+                    end
+                end
+            end
+        end
+
+        local iXM = tCircle.iX
+        local iYM = tCircle.iY
+        local iR = tCircle.iSize
+
+        local iX = -iR
+        local iY = 0
+        local iR2 = 2-2*iR
+
+        repeat
+            paintCirclePixel(iXM-iX, iYM+iY)
+            paintCirclePixel(iXM-iY, iYM-iX)
+            paintCirclePixel(iXM+iX, iYM-iY)
+            paintCirclePixel(iXM+iY, iYM+iX)
+
+            iR = iR2
+            if iR <= iY then 
+                iY = iY+1
+                iR2 = iR2 + (iY * 2 + 1) 
+            end
+            if iR > iX or iR2 > iY then 
+                iX = iX+1
+                iR2 = iR2 + (iX * 2 + 1) 
+            end
+        until iX > 0
+
+        CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tCircle)
+    end
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_THINK] = function()
+    for iCircleId = 1, CPaint.tDemoList["watercircles"].tVars.tCircles.Size() do
+        local tCircle = CPaint.tDemoList["watercircles"].tVars.tCircles.Pop()
+        tCircle.iSize = tCircle.iSize + 1
+
+        if tCircle.iSize < math.floor(tGame.Cols*1.5) then
+            CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tCircle)
+        end 
+    end
+
+    return true
+end
+CPaint.tDemoList["watercircles"][CPaint.FUNC_CLICK] = function(iX, iY)
+    if CPaint.tDemoList["watercircles"].tVars.bCD or (iX == CPaint.tDemoList["watercircles"].tVars.iLastX and iY == CPaint.tDemoList["watercircles"].tVars.iLastY) then return; end
+    CPaint.tDemoList["watercircles"].tVars.iLastX = iX; CPaint.tDemoList["watercircles"].tVars.iLastY = iY;
+
+    local tNewCircle = {}
+    tNewCircle.iX = iX
+    tNewCircle.iY = iY
+    tNewCircle.iSize = 1
+    tNewCircle.iColor = CPaint.tDemoList["watercircles"].COLORS[math.random(1,#CPaint.tDemoList["watercircles"].COLORS)]
+    CPaint.tDemoList["watercircles"].tVars.tCircles.Push(tNewCircle)
+
+    CPaint.tDemoList["watercircles"].tVars.bCD = true
+    AL.NewTimer(400, function()
+        if iGameState ~= GAMESTATE_GAME or not CPaint.tDemoList["watercircles"].tVars or CPaint.sLoadedDemo ~= "watercircles" then return; end
+
+        CPaint.tDemoList["watercircles"].tVars.bCD = false
+    end)
+end
+--//
+----//
+
+--PICTURES
+tPictures = {}
+tPictures["arrow1"] =
+{
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0XFFFFFF","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"},         
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0XFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}
+}
+tPictures["arrow2"] =
+{
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0x000000","0x000000","0x000000","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0x000000","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0x000000","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0x000000","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0x000000","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0XFFFFFF","0x000000","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0x000000","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0XFFFFFF","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0XFFFFFF","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0x000000","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}        
+}
+tPictures["arrow3"] =
+{
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1","0xFFFFFF","0xFFFFFF","0xEMPTY1","0xEMPTY1"}, 
+    {"0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1","0xEMPTY1"}
+}
 ----//
 
 --UTIL прочие утилиты
