@@ -13,7 +13,7 @@ local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
 local CVideos = require("video")
-local CEvents = require("events")
+--local CEvents = require("events")
 
 local tGame = {
     Cols = 24,
@@ -248,7 +248,7 @@ end
 function InitEvents()
     for _,tEvent in pairs(tConfig.Events) do
         AL.NewTimer(tEvent.ts*1000, function() 
-            CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {})
+            --CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {})
 
             if tEvent.repeat_count and tEvent.repeat_count > 0 then
                 tEvent.repeat_count = tEvent.repeat_count - 1
@@ -274,7 +274,7 @@ CPaint.LoadDemo = function(sDemoName)
     CPaint.sLoadedDemo = sDemoName
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_LOAD]()
 
-    if not tConfig.NoMusic then
+    if not tConfig.NoMusic and not tConfig.Sound then
         CAudio.PlayRandomBackground()
     end
 end
