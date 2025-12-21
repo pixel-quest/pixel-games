@@ -79,6 +79,8 @@ local State = {
     RoadTop = 1,
     RoadBottom = 1,
     Lanes = {},
+    DrawList = {},
+    DrawMap = {},
 }
 
 local function Clamp(value, minValue, maxValue)
@@ -91,13 +93,27 @@ local function Clamp(value, minValue, maxValue)
     return value
 end
 
-local function ClearFloor()
-    for x = 1, GameObj.Cols do
-        for y = 1, GameObj.Rows do
-            FloorMatrix[x][y].Color = colors.NONE
-            FloorMatrix[x][y].Bright = colors.BRIGHT0
-        end
+local function ClearFrame()
+    for _, pixel in ipairs(State.DrawList) do
+        FloorMatrix[pixel.X][pixel.Y].Color = colors.NONE
+        FloorMatrix[pixel.X][pixel.Y].Bright = colors.BRIGHT0
     end
+    State.DrawList = {}
+    State.DrawMap = {}
+end
+
+local function MarkPixel(x, y, color, bright)
+    if x < 1 or x > GameObj.Cols or y < 1 or y > GameObj.Rows then
+        return
+    end
+
+    local key = x .. ":" .. y
+    if not State.DrawMap[key] then
+        table.insert(State.DrawList, { X = x, Y = y })
+        State.DrawMap[key] = true
+    end
+    FloorMatrix[x][y].Color = color
+    FloorMatrix[x][y].Bright = bright
 end
 
 local function DrawShape(startX, startY, shape, color, bright)
@@ -106,10 +122,7 @@ local function DrawShape(startX, startY, shape, color, bright)
             if shape[y][x] == 1 then
                 local drawX = startX + x - 1
                 local drawY = startY + y - 1
-                if drawX >= 1 and drawX <= GameObj.Cols and drawY >= 1 and drawY <= GameObj.Rows then
-                    FloorMatrix[drawX][drawY].Color = color
-                    FloorMatrix[drawX][drawY].Bright = bright
-                end
+                MarkPixel(drawX, drawY, color, bright)
             end
         end
     end
@@ -120,10 +133,7 @@ local function DrawBooster(startX, startY, color, bright)
         for x = 0, BOOSTER_SIZE - 1 do
             local drawX = startX + x
             local drawY = startY + y
-            if drawX >= 1 and drawX <= GameObj.Cols and drawY >= 1 and drawY <= GameObj.Rows then
-                FloorMatrix[drawX][drawY].Color = color
-                FloorMatrix[drawX][drawY].Bright = bright
-            end
+            MarkPixel(drawX, drawY, color, bright)
         end
     end
 end
@@ -268,6 +278,8 @@ function StartGame(gameJson, gameConfigJson)
     State.Boosters = {}
     State.Lives = GameConfigObj.Lives
     State.Lanes = {}
+    State.DrawList = {}
+    State.DrawMap = {}
     local laneY = State.RoadTop + 1
     local laneStep = CAR_HEIGHT + 1
     while laneY <= State.RoadBottom - CAR_HEIGHT do
@@ -397,7 +409,7 @@ function NextTick()
         end
     end
 
-    ClearFloor()
+    ClearFrame()
 
     for _, booster in ipairs(State.Boosters) do
         DrawBooster(booster.X, booster.Y, colors.YELLOW, GameConfigObj.Bright)
@@ -412,10 +424,8 @@ function NextTick()
     for x = 1, GameObj.Cols do
         local dash = (x + State.BorderOffset) % 3
         if dash ~= 0 then
-            FloorMatrix[x][State.RoadTop].Color = colors.WHITE
-            FloorMatrix[x][State.RoadTop].Bright = GameConfigObj.Bright
-            FloorMatrix[x][State.RoadBottom].Color = colors.WHITE
-            FloorMatrix[x][State.RoadBottom].Bright = GameConfigObj.Bright
+            MarkPixel(x, State.RoadTop, colors.WHITE, GameConfigObj.Bright)
+            MarkPixel(x, State.RoadBottom, colors.WHITE, GameConfigObj.Bright)
         end
     end
 end
