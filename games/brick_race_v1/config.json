@@ -1,0 +1,14 @@
+{
+  "Bright": 6,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+  "Bright_ru": "Яркость",
+
+  "PlayerLives": 3,
+  "PlayerLives_Min": 1,
+  "PlayerLives_Max": 5,
+  "PlayerLives_Step": 1,
+  "PlayerLives_ru": "Количество жизней",
+  "PlayerLives_en": "Player lives"
+}
