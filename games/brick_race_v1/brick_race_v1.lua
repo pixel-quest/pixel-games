@@ -69,6 +69,8 @@ local State = {
     SpeedTimer = 0,
     ObstacleTimer = 0,
     BoosterTimer = 0,
+    MoveAccumulator = 0,
+    BorderOffset = 0,
     BoosterActiveUntil = 0,
     CrashCooldownUntil = 0,
     Obstacles = {},
@@ -76,6 +78,7 @@ local State = {
     Lives = 3,
     RoadTop = 1,
     RoadBottom = 1,
+    Lanes = {},
 }
 
 local function Clamp(value, minValue, maxValue)
@@ -150,12 +153,26 @@ local function ResetAfterCrash(now)
     State.SpeedTimer = GameConfigObj.SpeedIncreaseInterval
     State.ObstacleTimer = GameConfigObj.CrashSpawnDelay
     State.BoosterTimer = GameConfigObj.BoosterSpawnInterval
+    State.MoveAccumulator = 0
     State.BoosterActiveUntil = 0
     State.Obstacles = {}
     State.Boosters = {}
 end
 
+local function LaneHasObstacle(laneY, minX)
+    for _, obstacle in ipairs(State.Obstacles) do
+        if obstacle.Y == laneY and obstacle.X >= minX then
+            return true
+        end
+    end
+    return false
+end
+
 local function SpawnObstacle()
+    if #State.Obstacles >= GameConfigObj.MaxObstacles then
+        return
+    end
+
     local minY = State.RoadTop + 1
     local maxY = State.RoadBottom - CAR_HEIGHT
     if maxY < minY then
@@ -163,9 +180,11 @@ local function SpawnObstacle()
     end
 
     for _ = 1, 6 do
-        local spawnY = math.random(minY, maxY)
+        local spawnY = State.Lanes[math.random(1, #State.Lanes)] or math.random(minY, maxY)
         local spawnX = GameObj.Cols - CAR_WIDTH + 1
-        if IsAreaFree(spawnX, spawnY, spawnX + CAR_WIDTH - 1, spawnY + CAR_HEIGHT - 1) then
+        local minDistanceX = spawnX - (CAR_WIDTH * 2)
+        if not LaneHasObstacle(spawnY, minDistanceX)
+            and IsAreaFree(spawnX, spawnY, spawnX + CAR_WIDTH - 1, spawnY + CAR_HEIGHT - 1) then
             table.insert(State.Obstacles, {
                 X = spawnX,
                 Y = spawnY,
@@ -177,6 +196,10 @@ local function SpawnObstacle()
 end
 
 local function SpawnBooster()
+    if #State.Boosters >= GameConfigObj.MaxBoosters then
+        return
+    end
+
     local minY = State.RoadTop + 1
     local maxY = State.RoadBottom - BOOSTER_SIZE
     if maxY < minY then
@@ -212,6 +235,8 @@ function StartGame(gameJson, gameConfigJson)
     GameConfigObj.CrashSpawnDelay = GameConfigObj.CrashSpawnDelay or 1.2
     GameConfigObj.PointsPerObstacle = GameConfigObj.PointsPerObstacle or 1
     GameConfigObj.PlayerMoveSpeed = GameConfigObj.PlayerMoveSpeed or 6
+    GameConfigObj.MaxObstacles = GameConfigObj.MaxObstacles or 3
+    GameConfigObj.MaxBoosters = GameConfigObj.MaxBoosters or 1
 
     for x = 1, GameObj.Cols do
         FloorMatrix[x] = {}
@@ -235,16 +260,26 @@ function StartGame(gameJson, gameConfigJson)
     State.SpeedTimer = GameConfigObj.SpeedIncreaseInterval
     State.ObstacleTimer = GameConfigObj.ObstacleSpawnInterval
     State.BoosterTimer = GameConfigObj.BoosterSpawnInterval
+    State.MoveAccumulator = 0
+    State.BorderOffset = 0
     State.BoosterActiveUntil = 0
     State.CrashCooldownUntil = 0
     State.Obstacles = {}
     State.Boosters = {}
     State.Lives = GameConfigObj.Lives
+    State.Lanes = {}
+    local laneY = State.RoadTop + 1
+    local laneStep = CAR_HEIGHT + 1
+    while laneY <= State.RoadBottom - CAR_HEIGHT do
+        table.insert(State.Lanes, laneY)
+        laneY = laneY + laneStep
+    end
 
     GameStats.CurrentLives = State.Lives
     GameStats.TotalLives = State.Lives
     GameStats.Players[1].Score = 0
     GameStats.Players[1].Lives = State.Lives
+    GameStats.CurrentStars = 0
     GameStats.ScoreboardVariant = 0
 end
 
@@ -279,19 +314,26 @@ function NextTick()
         State.BoosterTimer = State.BoosterTimer + GameConfigObj.BoosterSpawnInterval
     end
 
-    for i = #State.Obstacles, 1, -1 do
-        local obstacle = State.Obstacles[i]
-        obstacle.X = obstacle.X - State.Speed * delta
-        if obstacle.X + CAR_WIDTH - 1 < 1 then
-            table.remove(State.Obstacles, i)
-        end
-    end
+    State.MoveAccumulator = State.MoveAccumulator + (State.Speed * delta)
+    local steps = math.floor(State.MoveAccumulator)
+    if steps > 0 then
+        State.MoveAccumulator = State.MoveAccumulator - steps
+        State.BorderOffset = (State.BorderOffset + steps) % 3
 
-    for i = #State.Boosters, 1, -1 do
-        local booster = State.Boosters[i]
-        booster.X = booster.X - State.Speed * delta
-        if booster.X + BOOSTER_SIZE - 1 < 1 then
-            table.remove(State.Boosters, i)
+        for i = #State.Obstacles, 1, -1 do
+            local obstacle = State.Obstacles[i]
+            obstacle.X = obstacle.X - steps
+            if obstacle.X + CAR_WIDTH - 1 < 1 then
+                table.remove(State.Obstacles, i)
+            end
+        end
+
+        for i = #State.Boosters, 1, -1 do
+            local booster = State.Boosters[i]
+            booster.X = booster.X - steps
+            if booster.X + BOOSTER_SIZE - 1 < 1 then
+                table.remove(State.Boosters, i)
+            end
         end
     end
 
@@ -351,26 +393,30 @@ function NextTick()
         if not obstacle.Scored and obstacle.X + CAR_WIDTH - 1 < State.PlayerX then
             obstacle.Scored = true
             GameStats.Players[1].Score = GameStats.Players[1].Score + (GameConfigObj.PointsPerObstacle * multiplier)
+            GameStats.CurrentStars = GameStats.Players[1].Score
         end
     end
 
     ClearFloor()
 
     for _, booster in ipairs(State.Boosters) do
-        DrawBooster(math.floor(booster.X), booster.Y, colors.YELLOW, GameConfigObj.Bright)
+        DrawBooster(booster.X, booster.Y, colors.YELLOW, GameConfigObj.Bright)
     end
 
     for _, obstacle in ipairs(State.Obstacles) do
-        DrawShape(math.floor(obstacle.X), obstacle.Y, CAR_SHAPE, colors.RED, GameConfigObj.Bright)
+        DrawShape(obstacle.X, obstacle.Y, CAR_SHAPE, colors.RED, GameConfigObj.Bright)
     end
 
     DrawShape(State.PlayerX, math.floor(State.PlayerY + 0.5), CAR_SHAPE, colors.GREEN, GameConfigObj.Bright)
 
     for x = 1, GameObj.Cols do
-        FloorMatrix[x][State.RoadTop].Color = colors.WHITE
-        FloorMatrix[x][State.RoadTop].Bright = GameConfigObj.Bright
-        FloorMatrix[x][State.RoadBottom].Color = colors.WHITE
-        FloorMatrix[x][State.RoadBottom].Bright = GameConfigObj.Bright
+        local dash = (x + State.BorderOffset) % 3
+        if dash ~= 0 then
+            FloorMatrix[x][State.RoadTop].Color = colors.WHITE
+            FloorMatrix[x][State.RoadTop].Bright = GameConfigObj.Bright
+            FloorMatrix[x][State.RoadBottom].Color = colors.WHITE
+            FloorMatrix[x][State.RoadBottom].Bright = GameConfigObj.Bright
+        end
     end
 end
 

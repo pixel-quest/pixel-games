@@ -33,8 +33,8 @@
   "SpeedIncreaseInterval_ru": "Интервал увеличения скорости (сек)",
   "SpeedIncreaseInterval_en": "Speed increase interval (sec)",
 
-  "ObstacleSpawnInterval": 1.3,
-  "ObstacleSpawnInterval_Min": 0.6,
+  "ObstacleSpawnInterval": 1.8,
+  "ObstacleSpawnInterval_Min": 0.8,
   "ObstacleSpawnInterval_Max": 3,
   "ObstacleSpawnInterval_Step": 0.1,
   "ObstacleSpawnInterval_ru": "Интервал появления препятствий (сек)",
@@ -74,6 +74,20 @@
   "PointsPerObstacle_Step": 1,
   "PointsPerObstacle_ru": "Очков за объезд",
   "PointsPerObstacle_en": "Points per pass",
+
+  "MaxObstacles": 3,
+  "MaxObstacles_Min": 1,
+  "MaxObstacles_Max": 6,
+  "MaxObstacles_Step": 1,
+  "MaxObstacles_ru": "Максимум препятствий на поле",
+  "MaxObstacles_en": "Max obstacles on field",
+
+  "MaxBoosters": 1,
+  "MaxBoosters_Min": 0,
+  "MaxBoosters_Max": 3,
+  "MaxBoosters_Step": 1,
+  "MaxBoosters_ru": "Максимум бустеров на поле",
+  "MaxBoosters_en": "Max boosters on field",
 
   "PlayerMoveSpeed": 6,
   "PlayerMoveSpeed_Min": 2,
