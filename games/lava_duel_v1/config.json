@@ -6,6 +6,8 @@
   "Bright_ru": "Яркость",
 
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "GameCountdown": 5,
@@ -34,9 +36,13 @@
   "SkipTutorial_en": "Skip tutorial", 
 
   "LavaScorePenalty": -0.5,
+  "LavaScorePenalty_ru": "Штраф к счету за наступ на лаву",
+  "LavaScorePenalty_ru": "Score penalty for stepping on lava",
   "LavaScorePenalty_Hidden": true,
 
   "GenerateRandomLevels": 0,
+  "GenerateRandomLevels_ru": "Генерировать случайные уровни(не доделано)",
+  "GenerateRandomLevels_ru": "Generate random levels(not finished feature)",
   "GenerateRandomLevels_Hidden": true,
 
   "BlockMoveAnimationTimeMS": 1500,

@@ -21,12 +21,18 @@
   "PadAFKTimer_en": "GamePad Afk Timer (When no inputs are coming from Pad for this long - give the controls to AI)",
 
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "PodSize": 2,
+  "PodSize_ru": "Размер игрока",
+  "PodSize_en": "Pod Size",
   "PodSize_Hidden": true,
 
   "MinBallDelayMS": 70,
+  "MinBallDelayMS_ru": "Максимально быстрый тикрейт мяча",
+  "MinBallDelayMS_ru": "Fastest ball tick rate possible",
   "MinBallDelayMS_Hidden": true,
 
   "PointsToWinRound": 5,
