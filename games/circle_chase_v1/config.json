@@ -6,6 +6,8 @@
 	"Bright_ru": "Яркость",
 
 	"WinDurationMS": 5000,
+	"WinDurationMS_ru": "Длительность конца игры",
+	"WinDurationMS_en": "After game duration",
 	"WinDurationMS_Hidden": true,
 
 	"CircleSize": 4,
