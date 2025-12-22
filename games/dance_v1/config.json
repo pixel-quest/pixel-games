@@ -6,6 +6,8 @@
   "Bright_ru": "Яркость",
 
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "StartPositionSize": 4,
@@ -37,7 +39,6 @@
   "EasyMode_ru": "Легкий режим (Без разделения на левую и правую ногу)",
   "EasyMode_en": "Easy Mode (No left/right leg colored pixels)",
 
-  "RowColorSwitch": true,
   "OutOfZoneSound": true,
   "OutOfZoneSound_ru": "Включить звук выхода с зоны",
   "OutOfZoneSound_en": "Enable 'Out Of Zone' warning sound"

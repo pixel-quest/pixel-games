@@ -13,9 +13,13 @@
   "PlayerCount_en": "Player Count",
 
   "GameCountdown": 5,
+  "GameCountdown_ru": "Отсчёт начала игры",
+  "GameCountdown_en": "Game start countdown",
   "GameCountdown_Hidden": true,
 
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "SkipTutorial": false,

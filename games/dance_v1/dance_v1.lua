@@ -920,13 +920,11 @@ CPaint.AnimateRow = function(iX, iColor)
         tFloor[iX][iY].bAnimated = true
     end
 
-    if tConfig.RowColorSwitch then
-        AL.NewTimer(tConfig.PixelMoveDelayMS, function()
-            for iY = 1, tGame.Rows do
-                tFloor[iX][iY].bAnimated = false
-            end
-        end)
-    end
+    AL.NewTimer(tConfig.PixelMoveDelayMS, function()
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].bAnimated = false
+        end
+    end)
 end
 
 CPaint.AnimateHit = function(iPlayerID, bHit, iPixelX)

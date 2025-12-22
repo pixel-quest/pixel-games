@@ -23,7 +23,11 @@
   "PlayerCount_ru": "Количество игроков",
 
   "MoveAllPixels": false,
+  "MoveAllPixels_ru": "Двигать все пиксели после нажатия на любой цветной",
+  "MoveAllPixels_en": "Move all pixels after any pixel is collected",
   
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true
 }

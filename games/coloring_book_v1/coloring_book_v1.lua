@@ -221,7 +221,7 @@ function NextTick()
         end
     end
     FloorMatrix[xColor][yColor].Color = tColors[math.floor(drawColor / 3) + 1]
-    FloorMatrix[xColor][yColor].Bright = math.floor( GameConfigObj.bright / (math.fmod(drawColor,3) + 1))
+    FloorMatrix[xColor][yColor].Bright = GameConfigObj.Bright
     if stateDraw == 0 then
         xColor = xColor + 1
         if xColor > 24 then
@@ -303,7 +303,7 @@ function PixelClick(click)
 
     FloorMatrix[click.X][click.Y].Click = time.unix()
 
-    if FloorMatrix[click.X][click.Y].State == 1 or click.Y < 3 or click.Y > 13 or click.X < 3 or click.X > 22 or gameState == -1 then
+    if FloorMatrix[click.X][click.Y].State == 1 or click.Y < 3 or click.Y > GameObj.Rows-2 or click.X < 3 or click.X > GameObj.Cols-2 or gameState == -1 then
         if FloorMatrix[click.X][click.Y].Color ~= colors.NONE and FloorMatrix[click.X][click.Y].Color ~= gameState.Color then
             gameState.Color = FloorMatrix[click.X][click.Y].Color
             gameState.Bright = FloorMatrix[click.X][click.Y].Bright

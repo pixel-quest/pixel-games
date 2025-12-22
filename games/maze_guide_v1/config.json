@@ -5,7 +5,9 @@
 	"Bright_Step": 1,
   	"Bright_ru": "Яркость",
 
-  	"WinDurationMS": 5000,
+	"WinDurationMS": 5000,
+	"WinDurationMS_ru": "Длительность конца игры",
+	"WinDurationMS_en": "After game duration",
 	"WinDurationMS_Hidden": true,
 
 	"Difficulty": 2,
@@ -31,5 +33,7 @@
 	"SkipTutorial_en": "Skip tutorial", 
 
 	"MovementTick": 250,	
+	"MovementTick_ru": "Частота движения пикселя",
+	"MovementTick_en": "Pixel movement tick rate",
 	"MovementTick_Hidden": true	
 }
