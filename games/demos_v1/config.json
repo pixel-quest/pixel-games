@@ -32,19 +32,29 @@
 
 	"Sound": "",
 	"Sound_Hidden": true,
+	"Sound_ru": "Звук",
 
 	"Video": "",
 	"Video_Hidden": true,
+	"Video_ru": "Видео",
 
 	"VideoDuration": 10,
 	"VideoDuration_Hidden": true,
+	"VideoDuration_ru": "Длительность видео",
+	"VideoDuration_en": "Video Duration",
 
 	"VideoLoop": false,
 	"VideoLoop_Hidden": true,
+	"VideoLoop_ru": "Зацикливать видео",
+	"VideoLoop_en": "Loop video",
 
 	"AudioLoop": false,
 	"AudioLoop_Hidden": true,
+	"AudioLoop_ru": "Зацикливать аудио",
+	"AudioLoop_en": "Loop audio",
 
 	"GameDuration": 0,
-	"GameDuration_Hidden": true  	
+	"GameDuration_Hidden": true,
+	"GameDuration_ru": "Длительность игры",
+	"GameDuration_en": "Game Duration"
 }

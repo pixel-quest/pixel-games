@@ -31,9 +31,13 @@
   "StagesQty_en": "Round/Stage Count",
   
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
   
   "CircleDrawDelayMs": 30,
+  "CircleDrawDelayMs_ru": "Задержка отрисовки круга",
+  "CircleDrawDelayMs_en": "Circle draw delay",
   "CircleDrawDelayMs_Hidden": true,  
   
   "GameDurationSec": 120,

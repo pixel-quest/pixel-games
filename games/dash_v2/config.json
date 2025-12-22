@@ -17,6 +17,8 @@
   "AutoStartPlayerCount_en": "Players needed for auto-start",
 
   "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность конца игры",
+  "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "GameCountdown": 10,
@@ -70,6 +72,8 @@
   "HardZoneDespawn_en": "Hard Mode (Zone despawns even if player is still on it)",
   
   "StageSwitchHitRegDelay": 1500,
+  "StageSwitchHitRegDelay": "Задержка лавы после смены этапа",
+  "StageSwitchHitRegDelay": "Lava hitreg delay after stage switch",
   "StageSwitchHitRegDelay_Hidden": true,
 
   "SkipTutorial": false,
