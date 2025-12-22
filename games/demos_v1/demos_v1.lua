@@ -539,6 +539,71 @@ CPaint.tDemoList["matrix2"][CPaint.FUNC_CLICK] = function(iX, iY)
 end
 --//
 
+--MATRIX
+CPaint.tDemoList["matrixwhite"] = {}
+CPaint.tDemoList["matrixwhite"].THINK_DELAY = 120
+CPaint.tDemoList["matrixwhite"].COLOR = "0xffffff"
+CPaint.tDemoList["matrixwhite"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["matrixwhite"].tVars = {}
+    CPaint.tDemoList["matrixwhite"].tVars.tParticles = {}
+
+    local function randX()
+        local iX = 0
+        repeat iX = math.random(1, tGame.Cols)
+        until tFloor[iX][1].iColor == CColors.NONE
+
+        return iX
+    end
+
+    AL.NewTimer(200, function()
+        if iGameState ~= GAMESTATE_GAME or not CPaint.tDemoList["matrixwhite"].tVars or CPaint.sLoadedDemo ~= "matrixwhite" then return; end
+
+        for iParticle = 1, math.random(0,2) do
+            local iParticleID = #CPaint.tDemoList["matrixwhite"].tVars.tParticles+1
+            CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID] = {}
+            CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iX = randX()
+            CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY = 1
+            CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iSize = math.random(7, 20)
+        end
+
+        return 200
+    end)
+end
+CPaint.tDemoList["matrixwhite"][CPaint.FUNC_PAINT] = function()
+    SetAllButtonColorBright(CColors.WHITE, tConfig.Bright)
+
+    for iParticleID = 1, #CPaint.tDemoList["matrixwhite"].tVars.tParticles do
+        if CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID] then
+            for iY = CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY - CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iSize, CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY do
+                if iY >= 1 and iY <= tGame.Rows then
+                    local iBright = (10 + math.floor(CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iSize/4)) + (iY - CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY)
+                    if iBright > 10 then iBright = 10 end
+                    if iBright < 0 then iBright = 0 end
+                    tFloor[CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iX][iY].iColor = tonumber(CPaint.tDemoList["matrixwhite"].COLOR)
+                    tFloor[CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iX][iY].iBright = iBright
+                end
+            end
+        end
+    end
+end
+CPaint.tDemoList["matrixwhite"][CPaint.FUNC_THINK] = function()
+
+    for iParticleID = 1, #CPaint.tDemoList["matrixwhite"].tVars.tParticles do
+        if CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID] then
+            CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY =  CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY + 1
+            if CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iY > tGame.Rows + CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID].iSize+1 then
+                CPaint.tDemoList["matrixwhite"].tVars.tParticles[iParticleID] = nil
+            end
+        end
+    end
+
+    return true
+end
+CPaint.tDemoList["matrixwhite"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
+
 --DERBY
 CPaint.tDemoList["derby"] = {}
 CPaint.tDemoList["derby"].THINK_DELAY = 200
@@ -650,36 +715,36 @@ CPaint.tDemoList["rainbowwave"].THINK_DELAY = 100
 CPaint.tDemoList["rainbowwave"].SIZE = 1
 CPaint.tDemoList["rainbowwave"].COLORS = 
 {
-    {CColors.RED, 1}, 
     {CColors.RED, 3}, 
-    {CColors.RED, 6}, 
-    {CColors.RED, 3}, 
-    {CColors.RED, 1},  
-    {CColors.YELLOW, 1}, 
+    {CColors.RED, 4}, 
+    {CColors.RED, 5}, 
+    {CColors.RED, 4}, 
+    {CColors.RED, 3},  
     {CColors.YELLOW, 3}, 
-    {CColors.YELLOW, 6}, 
-    {CColors.YELLOW, 3}, 
-    {CColors.YELLOW, 1},  
-    {CColors.GREEN, 1}, 
+    {CColors.YELLOW, 4}, 
+    {CColors.YELLOW, 5}, 
+    {CColors.YELLOW, 4}, 
+    {CColors.YELLOW, 3},  
     {CColors.GREEN, 3}, 
-    {CColors.GREEN, 6}, 
+    {CColors.GREEN, 4}, 
+    {CColors.GREEN, 5}, 
+    {CColors.GREEN, 4}, 
     {CColors.GREEN, 3}, 
-    {CColors.GREEN, 1}, 
-    {CColors.CYAN, 1}, 
     {CColors.CYAN, 3}, 
-    {CColors.CYAN, 6}, 
+    {CColors.CYAN, 4}, 
+    {CColors.CYAN, 5}, 
+    {CColors.CYAN, 4}, 
     {CColors.CYAN, 3}, 
-    {CColors.CYAN, 1}, 
-    {CColors.BLUE, 1}, 
     {CColors.BLUE, 3}, 
-    {CColors.BLUE, 6}, 
+    {CColors.BLUE, 4}, 
+    {CColors.BLUE, 5}, 
+    {CColors.BLUE, 4}, 
     {CColors.BLUE, 3}, 
-    {CColors.BLUE, 1}, 
-    {CColors.MAGENTA, 1}, 
     {CColors.MAGENTA, 3}, 
-    {CColors.MAGENTA, 6}, 
+    {CColors.MAGENTA, 4}, 
+    {CColors.MAGENTA, 5}, 
+    {CColors.MAGENTA, 4}, 
     {CColors.MAGENTA, 3}, 
-    {CColors.MAGENTA, 1}, 
 }
 
 CPaint.tDemoList["rainbowwave"][CPaint.FUNC_LOAD] = function()
