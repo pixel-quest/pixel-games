@@ -300,7 +300,7 @@ CGameMode.EndRound = function()
 end
 
 CGameMode.PreloadMap = function()
-    if (tConfig.GenerateRandomMap or not tGame.Maps) and tGame.UnitSize == 1 then
+    if (tConfig.GenerateRandomMap or not tGame.Maps) then
         CMaps.LoadMap(CMaps.GenerateRandomMap())
     else
         CMaps.LoadMap(tGame.Maps[CMaps.GetRandomMapID()])
@@ -448,6 +448,37 @@ CMaps.GenerateRandomMap = function()
 
     CMaps.CarveRandomGenMap(1,1)
 
+    if CUnits.UNIT_SIZE > 1 then
+        local tScaled = {}
+        local iScaledY = 1
+        for iY = 1, #CMaps.tRandomGenMap do
+            local iScaledX = 1
+            tScaled[iScaledY] = {}
+            tScaled[iScaledY+1] = {}
+            for iX = 1, #CMaps.tRandomGenMap[iY] do
+                tScaled[iScaledY][iScaledX] = CMaps.tRandomGenMap[iY][iX]
+                tScaled[iScaledY+1][iScaledX] = CMaps.tRandomGenMap[iY][iX]
+                tScaled[iScaledY][iScaledX+1] = CMaps.tRandomGenMap[iY][iX]
+                tScaled[iScaledY+1][iScaledX+1] = CMaps.tRandomGenMap[iY][iX]
+                iScaledX = iScaledX + 2
+            end
+            iScaledY = iScaledY + 2
+        end
+        CMaps.tRandomGenMap = {}
+        for iY = 1, tGame.Rows do
+            CMaps.tRandomGenMap[iY] = {}
+            for iX = 1, tGame.Cols do
+                CMaps.tRandomGenMap[iY][iX] = tScaled[iY][iX]
+            end
+        end
+
+        if tGame.Rows % 2 ~= 0 then
+            for iX = 1, tGame.Cols do
+                CMaps.tRandomGenMap[tGame.Rows][iX] = CBlock.BLOCK_TYPE_LAVA
+            end
+        end
+    end
+
     spawnSafeZone(tGame.iMinX, tGame.iMinY, 3)
     spawnSafeZone(tGame.iMaxX-2, tGame.iMaxY-2, 3)
 
@@ -458,19 +489,36 @@ CMaps.GenerateRandomMap = function()
         spawnSafeZone(iStartX, iStartY, iSize)
     end
 
-    local iCoinId = 1
+
     local iEnemySpawns = 0
-    while iCoinId <= tGame.Cols+tConfig.RandomMapUnitCount do
-        local iX = math.random(1, tGame.Cols)
-        local iY = math.random(1, tGame.Rows)
+    while iEnemySpawns < tConfig.RandomMapUnitCount do
+        local iY = math.random(1, tGame.iMaxY)
+        local iX = math.random(1, tGame.iMaxX)
+    
+        local bEmpty = true
+        for iCheckX = iX, iX + CUnits.UNIT_SIZE-1 do
+            for iCheckY = iY, iY + CUnits.UNIT_SIZE-1 do
+                if not CMaps.tRandomGenMap[iCheckY] or not CMaps.tRandomGenMap[iCheckY][iCheckY] or CMaps.tRandomGenMap[iCheckY][iCheckX] ~= CBlock.BLOCK_TYPE_GROUND then
+                    bEmpty = false
+                end
+            end
+        end
+
+        if bEmpty then
+            CMaps.tRandomGenMap[iY][iX] = 9
+            iEnemySpawns = iEnemySpawns + 1
+        end
+    end
+
+    local iCoinId = 1
+    while iCoinId <= tGame.Cols do
+        local iX = math.random(1, tGame.iMaxX+4)
+        local iY = math.random(1, tGame.iMaxY+4)
+        if iX > tGame.Cols then iX = tGame.Cols end
+        if iY > tGame.Rows then iY = tGame.Rows end
 
         if CMaps.tRandomGenMap[iY][iX] == CBlock.BLOCK_TYPE_GROUND and not tFloor[iX][iY].bDefect then
-            if iEnemySpawns < tConfig.RandomMapUnitCount and math.random(1,100) <= 25 then
-                CMaps.tRandomGenMap[iY][iX] = 9
-                iEnemySpawns = iEnemySpawns + 1
-            else
-                CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_COIN
-            end
+            CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_COIN
 
             iCoinId = iCoinId + 1
         end
@@ -480,7 +528,11 @@ CMaps.GenerateRandomMap = function()
 end
 
 CMaps.CarveRandomGenMap = function(iX, iY)
-    CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_GROUND
+    local function CarveGround(iX, iY)
+        CMaps.tRandomGenMap[iY][iX] = CBlock.BLOCK_TYPE_GROUND
+    end
+
+    CarveGround(iX, iY)
 
     local iR = math.random(0,3)
     for i = 0, 3 do
@@ -504,7 +556,7 @@ CMaps.CarveRandomGenMap = function(iX, iY)
             local iNX2 = iNX + iDX
             local iNY2 = iNY + iDY            
             if CMaps.tRandomGenMap[iNY2] and CMaps.tRandomGenMap[iNY2][iNX2] and CMaps.tRandomGenMap[iNY2][iNX2] == CBlock.BLOCK_TYPE_LAVA then
-                CMaps.tRandomGenMap[iNY][iNX] = CBlock.BLOCK_TYPE_GROUND
+                CarveGround(iNX, iNY)
                 CMaps.CarveRandomGenMap(iNX2, iNY2)
             end
         end
