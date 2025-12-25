@@ -45,6 +45,7 @@ local tGameStats = {
     TotalStages = 2,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 0,
+    SwitchStages = true,    
 }
 
 local tGameResults = {
