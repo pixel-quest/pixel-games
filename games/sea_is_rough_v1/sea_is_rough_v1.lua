@@ -106,6 +106,7 @@ local GameStats = {
     TotalStages = 0,
     TargetColor = colors.NONE,
     ScoreboardVariant = 7,
+    SwitchStages = true,
 }
 
 -- Структура результата игры (служебная): должна возвращаться в NextTick() в момент завершения игры
