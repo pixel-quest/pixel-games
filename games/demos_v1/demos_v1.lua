@@ -123,7 +123,7 @@ function StartGame(gameJson, gameConfigJson)
     CPaint.DemoThinker()
 
     if tConfig.Video ~= "" then
-        tGameStats.ScoreBoardVariant = 0
+        tGameStats.ScoreboardVariant = 0
         VideoPlay(tConfig.Video)
     end
 
