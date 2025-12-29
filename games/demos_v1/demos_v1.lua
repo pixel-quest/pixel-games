@@ -1057,6 +1057,39 @@ CPaint.tDemoList["watercircles"][CPaint.FUNC_CLICK] = function(iX, iY)
     end)
 end
 --//
+
+
+--STATICFILL
+CPaint.tDemoList["staticfill"] = {}
+CPaint.tDemoList["staticfill"].THINK_DELAY = 120
+CPaint.tDemoList["staticfill"].COLOR = "0xffffff"
+CPaint.tDemoList["staticfill"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["staticfill"].tVars = {}
+    CPaint.tDemoList["staticfill"].tVars.tClicked = AL.Stack()
+end
+CPaint.tDemoList["staticfill"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].iColor = tonumber(CPaint.tDemoList["staticfill"].COLOR)
+            tFloor[iX][iY].iBright = tConfig.Bright
+
+            if tFloor[iX][iY].bClick then
+                tFloor[iX][iY].iBright = CColors.BRIGHT100
+            end
+        end
+    end
+
+    for iClick = 1, CPaint.tDemoList["staticfill"].tVars.tClicked.Size() do
+        local tClick = CPaint.tDemoList["staticfill"].tVars.tClicked.Pop()
+        tFloor[tClick.iX][tClick.iY].iColor = CColors.NONE
+        CPaint.tDemoList["staticfill"].tVars.tClicked.Push(tClick)
+    end
+end
+CPaint.tDemoList["staticfill"][CPaint.FUNC_THINK] = function()
+end
+CPaint.tDemoList["staticfill"][CPaint.FUNC_CLICK] = function(iX, iY)
+end
+--//
 ----//
 
 --PICTURES
