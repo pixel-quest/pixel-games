@@ -6,9 +6,5 @@
 	"Bright_ru": "Яркость",
 
 	"WinDurationMS": 5000,
-	"WinDurationMS_Hidden": true,
-
-	"SkipTutorial": false,
-	"SkipTutorial_ru": "Пропустить обучение", 
-	"SkipTutorial_en": "Skip tutorial"	
+	"WinDurationMS_Hidden": true
 }
