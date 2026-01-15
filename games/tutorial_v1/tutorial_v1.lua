@@ -525,6 +525,7 @@ end
 
 --PIXELSONLAVA
 CStages.StageSpawn[CStages.STAGE_PIXELSONLAVA] = function()
+    CGameMode.bLavaSoundOn = false
     CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     local function spawnBatch(iStartX, iEndX, iY)
