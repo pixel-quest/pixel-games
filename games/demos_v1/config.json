@@ -6,9 +6,14 @@
   	"Bright_ru": "Яркость",
 
   	"DemoName": "rainbow",
-  	"DemoName_List": ["rainbow", "rainbowwave", "watercircles", "matrix", "derby", "rainbowsnake", "matrix2", "matrixwhite"],
+  	"DemoName_List": ["rainbow", "rainbowwave", "staticfill", "watercircles", "matrix", "derby", "rainbowsnake", "matrix2"],
   	"DemoName_ru": "Выбор заставки",
   	"DemoName_en": "Demo name",
+
+  	"ColorOverride": "default",
+  	"ColorOverride_List": ["default", "WHITE", "RED", "GREEN", "BLUE", "YELLOW", "MAGENTA", "CYAN"],
+  	"ColorOverride_ru": "Замена цвета заставки",
+  	"ColorOverride_en": "Demo color override", 
 
   	"PictureName": "none",
   	"PictureName_List": ["none", "arrow1", "arrow2", "arrow3"],
