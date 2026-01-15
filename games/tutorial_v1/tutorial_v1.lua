@@ -408,17 +408,17 @@ CStages.StageSpawn[CStages.STAGE_LAVAINTRODUCTION] = function()
 
     CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
-    local iLava1 = CObjects.NewObject(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
-    CObjects.tObjects[iLava1].iVelY = 1
-    CObjects.tObjects[iLava1].iTargetY = CStages.iSafeZoneSize
-    CObjects.tObjects[iLava1].bCollidable = true
-    local iLava2 = CObjects.NewObject(tGame.iMinX, tGame.iMaxY-1, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
-    CObjects.tObjects[iLava2].iVelY = -1
-    CObjects.tObjects[iLava2].iTargetY = CStages.iSafeZoneSize*2+1
-    CObjects.tObjects[iLava2].bCollidable = true
-
     AL.NewTimer(50, function()
         CObjects.SpawnCoinsRandomly(math.floor(tGame.Cols/4), false)
+
+        local iLava1 = CObjects.NewObject(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
+        CObjects.tObjects[iLava1].iVelY = 1
+        CObjects.tObjects[iLava1].iTargetY = CStages.iSafeZoneSize
+        CObjects.tObjects[iLava1].bCollidable = true
+        local iLava2 = CObjects.NewObject(tGame.iMinX, tGame.iMaxY-1, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
+        CObjects.tObjects[iLava2].iVelY = -1
+        CObjects.tObjects[iLava2].iTargetY = CStages.iSafeZoneSize*2+1
+        CObjects.tObjects[iLava2].bCollidable = true    
     end)
 
     CAudio.PlayVoicesSync("tutorial/click_blues_avoiding_lava.mp3")
@@ -549,6 +549,9 @@ CStages.StageClick[CStages.STAGE_PIXELSONLAVA] = function(iX, iY)
     if tFloor[iX][iY].iObjectID > 0 and CObjects.tObjects[tFloor[iX][iY].iObjectID] and CObjects.tObjects[tFloor[iX][iY].iObjectID].iType == CObjects.OBJECT_TYPE_COIN then
         CObjects.tObjects[tFloor[iX][iY].iObjectID] = nil    
         tGameStats.CurrentStars = tGameStats.CurrentStars + 1
+
+        CObjects.PaintObjects() -- костыль чтобы лава обжигала сразу
+
         if tGameStats.CurrentStars >= tGameStats.TotalStars then
             tGameStats.CurrentStars = 0
             tGameStats.TotalStars = 0
