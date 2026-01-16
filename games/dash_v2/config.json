@@ -72,8 +72,8 @@
   "HardZoneDespawn_en": "Hard Mode (Zone despawns even if player is still on it)",
   
   "StageSwitchHitRegDelay": 1500,
-  "StageSwitchHitRegDelay": "Задержка лавы после смены этапа",
-  "StageSwitchHitRegDelay": "Lava hitreg delay after stage switch",
+  "StageSwitchHitRegDelay_ru": "Задержка лавы после смены этапа",
+  "StageSwitchHitRegDelay_en": "Lava hitreg delay after stage switch",
   "StageSwitchHitRegDelay_Hidden": true,
 
   "SkipTutorial": false,
