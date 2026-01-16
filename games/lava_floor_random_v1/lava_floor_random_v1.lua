@@ -459,6 +459,12 @@ CMap.iGenType = 0
 CMap.GenerateRandomMap = function()
     CMap.iGenType = CMap.NewGenType(CMap.iGenType)
 
+    if tConfig.ForcePattern and tConfig.ForcePattern ~= "" and tConfig.ForcePattern ~= "none" then
+        if CMap["GEN_TYPE_"..tConfig.ForcePattern] ~= nil then
+            CMap.iGenType = CMap["GEN_TYPE_"..tConfig.ForcePattern]
+        end
+    end
+
     CMap.GenerateMapWithType[CMap.iGenType]();
 
     CGameMode.iMapCoinCount = CBlock.tBlocksCountPerType[CBlock.BLOCK_TYPE_COIN]
