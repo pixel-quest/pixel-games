@@ -27,5 +27,5 @@
 
   	"HardMode": false,
   	"HardMode_ru": "Сложный режим, разбитые стёкла не остаются видимыми",
-  	"HardMode_ru": "Hard Mode, broken windows are not visible"
+  	"HardMode_en": "Hard Mode, broken windows are not visible"
 }
