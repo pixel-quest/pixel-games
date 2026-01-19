@@ -32,7 +32,7 @@ local GAMESTATE_POSTGAME = 3
 local GAMESTATE_FINISH = 4
 
 local bGamePaused = false
-local iGameState = GAMESTATE_RULES
+local iGameState = -1
 local iPrevTickTime = 0
 
 local tGameStats = {
@@ -116,28 +116,36 @@ function StartGame(gameJson, gameConfigJson)
     tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
     tGame.CenterY = math.floor((tGame.iMaxY-tGame.iMinY+1)/2)
 
+    SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+
     CGameMode.InitGameMode()
+
+    CAudio.PlayVoicesSync("pong4/pong4-gamename.mp3")
 
     if tConfig.SkipTutorial or not AL.NewRulesScript then
         iGameState = GAMESTATE_SETUP
         CGameMode.Announcer()
     else
-        tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
-        AL.NewTimer(1000, function()
-            tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        AL.NewTimer(CAudio.GetVoicesDuration("pong4/pong4-gamename.mp3")*1000, function()
+            iGameState = GAMESTATE_RULES
+            tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+            tGameStats.StageLeftDuration = AL.Rules.iCountDownTime
+            AL.NewTimer(1000, function()
+                tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
 
-            if tGameStats.StageLeftDuration == 0 then
-                iGameState = GAMESTATE_SETUP
-                CGameMode.Announcer()
-            
-                return nil;
-            end
+                if tGameStats.StageLeftDuration == 0 then
+                    iGameState = GAMESTATE_SETUP
+                    CGameMode.Announcer()
+                
+                    return nil;
+                end
 
-            if tGameStats.StageLeftDuration <= 5 then
-                CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
-            end
+                if tGameStats.StageLeftDuration <= 5 then
+                    CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
+                end
 
-            return 1000;
+                return 1000;
+            end)
         end)
     end
 end
@@ -192,7 +200,6 @@ end
 function GameSetupTick()
     tGameStats.ScoreboardVariant = 6
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
-    if not CGameMode.bCountDownStarted then SetAllButtonColorBright(CColors.BLUE, tConfig.Bright, true) end
     CGameMode.PaintPositions()
     CBuildings.Paint()
 
