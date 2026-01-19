@@ -35,6 +35,11 @@
 	"Seed_ru": "Номер уровня(0 = случайный)",
 	"Seed_en": "Generation seed(0 = random)",
 
+	"ForcePattern": "none",
+	"ForcePattern_List": ["SAFEEDGES","SQUAREFIELD","LL","DOORS","CROSSHAIR","CENTERSAFE","ARROWS","DASH"],
+	"ForcePattern_ru": "Принудительный тип уровня (Для тестирования)",
+	"ForcePattern_en": "Force Level Pattern Type (For Testing)",
+
 	"RoundCountdown": 5,
 	"RoundCountdown_ru": "Время до начала раунда",
 	"RoundCountdown_en": "Round start countdown",
