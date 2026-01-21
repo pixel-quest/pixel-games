@@ -140,6 +140,60 @@ function StartGame(gameJson, gameConfigJson)
         bAnyButtonClick = true
     end
 
+    if tGame.StartPositionSizeX == nil then
+        tGame.StartPositionSizeX = iMaxX-iMinX
+        tGame.StartPositionSizeY = iMaxY-iMinY
+    end
+
+    if tGame.Maps == nil then
+        local startCenterX = math.floor(tGame.StartPositionSizeX/2)
+        local startCenterY = math.floor(tGame.StartPositionSizeY/2)
+
+        local function newMap(fCompare)
+            local tNewMap = {}
+            for iY = 1, tGame.StartPositionSizeY do
+                tNewMap[iY] = {}
+                for iX = 1, tGame.StartPositionSizeX do
+                    tNewMap[iY][iX] = 2
+                    if fCompare(iX, iY) then
+                        tNewMap[iY][iX] = 1
+                    end
+                end
+            end
+            return tNewMap
+        end
+
+        tGame.Maps = {}
+
+        tGame.Maps[1] = newMap(function(iX, iY)
+            if (iX >= startCenterX-1 and iX <= startCenterX+1) or (iY >= startCenterY-1 and iY <= startCenterY+1) then
+                return true;
+            end
+
+            return false
+        end)
+
+        tGame.Maps[2] = newMap(function(iX, iY)
+            if iY < startCenterY then
+                if iY % 2 == 0 then
+                    return true;
+                end
+            elseif iX < startCenterX and iX % 2 == 0 then
+                return true;
+            end
+
+            return false
+        end)
+
+        tGame.Maps[3] = newMap(function(iX, iY)
+            if iX % 2 == 0 and iY % 2 == 0 then
+                return true;
+            end
+
+            return false
+        end)
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
