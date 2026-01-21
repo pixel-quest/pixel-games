@@ -1,0 +1,47 @@
+{
+  "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+  "Bright_ru": "Яркость",
+  "Bright_en": "Brightness",
+
+  "Gravity": 9.8,
+  "Gravity_Min": 4,
+  "Gravity_Max": 14,
+  "Gravity_Step": 1,
+  "Gravity_ru": "Гравитация",
+  "Gravity_en": "Gravity",
+
+  "FlapImpulse": 5.5,
+  "FlapImpulse_Min": 3,
+  "FlapImpulse_Max": 8,
+  "FlapImpulse_Step": 0.5,
+  "FlapImpulse_ru": "Сила взмаха",
+  "FlapImpulse_en": "Flap impulse",
+
+  "PipeGap": 5,
+  "PipeGap_Min": 3,
+  "PipeGap_Max": 7,
+  "PipeGap_Step": 1,
+  "PipeGap_ru": "Размер пролета",
+  "PipeGap_en": "Gap size",
+
+  "PipeInterval": 1.9,
+  "PipeInterval_Min": 1.2,
+  "PipeInterval_Max": 3,
+  "PipeInterval_Step": 0.1,
+  "PipeInterval_ru": "Период труб",
+  "PipeInterval_en": "Pipe interval",
+
+  "PipeSpeed": 4,
+  "PipeSpeed_Min": 2,
+  "PipeSpeed_Max": 6,
+  "PipeSpeed_Step": 0.5,
+  "PipeSpeed_ru": "Скорость",
+  "PipeSpeed_en": "Speed",
+
+  "SkipTutorial": false,
+  "SkipTutorial_ru": "Пропустить обучение",
+  "SkipTutorial_en": "Skip tutorial"
+}
