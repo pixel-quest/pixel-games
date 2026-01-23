@@ -142,6 +142,20 @@ function StartGame(gameJson, gameConfigJson)
             iSide = 2
         end
 
+        for _, iButton2 in pairs(tGame.Buttons) do
+            if iButton ~= iButton2 and tButtons[iButton2] and AL.RectIntersects(iX, iY, tGame.SafeZoneSizeX, tButtons[iButton2].iSafeZoneX, tButtons[iButton2].iSafeZoneY, tGame.SafeZoneSizeX) then
+                if iY < tButtons[iButton2].iSafeZoneY then
+                    iY = iY - 1
+                elseif iY > tButtons[iButton2].iSafeZoneY then
+                    iY = iY + 1
+                elseif iX < tButtons[iButton2].iSafeZoneX then
+                    iX = iX - 1
+                else
+                    iX = iX + 1
+                end
+            end
+        end
+
         if iX >= tGame.iMaxX then
             iX = tGame.iMaxX-1 
         end
