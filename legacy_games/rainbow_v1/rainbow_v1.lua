@@ -108,10 +108,14 @@ local GameResults = {
 -- Локальные переменные для внутриигровой логики
 local FloorMatrix = {} -- матрица пола
 local ButtonsList = {} -- список кнопок
+local LasersList = {} -- список лазеров
 local Pixel = { -- пиксель тип
     Color = colors.NONE,
     Bright = colors.BRIGHT0,
     Click = false,
+}
+local Laser = {
+    Light = false,
 }
 local GradientLength = 0
 local GradientOffset = 0
@@ -134,6 +138,15 @@ function StartGame(gameJson, gameConfigJson)
 
     for i, num in pairs(GameObj.Buttons) do
         ButtonsList[num] = help.ShallowCopy(Pixel) -- тип аналогичен пикселю
+    end
+
+    if GameObj.Lasers then
+        for line=1,GameObj.Lasers.lines do
+            LasersList[line] = {}  -- новый столбец
+            for z=1,GameObj.Lasers.rows do
+                LasersList[line][z] = help.ShallowCopy(Laser) -- заполняем нулевыми лазерами
+            end
+        end
     end
 
     GradientLength = table.getn(GameObj.Colors)
@@ -194,6 +207,14 @@ function NextTick()
         ButtonsList[num].Bright = GameObj.Colors[(num+GradientOffset) % GradientLength + 1].Bright
     end
 
+    if GameObj.Lasers then
+        for line=1,GameObj.Lasers.lines do
+            for z=1,GameObj.Lasers.rows do
+                LasersList[line][z].Light = tonumber(GameObj.Colors[(line+z+GradientOffset) % GradientLength + 1].Color) == 0xFF0000
+            end
+        end
+    end
+
     GradientOffset = GradientOffset + 1
     LastChangesTimestamp = time.unix()
 
@@ -235,7 +256,8 @@ end
 -- Параметры:
 --  setPixel = func(x int, y int, color int, bright int)
 --  setButton = func(button int, color int, bright int)
-function RangeFloor(setPixel, setButton)
+--  setLasers = func(line int, z int, light bool)
+function RangeFloor(setPixel, setButton, setLasers)
     for x=1,GameObj.Cols do
         for y=1,GameObj.Rows do
             if GameConfigObj.DarkClicks and FloorMatrix[x][y].Click then
@@ -248,6 +270,14 @@ function RangeFloor(setPixel, setButton)
 
     for num, button in pairs(ButtonsList) do
         setButton(num,button.Color,button.Bright)
+    end
+
+    if GameObj.Lasers then
+        for line=1,GameObj.Lasers.lines do
+            for z=1,GameObj.Lasers.rows do
+                setLasers(line, z, LasersList[line][z].Light)
+            end
+        end
     end
 end
 
