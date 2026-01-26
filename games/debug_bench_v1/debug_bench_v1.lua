@@ -162,7 +162,7 @@ function RangeFloor(setPixel, setButton, setLasers)
         setButton(i, tButton.iColor, tButton.iBright)
     end
 
-    if setLasers and AL.Lasers.bRoomHasLasers then
+    if setLasers and AL.bRoomHasLasers then
         AL.SetLasers(setLasers)
     end
 end
