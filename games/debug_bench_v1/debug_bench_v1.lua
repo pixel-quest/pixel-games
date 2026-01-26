@@ -107,6 +107,34 @@ function StartGame(gameJson, gameConfigJson)
             return nil
         end
     end)
+
+    if tConfig.LasersTest and AL.InitLasers then
+        AL.InitLasers(tGame)
+
+        local iCurrentLine = 0
+
+        local function toggleLasersInLine(iLine, bOn)
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+                --CLog.print(iLine.." "..iRow.." switched ")
+            end
+        end
+
+        if AL.bRoomHasLasers then
+            AL.NewTimer(500, function()
+                if tGameStats.StageNum == 1 then
+                    toggleLasersInLine(iCurrentLine, false)
+                    iCurrentLine = iCurrentLine + 1
+                    if iCurrentLine > AL.Lasers.iLines then iCurrentLine = 1 end
+                    toggleLasersInLine(iCurrentLine, true)
+
+                    return 1000
+                else
+                    return nil
+                end
+            end)
+        end
+    end
 end
 
 function NextTick()
