@@ -151,7 +151,7 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -160,6 +160,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.Lasers.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
