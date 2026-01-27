@@ -80,6 +80,10 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
+  "EnableLasers": true,
+  "EnableLasers_ru": "Включить Лазеры(Если есть)",
+  "EnableLasers_en": "Enable Lasers(if available)",
+
   "LavaLag": 400,
   "LavaLag_Min": 0,
   "LavaLag_Max": 1000,
