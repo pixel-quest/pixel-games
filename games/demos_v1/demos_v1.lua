@@ -925,19 +925,17 @@ end
 
 --RAINBOW
 CPaint.tDemoList["rainbow"] = {}
-CPaint.tDemoList["rainbow"].THINK_DELAY = 100
+CPaint.tDemoList["rainbow"].THINK_DELAY = 130
 CPaint.tDemoList["rainbow"].COLOR = "0xffffff"
 CPaint.tDemoList["rainbow"].COLORS = {CColors.WHITE, CColors.CYAN, CColors.BLUE, CColors.MAGENTA, CColors.RED, CColors.YELLOW, CColors.GREEN}
+CPaint.tDemoList["rainbow"].BRIGHTS = {CColors.BRIGHT15, CColors.BRIGHT30, CColors.BRIGHT60, CColors.BRIGHT85, CColors.BRIGHT60, CColors.BRIGHT30, CColors.BRIGHT15}
 CPaint.tDemoList["rainbow"][CPaint.FUNC_LOAD] = function()
     CPaint.tDemoList["rainbow"].tVars = {}
 
     CPaint.tDemoList["rainbow"].tVars.tColors = {}
     for iColorID = 1, #CPaint.tDemoList["rainbow"].COLORS do
-        for iBright = CColors.BRIGHT30, CColors.BRIGHT100 do
-            table.insert(CPaint.tDemoList["rainbow"].tVars.tColors, {iColor = CPaint.tDemoList["rainbow"].COLORS[iColorID], iBright = iBright})
-        end
-        for iBright = CColors.BRIGHT100, CColors.BRIGHT30, -1 do
-            table.insert(CPaint.tDemoList["rainbow"].tVars.tColors, {iColor = CPaint.tDemoList["rainbow"].COLORS[iColorID], iBright = iBright})
+        for iBrightID = 1, #CPaint.tDemoList["rainbow"].BRIGHTS do
+            table.insert(CPaint.tDemoList["rainbow"].tVars.tColors, {iColor = CPaint.tDemoList["rainbow"].COLORS[iColorID], iBright = CPaint.tDemoList["rainbow"].BRIGHTS[iBrightID]})
         end
     end
 
@@ -964,6 +962,49 @@ CPaint.tDemoList["rainbow"][CPaint.FUNC_THINK] = function()
     return true
 end
 CPaint.tDemoList["rainbow"][CPaint.FUNC_CLICK] = function(iX, iY)
+    
+end
+--//
+
+--RAINBOWDIM
+CPaint.tDemoList["rainbowdim"] = {}
+CPaint.tDemoList["rainbowdim"].THINK_DELAY = 130
+CPaint.tDemoList["rainbowdim"].COLOR = "0xffffff"
+CPaint.tDemoList["rainbowdim"].COLORS = {CColors.WHITE, CColors.CYAN, CColors.BLUE, CColors.MAGENTA, CColors.RED, CColors.YELLOW, CColors.GREEN}
+CPaint.tDemoList["rainbowdim"].BRIGHTS = {CColors.BRIGHT0, CColors.BRIGHT0, CColors.BRIGHT15, CColors.BRIGHT30, CColors.BRIGHT30, CColors.BRIGHT45, CColors.BRIGHT30, CColors.BRIGHT30, CColors.BRIGHT15, CColors.BRIGHT0, CColors.BRIGHT0}
+CPaint.tDemoList["rainbowdim"][CPaint.FUNC_LOAD] = function()
+    CPaint.tDemoList["rainbowdim"].tVars = {}
+
+    CPaint.tDemoList["rainbowdim"].tVars.tColors = {}
+    for iColorID = 1, #CPaint.tDemoList["rainbowdim"].COLORS do
+        for iBrightID = 1, #CPaint.tDemoList["rainbowdim"].BRIGHTS do
+            table.insert(CPaint.tDemoList["rainbowdim"].tVars.tColors, {iColor = CPaint.tDemoList["rainbowdim"].COLORS[iColorID], iBright = CPaint.tDemoList["rainbowdim"].BRIGHTS[iBrightID]})
+        end
+    end
+
+    CPaint.tDemoList["rainbowdim"].tVars.iColorOffset = 0
+end
+CPaint.tDemoList["rainbowdim"][CPaint.FUNC_PAINT] = function()
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            local id = tonumber((iX+iY+CPaint.tDemoList["rainbowdim"].tVars.iColorOffset) % #CPaint.tDemoList["rainbowdim"].tVars.tColors + 1)
+            tFloor[iX][iY].iColor = CPaint.tDemoList["rainbowdim"].tVars.tColors[id].iColor
+            tFloor[iX][iY].iBright = CPaint.tDemoList["rainbowdim"].tVars.tColors[id].iBright
+        end
+    end
+
+    for iButtonID, tButton in pairs(tButtons) do
+        local id = tonumber((iButtonID+CPaint.tDemoList["rainbowdim"].tVars.iColorOffset) % #CPaint.tDemoList["rainbowdim"].tVars.tColors + 1)
+        tButtons[iButtonID].iColor = CPaint.tDemoList["rainbowdim"].tVars.tColors[id].iColor
+        tButtons[iButtonID].iBright = CPaint.tDemoList["rainbowdim"].tVars.tColors[id].iBright
+    end
+end
+CPaint.tDemoList["rainbowdim"][CPaint.FUNC_THINK] = function()
+    CPaint.tDemoList["rainbowdim"].tVars.iColorOffset = CPaint.tDemoList["rainbowdim"].tVars.iColorOffset + 1
+
+    return true
+end
+CPaint.tDemoList["rainbowdim"][CPaint.FUNC_CLICK] = function(iX, iY)
     
 end
 --//
