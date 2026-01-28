@@ -102,6 +102,8 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
+    if not tGame.BurnDelay then tGame.BurnDelay = 250 end
+
     if AL.RoomHasNFZ(tGame) then
         AL.LoadNFZInfo()
     end
@@ -840,8 +842,16 @@ CUnits.Move = function(iUnitID, iXPlus, iYPlus)
     CUnits.tUnits[iUnitID].iX = CUnits.tUnits[iUnitID].iX + iXPlus
     CUnits.tUnits[iUnitID].iY = CUnits.tUnits[iUnitID].iY + iYPlus
 
-    if CBlock.tBlocks[CUnits.tUnits[iUnitID].iX][CUnits.tUnits[iUnitID].iY].iBlockType ~= CBlock.BLOCK_TYPE_START and CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.UNIT_SIZE, CUnits.UNIT_SIZE) then
-        CUnits.UnitDamagePlayer(iUnitID, 1)
+    local iClickX, iClickY = CheckPositionClick({X = CUnits.tUnits[iUnitID].iX, Y = CUnits.tUnits[iUnitID].iY}, CUnits.UNIT_SIZE, CUnits.UNIT_SIZE)
+
+    if iClickX and CBlock.tBlocks[iClickX][iClickY].iBlockType ~= CBlock.BLOCK_TYPE_START then
+        AL.NewTimer(tGame.BurnDelay, function()
+            if tFloor[iClickX][iClickY].bClick then
+                if CUnits.UnitDamagePlayer(iUnitID, 1) then
+                    CPaint.AnimatePixelFlicker(iClickX, iClickY, 5, CColors.NONE)
+                end
+            end
+        end)
     end
 end
 
@@ -858,7 +868,7 @@ end
 
 --UNIT EVENTS
 CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
-    if not CUnits.tUnits[iUnitID].bCanDamage then return; end
+    if not CUnits.tUnits[iUnitID] or not CUnits.tUnits[iUnitID].bCanDamage then return false; end
 
     CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
@@ -871,10 +881,14 @@ CUnits.UnitDamagePlayer = function(iUnitID, iHealthPenalty)
     CUnits.tUnits[iUnitID].bCanDamage = false
     CUnits.tUnits[iUnitID].iColor = CColors.MAGENTA
     AL.NewTimer(2000, function()
-        CUnits.tUnits[iUnitID].bCanDamage = true
-        CUnits.tUnits[iUnitID].iColor = CColors.YELLOW
+        if CUnits.tUnits[iUnitID] then
+            CUnits.tUnits[iUnitID].bCanDamage = true
+            CUnits.tUnits[iUnitID].iColor = CColors.YELLOW
+        end
         return nil;
     end)
+
+    return true
 end
 --/
 --//
@@ -1164,7 +1178,7 @@ function CheckPositionClick(tStart, iSizeX, iSizeY)
         for iY = tStart.Y, tStart.Y + iSizeY - 1 do
             if tFloor[iX] and tFloor[iX][iY] then
                 if tFloor[iX][iY].bClick then
-                    return true
+                    return iX, iY
                 end
             end
         end
@@ -1262,8 +1276,15 @@ function PixelClick(click)
                 CBlock.RegisterBlockClick(click.X, click.Y)
             end
 
-            if tFloor[click.X][click.Y].iUnitID > 0 and CBlock.tBlocks[click.X][click.Y].iBlockType ~= CBlock.BLOCK_TYPE_START then
-                CUnits.UnitDamagePlayer(tFloor[click.X][click.Y].iUnitID, 1)
+            local iUnitID = tFloor[click.X][click.Y].iUnitID 
+            if iUnitID > 0 and CBlock.tBlocks[click.X][click.Y].iBlockType ~= CBlock.BLOCK_TYPE_START then
+                AL.NewTimer(tGame.BurnDelay, function()
+                    if tFloor[click.X][click.Y].bClick then
+                        if CUnits.UnitDamagePlayer(iUnitID, 1) then
+                            CPaint.AnimatePixelFlicker(click.X, click.Y, 5, CColors.NONE)
+                        end
+                    end
+                end)
             end
         end
     end

@@ -501,7 +501,7 @@ CUnits.Paint = function()
                         tFloor[iX][iY].iBright = CUnits.tUnits[iUnitID].iBright
 
                         if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iWeight > 5 and not tFloor[iX][iY].bDamageCooldown then
-                            if (CTime.unix() - tFloor[iX][iY].iClickTime)*1000 < tGame.DamageDelay then
+                            if (CTime.unix() - tFloor[iX][iY].iClickTime)*1000 < tGame.BurnDelay then
                                 CUnits.DamagePlayer(iUnitID)
 
                                 tFloor[iX][iY].bDamageCooldown = true
@@ -523,8 +523,10 @@ CUnits.DamagePlayer = function(iUnitID)
         local iColor = CUnits.tUnits[iUnitID].iColor
         CUnits.tUnits[iUnitID].iColor = CColors.MAGENTA
         AL.NewTimer(1000, function()
-            CUnits.tUnits[iUnitID].bDamageCooldown = false
-            CUnits.tUnits[iUnitID].iColor = iColor
+            if CUnits.tUnits[iUnitID] then
+                CUnits.tUnits[iUnitID].bDamageCooldown = false
+                CUnits.tUnits[iUnitID].iColor = iColor
+            end
         end)
 
         CGameMode.DamagePlayer()

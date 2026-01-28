@@ -432,7 +432,9 @@ CGameMode.PlayerCollectLava = function(iX, iY)
 
         CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = true
         AL.NewTimer(1000, function()
-            CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = false
+            if CGameMode.bRoundStarted then
+                CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = false
+            end
         end)
     end
 end
@@ -1069,7 +1071,11 @@ end
 CBlock.LavaObjectClick = function(iX, iY)
     if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted or not CBlock.IsEmpty(CBlock.LAYER_SAFEGROUND, iX, iY) or tFloor[iX][iY].bProtectedFromLava --[[or (not CBlock.IsEmpty(CBlock.LAYER_COINS, iX, iY) and not CBlock.tBlocks[CBlock.LAYER_COINS][iX][iY].bCollected)]] then return; end
 
-    CGameMode.PlayerCollectLava(iX, iY)
+    AL.NewTimer(tGame.BurnDelay, function()
+        if tFloor[iX][iY].bClick then
+            CGameMode.PlayerCollectLava(iX, iY)
+        end
+    end)
 end
 
 CBlock.CalculateMovableObjects = function()
