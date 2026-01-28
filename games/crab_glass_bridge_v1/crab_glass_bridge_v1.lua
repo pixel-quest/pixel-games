@@ -110,9 +110,36 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
     end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
+
+    tGame.FinishX = tGame.iMaxX-1
+
+    tGame.StartPositionSizeX = 3
+    tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY+1)/3)
+    tGame.StartPositions = {}
+    tGame.StartPositions[1] = {X = tGame.iMinX, Y = tGame.iMinY+1, Color = CColors.GREEN, PreStartDraw = true}
+    tGame.StartPositions[2] = {X = tGame.iMinX, Y = tGame.iMaxY - tGame.StartPositionSizeY, Color = CColors.YELLOW, PreStartDraw = false}
+
+    tGame.SquareRows = {}
+    tGame.SquareRows[1] = {X = tGame.iMinX+4, Y = tGame.iMinY+1}
+    tGame.SquareRows[2] = {X = tGame.iMinX+4, Y = tGame.iMaxY - tGame.StartPositionSizeY}
+    tGame.SquareRowLength = math.floor((tGame.iMaxX-tGame.iMinX+1)/4)
+    tGame.SquareRowHeight = 2
 
     CAudio.PlayVoicesSync("glassbridge/glassbridge_voice_gamename.mp3")
 
@@ -439,10 +466,9 @@ CPaint.Finish = function()
         end
     end
 
-    local iY = math.ceil(tGame.Rows/2)
     for iX = 1, tGame.Cols do
-        if tFloor[iX][iY].iColor == CColors.WHITE then
-            tFloor[iX][iY].iColor = CColors.RED
+        if tFloor[iX][tGame.CenterY].iColor == CColors.WHITE then
+            tFloor[iX][tGame.CenterY].iColor = CColors.RED
         end
     end
 end
