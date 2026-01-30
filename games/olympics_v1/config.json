@@ -11,6 +11,7 @@
   "WinDurationMS_Hidden": true,
 
   "RoundCountdown": 6,
+  "RoundCountdown_Hidden": true,
   "RoundCountdown_Min": 1,
   "RoundCountdown_Max": 20,
   "RoundCountdown_Step": 1,

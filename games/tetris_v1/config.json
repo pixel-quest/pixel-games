@@ -22,6 +22,7 @@
   	"MoveDownTickRate_en": "Block movement tick rate",
 
 	"MoveDownTickRateDecreasePerClearedLine": 10,
+	"MoveDownTickRateDecreasePerClearedLine": 10,
 	"MoveDownTickRateDecreasePerClearedLine_Min": 0,
 	"MoveDownTickRateDecreasePerClearedLine_Max": 50,
 	"MoveDownTickRateDecreasePerClearedLine_Step": 5,

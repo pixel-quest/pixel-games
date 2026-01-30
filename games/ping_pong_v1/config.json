@@ -14,6 +14,7 @@
   "SoloGame_en": "Single player vs AI or controller",
 
   "PadAFKTimer": 10,
+  "PadAFKTimer_Hidden": true,
   "PadAFKTimer_Min": 5,
   "PadAFKTimer_Max": 30,
   "PadAFKTimer_Step": 1,
@@ -43,6 +44,7 @@
   "PointsToWin_en": "Points to win",  
 
   "InitialBallDelayMS": 250,
+  "InitialBallDelayMS_Hidden": true,
   "InitialBallDelayMS_Min": 120,
   "InitialBallDelayMS_Max": 2000,
   "InitialBallDelayMS_Step": 10,
@@ -50,6 +52,7 @@
   "InitialBallDelayMS_en": "Initial ball movement tickrate",
 
   "BallDelayHitDecreaseMS": 20,
+  "BallDelayHitDecreaseMS_Hidden": true,
   "BallDelayHitDecreaseMS_Min": 1,
   "BallDelayHitDecreaseMS_Max": 50,
   "BallDelayHitDecreaseMS_Step": 1,

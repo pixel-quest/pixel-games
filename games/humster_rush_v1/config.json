@@ -11,6 +11,7 @@
   "WinDurationMS_Hidden": true,
 
   "delay": 5,
+  "delay_Hidden": true,
   "delay_Min": 3,
   "delay_Max": 15,
   "delay_Step": 1,

@@ -22,6 +22,7 @@
 	"TimerOn_en": "Time Limit Enabled",
 
 	"ControlPanelWidth": 2,
+	"ControlPanelWidth_Hidden": true,
 	"ControlPanelWidth_Min": 1,
 	"ControlPanelWidth_Max": 2,
 	"ControlPanelWidth_Step": 1,	

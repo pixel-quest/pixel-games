@@ -5,6 +5,10 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"LasersTest": true,
+	"LasersTest_ru": "Включить лазеры",
+	"LasersTest_en": "Enable lasers",
+
 	"ForeverPixel": false,
 	"ForeverPixel_ru": "Пиксель светится бесконечно после нажатия",
 	"ForeverPixel_en": "Pixels stay pressed forever",
