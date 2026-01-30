@@ -11,6 +11,7 @@
 	"WinDurationMS_Hidden": true,
 
 	"CircleSize": 4,
+	"CircleSize": 4,
 	"CircleSize_Min": 2,
 	"CircleSize_Max": 5,
 	"CircleSize_Step": 1,

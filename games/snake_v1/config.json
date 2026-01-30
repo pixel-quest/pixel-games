@@ -39,6 +39,7 @@
   "TargetScore_Step_en": "Target Score",
 
   "SnakeThinkTime": 200,
+  "SnakeThinkTime_Hidden": true,
   "SnakeThinkTime_Min": 100,
   "SnakeThinkTime_Max": 1000,
   "SnakeThinkTime_Step": 100,
@@ -46,6 +47,7 @@
   "SnakeThinkTime_en": "Snake movement delay",
 
   "SnakeLength": 3,
+  "SnakeLength_Hidden": true,
   "SnakeLength_Min": 2,
   "SnakeLength_Max": 10,
   "SnakeLength_Step": 1,
@@ -53,6 +55,7 @@
   "SnakeLength_en": "Snake starting size",
 
   "FixedSnakeSize": false,
+  "FixedSnakeSize_Hidden": true,
   "FixedSnakeSize_ru": "Змейка не увеличивается в размере",
   "FixedSnakeSize_en": "Fixed snake's size(doesnt increase)",
 
@@ -61,6 +64,7 @@
   "SnakeDamagePlayerOnStep_en": "Snake damages players on step",
 
   "PadAFKTimer": 10,
+  "PadAFKTimer_Hidden": true,
   "PadAFKTimer_Min": 5,
   "PadAFKTimer_Max": 30,
   "PadAFKTimer_Step": 1,

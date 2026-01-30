@@ -24,5 +24,7 @@
     77
   ],
 
+  "BurnDelay": 400,
+
   "DisableButtonsGameplay": false
 }

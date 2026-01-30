@@ -15,6 +15,7 @@
 	"SkipTutorial_en": "Skip tutorial", 
 
 	"RoundCountdown": 5,
+	"RoundCountdown_Hidden": true,
 	"RoundCountdown_Min": 1,
 	"RoundCountdown_Max": 15,
 	"RoundCountdown_Step": 1,

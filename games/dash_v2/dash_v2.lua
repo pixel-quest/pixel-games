@@ -697,7 +697,7 @@ CLava.PlayerStepDelay = function(iX, iY)
     if CLava.bCooldown or tFloor[iX][iY].bDelayed then return end
     tFloor[iX][iY].bDelayed = true
 
-    AL.NewTimer(tConfig.LavaLag, function()
+    AL.NewTimer(tGame.BurnDelay, function()
         if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
             CLava.PlayerStep()
 

@@ -36,6 +36,7 @@
   "Health_en": "Team Lives",
 
   "UnitThinkDelay": 150,
+  "UnitThinkDelay_Hidden": true,
   "UnitThinkDelay_Min": 0,
   "UnitThinkDelay_Max": 2500,
   "UnitThinkDelay_Step": 50,
@@ -51,6 +52,7 @@
   "GenerateRandom_en": "Maze generation",
 
   "RandomMapUnitCount": 2,
+  "RandomMapUnitCount_Hidden": true,
   "RandomMapUnitCount_ru": "Количество врагов при случайной генерации",
   "RandomMapUnitCount_en": "Maze generation enemy unit count"
 }
