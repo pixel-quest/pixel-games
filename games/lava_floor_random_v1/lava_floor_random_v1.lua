@@ -424,7 +424,7 @@ CGameMode.PlayerCollectCoin = function()
 end
 
 CGameMode.PlayerCollectLava = function(iX, iY)
-    if not CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown then
+    if CBlock.tBlocks[CBlock.LAYER_GROUND] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX] and CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY] and not CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown then
         CAudio.PlaySystemAsync(CAudio.MISCLICK)
         tGameResults.Score = tGameResults.Score - 10 
 

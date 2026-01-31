@@ -1139,7 +1139,9 @@ function PixelClick(click)
 end
 
 function DefectPixel(defect)
-    tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    if tFloor[defect.X] and tFloor[defect.X][defect.Y] then
+        tFloor[defect.X][defect.Y].bDefect = defect.Defect
+    end
 end
 
 function ButtonClick(click)
