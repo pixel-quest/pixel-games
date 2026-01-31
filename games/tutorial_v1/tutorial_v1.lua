@@ -50,6 +50,7 @@ local tGameStats = {
     TotalStages = 0,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 1,
+    SwitchStages = true, 
 }
 
 local tGameResults = {
@@ -161,7 +162,9 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    if CStages.StageSpawn[CStages.iCurrentStageID+1] ~= nil then
+        CGameMode.SetStage(CStages.iCurrentStageID + 1)
+    end
 end
 
 --GAMEMODE
@@ -494,7 +497,7 @@ CStages.StageSpawn[CStages.STAGE_BUTTONS] = function()
     CObjects.tObjects[iLava2].bCollidable = true
 
     for iButton, tButton in pairs(tButtons) do
-        if tButtons[iButton] and not tButtons[iButton].bDefect and math.random(1,3) == 2 then
+        if tButtons[iButton] and not tButtons[iButton].bDefect and (math.random(1,3) == 2 or iButton == 1 or iButton == #tButtons) then
             tButtons[iButton].iColor = CColors.BLUE
             tButtons[iButton].iBright = tConfig.Bright
             tGameStats.TotalStars = tGameStats.TotalStars + 1
@@ -646,6 +649,9 @@ end
 
 CObjects.Clear = function()
     CObjects.tObjects = {}
+
+    tGameStats.CurrentStars = 0
+    tGameStats.TotalStars = 0
 end
 
 CObjects.PaintObjects = function()
