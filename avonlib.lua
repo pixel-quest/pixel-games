@@ -251,3 +251,44 @@ AL.Rules.FillFloor = function(tFloor)
     return tReturnFloor, iSkip==2
 end
 --//
+
+--LASERS
+AL.bRoomHasLasers = false
+AL.Lasers = {}
+AL.Lasers.tLasers = {}
+AL.Lasers.iLines = 0
+AL.Lasers.iRows = 0
+
+AL.InitLasers = function(tGameIn)
+    if not tGameIn.Lasers or tGameIn.Lasers.lines < 1 then return false; end
+    AL.Lasers.iLines = tGameIn.Lasers.lines    
+    AL.Lasers.iRows = tGameIn.Lasers.rows   
+    AL.bRoomHasLasers = true
+
+    for iLine = 1, AL.Lasers.iLines do
+        AL.Lasers.tLasers[iLine] = {}
+        for iRow = 1, AL.Lasers.iRows do
+            AL.Lasers.tLasers[iLine][iRow] = { Light = false }
+        end
+    end
+
+    return true
+end
+
+AL.SetLasers = function(fSetLasers)
+    for iLine = 1, AL.Lasers.iLines do
+        for iRow = 1, AL.Lasers.iRows do    
+            fSetLasers(iLine, iRow, AL.Lasers.tLasers[iLine][iRow].Light)
+        end
+    end
+end
+
+AL.SwitchLaser = function(iLine, iRow, bLight)
+    if AL.Lasers.tLasers[iLine] and AL.Lasers.tLasers[iLine][iRow] then
+        AL.Lasers.tLasers[iLine][iRow].Light = bLight
+        return true
+    end
+
+    return false
+end
+--//

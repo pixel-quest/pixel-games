@@ -12,16 +12,13 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
-  "AutoStartPlayerCount": 2,
-  "AutoStartPlayerCount_ru": "Количество игроков для авто-старта",
-  "AutoStartPlayerCount_en": "Players needed for auto-start",
-
   "WinDurationMS": 5000,
   "WinDurationMS_ru": "Длительность конца игры",
   "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
   "GameCountdown": 10,
+  "GameCountdown_Hidden": true,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
@@ -54,6 +51,7 @@
   "RandomLevels_en": "Random level order",
   
   "LavaFrameDelay": 150,
+  "LavaFrameDelay_Hidden": true,
   "LavaFrameDelay_Min": 0,
   "LavaFrameDelay_Max": 2000,
   "LavaFrameDelay_Step": 100,
@@ -61,6 +59,7 @@
   "LavaFrameDelay_en": "Lava Animation Tick Rate",
   
   "LavaCooldown": 1500,
+  "LavaCooldown_Hidden": true,
   "LavaCooldown_Min": 0,
   "LavaCooldown_Max": 10000,
   "LavaCooldown_Step": 500,
@@ -68,10 +67,12 @@
   "LavaCooldown_en": "Lava Damage Cooldown",
   
   "HardZoneDespawn": false,
+  "HardZoneDespawn_Hidden": true,
   "HardZoneDespawn_ru": "Сложный Режим (Зона пропадает даже если на ней стоит игрок)",
   "HardZoneDespawn_en": "Hard Mode (Zone despawns even if player is still on it)",
   
   "StageSwitchHitRegDelay": 1500,
+  "StageSwitchHitRegDelay_Hidden": true,
   "StageSwitchHitRegDelay_ru": "Задержка лавы после смены этапа",
   "StageSwitchHitRegDelay_en": "Lava hitreg delay after stage switch",
   "StageSwitchHitRegDelay_Hidden": true,
@@ -80,10 +81,7 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "LavaLag": 400,
-  "LavaLag_Min": 0,
-  "LavaLag_Max": 1000,
-  "LavaLag_Step": 100,
-  "LavaLag_ru": "Лаг Лавы (Задержка регистрации нажатия по лаве)",
-  "LavaLag_en": "Lava Lag (Player HitReg Delay)"
+  "EnableLasers": true,
+  "EnableLasers_ru": "Включить Лазеры(Если есть)",
+  "EnableLasers_en": "Enable Lasers(if available)"
 }

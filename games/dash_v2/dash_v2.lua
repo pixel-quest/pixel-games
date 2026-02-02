@@ -115,6 +115,10 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxY = AL.NFZ.iMaxY
     end
 
+    if tConfig.EnableLasers and AL.InitLasers then
+        AL.InitLasers(tGame)
+    end
+
     tGame.SafeZoneSizeX = 2
     tGame.SafeZoneSizeY = 2
 
@@ -345,7 +349,7 @@ function PostGameTick()
 
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -354,6 +358,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
@@ -451,6 +459,8 @@ CGameMode.StartGame = function()
 
         return nil
     end)
+
+    CGameMode.RandomLasers(math.random(1,3))
 end
 
 CGameMode.SafeZoneClicked = function(tButton)
@@ -532,6 +542,9 @@ CGameMode.NextStage = function()
         end
         CLava.LoadMap()
 
+        CGameMode.SwitchAllLasers(false)
+        CGameMode.RandomLasers(math.random(1,3))
+
         CLava.bCooldown = true
         AL.NewTimer(tConfig.StageSwitchHitRegDelay, function()
             CLava.bCooldown = false
@@ -554,11 +567,30 @@ CGameMode.EndGame = function(bVictory)
         CAudio.PlayVoicesSync(CAudio.VICTORY)
         tGameResults.Color = CColors.GREEN
         SetGlobalColorBright(CColors.GREEN, tConfig.Bright)
+        CGameMode.SwitchAllLasers(true)
     else
         CAudio.PlaySystemSync(CAudio.GAME_OVER)
         CAudio.PlayVoicesSync(CAudio.DEFEAT)
         tGameResults.Color = CColors.RED
         SetGlobalColorBright(CColors.RED, tConfig.Bright)
+    end
+end
+
+CGameMode.SwitchAllLasers = function(bOn)
+    if AL.bRoomHasLasers then
+        for iLine = 1, AL.Lasers.iLines do
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+            end
+        end
+    end
+end
+
+CGameMode.RandomLasers = function(iCount)
+    if AL.bRoomHasLasers then
+        for i = 1, iCount do
+            AL.SwitchLaser(math.random(1, AL.Lasers.iLines), math.random(1, AL.Lasers.iLines), true)
+        end
     end
 end
 --//
@@ -679,7 +711,7 @@ CLava.PlayerStepDelay = function(iX, iY)
     if CLava.bCooldown or tFloor[iX][iY].bDelayed then return end
     tFloor[iX][iY].bDelayed = true
 
-    AL.NewTimer(tConfig.LavaLag, function()
+    AL.NewTimer(tGame.BurnDelay, function()
         if tFloor[iX][iY].bClick and (tFloor[iX][iY].tSafeZoneButton == nil or not tFloor[iX][iY].tSafeZoneButton.bSafeZoneOn) then
             CLava.PlayerStep()
 

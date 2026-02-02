@@ -22,6 +22,7 @@
   "SkipTutorial_en": "Skip tutorial", 
 
   "PixelMoveDelayMS": 150,
+  "PixelMoveDelayMS_Hidden": true,
   "PixelMoveDelayMS_Min": 50,
   "PixelMoveDelayMS_Max": 1000,
   "PixelMoveDelayMS_Step": 50,
@@ -29,17 +30,15 @@
   "PixelMoveDelayMS_en": "Pixel Movement Tick Rate",
   
   "SongStartDelayMS": 100,
+  "SongStartDelayMS_Hidden": true,
   "SongStartDelayMS_Min": 0,
   "SongStartDelayMS_Max": 10000,
   "SongStartDelayMS_Step": 10, 
   "SongStartDelayMS_ru": "Задержка Начала Песни",
   "SongStartDelayMS_en": "Song Start Delay",
 
-  "EasyMode": false,
-  "EasyMode_ru": "Легкий режим (Без разделения на левую и правую ногу)",
-  "EasyMode_en": "Easy Mode (No left/right leg colored pixels)",
-
   "OutOfZoneSound": true,
+  "OutOfZoneSound_Hidden": true,
   "OutOfZoneSound_ru": "Включить звук выхода с зоны",
   "OutOfZoneSound_en": "Enable 'Out Of Zone' warning sound"
 }

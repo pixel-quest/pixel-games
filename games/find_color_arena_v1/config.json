@@ -6,6 +6,7 @@
   "Bright_ru": "Яркость",
 
   "BlockSize": 2,
+  "BlockSize_Hidden": true,
   "BlockSize_Min": 1,
   "BlockSize_Max": 2,
   "BlockSize_Step": 1,  

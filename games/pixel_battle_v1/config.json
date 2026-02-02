@@ -22,6 +22,7 @@
 	"PlayerCount_en": "Player Count",
 
 	"PixelPoints": 1,
+	"PixelPoints_Hidden": true,
 	"PixelPoints_Min": 1,
 	"PixelPoints_Max": 3,
 	"PixelPoints_Step": 1,
@@ -29,6 +30,7 @@
 	"PixelPoints_en": "Points per coin",
 
 	"CoinSpawnTime": 1,
+	"CoinSpawnTime_Hidden": true,
 	"CoinSpawnTime_Min": 0.5,
 	"CoinSpawnTime_Max": 2.5,
 	"CoinSpawnTime_Step": 0.5,

@@ -13,6 +13,7 @@
 	"PlayerCount_en": "Player Count",
 
 	"CrossMovementSpeed": 800,
+	"CrossMovementSpeed_Hidden": true,
 	"CrossMovementSpeed_Min": 50,
 	"CrossMovementSpeed_Max": 1000,
 	"CrossMovementSpeed_Step": 50,
@@ -24,6 +25,7 @@
 	"NewTracking_en": "Most recent click tracking",
 
 	"EliminationMode": false,
+	"EliminationMode_Hidden": true,
 	"EliminationMode_ru": "Режим 'Выбывание' (Здоровье команды отуствует, при попадании на красный пиксель ведущий просит игрока покинуть комнату)",
 	"EliminationMode_en": "Elimination Mode (No team health, when player steps on red pixel - announcer asks them to leave the room)",
 
@@ -37,6 +39,7 @@
 	"WinDurationMS_Hidden": true,
 
 	"CrossAFKTimer": 10,
+	"CrossAFKTimer_Hidden": true,
 	"CrossAFKTimer_Min": 5,
 	"CrossAFKTimer_Max": 60,
 	"CrossAFKTimer_Step": 5,
@@ -58,6 +61,7 @@
 	"TeamHealth_en": "Team Health (0 for infinite)",
 
 	"DamageCooldown": 800,
+	"DamageCooldown_Hidden": true,
 	"DamageCooldown_Min": 100,
 	"DamageCooldown_Max": 2000,
 	"DamageCooldown_Step": 100,
@@ -65,6 +69,7 @@
 	"DamageCooldown_en": "Red Pixel Damage Cooldown",
 
 	"PauseBetweenEffects": 10,
+	"PauseBetweenEffects_Hidden": true,
 	"PauseBetweenEffects_Min": 10,
 	"PauseBetweenEffects_Max": 60,
 	"PauseBetweenEffects_Step": 1,

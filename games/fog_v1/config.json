@@ -43,6 +43,7 @@
 	"UnitCount_ru": "Количество врагов",
 
 	"UnitThinkDelay": 200,	
+	"UnitThinkDelay_Hidden": true,
 	"UnitThinkDelay_Min": 50,	
 	"UnitThinkDelay_Max": 500,	
 	"UnitThinkDelay_Step": 50,	

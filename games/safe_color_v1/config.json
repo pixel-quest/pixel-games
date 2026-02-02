@@ -50,6 +50,7 @@
   "SkipTutorial_en": "Skip tutorial", 
 
   "LavaDelay": 200,
+  "LavaDelay_Hidden": true,
   "LavaDelay_Min": 50,
   "LavaDelay_Max": 1000,
   "LavaDelay_Step": 50,

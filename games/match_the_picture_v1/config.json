@@ -22,6 +22,7 @@
   "PlayerCount_en": "Player Count",
 
   "GameCountdown": 15,
+  "GameCountdown_Hidden": true,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
   "GameCountdown_Step": 1,
@@ -29,6 +30,7 @@
   "GameCountdown_en": "Game start countdown",
 
   "RoundCountdown": 5,
+  "RoundCountdown_Hidden": true,
   "RoundCountdown_Min": 1,
   "RoundCountdown_Max": 20,
   "RoundCountdown_Step": 1,
@@ -43,6 +45,7 @@
   "RoundCount_en": "Round Count",
 
   "PixelClickCooldown": 2000,
+  "PixelClickCooldown_Hidden": true,
   "PixelClickCooldown_ru": "Откат нажатия на пиксель (пока откат идёт, игрок не может нажать на пиксель ещё раз)",
   "PixelClickCooldown_en": "Pixel Click Cooldown"
 }

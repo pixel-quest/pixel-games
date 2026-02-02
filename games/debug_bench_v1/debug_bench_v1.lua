@@ -107,6 +107,34 @@ function StartGame(gameJson, gameConfigJson)
             return nil
         end
     end)
+
+    if tConfig.LasersTest and AL.InitLasers then
+        AL.InitLasers(tGame)
+
+        local iCurrentLine = 0
+
+        local function toggleLasersInLine(iLine, bOn)
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+                --CLog.print(iLine.." "..iRow.." switched ")
+            end
+        end
+
+        if AL.bRoomHasLasers then
+            AL.NewTimer(500, function()
+                if tGameStats.StageNum == 1 then
+                    toggleLasersInLine(iCurrentLine, false)
+                    iCurrentLine = iCurrentLine + 1
+                    if iCurrentLine > AL.Lasers.iLines then iCurrentLine = 1 end
+                    toggleLasersInLine(iCurrentLine, true)
+
+                    return 1000
+                else
+                    return nil
+                end
+            end)
+        end
+    end
 end
 
 function NextTick()
@@ -123,7 +151,7 @@ function NextTick()
     iPrevTickTime = CTime.unix()
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -132,6 +160,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
