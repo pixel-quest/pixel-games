@@ -1,0 +1,38 @@
+{
+  "Cols": 24,
+  "Rows": 15,
+
+  "MirrorGameX": false,
+  "MirrorGameY": false,
+
+  "Buttons": [
+    2,
+    6,
+    10,
+    14,
+    18,
+    22,
+    26,
+    30,
+    34,
+    38,
+    42,
+    46,
+    50,
+    54,
+    58,
+    62,
+    65,
+    69,
+    73,
+    77
+  ],
+
+  "StartPositions": [
+    {
+      "X": 1,
+      "Y": 1,
+      "Color": "0x00FF00"
+    }
+  ]
+}
