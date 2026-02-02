@@ -50,6 +50,7 @@ local tGameStats = {
     TotalStages = 0,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 1,
+    SwitchStages = true, 
 }
 
 local tGameResults = {
@@ -161,7 +162,9 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    if CStages.StageSpawn[CStages.iCurrentStageID+1] ~= nil then
+        CGameMode.SetStage(CStages.iCurrentStageID + 1)
+    end
 end
 
 --GAMEMODE
@@ -493,12 +496,26 @@ CStages.StageSpawn[CStages.STAGE_BUTTONS] = function()
     CObjects.tObjects[iLava2].iTargetX = tGame.CenterX
     CObjects.tObjects[iLava2].bCollidable = true
 
+    local iTotalButtons = #tGame.Buttons
     for iButton, tButton in pairs(tButtons) do
-        if tButtons[iButton] and not tButtons[iButton].bDefect and math.random(1,3) == 2 then
+        if not tButtons[iButton] or tButtons[iButton].bDefect then
+            iTotalButtons = iTotalButtons-1
+        end
+    end
+
+    local iReqButtons = math.floor(iTotalButtons/3)
+
+    local iAttemptsCount = 0;
+    while tGameStats.TotalStars < iReqButtons do
+        iAttemptsCount = iAttemptsCount + 1;
+        if iAttemptsCount > iReqButtons*3 then break; end
+
+        local iButton = tGame.Buttons[math.random(1,#tGame.Buttons)]
+        if tButtons[iButton] and not tButtons[iButton].bDefect and tButtons[iButton].iColor == CColors.NONE then
             tButtons[iButton].iColor = CColors.BLUE
             tButtons[iButton].iBright = tConfig.Bright
             tGameStats.TotalStars = tGameStats.TotalStars + 1
-        end 
+        end
     end
 
     CAudio.PlayVoicesSync("tutorial/click_buttons.mp3")
@@ -646,6 +663,9 @@ end
 
 CObjects.Clear = function()
     CObjects.tObjects = {}
+
+    tGameStats.CurrentStars = 0
+    tGameStats.TotalStars = 0
 end
 
 CObjects.PaintObjects = function()

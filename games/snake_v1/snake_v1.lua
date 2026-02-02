@@ -287,7 +287,7 @@ CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         CAudio.PlayVoicesSync("snake/snake-game.mp3")
         CAudio.PlayVoicesSync("snake/snake-guide.mp3")
-        AL.NewTimer(CAudio.GetVoicesDuration("snake/snake-game.mp3")*1000 + CAudio.GetVoicesDuration("snake/snake-guide.mp3")*1000, function()
+        AL.NewTimer(CAudio.GetVoicesDuration("snake/snake-game.mp3")*1000 + CAudio.GetVoicesDuration("snake/snake-guide.mp3")*1000 + 3000, function()
             CGameMode.bCanStart = true
         end)
     else
