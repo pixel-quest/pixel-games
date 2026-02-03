@@ -282,7 +282,7 @@ CPaint.LoadDemo = function(sDemoName)
     CPaint.sLoadedDemo = sDemoName
     CPaint.tDemoList[CPaint.sLoadedDemo][CPaint.FUNC_LOAD]()
 
-    if not tConfig.NoMusic and not tConfig.Sound then
+    if not tConfig.NoMusic and (not tConfig.Sound or tConfig.Sound == "") then
         CAudio.PlayRandomBackground()
     end
 end
