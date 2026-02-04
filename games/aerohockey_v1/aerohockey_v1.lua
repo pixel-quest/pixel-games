@@ -212,15 +212,15 @@ CGameMode.InitGameMode = function()
 
     CPlayerControls.InitField()
 
-    CGameMode.PO_Player1 = CPhysics.NewPhysicsObject(tGame.iMinX + 5, tGame.CenterY, 2, 3, CPhysics.TYPE_PLAYER, CGameMode.tPlayerColors[1], 1)
-    CGameMode.PO_Player2 = CPhysics.NewPhysicsObject(tGame.iMaxX - 5, tGame.CenterY, 2, 3, CPhysics.TYPE_PLAYER, CGameMode.tPlayerColors[2], 2)
+    CGameMode.PO_Player1 = CPhysics.NewPhysicsObject(tGame.iMinX + 5, tGame.CenterY, 3, 3, CPhysics.TYPE_PLAYER, CGameMode.tPlayerColors[1], 1)
+    CGameMode.PO_Player2 = CPhysics.NewPhysicsObject(tGame.iMaxX - 5, tGame.CenterY, 3, 3, CPhysics.TYPE_PLAYER, CGameMode.tPlayerColors[2], 2)
 
     for iBall = 1, tConfig.BallCount do
         CGameMode.PO_BALL = CPhysics.NewPhysicsObject(tGame.CenterX, math.random(tGame.iMinY, tGame.iMaxY), 1, 1, CPhysics.TYPE_BALL, CColors.GREEN, 0)
     end
 
-    CGameMode.PO_Gate1 = CPhysics.NewPhysicsObject(tGame.iMinX, tGame.CenterY-math.floor((tGame.iMaxY-tGame.iMinY+1)/6), 1, math.floor((tGame.iMaxY-tGame.iMinY+1)/3), CPhysics.TYPE_GOAL, CGameMode.tPlayerColors[1], 1)
-    CGameMode.PO_Gate2 = CPhysics.NewPhysicsObject(tGame.iMaxX, tGame.CenterY-math.floor((tGame.iMaxY-tGame.iMinY+1)/6), 1, math.floor((tGame.iMaxY-tGame.iMinY+1)/3), CPhysics.TYPE_GOAL, CGameMode.tPlayerColors[2], 2)
+    CGameMode.PO_Gate1 = CPhysics.NewPhysicsObject(tGame.iMinX, tGame.CenterY-math.floor((tGame.iMaxY-tGame.iMinY+1)/4), 1, math.floor((tGame.iMaxY-tGame.iMinY+1)/2), CPhysics.TYPE_GOAL, CGameMode.tPlayerColors[1], 1)
+    CGameMode.PO_Gate2 = CPhysics.NewPhysicsObject(tGame.iMaxX, tGame.CenterY-math.floor((tGame.iMaxY-tGame.iMinY+1)/4), 1, math.floor((tGame.iMaxY-tGame.iMinY+1)/2), CPhysics.TYPE_GOAL, CGameMode.tPlayerColors[2], 2)
 
     tGameStats.TotalStages = tGameStats.TargetScore*2
 end
@@ -376,12 +376,14 @@ CPlayerControls.Tick = function()
             for iY = CPlayerControls.tZones[iZone].iY, CPlayerControls.tZones[iZone].iY + CPlayerControls.tZones[iZone].iSizeY-1 do
                 if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and (CTime.unix() - tFloor[iX][iY].iTime) < 750 then
                     if tFloor[iX][iY].iTime > CPlayerControls.tZones[iZone].iTargetTime then
-                        CPlayerControls.tZones[iZone].iTargetTime = tFloor[iX][iY].iTime
+                        if not AL.RectIntersects2(iX, iY, 1, 1, CPhysics.tObjects[iZone].iX, CPhysics.tObjects[iZone].iY, CPhysics.tObjects[iZone].iSizeX, CPhysics.tObjects[iZone].iSizeY) then
+                            CPlayerControls.tZones[iZone].iTargetTime = tFloor[iX][iY].iTime
 
-                        if iZone == 1 then iX = iX -1 end;
+                            if iZone == 2 then iX = iX + 1 end;
 
-                        CPhysics.tObjects[iZone].iX = iX
-                        CPhysics.tObjects[iZone].iY = iY
+                            CPhysics.tObjects[iZone].iX = iX - math.floor(CPhysics.tObjects[iZone].iSizeX/2)
+                            CPhysics.tObjects[iZone].iY = iY - math.floor(CPhysics.tObjects[iZone].iSizeY/2)
+                        end
                     end
                 end
             end
