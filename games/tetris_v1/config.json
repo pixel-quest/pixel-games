@@ -26,7 +26,7 @@
   	"SoloGame_en": "One player mode",
 
 	"MoveDownTickRateDecreasePerClearedLine": 10,
-	"MoveDownTickRateDecreasePerClearedLine": 10,
+	"MoveDownTickRateDecreasePerClearedLine_Hidden": true,
 	"MoveDownTickRateDecreasePerClearedLine_Min": 0,
 	"MoveDownTickRateDecreasePerClearedLine_Max": 50,
 	"MoveDownTickRateDecreasePerClearedLine_Step": 5,
