@@ -456,10 +456,12 @@ CGameMode.SpawnUnit = function(iUnitType)
 end
 
 CGameMode.DamageBase = function(iDamageAmount)
+    CAudio.PlaySystemAsync(CAudio.MISCLICK)
+
+    if tConfig.InfiniteLives then return; end
+
     CGameMode.tBase.iHealth = CGameMode.tBase.iHealth - iDamageAmount
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
-
-    CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
     if CGameMode.tBase.iHealth <= 0 then
         CGameMode.Defeat()
@@ -1235,7 +1237,7 @@ CPaint.UnitShadow = function(iUnitID)
 
     for iX = CUnits.tUnits[iUnitID].tShadow.iX, CUnits.tUnits[iUnitID].tShadow.iX + CUnits.tUnits[iUnitID].iSize-1 do
         for iY = CUnits.tUnits[iUnitID].tShadow.iY, CUnits.tUnits[iUnitID].tShadow.iY + CUnits.tUnits[iUnitID].iSize-1 do
-            if tFloor[iX] and tFloor[iX][iY] then
+            if tFloor[iX] and tFloor[iX][iY] and tFloor[iX][iY].iUnitID == 0 then
                 tFloor[iX][iY].iColor = CUnits.UNIT_TYPE_TO_COLOR[CUnits.tUnits[iUnitID].iUnitType]
                 tFloor[iX][iY].iBright = 1
             end

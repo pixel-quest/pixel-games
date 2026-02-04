@@ -26,6 +26,10 @@
   "LivesMultiplier_ru": "Множитель жизней (чем больше тем больше жизней)",
   "LivesMultiplier_en": "Lives Multiplier",
 
+  "InfiniteLives": false,
+  "InfiniteLives_ru": "Бесконечные жизни(скучно)",
+  "InfiniteLives_en": "Infinite Lives(boooring)",
+
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
