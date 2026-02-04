@@ -35,11 +35,10 @@
   "TargetScore_Min": 5,
   "TargetScore_Max": 150,
   "TargetScore_Step": 5,
-  "TargetScore_Step_ru": "Количество очков для победы",
-  "TargetScore_Step_en": "Target Score",
+  "TargetScore_ru": "Количество очков для победы",
+  "TargetScore_en": "Target Score",
 
   "SnakeThinkTime": 200,
-  "SnakeThinkTime_Hidden": true,
   "SnakeThinkTime_Min": 100,
   "SnakeThinkTime_Max": 1000,
   "SnakeThinkTime_Step": 100,
