@@ -134,6 +134,23 @@ function StartGame(gameJson, gameConfigJson)
         tGame.CenterY = AL.NFZ.iCenterY
     end
 
+    if tGame.MirrorGame then
+        tGame.iMinX, tGame.iMaxX = -(tGame.Cols-tGame.iMaxX)+1, (tGame.iMaxX-tGame.iMinX+1)
+        CLog.print(tGame.iMinX.." "..tGame.iMaxX)
+    end
+
+    tGame.StartPositionSizeX = 10
+    tGame.StartPositionSizeY = tGame.iMaxY-tGame.iMinY+1
+    tGame.StartPositionControlsY = tGame.iMinY+2
+
+    if tConfig.SoloGame then
+        tGame.StartPositionSizeX = tGame.iMaxX-tGame.iMinX+1
+        tGame.StartPositionSizeY = tGame.StartPositionSizeY-2
+        tGame.StartPositionControlsY = tGame.StartPositionSizeX-3
+
+        tGame.StartPositions = {{X = 1, Y = 2, Color = "0xFFFF00"}}
+    end
+
     if not tGame.StartPositions then
         tGame.StartPositions = {}
 

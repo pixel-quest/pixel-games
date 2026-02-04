@@ -1,9 +1,5 @@
 {
   "Cols": 24,
   "Rows": 15,
-  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77],
-
-  "StartPositionSizeX": 10,
-  "StartPositionSizeY": 15,
-  "StartPositionControlsY": 3
+  "Buttons": [2, 6, 10, 14, 18, 22, 26, 30, 34, 42, 46, 50, 54, 58, 62, 65, 69, 73, 77]
 }
