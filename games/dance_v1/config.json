@@ -22,7 +22,7 @@
   "SkipTutorial_en": "Skip tutorial", 
 
   "PixelMoveDelayMS": 150,
-  "PixelMoveDelayMS_Hidden": true,
+  "PixelMoveDelayMS_Hidden": false,
   "PixelMoveDelayMS_Min": 50,
   "PixelMoveDelayMS_Max": 1000,
   "PixelMoveDelayMS_Step": 50,
