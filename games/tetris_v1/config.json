@@ -21,6 +21,10 @@
   	"MoveDownTickRate_ru": "Частота движения блоков",
   	"MoveDownTickRate_en": "Block movement tick rate",
 
+  	"SoloGame": false,
+  	"SoloGame_ru": "Один игрок, на всё поле",
+  	"SoloGame_en": "One player mode",
+
 	"MoveDownTickRateDecreasePerClearedLine": 10,
 	"MoveDownTickRateDecreasePerClearedLine": 10,
 	"MoveDownTickRateDecreasePerClearedLine_Min": 0,
