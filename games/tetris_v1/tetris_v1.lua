@@ -136,7 +136,7 @@ function StartGame(gameJson, gameConfigJson)
 
     if tGame.MirrorGame then
         tGame.iMinX, tGame.iMaxX = -(tGame.Cols-tGame.iMaxX)+1, (tGame.iMaxX-tGame.iMinX+1)
-        CLog.print(tGame.iMinX.." "..tGame.iMaxX)
+        --CLog.print(tGame.iMinX.." "..tGame.iMaxX)
     end
 
     tGame.StartPositionSizeX = 10
