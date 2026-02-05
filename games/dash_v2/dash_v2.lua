@@ -115,7 +115,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxY = AL.NFZ.iMaxY
     end
 
-    if tConfig.EnableLasers and AL.InitLasers then
+    if tConfig.LasersCount and tConfig.LasersCount > 0 and AL.InitLasers then
         AL.InitLasers(tGame)
     end
 
@@ -460,7 +460,7 @@ CGameMode.StartGame = function()
         return nil
     end)
 
-    CGameMode.RandomLasers(math.random(1,3))
+    CGameMode.RandomLasers(math.random(math.ceil(tConfig.LasersCount/2), tConfig.LasersCount))
 end
 
 CGameMode.SafeZoneClicked = function(tButton)
@@ -543,7 +543,7 @@ CGameMode.NextStage = function()
         CLava.LoadMap()
 
         CGameMode.SwitchAllLasers(false)
-        CGameMode.RandomLasers(math.random(1,3))
+        CGameMode.RandomLasers(math.random(math.ceil(tConfig.LasersCount/2), tConfig.LasersCount))
 
         CLava.bCooldown = true
         AL.NewTimer(tConfig.StageSwitchHitRegDelay, function()

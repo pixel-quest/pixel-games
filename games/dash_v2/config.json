@@ -81,7 +81,10 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "EnableLasers": true,
-  "EnableLasers_ru": "Включить Лазеры(Если есть)",
-  "EnableLasers_en": "Enable Lasers(if available)"
+  "LasersCount": 3,
+  "LasersCount_Min": 0,
+  "LasersCount_Max": 10,
+  "LasersCount_Step": 1,
+  "LasersCount_ru": "Включить Лазеры(Если есть)",
+  "LasersCount_en": "Enable Lasers(if available)"
 }
