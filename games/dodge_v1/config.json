@@ -13,12 +13,11 @@
 	"PlayerCount_en": "Player Count",
 
 	"CrossMovementSpeed": 800,
-	"CrossMovementSpeed_Hidden": true,
 	"CrossMovementSpeed_Min": 50,
 	"CrossMovementSpeed_Max": 1000,
 	"CrossMovementSpeed_Step": 50,
-	"CrossMovementSpeed_ru": "Скорость Движения Прицела и эффектов",
-	"CrossMovementSpeed_en": "Crosshair and effects movespeed",
+	"CrossMovementSpeed_ru": "Частота Движения Прицела и эффектов",
+	"CrossMovementSpeed_en": "Crosshair and effects tickrate",
 
 	"NewTracking": true,
 	"NewTracking_ru": "Отслеживание по последнему нажатию",

@@ -108,6 +108,10 @@ function StartGame(gameJson, gameConfigJson)
         tGameResults.ChosenColors = tConfig.ChosenColors
     end
 
+    if AL.InitLasers then
+        AL.InitLasers(tGame)
+    end
+
     CGameMode.InitGameMode()
     CGameMode.Announcer()
 end
@@ -173,7 +177,7 @@ function PostGameTick()
 
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -182,6 +186,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
@@ -256,6 +264,21 @@ CGameMode.StartGame = function()
     CEffect.NextEffectTimer()
 
     CCross.AiNewDest()
+
+    if AL.bRoomHasLasers then
+        AL.NewTimer(100, function()
+            if iGameState ~= GAMESTATE_GAME then return nil; end
+
+            if CEffect.bEffectOn then
+                CLog.print("toggle random lasers")
+                CGameMode.SwitchAllLasers(false)
+                CGameMode.RandomLasers(math.random(1,2))
+            end
+
+
+            return math.random(2500, 10000)
+        end)
+    end
 end
 
 CGameMode.DamagePlayer = function(iDamage)
@@ -334,6 +357,24 @@ CGameMode.GlobalColor = function(iColor)
         iRepeat = iRepeat + 1
         if iRepeat < 3 then return 100; end
     end)
+end
+
+CGameMode.SwitchAllLasers = function(bOn)
+    if AL.bRoomHasLasers then
+        for iLine = 1, AL.Lasers.iLines do
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+            end
+        end
+    end
+end
+
+CGameMode.RandomLasers = function(iCount)
+    if AL.bRoomHasLasers then
+        for i = 1, iCount do
+            AL.SwitchLaser(math.random(1, AL.Lasers.iLines), math.random(1, AL.Lasers.iLines), true)
+        end
+    end
 end
 --//
 
@@ -499,6 +540,8 @@ CEffect.EndCurrentEffect = function()
 
         tGameStats.StageNum = tGameStats.StageNum + 1
         CEffect.NextEffectTimer()
+
+        CGameMode.SwitchAllLasers(false)
     else
         CGameMode.EndGame(true)
     end
@@ -512,6 +555,8 @@ CEffect.LoadEffect = function(iEffectId)
 
     CEffect.tEffects[iEffectId][CEffect.FUNC_INIT]()
     CEffect.tEffects[iEffectId][CEffect.FUNC_SOUND]()
+
+    CGameMode.RandomLasers(math.random(1,2))
 end
 
 CEffect.PaintEffectPixel = function(iX, iY)
