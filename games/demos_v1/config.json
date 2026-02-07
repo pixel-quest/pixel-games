@@ -58,6 +58,11 @@
 	"AudioLoop_ru": "Зацикливать аудио",
 	"AudioLoop_en": "Loop audio",
 
+	"PlayDelay" : 0,
+	"PlayDelay_Hidden": true,
+	"PlayDelay_ru": "Задержка проигрыша аудио/видео",
+	"PlayDelay_en": "Audio/video start delay",
+
 	"GameDuration": 0,
 	"GameDuration_Hidden": true,
 	"GameDuration_ru": "Длительность игры",

@@ -123,12 +123,16 @@ function StartGame(gameJson, gameConfigJson)
     CPaint.DemoThinker()
 
     if tConfig.Video ~= "" then
-        tGameStats.ScoreboardVariant = 0
-        VideoPlay(tConfig.Video)
+        AL.NewTimer(tConfig.PlayDelay * 1000, function()
+            tGameStats.ScoreboardVariant = 0
+            VideoPlay(tConfig.Video)
+        end)
     end
 
     if tConfig.Sound and tConfig.Sound ~= "" then
-        CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
+        AL.NewTimer(tConfig.PlayDelay * 1000, function()
+            CAudio.PlayVoicesSyncFromScratch(tConfig.Sound)
+        end)
     end
 
     if tConfig.GameDuration > 0 then
