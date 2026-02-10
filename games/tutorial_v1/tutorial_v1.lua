@@ -677,6 +677,10 @@ CObjects.PaintObjects = function()
                         tFloor[iX][iY].iColor = CObjects.OBJECT_TYPE_TO_COLOR[CObjects.tObjects[iObjectID].iType]
                         tFloor[iX][iY].iBright = tConfig.Bright 
                         tFloor[iX][iY].iObjectID = iObjectID
+
+                        if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                            CObjects.Click(iX, iY)
+                        end
                     end
                 end
             end 
