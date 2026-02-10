@@ -35,6 +35,10 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
+	"EnableFog": true,
+	"EnableFog_ru": "Включить дым и туман(если есть)",
+	"EnableFog_en": "Enable fog & haze",
+
 	"UnitCount": 2,	
 	"UnitCount_Min": 1,	
 	"UnitCount_Max": 4,	
