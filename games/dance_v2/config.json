@@ -20,6 +20,10 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
+	"EnableFog": true,
+	"EnableFog_ru": "Включить дым и туман(если есть)",
+	"EnableFog_en": "Enable fog & haze",
+
 	"PixelMoveDelayMS": 150,
 	"PixelMoveDelayMS_Hidden": true
 }
