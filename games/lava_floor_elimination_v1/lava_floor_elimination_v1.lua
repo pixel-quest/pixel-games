@@ -108,6 +108,10 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
+    if AL.InitLasers then
+        AL.InitLasers(tGame)
+    end
+
     tGame.iMinX = 1
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
@@ -218,7 +222,7 @@ function PostGameTick()
     
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -227,6 +231,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
@@ -484,6 +492,24 @@ CGameMode.PlayerStepOnLava = function(iX, iY)
         end)
     end
 end
+
+CGameMode.SwitchAllLasers = function(bOn)
+    if AL.bRoomHasLasers then
+        for iLine = 1, AL.Lasers.iLines do
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+            end
+        end
+    end
+end
+
+CGameMode.RandomLasers = function(iCount)
+    if AL.bRoomHasLasers then
+        for i = 1, iCount do
+            AL.SwitchLaser(math.random(1, AL.Lasers.iLines), math.random(1, AL.Lasers.iLines), true)
+        end
+    end
+end
 --//
 
 --INTRO
@@ -561,6 +587,9 @@ end
 CIntro.End = function()
     CGameMode.bIntroInProgress = false
     CGameMode.ColorElimCountDown(10)
+
+    CGameMode.SwitchAllLasers(false)
+    CGameMode.RandomLasers(math.random(2,4))
 end
 
 CIntro.SpawnCubes = function()
