@@ -104,6 +104,10 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
+    if AL.InitLasers then
+        AL.InitLasers(tGame)
+    end
+
     tGame.iMinX = 1
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
@@ -173,7 +177,7 @@ function PostGameTick()
     
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -182,6 +186,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
@@ -255,6 +263,8 @@ CGameMode.StartGame = function()
     CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
 
     CRope.TimerLoop()
+
+    CGameMode.RandomLasers(math.random(1,4))
 end
 
 CGameMode.EndGame = function(bVictory)
@@ -362,6 +372,24 @@ CGameMode.CollectCoin = function(bAddScore)
     end
     CGameMode.PlaceCoin(math.random(1, #CGameMode.tBridges), math.random(tGame.iMinX, tGame.iMaxX))
 end
+
+CGameMode.SwitchAllLasers = function(bOn)
+    if AL.bRoomHasLasers then
+        for iLine = 1, AL.Lasers.iLines do
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+            end
+        end
+    end
+end
+
+CGameMode.RandomLasers = function(iCount)
+    if AL.bRoomHasLasers then
+        for i = 1, iCount do
+            AL.SwitchLaser(math.random(1, AL.Lasers.iLines), math.random(1, AL.Lasers.iLines), true)
+        end
+    end
+end
 --//
 
 --ROPE
@@ -406,6 +434,9 @@ CRope.TimerLoop = function()
                 if tGameStats.TotalStars - tGameStats.CurrentStars <= 5 then
                     CAudio.PlayLeftAudio(tGameStats.TotalStars - tGameStats.CurrentStars)
                 end
+
+                CGameMode.SwitchAllLasers(false)
+                CGameMode.RandomLasers(math.random(1,4))
             end
         elseif CRope.iY <= -tGame.Rows - 2 then
             CRope.iY = tGame.Rows
