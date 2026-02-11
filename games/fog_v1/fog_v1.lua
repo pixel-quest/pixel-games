@@ -17,6 +17,7 @@ local CJson = require("json")
 local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
+local CSmoke = require("smoke")
 
 local tGame = {
     Cols = 24,
@@ -202,6 +203,11 @@ CGameMode.InitGameMode = function()
     tGameStats.TotalStars = tConfig.CoinCount
     tGameStats.TotalLives = tConfig.TeamHealth
     tGameStats.CurrentLives = tConfig.TeamHealth
+
+    if tConfig.EnableFog then
+        CSmoke.SmokeShort()
+        CSmoke.HazeLow()
+    end
 end
 
 CGameMode.Announcer = function()
@@ -260,6 +266,12 @@ CGameMode.StartGame = function()
 
         return nil
     end)
+
+    if tConfig.EnableFog then
+        CSmoke.Reset()
+        CSmoke.SmokeMedium()
+        CSmoke.HazeHigh()
+    end
 end
 
 CGameMode.RandomBackGround = function()
@@ -339,6 +351,8 @@ CGameMode.EndGame = function(bVictory)
     else
         SetGlobalColorBright(CColors.RED, tConfig.Bright)
     end
+
+    CSmoke.Reset()
 end
 --//
 
