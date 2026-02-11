@@ -140,6 +140,145 @@ function StartGame(gameJson, gameConfigJson)
         bAnyButtonClick = true
     end
 
+    if tGame.StartPositionSizeX == nil then
+        tGame.StartPositionSizeX = iMaxX-iMinX
+        tGame.StartPositionSizeY = iMaxY-iMinY
+    end
+
+    if tGame.Maps == nil then
+        local startCenterX = math.floor(tGame.StartPositionSizeX/2)
+        local startCenterY = math.floor(tGame.StartPositionSizeY/2)
+
+        local function newMap(fCompare)
+            local tNewMap = {}
+            for iY = 1, tGame.StartPositionSizeY do
+                tNewMap[iY] = {}
+                for iX = 1, tGame.StartPositionSizeX do
+                    tNewMap[iY][iX] = 2
+                    if fCompare(iX, iY) then
+                        tNewMap[iY][iX] = 1
+                    end
+                end
+            end
+            return tNewMap
+        end
+
+        tGame.Maps = {}
+
+        tGame.Maps[1] = newMap(function(iX, iY)
+            if (iX >= startCenterX-1 and iX <= startCenterX+1) or (iY >= startCenterY-1 and iY <= startCenterY+1) then
+                return true;
+            end
+
+            return false
+        end)
+
+        tGame.Maps[2] = newMap(function(iX, iY)
+            if iY < startCenterY then
+                if iY % 2 == 0 then
+                    return true;
+                end
+            elseif iX < startCenterX and iX % 2 == 0 then
+                return true;
+            end
+
+            return false
+        end)
+
+        tGame.Maps[3] = newMap(function(iX, iY)
+            if (iX == startCenterX-3 or iX == startCenterX+3) or (iY == startCenterY-1 or iY == startCenterY+1) or (iX == startCenterX and iY == startCenterY) then
+                return true
+            end
+
+            return false
+        end)
+
+        tGame.Maps[4] = newMap(function(iX, iY)
+            if iX == 1 or iY == 1 or iX == tGame.StartPositionSizeX or iY == tGame.StartPositionSizeY or iX == iY or tGame.StartPositionSizeY - (iX-tGame.StartPositionSizeY) == iY then
+                return true
+            end
+
+            return false
+        end)
+
+        tGame.Maps[5] = newMap(function(iX, iY)
+            if iX == 2 or iY == 2 or iX == tGame.StartPositionSizeX-1 or iY == tGame.StartPositionSizeY-1 or iX == startCenterX-1 or iX == startCenterX+1 or iY == startCenterY-1 or iY == startCenterY+1 then
+                return true
+            end
+
+            return false
+        end)       
+
+        local iRx6 = math.random(1,tGame.StartPositionSizeX)
+        local iRy6 = math.random(1,tGame.StartPositionSizeY)
+        tGame.Maps[6] = newMap(function(iX, iY)
+
+            if iX == iRx6 or iY == iRy6 then
+                return true
+            end
+
+            if iX >= startCenterX-1 and iX <= startCenterX+1 and iY >= startCenterY-1 and iY <= startCenterY+1 then
+                return true
+            end
+
+            if iX > iRx6 and iY > iRy6 and iX % 2 == 0 and iY % 2 == 0 then
+                return true
+            end
+
+            return false
+        end)   
+
+        tGame.Maps[7] = newMap(function(iX, iY)
+            if iY % 2 == 0 and ((iY < startCenterY and iX > iY and iX < tGame.StartPositionSizeX-iY) or (iY > startCenterY and iX > math.floor(iY/2) and iX < tGame.StartPositionSizeX-math.floor(iY/2))) then
+                return true
+            end
+
+            return false
+        end)    
+
+        tGame.Maps[8] = newMap(function(iX, iY)
+            if iX % 2 == 0 and ((iX < startCenterX and iY > iX/2 and iY < tGame.StartPositionSizeY-iX/2) or (iX > startCenterX and iY > math.floor(iX/4) and iY < tGame.StartPositionSizeY-math.floor(iX/4))) then
+                return true
+            end
+
+            return false
+        end)
+
+        tGame.Maps[9] = newMap(function(iX, iY)
+            if iY < startCenterY then
+                if iY % 2 == 0 then
+                    return true;
+                end
+            elseif iX > startCenterX and iX % 2 == 0 then
+                return true;
+            end
+
+            return false
+        end)
+
+        tGame.Maps[10] = newMap(function(iX, iY)
+            if iY > startCenterY then
+                if iY % 2 == 0 then
+                    return true;
+                end
+            elseif iX < startCenterX and iX % 2 == 0 then
+                return true;
+            end
+
+            return false
+        end)
+
+        local iRx11 = math.random(1,tGame.StartPositionSizeX)
+        local iRy11 = math.random(1,tGame.StartPositionSizeY)
+        tGame.Maps[11] = newMap(function(iX, iY)
+            if (iX >= iRx11-1 and iX <= iRx11+1) or (iY >= iRy11-1 and iY <= iRy11+1) then
+                return true;
+            end
+
+            return false
+        end)
+    end
+
     if tGame.StartPositions == nil then
         tGame.StartPositions = {}
 
@@ -337,7 +476,7 @@ function RangeFloor(setPixel, setButton)
 end
 
 function SwitchStage()
-    
+    CGameMode.EndRound()
 end
 
 --GAMEMODE
