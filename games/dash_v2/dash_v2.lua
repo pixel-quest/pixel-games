@@ -122,8 +122,9 @@ function StartGame(gameJson, gameConfigJson)
     tGame.SafeZoneSizeX = 2
     tGame.SafeZoneSizeY = 2
 
-    if tGame.Buttons == nil or tGame.Buttons == {} then
+    if tGame.Buttons == nil or tGame.Buttons == {} or tGame.DisableButtonsGameplay then
         tGame.Buttons = {}
+        tGame.DisableButtonsGameplay = true
         for iButton = 2, (tGame.Cols + tGame.Rows)*2, 4 do
             tGame.Buttons[#tGame.Buttons+1] = iButton
         end
