@@ -122,8 +122,14 @@ function StartGame(gameJson, gameConfigJson)
     tGame.SafeZoneSizeX = 2
     tGame.SafeZoneSizeY = 2
 
-    local iPrevButton = -1
+    if tGame.Buttons == nil or tGame.Buttons == {} then
+        tGame.Buttons = {}
+        for iButton = 2, (tGame.Cols + tGame.Rows)*2, 4 do
+            tGame.Buttons[#tGame.Buttons+1] = iButton
+        end
+    end
 
+    local iPrevButton = -1
     for _, iButton in pairs(tGame.Buttons) do
         tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
 
