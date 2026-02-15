@@ -368,12 +368,12 @@ CGameMode.StartRound = function()
             return 1000
         end
     end)
-    AL.NewTimer(150, function()
+    AL.NewTimer(tConfig.ObjectsTickRate, function()
         if not CGameMode.bRoundStarted then return nil; end
 
         CBlock.CalculateMovableObjects()
 
-        return 150
+        return tConfig.ObjectsTickRate
     end)
 end
 

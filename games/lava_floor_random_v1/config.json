@@ -35,11 +35,15 @@
 	"Seed_ru": "Номер уровня(0 = случайный)",
 	"Seed_en": "Generation seed(0 = random)",
 
+	"ObjectsTickRate": 150,
+	"ObjectsTickRate_ru": "Частота премещения объектов",
+	"ObjectsTickRate_en": "Object movement tickrate",
+
 	"ForcePattern": "none",
 	"ForcePattern_Hidden": true,
 	"ForcePattern_List": ["SAFEEDGES","SQUAREFIELD","LL","DOORS","CROSSHAIR","CENTERSAFE","ARROWS","DASH"],
-	"ForcePattern_ru": "Принудительный тип уровня (Для тестирования)",
-	"ForcePattern_en": "Force Level Pattern Type (For Testing)",
+	"ForcePattern_ru": "Принудительный тип уровня",
+	"ForcePattern_en": "Override Level Pattern Type",
 
 	"RoundCountdown": 5,
 	"RoundCountdown_ru": "Время до начала раунда",
