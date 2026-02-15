@@ -32,6 +32,9 @@ local bGamePaused = false
 local iGameState = GAMESTATE_SETUP
 local iPrevTickTime = 0
 
+local iTotalButtons = 0
+local iDeffectButtons = 0
+
 local tGameStats = {
     StageLeftDuration = 0, 
     StageTotalDuration = 0, 
@@ -123,67 +126,10 @@ function StartGame(gameJson, gameConfigJson)
     tGame.SafeZoneSizeY = 2
 
     if tGame.Buttons == nil or tGame.Buttons == {} or tGame.DisableButtonsGameplay then
-        tGame.Buttons = {}
-        tGame.DisableButtonsGameplay = true
-        for iButton = 2, (tGame.Cols + tGame.Rows)*2, 4 do
-            tGame.Buttons[#tGame.Buttons+1] = iButton
-        end
+        GenerateButtons()
     end
 
-    local iPrevButton = -1
-    for _, iButton in pairs(tGame.Buttons) do
-        tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
-
-        local iX = iButton
-        local iY = 1
-
-        local iSide = 1
-
-        if iX > tGame.Cols*2 + tGame.Rows then
-            iX = 1
-            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
-            iSide = 4
-        elseif iX > tGame.Cols + tGame.Rows then
-            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
-            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
-            iSide = 3
-        elseif iX > tGame.Cols then
-            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
-            iY = iButton - tGame.Cols 
-            iSide = 2
-        end
-
-        for _, iButton2 in pairs(tGame.Buttons) do
-            if iButton ~= iButton2 and tButtons[iButton2] and AL.RectIntersects(iX, iY, tGame.SafeZoneSizeX, tButtons[iButton2].iSafeZoneX, tButtons[iButton2].iSafeZoneY, tGame.SafeZoneSizeX) then
-                if iY < tButtons[iButton2].iSafeZoneY then
-                    iY = iY - 1
-                elseif iY > tButtons[iButton2].iSafeZoneY then
-                    iY = iY + 1
-                elseif iX < tButtons[iButton2].iSafeZoneX then
-                    iX = iX - 1
-                else
-                    iX = iX + 1
-                end
-            end
-        end
-
-        if iX >= tGame.iMaxX then
-            iX = tGame.iMaxX-1 
-        end
-        if iY >= tGame.iMaxY then
-            iY = tGame.iMaxY-1
-        end
-        if iX < tGame.iMinX then
-            iX = tGame.iMinX
-        end
-        if iY < tGame.iMinY then
-            iY = tGame.iMinY
-        end
-
-        tButtons[iButton].iSafeZoneX = iX
-        tButtons[iButton].iSafeZoneY = iY
-        tButtons[iButton].iSide = iSide
-    end
+    LoadButtons()
 
     tGameResults.PlayersCount = tConfig.PlayerCount
 
@@ -276,6 +222,73 @@ function StartGame(gameJson, gameConfigJson)
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()    
+end
+
+function LoadButtons()
+    tButtons = {}
+    local iPrevButton = -1
+    for _, iButton in pairs(tGame.Buttons) do
+        tButtons[iButton] = CHelp.ShallowCopy(tButtonStruct)
+        iTotalButtons = iTotalButtons + 1
+
+        local iX = iButton
+        local iY = 1
+
+        local iSide = 1
+
+        if iX > tGame.Cols*2 + tGame.Rows then
+            iX = 1
+            iY = tGame.Rows - (iButton - (tGame.Cols*2 + tGame.Rows)) + 1
+            iSide = 4
+        elseif iX > tGame.Cols + tGame.Rows then
+            iX = tGame.Cols - (iButton - (tGame.Cols + tGame.Rows)) + 1
+            iY = tGame.Rows - (tGame.SafeZoneSizeY/2)
+            iSide = 3
+        elseif iX > tGame.Cols then
+            iX = tGame.Cols - (tGame.SafeZoneSizeX/2)
+            iY = iButton - tGame.Cols 
+            iSide = 2
+        end
+
+        for _, iButton2 in pairs(tGame.Buttons) do
+            if iButton ~= iButton2 and tButtons[iButton2] and AL.RectIntersects(iX, iY, tGame.SafeZoneSizeX, tButtons[iButton2].iSafeZoneX, tButtons[iButton2].iSafeZoneY, tGame.SafeZoneSizeX) then
+                if iY < tButtons[iButton2].iSafeZoneY then
+                    iY = iY - 1
+                elseif iY > tButtons[iButton2].iSafeZoneY then
+                    iY = iY + 1
+                elseif iX < tButtons[iButton2].iSafeZoneX then
+                    iX = iX - 1
+                else
+                    iX = iX + 1
+                end
+            end
+        end
+
+        if iX >= tGame.iMaxX then
+            iX = tGame.iMaxX-1 
+        end
+        if iY >= tGame.iMaxY then
+            iY = tGame.iMaxY-1
+        end
+        if iX < tGame.iMinX then
+            iX = tGame.iMinX
+        end
+        if iY < tGame.iMinY then
+            iY = tGame.iMinY
+        end
+
+        tButtons[iButton].iSafeZoneX = iX
+        tButtons[iButton].iSafeZoneY = iY
+        tButtons[iButton].iSide = iSide
+    end
+end
+
+function GenerateButtons()
+    tGame.Buttons = {}
+    tGame.DisableButtonsGameplay = true
+    for iButton = 2, (tGame.Cols + tGame.Rows)*2, 4 do
+        tGame.Buttons[#tGame.Buttons+1] = iButton
+    end
 end
 
 function NextTick()
@@ -978,11 +991,17 @@ function ButtonClick(click)
 end
 
 function DefectButton(defect)
-    if tButtons[defect.Button] == nil then return end
+    if tButtons[defect.Button] == nil or tGame.DisableButtonsGameplay then return end
     tButtons[defect.Button].bDefect = defect.Defect
 
     if defect.Defect then
         tButtons[defect.Button].iColor = CColors.NONE
         tButtons[defect.Button].iBright = CColors.BRIGHT0
-    end    
+
+        iDeffectButtons = iDeffectButtons + 1
+        if iDeffectButtons > math.floor(iTotalButtons/2) then
+            GenerateButtons()
+            LoadButtons()
+        end
+    end   
 end
