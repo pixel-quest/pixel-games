@@ -145,6 +145,10 @@ function StartGame(gameJson, gameConfigJson)
             if tGame.iMinX < 1 then tGame.iMinX = 1 end
         else
             tGame.iMinX, tGame.iMaxX = tGame.Cols-tGame.iMaxX, tGame.iMaxX-tGame.iMinX
+
+            if tGame.iMinX == 0 then
+                tGame.iMinX = 1
+            end
         end
         CLog.print(tGame.iMinX.." "..tGame.iMaxX)
     elseif tConfig.SoloGame then 
