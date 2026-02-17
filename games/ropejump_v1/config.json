@@ -22,7 +22,7 @@
 	"SkipTutorial_en": "Skip tutorial", 
 
 	"BridgeSize": 4,
-	"BridgeSize_Hidden": true,
+	"BridgeSize_Hidden": false,
 	"BridgeSize_Min": 2,
 	"BridgeSize_Max": 6,
 	"BridgeSize_Step": 1,
