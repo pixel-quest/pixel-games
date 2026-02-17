@@ -16,6 +16,7 @@ local CJson = require("json")
 local CTime = require("time")
 local CAudio = require("audio")
 local CColors = require("colors")
+local CSmoke = require("smoke")
 
 local tGame = {
     Cols = 24,
@@ -366,6 +367,11 @@ CGameMode.StartGame = function()
     CAudio.PlayRandomBackground()
 
     CGameMode.bGameStarted = true
+
+    if tConfig.EnableFog then
+        CSmoke.SmokeShort()
+        CSmoke.HazeLow()
+    end
 end
 
 CGameMode.EndGame = function()
@@ -389,6 +395,10 @@ CGameMode.EndGame = function()
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end) 
+
+    if tConfig.EnableFog then
+        CSmoke.Reset()
+    end
 end
 --//
 

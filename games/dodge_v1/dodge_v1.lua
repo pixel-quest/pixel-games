@@ -272,7 +272,7 @@ CGameMode.StartGame = function()
             if CEffect.bEffectOn then
                 CLog.print("toggle random lasers")
                 CGameMode.SwitchAllLasers(false)
-                CGameMode.RandomLasers(math.random(1,2))
+                CGameMode.RandomLasers(math.random(2,3))
             end
 
 
@@ -542,6 +542,7 @@ CEffect.EndCurrentEffect = function()
         CEffect.NextEffectTimer()
 
         CGameMode.SwitchAllLasers(false)
+        CGameMode.RandomLasers(math.random(2,3))
     else
         CGameMode.EndGame(true)
     end
@@ -555,8 +556,6 @@ CEffect.LoadEffect = function(iEffectId)
 
     CEffect.tEffects[iEffectId][CEffect.FUNC_INIT]()
     CEffect.tEffects[iEffectId][CEffect.FUNC_SOUND]()
-
-    CGameMode.RandomLasers(math.random(1,2))
 end
 
 CEffect.PaintEffectPixel = function(iX, iY)
