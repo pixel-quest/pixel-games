@@ -10,7 +10,7 @@
   "WinDurationMS_en": "After game duration",
   "WinDurationMS_Hidden": true,
 
-  "GameCountdown": 5,
+  "GameCountdown": 3,
   "GameCountdown_Hidden": true,
   "GameCountdown_Min": 1,
   "GameCountdown_Max": 30,
@@ -37,7 +37,7 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "LavaScorePenalty": -0.5,
+  "LavaScorePenalty": -1,
   "LavaScorePenalty_ru": "Штраф к счету за наступ на лаву",
   "LavaScorePenalty_ru": "Score penalty for stepping on lava",
   "LavaScorePenalty_Hidden": true,
@@ -48,7 +48,6 @@
   "GenerateRandomLevels_Hidden": true,
 
   "BlockMoveAnimationTimeMS": 1500,
-  "BlockMoveAnimationTimeMS_Hidden": true,
   "BlockMoveAnimationTimeMS_Min": 100,
   "BlockMoveAnimationTimeMS_Max": 5000,
   "BlockMoveAnimationTimeMS_Step": 100,

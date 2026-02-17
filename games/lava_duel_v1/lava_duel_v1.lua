@@ -58,7 +58,7 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.NONE },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
@@ -114,32 +114,53 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId] = CHelp.ShallowCopy(tButtonStruct)
     end
 
-    if tGame.StartPositions == nil then
-        tGame.StartPositions = {}
-
-        local iOffset = 1
-        local iX = iOffset
-        local iY = 2
-
-        for iPlayerID = 1, 6 do
-            tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
-
-            iX = iX + tGame.StartPositionSizeX + iOffset
-            if iX + tGame.StartPositionSizeX > tGame.Cols then
-                iX = iOffset
-                iY = iY + tGame.StartPositionSizeY + 1
-            end
-        end
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
     end
 
-    tGameStats.TargetScore = 6 * tConfig.RoundCount
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
+
+    if tGame.iMinY-1 + tGame.StartPositionSizeY > tGame.iMaxY then
+        tGame.StartPositionSizeY = tGame.iMaxY-tGame.iMinY+1
+    end
+
+    tGame.StartPositions = {}
+    local iOffset = 1
+    local iX = tGame.iMinX-1+iOffset
+    local iY = tGame.iMinY
+
+    if tGame.ArenaMode then
+        iOffset = 0
+    end
+
+    for iPlayerID = 1, 6 do
+        tGame.StartPositions[iPlayerID] = {}
+        tGame.StartPositions[iPlayerID].X = iX
+        tGame.StartPositions[iPlayerID].Y = iY
+        tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+        iX = iX + tGame.StartPositionSizeX + iOffset
+        if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then
+            iX = tGame.iMinX-1+iOffset
+            iY = iY + tGame.StartPositionSizeY + 1
+        end
+
+        if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX or iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
+            break;
+        end
+    end
+
     tGameStats.TotalStages = tConfig.RoundCount
 
     iPrevTickTime = CTime.unix()
@@ -202,7 +223,7 @@ function GameSetupTick()
     for iPos, tPos in ipairs(tGame.StartPositions) do
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
-            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bCountdownStarted and tPlayerInGame[iPos]) then
+            if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bStartCountStarted and tPlayerInGame[iPos]) then
                 tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
@@ -213,26 +234,6 @@ function GameSetupTick()
             end
 
             CPaint.PlayerZone(iPos, iBright, false)
-
-            if tPlayerInGame[iPos] and tGame.ArenaMode then
-                local iCenterX = tPos.X + math.floor(tGame.StartPositionSizeX/3)
-                local iCenterY = tPos.Y + math.floor(tGame.StartPositionSizeY/3)
-
-                local bArenaClick = false
-                for iX = iCenterX, iCenterX+1 do
-                    for iY = iCenterY, iCenterY+1 do
-                        tFloor[iX][iY].iColor = CColors.MAGENTA
-
-                        if tFloor[iX][iY].bClick then 
-                            bArenaClick = true
-                        end
-                    end
-                end
-
-                if CGameMode.bArenaCanStart and bArenaClick then
-                    bAnyButtonClick = true 
-                end
-            end 
         end
     end
 
@@ -243,7 +244,7 @@ function GameSetupTick()
         iPlayerCount = iPlayersReady
 
         if not CGameMode.bStartCountStarted then
-            CGameMode.CountDownGame(10)
+            CGameMode.CountDownGame(7)
         end
     end
 end
@@ -287,6 +288,7 @@ CGameMode.tMapLavaFrames = {}
 CGameMode.iRound = 0
 CGameMode.bRoundStarted = false
 CGameMode.tPlayerFinished = {}
+CGameMode.tPlayerPosition = {}
 CGameMode.tPlayerScoreThisRound = {}
 CGameMode.iPlayersFinished = 0
 CGameMode.tPlayersCoinCollected = {}
@@ -323,6 +325,7 @@ end
 CGameMode.CountDownNextRound = function()
     CGameMode.bRoundStarted = false
     CGameMode.tPlayerFinished = {}
+    CGameMode.tPlayerPosition = {}
     CGameMode.tPlayerScoreThisRound = {}
     CGameMode.iPlayersFinished = 0
     CGameMode.tPlayersCoinCollected = {}
@@ -346,7 +349,7 @@ CGameMode.CountDownNextRound = function()
 
     CAudio.PlayVoicesSyncFromScratch("quest/zone-edge.mp3")
 
-    AL.NewTimer(6000, function()
+    AL.NewTimer(CAudio.GetVoicesDuration("quest/zone-edge.mp3")*1000 + 500, function()
         CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
@@ -391,8 +394,9 @@ end
 CGameMode.PlayerFinished = function(iPlayerID)
     CGameMode.tPlayerFinished[iPlayerID] = true 
     CGameMode.iPlayersFinished = CGameMode.iPlayersFinished + 1
+    CGameMode.tPlayerPosition[iPlayerID] = CGameMode.iPlayersFinished
 
-    local iAddScore = iPlayerCount - (CGameMode.iPlayersFinished-1)
+    local iAddScore = (iPlayerCount - (CGameMode.iPlayersFinished-1)) * 3
     --if CGameMode.tPlayerScoreThisRound[iPlayerID] then
     --    iAddScore = CGameMode.tPlayerScoreThisRound[iPlayerID] * (tConfig.ScorePlacementMultiplierStart -  (CGameMode.iPlayersFinished*tConfig.ScorePlacementMultiplierDecreasePerPlace))
     --end
@@ -456,6 +460,11 @@ CGameMode.PlayerRoundScoreAdd = function(iPlayerID, iScore)
     CGameMode.tPlayersCoinCollected[iPlayerID] = CGameMode.tPlayersCoinCollected[iPlayerID] + 1
 
     CAudio.PlaySystemAsync(CAudio.CLICK);
+
+    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
+    if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+        tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
+    end
 
     if CGameMode.tPlayersCoinCollected[iPlayerID] == CGameMode.iMapCoinCount then
         CGameMode.PlayerFinished(iPlayerID)
@@ -597,12 +606,14 @@ CBlock.NewBlock = function(iX, iY, iBlockType, iPlayerID)
     CBlock.tBlocks[iX][iY].bVisible = false
 
     if tFloor[iX][iY].bDefect and iBlockType == CBlock.BLOCK_TYPE_COIN then
-        CBlock.RegisterBlockClick(iX,iY)
+        CBlock.RegisterBlockClick(iX,iY,iPlayerID)
     end
 end
 
-CBlock.RegisterBlockClick = function(iX, iY)
-    local iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
+CBlock.RegisterBlockClick = function(iX, iY, iPlayerID)
+    if iPlayerID == nil then
+        iPlayerID = CBlock.tBlocks[iX][iY].iPlayerID
+    end
     if CGameMode.tPlayerFinished[iPlayerID] then return; end
 
     if CBlock.tBlocks[iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and CBlock.tBlocks[iX][iY].bCollected == false then
@@ -812,6 +823,25 @@ CPaint.PlayerZone = function(iPlayerID, iBright, bPaintStart)
 
         SetRowColorBright(tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
         SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright+2)
+    end
+
+    if CGameMode.tPlayerFinished[iPlayerID] then
+        local tLetter = tLoadedLetters[CGameMode.tPlayerPosition[iPlayerID]]
+        if tLetter then
+            local iX = tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/4)-1
+            local iY = tGame.StartPositions[iPlayerID].Y + math.floor(tGame.StartPositionSizeY/4)-1
+
+            for iLocalY = 1, tLetter.iSizeY do
+                for iLocalX = 1, tLetter.iSizeX do
+                    if tLetter.tPaint[iLocalY][iLocalX] == 1 then
+                        if tFloor[iX+iLocalX] and tFloor[iX+iLocalX][iY+iLocalY] then
+                            tFloor[iX+iLocalX][iY+iLocalY].iColor = CColors.WHITE
+                            tFloor[iX+iLocalX][iY+iLocalY].iBright = tConfig.Bright+1
+                        end
+                    end
+                end
+            end
+        end
     end
 end
 
@@ -1026,3 +1056,122 @@ function DefectButton(defect)
     if tButtons[defect.Button] == nil then return end
     tButtons[defect.Button].bDefect = defect.Defect
 end
+
+tLoadedLetters = {}
+
+tLoadedLetters[1] =
+{
+    iSizeX = 3,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 0,},
+        {1, 1, 0,},
+        {0, 1, 0,},
+        {0, 1, 0,},
+        {1, 1, 1,}
+    }
+}
+
+tLoadedLetters[2] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 1, 0, 0},
+        {1, 1, 1, 1}
+    }
+}
+
+tLoadedLetters[3] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 0, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[4] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 0, 1, 0},
+        {0, 1, 1, 0},
+        {1, 0, 1, 0},
+        {1, 1, 1, 1},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[5] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {0, 0, 0, 1},
+        {1, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[6] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 0},
+        {1, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[7] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {1, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0},
+        {0, 0, 1, 0}
+    }
+}
+
+tLoadedLetters[8] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 0}
+    }
+}
+
+tLoadedLetters[9] =
+{
+    iSizeX = 4,
+    iSizeY = 5,
+    tPaint = {
+        {0, 1, 1, 0},
+        {1, 0, 0, 1},
+        {0, 1, 1, 1},
+        {0, 0, 0, 1},
+        {0, 0, 1, 0}
+    }
+}
