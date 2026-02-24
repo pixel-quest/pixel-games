@@ -116,16 +116,20 @@ function StartGame(gameJson, gameConfigJson)
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
     tGame.iMaxY = tGame.Rows
-    tGame.CenterX = math.floor(tGame.Cols/2)
-    tGame.CenterY = math.floor(tGame.Rows/2)
     if AL.NFZ.bLoaded then
         tGame.iMinX = AL.NFZ.iMinX
         tGame.iMinY = AL.NFZ.iMinY
         tGame.iMaxX = AL.NFZ.iMaxX
         tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
 
-        tGame.CenterX = AL.NFZ.iCenterX
-        tGame.CenterY = AL.NFZ.iCenterY
+    if tConfig.CubesCount >= 7 and (tGame.iMaxX-tGame.iMinX+1) < 20 then
+        tConfig.CubesCount = 5
+    end
+    if tConfig.CubesCount >= 5 and (tGame.iMaxX-tGame.iMinX+1) < 14 then
+        tConfig.CubesCount = 3
     end
 
     CGameMode.InitGameMode()
@@ -263,9 +267,19 @@ CGameMode.InitGameMode = function()
     tColors = ShuffleTable(tColors)
     tColorsForObjects = ShuffleTable(tColors)
 
+    for iColor = 1, #tColors do
+        CGameMode.tEliminatedColorIds[iColor] = true
+    end
+
     tGameStats.TotalStages = #tColors-1
 
     CGameMode.PlaceRandomObjects()
+
+    if (#CObjects.tObjects <= #tColorsForObjects) then
+        while (#CObjects.tObjects <= #tColorsForObjects) do
+            CObjects.NewObject(math.random(tGame.iMinX, tGame.iMaxX-4), math.random(tGame.iMinY, tGame.iMaxY-4), CShapes.tShapes[1], math.random(2,4), false)
+        end
+    end
 end
 
 CGameMode.Announcer = function()
@@ -517,11 +531,13 @@ CIntro = {}
 CIntro.tCubes = {}
 CIntro.bNoCubeMovement = true
 CIntro.bShuffleEnded = false
+CIntro.iMiddle = 0
 
 CIntro.Start = function()
     CIntro.tCubes = {}
     CIntro.bNoCubeMovement = true
     CIntro.bShuffleEnded = false
+    CIntro.iMiddle = math.ceil(tConfig.CubesCount/2)
 
     CAudio.PlayVoicesSync("lfe/lfe-follow-center-cube.mp3") --voice следите за перемещением центрального квадрата
 
@@ -530,10 +546,10 @@ CIntro.Start = function()
 
     local iMiddleFlickCount = 10
     AL.NewTimer(2000, function()
-        if CIntro.tCubes[2].iColor == CColors.WHITE then
-            CIntro.tCubes[2].iColor = CColors.RED
+        if CIntro.tCubes[CIntro.iMiddle].iColor == CColors.WHITE then
+            CIntro.tCubes[CIntro.iMiddle].iColor = CColors.RED
         else
-            CIntro.tCubes[2].iColor = CColors.WHITE
+            CIntro.tCubes[CIntro.iMiddle].iColor = CColors.WHITE
         end
 
         iMiddleFlickCount = iMiddleFlickCount - 1
@@ -541,7 +557,7 @@ CIntro.Start = function()
             return 250
         end
 
-        CIntro.tCubes[2].iColor = CColors.WHITE
+        CIntro.tCubes[CIntro.iMiddle].iColor = CColors.WHITE
         CIntro.ShuffleCubes()
         return nil
     end)
@@ -549,7 +565,9 @@ CIntro.Start = function()
     AL.NewTimer(0, function()
         local bCubesMoved = false
 
-        for iCubeId = 1, 3 do
+        local distance = 0
+
+        for iCubeId = 1, tConfig.CubesCount do
             if CIntro.tCubes[iCubeId].iY ~= CIntro.tCubes[iCubeId].iTargetY then
                 if CIntro.tCubes[iCubeId].iY < CIntro.tCubes[iCubeId].iTargetY then
                     CIntro.tCubes[iCubeId].iY = CIntro.tCubes[iCubeId].iY + 1
@@ -564,6 +582,7 @@ CIntro.Start = function()
                     CIntro.tCubes[iCubeId].iX = CIntro.tCubes[iCubeId].iX - 1
                 end
                 bCubesMoved = true
+                distance = math.abs(CIntro.tCubes[iCubeId].iTargetX - CIntro.tCubes[iCubeId].iX)
             elseif CIntro.tCubes[iCubeId].iY ~= CIntro.tCubes[iCubeId].iStartY then
                 CIntro.tCubes[iCubeId].iTargetY = CIntro.tCubes[iCubeId].iStartY
                 bCubesMoved = true
@@ -580,7 +599,7 @@ CIntro.Start = function()
             return nil
         end
 
-        return 150 - (20*tGameStats.StageNum)
+        return 0 + (tGameStats.TotalStages - tGameStats.StageNum)*15 + tConfig.AnimationSlowDown - (distance*2)
     end)
 end
 
@@ -593,38 +612,45 @@ CIntro.End = function()
 end
 
 CIntro.SpawnCubes = function()
-    for iCubeId = 1, 3 do
+    local tRandColors = {}
+    local iRand = 0
+    for iColor = 1, #tColors do
+        if not CGameMode.tEliminatedColorIds[iColor] then
+            iRand = iRand+1
+            tRandColors[iRand] = iColor
+        end
+    end
+    tRandColors = ShuffleTable(tRandColors)
+    iRand = 0
+
+    local iStartX = tGame.CenterX - (3 * math.ceil((tConfig.CubesCount)/2))
+    for iCubeId = 1, tConfig.CubesCount do
         CIntro.tCubes[iCubeId] = {}
-        CIntro.tCubes[iCubeId].iX = math.floor((tGame.iMaxX+1-tGame.iMinX)/2) + ((iCubeId*3)-6)
+        CIntro.tCubes[iCubeId].iX = iStartX + iCubeId*3
         CIntro.tCubes[iCubeId].iY = math.floor((tGame.iMaxY+1-tGame.iMinY)/2)
         CIntro.tCubes[iCubeId].iColor = CColors.WHITE
         CIntro.tCubes[iCubeId].iTargetX = CIntro.tCubes[iCubeId].iX
         CIntro.tCubes[iCubeId].iTargetY = CIntro.tCubes[iCubeId].iY
         CIntro.tCubes[iCubeId].iStartY = CIntro.tCubes[iCubeId].iY
 
-        if iCubeId == 2 then
+        if iCubeId == CIntro.iMiddle then
             CIntro.tCubes[iCubeId].iTrueColor = CGameMode.iNextElimColorId
         else
-            repeat CIntro.tCubes[iCubeId].iTrueColor = math.random(1,#tColors)
-            until CIntro.CubeColorCheck(iCubeId)
+            iRand = iRand + 1
+            if tRandColors[iRand] == CGameMode.iNextElimColorId and math.random(1,2) == 2 then
+                iRand = iRand + 1
+            end
+            if iRand > #tRandColors then
+                iRand = 1
+            end
+            CIntro.tCubes[iCubeId].iTrueColor = tRandColors[iRand]
         end
     end
 end
 
-CIntro.CubeColorCheck = function(iCubeId)
-    if CIntro.tCubes[iCubeId].iTrueColor == CGameMode.iNextElimColorId then return false; end
-
-    if tGameStats.StageNum < 5 or iCubeId == 1 then
-        if CGameMode.tEliminatedColorIds[CIntro.tCubes[iCubeId].iTrueColor] then return false; end 
-    end
-
-    if iCubeId == 3 and CIntro.tCubes[iCubeId].iTrueColor == CIntro.tCubes[1].iTrueColor then return false; end
-
-    return true
-end
-
 CIntro.ShuffleCubes = function()
-    local iShuffleCount = 8 + tGameStats.StageNum
+    local iStartShuffle = 8 + tGameStats.StageNum
+    local iShuffleCount = iStartShuffle
 
     AL.NewTimer(1000, function()
         if CIntro.bNoCubeMovement then
@@ -634,11 +660,24 @@ CIntro.ShuffleCubes = function()
             else
                 CIntro.bNoCubeMovement = false
                 
-                local iCubeId1 = math.random(1,3), iCubeId2
-                repeat iCubeId2 = math.random(1,3);
+                local iCubeId1 = math.random(1,tConfig.CubesCount), iCubeId2
+                if iShuffleCount > iStartShuffle-math.random(1,5) then
+                    iCubeId1 = CIntro.iMiddle
+                end
+                repeat iCubeId2 = math.random(1,tConfig.CubesCount);
                 until iCubeId1 ~= iCubeId2;
 
                 CIntro.SwitchTwoCubes(iCubeId1, iCubeId2)
+
+                if tConfig.CubesCount >= 5 and math.random(1,3) == 2 then
+                    local iCubeId3, iCubeId4
+                    repeat iCubeId3 = math.random(1, tConfig.CubesCount)
+                    until iCubeId3 ~= iCubeId1 and iCubeId3 ~= iCubeId2
+                    repeat iCubeId4 = math.random(1, tConfig.CubesCount)
+                    until iCubeId4 ~= iCubeId1 and iCubeId4 ~= iCubeId2 and iCubeId4 ~= iCubeId3
+                    CIntro.SwitchTwoCubes(iCubeId3, iCubeId4)
+                end
+
                 iShuffleCount = iShuffleCount - 1
             end
         end
@@ -695,11 +734,12 @@ CObjects.NewObject = function(iX, iY, tShape, iMidSize, bRotated)
         CObjects.tObjects[iObjectID].tShape = RotateTable(CObjects.tObjects[iObjectID].tShape)
     end
 
-    if iObjectID <= #tColorsForObjects then
-        CObjects.tObjects[iObjectID].iColor = tColorsForObjects[iObjectID]
-    else
-        CObjects.tObjects[iObjectID].iColor = tColorsForObjects[math.random(1,#tColors)]
+    local iColorId = iObjectID
+    if iObjectID > #tColorsForObjects then
+        iColorId = math.random(1,#tColors)
     end
+    CObjects.tObjects[iObjectID].iColor = tColorsForObjects[iColorId]
+    CGameMode.tEliminatedColorIds[iColorId] = false
 end
 
 CObjects.PaintObjects = function(iBright)
