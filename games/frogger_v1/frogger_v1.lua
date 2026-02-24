@@ -100,6 +100,10 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
+    if AL.InitLasers then
+        AL.InitLasers(tGame)
+    end
+
     tGame.iMinX = 1
     tGame.iMinY = 1
     tGame.iMaxX = tGame.Cols
@@ -165,7 +169,7 @@ function PostGameTick()
     CLanes.Paint()    
 end
 
-function RangeFloor(setPixel, setButton)
+function RangeFloor(setPixel, setButton, setLasers)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
             setPixel(iX , iY, tFloor[iX][iY].iColor, tFloor[iX][iY].iBright)
@@ -174,6 +178,10 @@ function RangeFloor(setPixel, setButton)
 
     for i, tButton in pairs(tButtons) do
         setButton(i, tButton.iColor, tButton.iBright)
+    end
+
+    if setLasers and AL.bRoomHasLasers then
+        AL.SetLasers(setLasers)
     end
 end
 
@@ -291,6 +299,10 @@ CGameMode.StartGame = function()
 
         return 250
     end)
+
+    if AL.bRoomHasLasers then
+        CGameMode.RandomLasersOnLine(math.random(1, AL.Lasers.iLines), math.random(1,2))
+    end
 end
 
 CGameMode.EndGame = function(bVictory, bTimeOut)
@@ -323,6 +335,8 @@ CGameMode.RewardForTarget = function()
     tGameStats.CurrentStars = tGameStats.CurrentStars + 1
     tGameResults.Score = tGameResults.Score + 100
 
+    CGameMode.SwitchAllLasers(false)
+
     if tGameStats.CurrentStars >= tGameStats.TotalStars then
         CGameMode.EndGame(true, false)
     else
@@ -339,6 +353,10 @@ CGameMode.RewardForTarget = function()
         AL.NewTimer(1500, function()
             CLanes.tLanes[iClearLaneID].iColor = CColors.NONE
         end)
+
+        if AL.bRoomHasLasers then
+            CGameMode.RandomLasersOnLine(math.random(1, AL.Lasers.iLines), math.random(1,2))
+        end
     end
 end
 
@@ -347,6 +365,24 @@ CGameMode.DamagePlayer = function()
     tGameStats.CurrentLives = tGameStats.CurrentLives - 1
     if tGameStats.CurrentLives == 0 then
         CGameMode.EndGame(false, false)
+    end
+end
+
+CGameMode.SwitchAllLasers = function(bOn)
+    if AL.bRoomHasLasers then
+        for iLine = 1, AL.Lasers.iLines do
+            for iRow = 1, AL.Lasers.iRows do
+                AL.SwitchLaser(iLine, iRow, bOn)
+            end
+        end
+    end
+end
+
+CGameMode.RandomLasersOnLine = function(iLine, iCount)
+    if AL.bRoomHasLasers then
+        for i = 1, iCount do
+            AL.SwitchLaser(iLine, math.random(1, AL.Lasers.iRows), true)
+        end
     end
 end
 --//
