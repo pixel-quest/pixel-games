@@ -220,6 +220,8 @@ CGameMode.iRoundTimeLimit = 60
 
 CGameMode.bCanStart = false
 
+CGameMode.bDamageCooldown = false
+
 CGameMode.InitGameMode = function()
     if tConfig.Seed ~= 0 then 
         math.randomseed(tonumber(tConfig.Seed))
@@ -241,6 +243,11 @@ CGameMode.InitGameMode = function()
     end
 
     tGameStats.TotalStages = tConfig.RoundCount
+
+    if tConfig.TotalLives and tConfig.TotalLives > 0 then
+        tGameStats.TotalLives = tConfig.TotalLives
+        tGameStats.CurrentLives = tConfig.TotalLives
+    end
 end
 
 CGameMode.Announcer = function()
@@ -360,6 +367,8 @@ CGameMode.StartRound = function()
 
     tGameStats.StageLeftDuration = CGameMode.iRoundTimeLimit
     AL.NewTimer(1000, function()
+        if iGameState ~= GAMESTATE_GAME then return nil; end
+
         if CGameMode.bRoundStarted then
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
         
@@ -367,6 +376,7 @@ CGameMode.StartRound = function()
                 if CGameMode.iMapCoinCollected >= CGameMode.iMapCoinReq then
                     CGameMode.EndRound()
                 else
+                    CAudio.PlayVoicesSync("notime.mp3")
                     CGameMode.EndGame(false)
                 end
 
@@ -440,6 +450,19 @@ CGameMode.PlayerCollectLava = function(iX, iY)
         tGameResults.Score = tGameResults.Score - 10 
 
         CPaint.AnimatePixelFlicker(iX, iY, 5, CColors.NONE)
+
+        if tGameStats.TotalLives > 0 and not CGameMode.bDamageCooldown then
+            tGameStats.CurrentLives = tGameStats.CurrentLives - 1
+            if tGameStats.CurrentLives <= 0 then
+                CAudio.PlayVoicesSync("nolives.mp3")
+                CGameMode.EndGame(false)
+            else
+                CGameMode.bDamageCooldown = true
+                AL.NewTimer(1000, function()
+                    CGameMode.bDamageCooldown = false
+                end)
+            end
+        end
 
         CBlock.tBlocks[CBlock.LAYER_GROUND][iX][iY].bCooldown = true
         AL.NewTimer(1000, function()
