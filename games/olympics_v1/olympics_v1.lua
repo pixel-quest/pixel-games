@@ -149,6 +149,18 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
 
+            if iPlayerID == 1 then
+                local iDef = 0
+                for i = iX, iX + tGame.StartPositionSizeX-1 do
+                    if tFloor[iX][iY].bDefect then iDef = iDef + 1; end
+                end
+                if iDef >= tGame.StartPositionSizeX-1 then
+                    iY = iY + 1 
+                    tGame.StartPositionSizeY = tGame.StartPositionSizeY - 1
+                    tGame.StartPositions[iPlayerID].Y = iY
+                end
+            end
+
             iX = iX + tGame.StartPositionSizeX + 1
             if iX + tGame.StartPositionSizeX - 1 > iMaxX then break; end
         end
