@@ -260,7 +260,7 @@ end
 function InitEvents()
     for _,tEvent in pairs(tConfig.Events) do
         AL.NewTimer(tEvent.ts*1000, function() 
-            CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {}, tEvent.duration or 5)
+            CEvents.Send(tEvent.text or "", tEvent.sound or "", tEvent.recepients or {}, tEvent.duration or 5, tEvent.is_lounge_video_fullscreen or false)
 
             if tEvent.repeat_count and tEvent.repeat_count > 0 then
                 tEvent.repeat_count = tEvent.repeat_count - 1
