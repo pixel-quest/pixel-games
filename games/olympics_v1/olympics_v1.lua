@@ -123,52 +123,59 @@ function StartGame(gameJson, gameConfigJson)
         AL.LoadNFZInfo()
     end
 
-    if tGame.StartPositions == nil then
-        tGame.StartPositions = {}
 
-        local iMinX = 1
-        local iMinY = 1
-        local iMaxX = tGame.Cols
-        local iMaxY = tGame.Rows
-        if AL.NFZ.bLoaded then
-            iMinX = AL.NFZ.iMinX
-            iMinY = AL.NFZ.iMinY
-            iMaxX = AL.NFZ.iMaxX
-            iMaxY = AL.NFZ.iMaxY
-        end
+    tGame.StartPositions = {}
 
-        tGame.StartPositionSizeX = 4
-        tGame.StartPositionSizeY = iMaxY-iMinY
+    local iMinX = 1
+    local iMinY = 1
+    local iMaxX = tGame.Cols
+    local iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        iMinX = AL.NFZ.iMinX
+        iMinY = AL.NFZ.iMinY
+        iMaxX = AL.NFZ.iMaxX
+        iMaxY = AL.NFZ.iMaxY
+    end
 
-        local iX = iMinX
-        local iY = iMinY+1
+    tGame.StartPositionSizeX = 4
+    tGame.StartPositionSizeY = iMaxY-iMinY
 
-        for iPlayerID = 1, 6 do
-            tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
+    local iX = iMinX
+    local iY = iMinY+1
 
-            if iPlayerID == 1 then
-                local iDef = 0
-                for i = iX, iX + tGame.StartPositionSizeX-1 do
-                    if tFloor[iX][iY].bDefect then iDef = iDef + 1; end
-                end
-                if iDef >= tGame.StartPositionSizeX-1 then
-                    iY = iY + 1 
-                    tGame.StartPositionSizeY = tGame.StartPositionSizeY - 1
-                    tGame.StartPositions[iPlayerID].Y = iY
-                end
-            end
+    for iPlayerID = 1, 6 do
+        tGame.StartPositions[iPlayerID] = {}
+        tGame.StartPositions[iPlayerID].X = iX
+        tGame.StartPositions[iPlayerID].Y = iY
+        tGame.StartPositions[iPlayerID].Color = tColors[iPlayerID]
 
-            iX = iX + tGame.StartPositionSizeX + 1
-            if iX + tGame.StartPositionSizeX - 1 > iMaxX then break; end
-        end
-    else
+        iX = iX + tGame.StartPositionSizeX + 1
+        if iX + tGame.StartPositionSizeX - 1 > iMaxX then break; end
+    end
+
+    local function checkAllPositionsValid()
         for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end 
-    end   
+            local iDef = 0
+            local iX = tGame.StartPositions[iPlayerID].X
+            local iY = tGame.StartPositions[iPlayerID].Y
+            for i = iX, iX + tGame.StartPositionSizeX do
+                if tFloor[iX][iY].bDefect then iDef = iDef + 1; end
+            end
+            if iDef >= tGame.StartPositionSizeX-1 then
+                return false
+            end
+        end
+
+        return true
+    end
+
+    while not checkAllPositionsValid() do
+        iY = iY + 1 
+        tGame.StartPositionSizeY = tGame.StartPositionSizeY - 1
+        for iPlayerID = 1, #tGame.StartPositions do
+            tGame.StartPositions[iPlayerID].Y = iY
+        end
+    end
 
     iPrevTickTime = CTime.unix()
 
