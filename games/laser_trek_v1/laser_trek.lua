@@ -173,7 +173,7 @@ function RangeFloor(setPixel, setButton, setLasers)
         setButton(i, tButton.iColor, tButton.iBright)
     end
 
-    --AL.SetLasers(setLasers)
+    AL.SetLasers(setLasers)
 end
 
 function SwitchStage()
@@ -197,8 +197,8 @@ end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        --voice gamename rules
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync("lasertrek/rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("lasertrek/rules.mp3")*1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
