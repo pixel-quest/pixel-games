@@ -190,9 +190,12 @@ CGameMode.bStartClicked = false
 CGameMode.tPlayerColors = {}
 
 CGameMode.InitGameMode = function()
+    local i = 0
     while #CPath.tPath+20 < tConfig.PathSize do
+        i = i + 1
         CPath.CreatePath(math.random(tGame.iMinX+1, tGame.iMaxX-1),math.random(tGame.iMinY+1, tGame.iMaxY-1))
     end
+    CLog.print("path generated in "..i.." attempts")
 end
 
 CGameMode.Announcer = function()
@@ -381,7 +384,6 @@ CPath.CreatePath = function(iStartX, iStartY)
                 iPlusY = math.random(-1,1)
             until CPath.CheckValidPoint(iPoint, iX+iPlusX, iY+iPlusY, iAttemptsCount)
             if iAttemptsCount >= 10 then
-                CLog.print("path stuck")
                 break;
             end
             iNextSwitch = math.random(1,3)
