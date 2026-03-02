@@ -10,6 +10,20 @@
 	"WinDurationMS_en": "After game duration",
 	"WinDurationMS_Hidden": true,
 
+	"CubesCount": 5,
+	"CubesCount_Min": 3,
+	"CubesCount_Max": 7,
+	"CubesCount_Step": 2,
+	"CubesCount_ru": "Количество квадратиков",
+	"CubesCount_en": "Sqaures count",
+
+	"AnimationSlowDown": 0,
+	"AnimationSlowDown_Min": 0,
+	"AnimationSlowDown_Max": 150,
+	"AnimationSlowDown_Step": 10,
+	"AnimationSlowDown_ru": "Замедление анимации квадратов",
+	"AnimationSlowDown_en": "Square animation slowdown",
+
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial"
