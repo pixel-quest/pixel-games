@@ -25,6 +25,13 @@
 	"RoundTimePerCoin_en": "Round time length per coin",
 	"RoundTimePerCoin_Hidden": true,
 
+	"TotalLives": 0,
+	"TotalLives_Min": 0,
+	"TotalLives_Max": 500,
+	"TotalLives_Step": 10,
+	"TotalLives_ru": "Жизни (0 для бесконечных)",
+	"TotalLives_en": "Lives count(0 = infinite)",
+
   	"SkipTutorial": false,
   	"SkipTutorial_ru": "Пропустить обучение", 
   	"SkipTutorial_en": "Skip tutorial", 
