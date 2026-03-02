@@ -1,0 +1,36 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"GapSize": 4,
+	"GapSize_Min": 2,
+	"GapSize_Max": 5,
+	"GapSize_ru": "Зазор между трубами",
+	"GapSize_en": "Pipe gap size",
+
+	"StepSize": 5,
+	"StepSize_Min": 3,
+	"StepSize_Max": 10,
+	"StepSize_ru": "Расстояние между трубами",
+	"StepSize_en": "Distance between pipes",
+
+	"TeamLives": true,
+	"TeamLives_ru": "Общие жизни", 
+	"TeamLives_en": "Team Lives",
+
+	"Lives": 10,
+	"Lives_Min": 1,
+	"Lives_Max": 50,
+	"Lives_ru": "Жизни",
+	"Lives_en": "Lives",
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
