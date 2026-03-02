@@ -18,12 +18,24 @@
 	"CircleSize_ru": "Радиус Круга",
 	"CircleSize_en": "Circle Radius",
 
+	"CircleTickRate": 200,
+	"CircleTickRate_Min": 50,
+	"CircleTickRate_Max": 400,
+	"CircleTickRate_Step": 25,
+	"CircleTickRate_ru": "Частота движения круга",
+	"CircleTickRate_en": "Circle movement tickrate",
+
 	"SwitchDuration": 15,
 	"SwitchDuration_Min": 5,
 	"SwitchDuration_Max": 30,
 	"SwitchDuration_Step": 5,
 	"SwitchDuration_ru": "Длительность цвета",
 	"SwitchDuration_en": "Color duration",
+
+	"PadAFKTimer": 10,
+	"PadAFKTimer_Hidden": true,
+	"PadAFKTimer_ru": "Длительность Отсутсвия Геймпада",
+	"PadAFKTimer_en": "GamePad Afk Timer",
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 

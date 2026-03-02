@@ -192,8 +192,6 @@ function GameSetupTick()
     end
 
     if not CGameMode.bCountDownStarted then 
-        SetAllButtonColorBright(CColors.BLUE, tConfig.Bright)
-
         if CGameMode.bCanAutoStart and iPlayersReadyCount > 1 then
             CGameMode.StartCountDown(10)
         end
@@ -247,7 +245,6 @@ CGameMode.InitGameMode = function()
     CCircle.CIRCLE_RADIUS = tConfig.CircleSize
     CCircle.iX = tGame.CenterX
     CCircle.iY = tGame.CenterY
-    CCircle.NewTarget()
 end
 
 CGameMode.Announcer = function()
@@ -302,10 +299,10 @@ CGameMode.StartGame = function()
         return 1000
     end)
 
-    AL.NewTimer(150, function()
+    AL.NewTimer(tConfig.CircleTickRate or 150, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end 
         CCircle.Movement()
-        return 150;
+        return tConfig.CircleTickRate or 150;
     end)
 
     AL.NewTimer(500, function()
@@ -367,6 +364,10 @@ CCircle.iClickCount = 0
 CCircle.tPlayersList = {}
 CCircle.iListPosition = 0
 
+CCircle.iMovesBeforeSwitch = 0
+CCircle.iXPlus = 0
+CCircle.iYPlus = 0
+
 CCircle.ListPlayers = function()
     local i = 1
 
@@ -378,11 +379,6 @@ CCircle.ListPlayers = function()
     end
 
     CCircle.tPlayersList = TableConcat(ShuffleTable(CCircle.tPlayersList), ShuffleTable(CHelp.DeepCopy(CCircle.tPlayersList)))
-end
-
-CCircle.NewTarget = function()
-    CCircle.iTargetX = math.random(1, tGame.Cols)
-    CCircle.iTargetY = math.random(1, tGame.Rows)
 end
 
 CCircle.SwitchPlayer = function()
@@ -400,23 +396,33 @@ CCircle.Movement = function()
     local iXPlus = 0
     local iYPlus = 0
 
-    if CCircle.iX < CCircle.iTargetX then
-        iXPlus = 1
-    elseif CCircle.iX > CCircle.iTargetX then
-        iXPlus = -1
-    end
-
-    if iXPlus == 0 and iYPlus == 0 then
-        CCircle.NewTarget()
-    else
-        if CCircle.iY < CCircle.iTargetY then
-            iYPlus = 1
-        elseif CCircle.iY > CCircle.iTargetY then
-            iYPlus = -1
+    if CPad.AFK() then
+        CCircle.iMovesBeforeSwitch = CCircle.iMovesBeforeSwitch - 1
+        if CCircle.iMovesBeforeSwitch <= 0 then
+            CCircle.iXPlus = math.random(-1,1)
+            CCircle.iYPlus = math.random(-1,1)
+            CCircle.iMovesBeforeSwitch = math.random(2,tGame.Cols+tGame.Rows)
+            if CCircle.iXPlus == 0 and CCircle.iYPlus == 0 and CCircle.iMovesBeforeSwitch > 10 then
+                CCircle.iMovesBeforeSwitch = 10
+            end
         end
 
-        CCircle.iX = CCircle.iX + iXPlus
-        CCircle.iY = CCircle.iY + iYPlus
+        CCircle.iX = CCircle.iX + CCircle.iXPlus  
+        CCircle.iY = CCircle.iY + CCircle.iYPlus
+    else
+        CCircle.iX = CCircle.iX + CPad.iXPlus
+        CCircle.iY = CCircle.iY + CPad.iYPlus
+    end
+
+    if CCircle.iX > tGame.Cols then
+        CCircle.iX = 1
+    elseif CCircle.iX < 1 then
+        CCircle.iX = tGame.Cols
+    end
+    if CCircle.iY > tGame.Rows then
+        CCircle.iY = 1
+    elseif CCircle.iY < 1 then
+        CCircle.iY = tGame.Rows
     end
 end
 
@@ -444,6 +450,17 @@ CCircle.Paint = function()
     local paintCirclePixel = function(iX, iY)
         for iX2 = iX-1, iX+1 do
             for iY2 = iY-1, iY+1 do
+                if iX2 > tGame.Cols then
+                    iX2 = (iX2-tGame.Cols)
+                elseif iX2 < 1 then
+                    iX2 = tGame.Cols + (iX2+1)
+                end
+                if iY2 > tGame.Rows then
+                    iY2 = (iY2-tGame.Rows)
+                elseif iY2 < 1 then
+                    iY2 = tGame.Rows + (iY2+1)
+                end
+
                 if tFloor[iX2] and tFloor[iX2][iY2] and tFloor[iX2][iY2].iColor == CColors.NONE then
                     tFloor[iX2][iY2].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
                     tFloor[iX2][iY2].iBright = tConfig.Bright
@@ -475,8 +492,47 @@ CCircle.Paint = function()
         end
     until iX > 0
 end
+--//
 
+--Pad
+CPad = {}
+CPad.LastInteractionTime = -1
 
+CPad.iXPlus = 0
+CPad.iYPlus = 0
+CPad.bTrigger = false
+
+CPad.Click = function(bUp, bDown, bLeft, bRight, bTrigger)
+    if bUp == true or bDown == true or bLeft == true or bRight == true or bTrigger == true then
+        CPad.LastInteractionTime = CTime.unix()
+    end
+
+    CPad.bTrigger = bTrigger
+
+    if bUp then 
+        CPad.iYPlus = -1
+        CPad.iXPlus = 0
+    end
+
+    if bDown then 
+        CPad.iYPlus = 1
+        CPad.iXPlus = 0
+    end
+
+    if bLeft then
+        CPad.iXPlus = -1
+        CPad.iYPlus = 0
+    end
+
+    if bRight then 
+        CPad.iXPlus = 1 
+        CPad.iYPlus = 0
+    end
+end
+
+CPad.AFK = function()
+    return CPad.LastInteractionTime == -1 or (CTime.unix() - CPad.LastInteractionTime > tConfig.PadAFKTimer)
+end
 --//
 
 --UTIL прочие утилиты
@@ -625,8 +681,12 @@ function DefectPixel(defect)
 end
 
 function ButtonClick(click)
-    if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
-    tButtons[click.Button].bClick = click.Click
+    if click.GamepadAddress and click.GamepadAddress > 0 and not bGamePaused then
+        CPad.Click(click.GamepadUpClick, click.GamepadDownClick, click.GamepadLeftClick, click.GamepadRightClick, click.GamepadTriggerClick)
+    else
+        if tButtons[click.Button] == nil or bGamePaused or tButtons[click.Button].bDefect then return end
+        tButtons[click.Button].bClick = click.Click
+    end
 end
 
 function DefectButton(defect)
