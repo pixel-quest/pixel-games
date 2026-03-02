@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"TargetScore": 5,
+	"TargetScore_Min": 1,
+	"TargetScore_Max": 25,
+	"TargetScore_Step": 1,
+	"TargetScore_ru": "Цель", 
+	"TargetScore_en": "Target Score", 
+
+	"TimeLimit": 120,
+	"TimeLimit_Min": 0,
+	"TimeLimit_Max": 600,
+	"TimeLimit_Step": 60,
+	"TimeLimit_ru": "Время (0 = бесконечное)", 
+	"TimeLimit_en": "Time Limit (0 = infinite)", 
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
