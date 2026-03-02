@@ -134,10 +134,43 @@ function StartGame(gameJson, gameConfigJson)
         tGame.CenterY = AL.NFZ.iCenterY
     end
 
+    tGame.MirrorGame = false
+    if (tGame.MirrorGameSolo and tConfig.SoloGame) or (tGame.MirrorGameTeams and not tConfig.SoloGame) then
+        tGame.MirrorGame = true
+    end
+
+    if tGame.MirrorGame then
+        if tConfig.SoloGame then
+            tGame.iMinX, tGame.iMaxX = tGame.iMinX-(tGame.Cols-tGame.iMaxX), tGame.Cols
+            if tGame.iMinX < 1 then tGame.iMinX = 1 end
+        else
+            tGame.iMinX, tGame.iMaxX = tGame.Cols-tGame.iMaxX, tGame.iMaxX-tGame.iMinX
+
+            if tGame.iMinX == 0 then
+                tGame.iMinX = 1
+            end
+        end
+        CLog.print(tGame.iMinX.." "..tGame.iMaxX)
+    elseif tConfig.SoloGame then 
+        tGame.iMinX = 1
+    end
+
+    tGame.StartPositionSizeX = 10
+    tGame.StartPositionSizeY = tGame.iMaxY-tGame.iMinY+1
+    tGame.StartPositionControlsY = tGame.iMinY+2
+
+    if tConfig.SoloGame then
+        tGame.StartPositionSizeX = tGame.iMaxX-tGame.iMinX+1
+        tGame.StartPositionSizeY = tGame.StartPositionSizeY-2
+        tGame.StartPositionControlsY = tGame.StartPositionSizeX-3
+
+        tGame.StartPositions = {{X = tGame.iMinX, Y = tGame.iMinY+1, Color = "0xFFFF00"}}
+    end
+
     if not tGame.StartPositions then
         tGame.StartPositions = {}
 
-        local iX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + 1 + tGame.iMinX
+        local iX = tGame.iMinX+1
         local iY = tGame.iMinY
 
         for iPlayerID = 1, 6 do
@@ -146,8 +179,8 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Y = iY
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
-            iX = iX + 2 + tGame.StartPositionSizeX
-            if iX + tGame.StartPositionSizeX > tGame.iMaxX then break; end
+            iX = iX + 1 + tGame.StartPositionSizeX
+            if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end
         end
     else
         for iPlayerID = 1, #tGame.StartPositions do
@@ -832,13 +865,15 @@ end
 CPaint.FillPlayerZoneWithColor = function(iPlayerID, iBright, iColor)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do
-            if (CGameMode.bVerticalGame and iY > tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX <= tGame.StartPositionControlsY) then
-                tFloor[iX][iY].iColor = CColors.NONE
-            else
-                tFloor[iX][iY].iColor = iColor
-            end
+            if tFloor[iX] and tFloor[iX][iY] then
+                if (CGameMode.bVerticalGame and iY > tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX <= tGame.StartPositionControlsY) then
+                    tFloor[iX][iY].iColor = CColors.NONE
+                else
+                    tFloor[iX][iY].iColor = iColor
+                end
 
-            tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iBright = iBright
+            end
         end
     end
 end
@@ -850,60 +885,62 @@ CPaint.TetrisPlayerZone = function(iPlayerID, iBright)
 
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY-1 do
-            if (CGameMode.bVerticalGame and iY > tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX < tGame.StartPositionControlsY) then
-                CPaint.PaintTetrisPixel(iPlayerID, iBright, iLocalX, iLocalY, iX, iY)
-            elseif (CGameMode.bVerticalGame and iY == tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX == tGame.StartPositionControlsY) then
-                if --[[iX < tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2) and]] not CGameMode.tPlayerLost[iPlayerID] then
-                    tFloor[iX][iY].iColor = CColors.GREEN
+            if tFloor[iX] and tFloor[iX][iY] then 
+                if (CGameMode.bVerticalGame and iY > tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX < tGame.StartPositionControlsY) then
+                    CPaint.PaintTetrisPixel(iPlayerID, iBright, iLocalX, iLocalY, iX, iY)
+                elseif (CGameMode.bVerticalGame and iY == tGame.StartPositionControlsY) or (not CGameMode.bVerticalGame and iX == tGame.StartPositionControlsY) then
+                    if --[[iX < tGame.StartPositions[iPlayerID].X + math.floor(tGame.StartPositionSizeX/2) and]] not CGameMode.tPlayerLost[iPlayerID] then
+                        tFloor[iX][iY].iColor = CColors.GREEN
 
-                    if not tFloor[iX][iY].fFunction then 
-                        tFloor[iX][iY].fFunction = function()
-                            if iGameState == GAMESTATE_GAME then
-                                CTetris.ButtonRotateActive(iPlayerID, iLocalX)
+                        if not tFloor[iX][iY].fFunction then 
+                            tFloor[iX][iY].fFunction = function()
+                                if iGameState == GAMESTATE_GAME then
+                                    CTetris.ButtonRotateActive(iPlayerID, iLocalX)
+                                end
                             end
                         end
-                    end
-                else
-                    tFloor[iX][iY].iColor = CColors.RED
+                    else
+                        tFloor[iX][iY].iColor = CColors.RED
 
-                    --[[
-                    if not tFloor[iX][iY].fFunction then 
-                        tFloor[iX][iY].fFunction = function()
-                            if iGameState == GAMESTATE_GAME then
-                                CTetris.ButtonPlaceActive(iPlayerID, iLocalX)
+                        --[[
+                        if not tFloor[iX][iY].fFunction then 
+                            tFloor[iX][iY].fFunction = function()
+                                if iGameState == GAMESTATE_GAME then
+                                    CTetris.ButtonPlaceActive(iPlayerID, iLocalX)
+                                end
                             end
                         end
-                    end
-                    ]]
-                end
-            else
-                if not CGameMode.tPlayerLost[iPlayerID] then
-                    tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
-
-                    if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > iMaxWeight then 
-                        if CGameMode.bVerticalGame then
-                            CTetris.ButtonMove(iPlayerID, tGame.StartPositionSizeX - iLocalX+1)
-                        else
-                            CTetris.ButtonMove(iPlayerID, tGame.StartPositionSizeY - iLocalY+1)
-                        end
-                        iMaxWeight = tFloor[iX][iY].iWeight
+                        ]]
                     end
                 else
-                    tFloor[iX][iY].iColor = CColors.RED
+                    if not CGameMode.tPlayerLost[iPlayerID] then
+                        tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+
+                        if not tFloor[iX][iY].bDefect and tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > iMaxWeight then 
+                            if CGameMode.bVerticalGame then
+                                CTetris.ButtonMove(iPlayerID, tGame.StartPositionSizeX - iLocalX+1)
+                            else
+                                CTetris.ButtonMove(iPlayerID, tGame.StartPositionSizeY - iLocalY+1)
+                            end
+                            iMaxWeight = tFloor[iX][iY].iWeight
+                        end
+                    else
+                        tFloor[iX][iY].iColor = CColors.RED
+                    end
+                end
+
+                tFloor[iX][iY].iBright = iBright
+                if CTetris.tPlayerActiveBlock[iPlayerID] and 
+                ((CGameMode.bVerticalGame and iY < tGame.StartPositionControlsY and CTetris.tPlayerActiveBlock[iPlayerID].iX == tGame.StartPositionSizeX - iLocalX+1) 
+                or (not CGameMode.bVerticalGame and iX > tGame.StartPositionControlsY and CTetris.tPlayerActiveBlock[iPlayerID].iX == tGame.StartPositionSizeY - iY+2)) then
+                    tFloor[iX][iY].iBright = iBright-2
+                end
+
+                iLocalY = iLocalY + 1
                 end
             end
-
-            tFloor[iX][iY].iBright = iBright
-            if CTetris.tPlayerActiveBlock[iPlayerID] and 
-            ((CGameMode.bVerticalGame and iY < tGame.StartPositionControlsY and CTetris.tPlayerActiveBlock[iPlayerID].iX == tGame.StartPositionSizeX - iLocalX+1) 
-            or (not CGameMode.bVerticalGame and iX > tGame.StartPositionControlsY and CTetris.tPlayerActiveBlock[iPlayerID].iX == tGame.StartPositionSizeY - iY+2)) then
-                tFloor[iX][iY].iBright = iBright-2
-            end
-
-            iLocalY = iLocalY + 1
-        end
-        iLocalX = iLocalX + 1
-        iLocalY = 1
+            iLocalX = iLocalX + 1
+            iLocalY = 1
     end
 end
 
