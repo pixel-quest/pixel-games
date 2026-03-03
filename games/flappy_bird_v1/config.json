@@ -20,6 +20,12 @@
 	"StepSize_ru": "Расстояние между трубами",
 	"StepSize_en": "Distance between pipes",
 
+	"BirdSize": 1,
+	"BirdSize_Min": 1,
+	"BirdSize_Max": 2,
+	"BirdSize_ru": "Размер птицы",
+	"BirdSize_en": "Brid Size",
+
 	"Lives": 10,
 	"Lives_Min": 1,
 	"Lives_Max": 50,
@@ -32,13 +38,6 @@
 	"TickRate_Step": 50,
 	"TickRate_ru": "Частота движения труб/гравитации",
 	"TickRate_en": "Pipes/Gravity Tick-Rate",
-
-	"TapDelay": 100,
-	"TapDelay_Min": 0,
-	"TapDelay_Max": 200,
-	"TapDelay_Step": 10,
-	"TapDelay_ru": "Задержка между прыжками птицы",
-	"TapDelay_en": "Delay between bird jumps",	
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 

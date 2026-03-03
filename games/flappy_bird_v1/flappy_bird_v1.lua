@@ -227,6 +227,8 @@ CGameMode.InitGameMode = function()
     CGameMode.iGameZoneMiddleX = CGameMode.iGameZoneX+math.floor((CGameMode.iGameZoneSizeX-CGameMode.iGameZoneX+1)/2)
     CGameMode.iGameZoneMiddleY = CGameMode.iGameZoneY+math.floor((CGameMode.iGameZoneSizeY-CGameMode.iGameZoneY+1)/2)
 
+    CBirds.BIRD_SIZE = tConfig.BirdSize
+
     tGameStats.TargetScore = tConfig.Lives
 
     CPipes.Init()
@@ -244,21 +246,28 @@ CGameMode.Announcer = function()
 end
 
 CGameMode.PaintZones = function()
-    local iStartX = tGame.iMinX+1
+    local iStartX = tGame.iMaxX-CGameMode.iPlayerZoneSizeX
     local iStartY = tGame.iMinY
 
     if tGame.MirrorGame then
+        iStartX = tGame.iMinX+1
         iStartY = tGame.iMaxY-CGameMode.iPlayerZoneSizeY+1
     end
 
     for iPlayerID = 1, CGameMode.MAX_PLAYERS do
         if iGameState == GAMESTATE_SETUP or CGameMode.tPlayerInGame[iPlayerID] then
             local iBright = 1
-            if CGameMode.tPlayerInGame[iPlayerID] and (iGameState == GAMESTATE_SETUP or CBirds.GetPlayerBird(iPlayerID).bAlive) then iBright = tConfig.Bright-1; end
+            if CGameMode.tPlayerInGame[iPlayerID] and iGameState == GAMESTATE_SETUP then iBright = tConfig.Bright-1; 
+            elseif CGameMode.tPlayerInGame[iPlayerID] and iGameState == GAMESTATE_GAME then
+                local tBird = CBirds.GetPlayerBird(iPlayerID)
+                if tBird.bAlive and not tBird.bTapCD then
+                    iBright = tConfig.Bright-1
+                end
+            end
 
             local bClick = false
             for iX = iStartX, iStartX + CGameMode.iPlayerZoneSizeX-1 do
-                for iY = iStartY, iStartY + CGameMode.iPlayerZoneSizeY-1 do
+                for iY = iStartY+1, iStartY + CGameMode.iPlayerZoneSizeY-1 do
                     tFloor[iX][iY].iColor = CGameMode.tPlayerColors[iPlayerID]
                     tFloor[iX][iY].iBright = iBright
 
@@ -289,7 +298,7 @@ CGameMode.PaintZones = function()
             end
         end
 
-        iStartX = iStartX + 2 + CGameMode.iPlayerZoneSizeX
+        iStartX = iStartX + (1 + CGameMode.iPlayerZoneSizeX) * -CGameMode.iPipesVel
     end
 end
 
@@ -340,6 +349,14 @@ CGameMode.StartGame = function()
         CBirds.Tick()
 
         return tConfig.TickRate      
+    end)
+
+    AL.NewTimer(tConfig.TickRate/3, function()
+        if iGameState ~= GAMESTATE_GAME then return nil; end
+
+        CBirds.Animate()
+
+        return tConfig.TickRate/3
     end)
 end
 
@@ -469,6 +486,7 @@ CBirds.Add = function(iX, iY, iPlayerID)
     CBirds.tBirds[iBirdID].iY = iY 
     CBirds.tBirds[iBirdID].iPlayerID = iPlayerID 
     CBirds.tBirds[iBirdID].iBirdID = iBirdID
+    CBirds.tBirds[iBirdID].iBright = tConfig.Bright
 
     CBirds.tBirds[iBirdID].bAlive = true
     CBirds.tBirds[iBirdID].bTapCD = false
@@ -478,18 +496,18 @@ end
 CBirds.Tick = function()
     for iBirdID = 1, #CBirds.tBirds do
         if CBirds.tBirds[iBirdID].bAlive then
-            CBirds.tBirds[iBirdID].iY = CBirds.tBirds[iBirdID].iY + CGameMode.iYGravity
-
-            if CBirds.tBirds[iBirdID].iY < tGame.iMinY-1 or CBirds.tBirds[iBirdID].iY > tGame.iMaxY then
-                if not CBirds.DamageBird(iBirdID) then
-                   CBirds.tBirds[iBirdID].iY = CGameMode.iGameZoneMiddleY 
-                end
-            end
-
             if CBirds.tBirds[iBirdID].iInvulnerableTicks > 0 then
                 CBirds.tBirds[iBirdID].iInvulnerableTicks = CBirds.tBirds[iBirdID].iInvulnerableTicks - 1
             else
-                CBirds.CheckCollision(CBirds.tBirds[iBirdID])
+                if not CBirds.tBirds[iBirdID].bTapCD then
+                    CBirds.tBirds[iBirdID].iY = CBirds.tBirds[iBirdID].iY + CGameMode.iYGravity
+                end
+
+                if CBirds.tBirds[iBirdID].iY < tGame.iMinY-1 or CBirds.tBirds[iBirdID].iY > tGame.iMaxY then
+                    CBirds.DamageBird(iBirdID)
+                else
+                    CBirds.CheckCollision(CBirds.tBirds[iBirdID])
+                end
             end
         end
     end
@@ -502,7 +520,7 @@ CBirds.Paint = function()
                 for iY = CBirds.tBirds[iBirdID].iY, CBirds.tBirds[iBirdID].iY + CBirds.BIRD_SIZE-1 do
                     if tFloor[iX] and tFloor[iX][iY] then
                         tFloor[iX][iY].iColor = CGameMode.tPlayerColors[CBirds.tBirds[iBirdID].iPlayerID]
-                        tFloor[iX][iY].iBright = tConfig.Bright+1 - CBirds.tBirds[iBirdID].iInvulnerableTicks
+                        tFloor[iX][iY].iBright = CBirds.tBirds[iBirdID].iBright
                     end
                 end
             end
@@ -531,7 +549,9 @@ CBirds.DamageBird = function(iBirdID)
         return true;
     end
 
-    CBirds.tBirds[iBirdID].iInvulnerableTicks = 5
+    CBirds.tBirds[iBirdID].iInvulnerableTicks = 4
+
+    CBirds.tBirds[iBirdID].iY = CGameMode.iGameZoneMiddleY 
 
     CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
@@ -563,7 +583,7 @@ CBirds.PlayerTapBird = function(tBird)
         tBird.iY = tBird.iY + -CGameMode.iYGravity
 
         tBird.bTapCD = true
-        AL.NewTimer(tConfig.TapDelay, function()
+        AL.NewTimer(tConfig.TickRate/2.5, function()
             tBird.bTapCD = false
         end)
 
@@ -571,6 +591,16 @@ CBirds.PlayerTapBird = function(tBird)
             CBirds.CheckCollision(tBird)
         end
     end
+end
+
+CBirds.Animate = function()
+    for iBirdID = 1, #CBirds.tBirds do
+        if CBirds.tBirds[iBirdID].bAlive and CBirds.tBirds[iBirdID].iInvulnerableTicks > 0 and CBirds.tBirds[iBirdID].iBright == tConfig.Bright then
+            CBirds.tBirds[iBirdID].iBright = 1
+        else
+            CBirds.tBirds[iBirdID].iBright = tConfig.Bright
+        end
+    end    
 end
 --//
 
