@@ -392,37 +392,48 @@ CCircle.SwitchPlayer = function()
     return true 
 end
 
+CCircle.NewTarget = function()
+    CCircle.iTargetX = math.random(3, tGame.Cols-3)
+    CCircle.iTargetY = math.random(3, tGame.Rows-3)
+end
+
 CCircle.Movement = function()
     local iXPlus = 0
     local iYPlus = 0
 
     if CPad.AFK() then
-        CCircle.iMovesBeforeSwitch = CCircle.iMovesBeforeSwitch - 1
-        if CCircle.iMovesBeforeSwitch <= 0 then
-            CCircle.iXPlus = math.random(-1,1)
-            CCircle.iYPlus = math.random(-1,1)
-            CCircle.iMovesBeforeSwitch = math.random(2,tGame.Cols+tGame.Rows)
-            if CCircle.iXPlus == 0 and CCircle.iYPlus == 0 and CCircle.iMovesBeforeSwitch > 10 then
-                CCircle.iMovesBeforeSwitch = 10
-            end
+        if CCircle.iX < CCircle.iTargetX then
+            iXPlus = 1
+        elseif CCircle.iX > CCircle.iTargetX then
+            iXPlus = -1
         end
 
-        CCircle.iX = CCircle.iX + CCircle.iXPlus  
-        CCircle.iY = CCircle.iY + CCircle.iYPlus
+        if CCircle.iY < CCircle.iTargetY then
+            iYPlus = 1
+        elseif CCircle.iY > CCircle.iTargetY then
+            iYPlus = -1
+        end
+
+        if iXPlus == 0 and iYPlus == 0 then
+            CCircle.NewTarget()
+        end
+
+        CCircle.iX = CCircle.iX + iXPlus 
+        CCircle.iY = CCircle.iY + iYPlus
     else
         CCircle.iX = CCircle.iX + CPad.iXPlus
         CCircle.iY = CCircle.iY + CPad.iYPlus
-    end
 
-    if CCircle.iX > tGame.Cols then
-        CCircle.iX = 1
-    elseif CCircle.iX < 1 then
-        CCircle.iX = tGame.Cols
-    end
-    if CCircle.iY > tGame.Rows then
-        CCircle.iY = 1
-    elseif CCircle.iY < 1 then
-        CCircle.iY = tGame.Rows
+        if CCircle.iX > tGame.Cols then
+            CCircle.iX = 1
+        elseif CCircle.iX < 1 then
+            CCircle.iX = tGame.Cols
+        end
+        if CCircle.iY > tGame.Rows then
+            CCircle.iY = 1
+        elseif CCircle.iY < 1 then
+            CCircle.iY = tGame.Rows
+        end
     end
 end
 
