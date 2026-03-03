@@ -205,9 +205,9 @@ CGameMode.tPlayerColors = {}
 CGameMode.tPlayerColors[1] = CColors.BLUE
 CGameMode.tPlayerColors[2] = CColors.MAGENTA
 CGameMode.tPlayerColors[3] = CColors.CYAN
-CGameMode.tPlayerColors[4] = CColors.RED
-CGameMode.tPlayerColors[5] = CColors.YELLOW
-CGameMode.tPlayerColors[6] = CColors.GREEN
+CGameMode.tPlayerColors[4] = CColors.YELLOW
+CGameMode.tPlayerColors[5] = CColors.GREEN
+CGameMode.tPlayerColors[6] = CColors.RED
 
 CGameMode.InitGameMode = function()
     --CGameMode.iPlayerZoneSizeX = math.floor((tGame.iMaxX-tGame.iMinX+1)/(CGameMode.MAX_PLAYERS+1))
@@ -227,18 +227,15 @@ CGameMode.InitGameMode = function()
     CGameMode.iGameZoneMiddleX = CGameMode.iGameZoneX+math.floor((CGameMode.iGameZoneSizeX-CGameMode.iGameZoneX+1)/2)
     CGameMode.iGameZoneMiddleY = CGameMode.iGameZoneY+math.floor((CGameMode.iGameZoneSizeY-CGameMode.iGameZoneY+1)/2)
 
-    if tConfig.TeamLives then
-        tGameStats.TotalLives = tConfig.Lives
-        tGameStats.CurrentLives = tConfig.Lives
-    end
+    tGameStats.TargetScore = tConfig.Lives
 
     CPipes.Init()
 end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        --voice gamename rules
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync("flappy-bird/flappy-bird-rules.mp3")
+        AL.NewTimer(CAudio.GetVoicesDuration("flappy-bird/flappy-bird-rules.mp3")*1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -329,20 +326,20 @@ CGameMode.StartGame = function()
 
     CGameMode.SpawnBirds()
 
-    AL.NewTimer(2000, function()
+    AL.NewTimer(tConfig.TickRate * 4, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CPipes.Tick()
 
-        return 500
+        return tConfig.TickRate 
     end)
 
-    AL.NewTimer(250, function()
+    AL.NewTimer(tConfig.TickRate , function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CBirds.Tick()
 
-        return 500        
+        return tConfig.TickRate      
     end)
 end
 
@@ -379,27 +376,16 @@ CGameMode.SpawnBirds = function()
     for iPlayerID = 1, CGameMode.MAX_PLAYERS do
         if CGameMode.tPlayerInGame[iPlayerID] then
             CBirds.Add(iX, CGameMode.iGameZoneMiddleY, iPlayerID)
-        
-            if not tConfig.TeamLives then
-                tGameStats.Players[iPlayerID].Lives = tConfig.Lives
-            end
 
-            iX = iX + 1 + (CGameMode.iPipesVel*CBirds.BIRD_SIZE)
+            tGameStats.Players[iPlayerID].Score = tConfig.Lives
+
+            iX = iX + CGameMode.iPipesVel + (CGameMode.iPipesVel*CBirds.BIRD_SIZE)
         end
     end
 end
 
 CGameMode.AddScore = function()
     tGameResults.Score = tGameResults.Score + 100 - tConfig.Lives
-
-    for iPlayerID = 1, CGameMode.MAX_PLAYERS do
-        if CGameMode.tPlayerInGame[iPlayerID] and CBirds.GetPlayerBird(iPlayerID).bAlive and CBirds.GetPlayerBird(iPlayerID).iInvulnerableTicks == 0 then
-            tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
-            if tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
-                tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
-            end
-        end
-    end
 end
 --//
 
@@ -528,7 +514,11 @@ CBirds.CheckCollision = function(tBird)
     for iPipeID = 1, CPipes.tPipes.Size() do
         local tPipe = CPipes.tPipes.Pop()
 
-        
+        if tBird.iX + CBirds.BIRD_SIZE-1 >= tPipe.iX and tBird.iX <= tPipe.iX + CPipes.PIPE_SIZE_X-1 then
+            if tBird.iY <= tPipe.iSplitY-math.floor(tConfig.GapSize/2) or tBird.iY + CBirds.BIRD_SIZE-1 > tPipe.iSplitY+math.ceil(tConfig.GapSize/2) then
+                CBirds.DamageBird(tBird.iBirdID)
+            end
+        end
 
         CPipes.tPipes.Push(tPipe)
     end
@@ -536,20 +526,9 @@ end
 
 CBirds.DamageBird = function(iBirdID)
     tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Score = tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Score - 1
-
-    if tConfig.TeamLives then
-        tGameStats.CurrentLives = tGameStats.CurrentLives - 1
-        if tGameStats.CurrentLives <= 0 then
-            CAudio.PlayVoicesSync("nolives.mp3")
-            CGameMode.EndGame()
-            return true;
-        end
-    else
-        tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Lives = tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Lives - 1
-        if tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Lives <= 0 then
-            CBirds.KillBird(iBirdID)
-            return true;
-        end
+    if tGameStats.Players[CBirds.tBirds[iBirdID].iPlayerID].Score <= 0 then
+        CBirds.KillBird(iBirdID)
+        return true;
     end
 
     CBirds.tBirds[iBirdID].iInvulnerableTicks = 5
@@ -582,11 +561,15 @@ end
 CBirds.PlayerTapBird = function(tBird)
     if tBird.bAlive and not tBird.bTapCD and tBird.iY > 0 and tBird.iY < tGame.Rows then
         tBird.iY = tBird.iY + -CGameMode.iYGravity
+
         tBird.bTapCD = true
-        CBirds.CheckCollision(tBird)
-        AL.NewTimer(100, function()
+        AL.NewTimer(tConfig.TapDelay, function()
             tBird.bTapCD = false
         end)
+
+        if tBird.iInvulnerableTicks == 0 then
+            CBirds.CheckCollision(tBird)
+        end
     end
 end
 --//
