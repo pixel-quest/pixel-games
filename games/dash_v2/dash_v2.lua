@@ -117,6 +117,8 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxX = AL.NFZ.iMaxX
         tGame.iMaxY = AL.NFZ.iMaxY
     end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
 
     if tConfig.LasersCount and tConfig.LasersCount > 0 and AL.InitLasers then
         AL.InitLasers(tGame)
@@ -134,91 +136,399 @@ function StartGame(gameJson, gameConfigJson)
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     tGame.LavaObjects = {}
-    tGame.LavaObjects[1] = 
-    {
+
+    if tGame.NewLevels == nil or tGame.NewLevels <= 1 then
+        tGame.LavaObjects[1] = 
         {
-            PosX = 1,
-            PosY = 1,
-            SizeX = tGame.Cols,
-            SizeY = 2,
-            VelX = 0,
-            VelY = 1,
-            IgnoreBoundsX = false,
-            IgnoreBoundsY = false,
-            Collision = false
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = tGame.Cols,
+                SizeY = 2,
+                VelX = 0,
+                VelY = 1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false
+            }
         }
-    }
-    tGame.LavaObjects[2] = 
-    {
+        tGame.LavaObjects[2] = 
         {
-            PosX = 1,
-            PosY = 1,
-            SizeX = 2,
-            SizeY = tGame.Rows,
-            VelX = 1,
-            VelY = 0,
-            IgnoreBoundsX = false,
-            IgnoreBoundsY = false,
-            Collision = false
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = 2,
+                SizeY = tGame.Rows,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false
+            }
         }
-    }
-    tGame.LavaObjects[3] = 
-    {
+        tGame.LavaObjects[3] = 
         {
-            PosX = 1,
-            PosY = -1,
-            SizeX = 3,
-            SizeY = tGame.Cols,
-            VelX = -1,
-            VelY = 0,
-            IgnoreBoundsX = true,
-            IgnoreBoundsY = true,
-            Collision = false,
-            Diagonal = true,
-            DiagonalDirection = 1
+            {
+                PosX = 1,
+                PosY = -1,
+                SizeX = 3,
+                SizeY = tGame.Cols,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = true,
+                IgnoreBoundsY = true,
+                Collision = false,
+                Diagonal = true,
+                DiagonalDirection = 1
+            }
         }
-    }
-    tGame.LavaObjects[4] = 
-    {
+        tGame.LavaObjects[4] = 
         {
-            PosX = 3,
-            PosY = -1,
-            SizeX = 3,
-            SizeY = tGame.Cols,
-            VelX = -1,
-            VelY = 0,
-            IgnoreBoundsX = true,
-            IgnoreBoundsY = true,
-            Collision = false,
-            Diagonal = true,
-            DiagonalDirection = -1
+            {
+                PosX = 3,
+                PosY = -1,
+                SizeX = 3,
+                SizeY = tGame.Cols,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = true,
+                IgnoreBoundsY = true,
+                Collision = false,
+                Diagonal = true,
+                DiagonalDirection = -1
+            }
         }
-    }
-    tGame.LavaObjects[5] = 
-    {
+        tGame.LavaObjects[5] = 
         {
-            PosX = 1,
-            PosY = 1,
-            SizeX = tGame.Cols,
-            SizeY = 2,
-            VelX = 0,
-            VelY = 1,
-            IgnoreBoundsX = false,
-            IgnoreBoundsY = false,
-            Collision = false
-        },
-        {
-            PosX = 1,
-            PosY = 1,
-            SizeX = 2,
-            SizeY = tGame.Rows,
-            VelX = 1,
-            VelY = 0,
-            IgnoreBoundsX = false,
-            IgnoreBoundsY = false,
-            Collision = false
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = tGame.Cols,
+                SizeY = 2,
+                VelX = 0,
+                VelY = 1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false
+            },
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = 2,
+                SizeY = tGame.Rows,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false
+            }
         }
-    }
+    elseif tGame.NewLevels == 2 then
+        local iSize = math.floor(tGame.Rows/3)
+        tGame.LavaObjects[1] = 
+        {
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-iSize+1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+        }        
+        tGame.LavaObjects[2] = 
+        {
+            {
+                PosX = 1+iSize,
+                PosY = 1+iSize,
+                SizeX = tGame.Cols-(iSize*2),
+                SizeY = iSize,
+                VelX = 0,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = false
+            },
+            {
+                PosX = tGame.iMaxX-iSize+1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+        }  
+        tGame.LavaObjects[3] = 
+        {
+            {
+                PosX = 1+iSize,
+                PosY = 1+iSize,
+                SizeX = tGame.Cols-(iSize*2),
+                SizeY = iSize,
+                VelX = 0,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = false
+            },
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1+iSize,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1+(iSize*2),
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1,
+                PosY = 1+iSize,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 0,
+                VelY = -1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1,
+                PosY = 1+(iSize*2),
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 0,
+                VelY = -1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+        }
+        tGame.LavaObjects[4] = 
+        {
+            {
+                PosX = 1+iSize,
+                PosY = 1+iSize,
+                SizeX = tGame.Cols-(iSize*2),
+                SizeY = iSize,
+                VelX = 0,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = false
+            },
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 0,
+                VelY = -1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = true,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-iSize+1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = true,
+                BounceOff = true
+            },
+            {
+                PosX = 1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = true,
+                BounceOff = true
+            },
+        } 
+        tGame.LavaObjects[5] = 
+        {
+            {
+                PosX = 1+iSize,
+                PosY = 1+iSize,
+                SizeX = tGame.Cols-(iSize*2),
+                SizeY = iSize,
+                VelX = 0,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = false
+            },
+            {
+                PosX = 1,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1,
+                PosY = 1+iSize,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 0,
+                VelY = -1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1+iSize,
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = 1+(iSize*2),
+                PosY = 1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-iSize+1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-iSize+1,
+                PosY = tGame.iMaxY-(iSize*2)+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = 0,
+                VelY = 1,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-(iSize*2)+1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+            {
+                PosX = tGame.iMaxX-(iSize*3)+1,
+                PosY = tGame.iMaxY-iSize+1,
+                SizeX = iSize,
+                SizeY = iSize,
+                VelX = -1,
+                VelY = 0,
+                IgnoreBoundsX = false,
+                IgnoreBoundsY = false,
+                Collision = false,
+                BounceOff = true
+            },
+        }
+    end
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()    
@@ -634,7 +944,8 @@ CLava.tMapObjectStruct =
     bIgnoreBoundsY = false,
     bCollision = false,
     bDiagonal = false,
-    iDiagonalDirection = 0
+    iDiagonalDirection = 0,
+    bBounceOff = false
 }
 
 CLava.LoadMap = function()
@@ -653,6 +964,7 @@ CLava.LoadMap = function()
         CLava.tMapObjects[iObjectId].bCollision = tGame.LavaObjects[CLava.iMapId][iObjectId].Collision
         CLava.tMapObjects[iObjectId].bDiagonal = tGame.LavaObjects[CLava.iMapId][iObjectId].Diagonal
         CLava.tMapObjects[iObjectId].iDiagonalDirection = tGame.LavaObjects[CLava.iMapId][iObjectId].DiagonalDirection
+        CLava.tMapObjects[iObjectId].bBounceOff = tGame.LavaObjects[CLava.iMapId][iObjectId].BounceOff
     end
 end
 
@@ -682,7 +994,14 @@ CLava.ObjectMovement = function(iObjectId)
             end
 
             if tObject.bCollision and (tFloor[iXCheck] and tFloor[iXCheck][iYCheck]) and tFloor[iXCheck][iYCheck].iObjectId > 0 and tFloor[iXCheck][iYCheck].iObjectId ~= iObjectId then
-                --collision
+                tObject.iVelX = -tObject.iVelX
+                tObject.iVelY = -tObject.iVelY
+
+                tColObject = CLava.tMapObjects[tFloor[iXCheck][iYCheck].iObjectId]
+                if tColObject ~= nil then
+                    tColObject.iVelX = -tColObject.iVelX
+                    tColObject.iVelY = -tColObject.iVelY                    
+                end
             end
 
             if tObject.bDiagonal then
@@ -699,11 +1018,30 @@ CLava.ObjectMovement = function(iObjectId)
             if bCantMoveX and bCantMoveY then break end
         end
     end
-    if bCantMoveX then
-        tObject.iVelX = -tObject.iVelX
-    end
-    if bCantMoveY then
-        tObject.iVelY = -tObject.iVelY
+    if tObject.bBounceOff then
+        if bCantMoveX then
+            tObject.iVelX = 0
+            if tObject.iY < tGame.CenterY then
+                tObject.iVelY = 1
+            else
+                tObject.iVelY = -1
+            end
+        end
+        if bCantMoveY then
+            tObject.iVelY = 0
+            if tObject.iX < tGame.CenterX then
+                tObject.iVelX = 1
+            else
+                tObject.iVelX = -1
+            end
+        end
+    else
+        if bCantMoveX then
+            tObject.iVelX = -tObject.iVelX
+        end
+        if bCantMoveY then
+            tObject.iVelY = -tObject.iVelY
+        end
     end
 
     tObject.iX = tObject.iX + tObject.iVelX
