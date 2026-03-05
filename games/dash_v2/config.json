@@ -75,7 +75,6 @@
   "StageSwitchHitRegDelay_Hidden": true,
   "StageSwitchHitRegDelay_ru": "Задержка лавы после смены этапа",
   "StageSwitchHitRegDelay_en": "Lava hitreg delay after stage switch",
-  "StageSwitchHitRegDelay_Hidden": true,
 
   "SkipTutorial": false,
   "SkipTutorial_ru": "Пропустить обучение", 
