@@ -113,6 +113,23 @@ function StartGame(gameJson, gameConfigJson)
         tButtons[iId].iBright = CColors.BRIGHT70
     end
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
+
     tGame.Direction = 1
     tGame.StartPositionSize = tConfig.StartPositionSize or 4
 
@@ -168,17 +185,17 @@ function StartGame(gameJson, gameConfigJson)
 end
 
 function SetupPlayerPositions()
-    local iY = 4
+    local iY = tGame.iMinY+3
     if tGame.Direction == 2 then
-        iY = tGame.Rows - 3
+        iY = tGame.iMaxY - 3
     end
 
-    local iX = 1
-    if tGame.ArenaMode then iX = 2 end
+    local iX = tGame.iMinX
+    if tGame.ArenaMode then iX = tGame.iMinX+1 end
 
     tGame.StartPositions = {}
     for iPlayerID = 1, 6 do
-        if iX+tGame.StartPositionSize-1 <= tGame.Cols then
+        if iX+tGame.StartPositionSize-1 <= tGame.iMaxX then
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
@@ -239,6 +256,10 @@ function RulesTick()
             if tNewFloor[iX] and tNewFloor[iX][iY] then
                 tFloor[iX][iY].iColor = tNewFloor[iX][iY]
                 tFloor[iX][iY].iBright = tConfig.Bright
+
+                if (bSkip and tNewFloor[iX][iY] == CColors.GREEN) or (not bSkip and tNewFloor[iX][iY] == CColors.RED) then
+                    tFloor[iX][iY].iBright = tConfig.Bright-2
+                end
             end
         end
     end
