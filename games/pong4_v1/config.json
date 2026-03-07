@@ -14,7 +14,7 @@
 	"WinDurationMS_en": "After game duration",
 	"WinDurationMS_Hidden": true,
 
-	"Lives": 5,
+	"Lives": 3,
 	"Lives_Min": 1,
 	"Lives_Max": 20,
 	"Lives_Step": 1,
