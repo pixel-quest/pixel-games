@@ -143,7 +143,7 @@ function StartGame(gameJson, gameConfigJson)
         tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/math.ceil(tGame.PlayerCount/2))-1
         tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY)/2)
 
-        local iX = tGame.iMinX
+        local iX = tGame.iMinX+1
         local iY = tGame.iMinY
 
         for iPlayerID = 1, tGame.PlayerCount do
