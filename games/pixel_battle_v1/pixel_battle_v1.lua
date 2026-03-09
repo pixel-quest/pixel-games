@@ -121,6 +121,10 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMinY = AL.NFZ.iMinY
         tGame.iMaxX = AL.NFZ.iMaxX
         tGame.iMaxY = AL.NFZ.iMaxY
+    
+        if tGame.PlayerCount <= 2 then
+            tGame.iMaxX = tGame.Cols-2
+        end
     end
 
     if tConfig.ChosenColors ~= nil then
