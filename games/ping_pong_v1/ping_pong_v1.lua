@@ -375,7 +375,7 @@ CBall.NewBall = function()
 
     CBall.tPrev = nil
     CBall.tBall = CHelp.ShallowCopy(CBall.tBallStruct)
-    CBall.tBall.iPosX = math.floor((CGameMode.iMaxX + (tGame.StartPositions[1].X) - (CGameMode.iMaxX-tGame.StartPositions[2].X))  /2)
+    CBall.tBall.iPosX = math.ceil((tGame.StartPositions[1].X + tGame.StartPositions[2].X) / 2)
     CBall.tBall.iPosY = math.random(CGameMode.iMinY+2, CGameMode.iMaxY-2)
     CBall.tBall.iColor = CColors.GREEN
     CBall.tBall.iVelocityX = 0
