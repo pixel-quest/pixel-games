@@ -126,7 +126,7 @@ function StartGame(gameJson, gameConfigJson)
         tGameResults.ChosenColors = tConfig.ChosenColors
     end
 
-    if tGame.StartPositions == nil then
+    if not tGame.ArenaMode then
         tGame.StartPositions = {}
         local iX = 1
         local iY = 1
@@ -136,8 +136,14 @@ function StartGame(gameJson, gameConfigJson)
             iX = math.floor(tGame.Cols/2.5)
             iY = math.floor(tGame.Rows/3)
 
+            tGame.StartPositionSizeX = 6
+            tGame.StartPositionSizeY = 6
+
             tPlayerInGame[1] = true
         else
+            tGame.StartPositionSizeX = 3
+            tGame.StartPositionSizeY = 3
+
             if tConfig.ChosenColors then
                 tGame.TeamCount = #tConfig.ChosenColors
                 if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
