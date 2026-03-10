@@ -1120,11 +1120,12 @@ end
 CPaint.Unit = function(iUnitID)
     for iX = CUnits.tUnits[iUnitID].iX, CUnits.tUnits[iUnitID].iX + CUnits.UNIT_SIZE-1 do
         for iY = CUnits.tUnits[iUnitID].iY, CUnits.tUnits[iUnitID].iY + CUnits.UNIT_SIZE-1 do
-
             if tFloor[iX] and tFloor[iX][iY] and CBlock.tBlocks[iX][iY].bVisible then
-                tFloor[iX][iY].iUnitID = iUnitID
-                tFloor[iX][iY].iColor = CUnits.tUnits[iUnitID].iColor
-                tFloor[iX][iY].iBright = tConfig.Bright
+                if CUnits.UNIT_SIZE == 1 or CBlock.tBlocks[iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_COIN or CBlock.tBlocks[iX][iY].bCollected then
+                    tFloor[iX][iY].iUnitID = iUnitID
+                    tFloor[iX][iY].iColor = CUnits.tUnits[iUnitID].iColor
+                    tFloor[iX][iY].iBright = tConfig.Bright
+                end
             end
         end
     end
@@ -1134,8 +1135,10 @@ CPaint.UnitShadow = function(iUnitID)
     for iX = CUnits.tUnits[iUnitID].tShadow.iX, CUnits.tUnits[iUnitID].tShadow.iX + CUnits.UNIT_SIZE-1 do
         for iY = CUnits.tUnits[iUnitID].tShadow.iY, CUnits.tUnits[iUnitID].tShadow.iY + CUnits.UNIT_SIZE-1 do
             if tFloor[iX] and tFloor[iX][iY] and CBlock.tBlocks[iX][iY].bVisible then
-                tFloor[iX][iY].iColor = CUnits.tUnits[iUnitID].iColor
-                tFloor[iX][iY].iBright = 1
+                if CUnits.UNIT_SIZE == 1 or CBlock.tBlocks[iX][iY].iBlockType ~= CBlock.BLOCK_TYPE_COIN or CBlock.tBlocks[iX][iY].bCollected then
+                    tFloor[iX][iY].iColor = CUnits.tUnits[iUnitID].iColor
+                    tFloor[iX][iY].iBright = 1
+                end
             end
         end
     end
