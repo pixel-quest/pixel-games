@@ -310,7 +310,7 @@ function NextTick()
             StartPlayersCount = #GameConfigObj.ChosenColors
         end
 
-        if StartPlayersCount > 1 and (time.unix() - GameObj.StartTime) >= iGameLoadTime and not GameStarted then
+        if StartPlayersCount > 0 and (time.unix() - GameObj.StartTime) >= iGameLoadTime and not GameStarted then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
