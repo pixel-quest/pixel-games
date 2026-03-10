@@ -127,49 +127,53 @@ function StartGame(gameJson, gameConfigJson)
         tGame.iMaxY = AL.NFZ.iMaxY
     end
 
-    if tGame.StartPositions == nil then
-        tGame.StartPositions = {}
-        if tGame.PlayerCount == nil then tGame.PlayerCount = tConfig.PlayerCount; end
+    tGame.StartPositions = {}
+    if tGame.PlayerCount == nil then tGame.PlayerCount = tConfig.PlayerCount; end
 
-        tGame.StartPositionSizeX = 8
-        tGame.StartPositionSizeY = math.ceil(tConfig.ButtonsCount/3)*3 - 1
+    tGame.StartPositionSizeX = 8
+    tGame.StartPositionSizeY = math.ceil(tConfig.ButtonsCount/3)*3 - 1
 
-        local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX + 2
-        local iStartY = tGame.iMinY+1
-        local iDistance = math.ceil((tGame.iMaxY-tGame.iMinY)/5)
+    local iStartX = math.floor((tGame.Cols - (tGame.iMaxX-tGame.iMinX))/2) + tGame.iMinX + 2
+    local iStartY = tGame.iMinY+1
+    local iDistance = math.ceil((tGame.iMaxY-tGame.iMinY)/5)
 
-        if tConfig.PlayerCount <= 2 then
-            iStartX = tGame.iMinX+math.floor(tGame.StartPositionSizeX/3)-1
-            iStartY = math.floor((tGame.iMaxY-tGame.iMinY)/2) - math.floor(tGame.StartPositionSizeY/2)+1
-            iDistance = iDistance * 2
+    if tConfig.PlayerCount <= 2 then
+        iStartX = tGame.iMinX+math.floor(tGame.StartPositionSizeX/3)-1
+        iStartY = math.floor((tGame.iMaxY-tGame.iMinY)/2) - math.floor(tGame.StartPositionSizeY/2)+1
+        iDistance = iDistance * 2
+    end
+
+    if tConfig.PlayerCount == 1 then
+        iStartX = math.ceil((tGame.iMaxX-tGame.iMinX)/2) - math.floor(tGame.StartPositionSizeX/2)+1
+    end
+
+    if tGame.ArenaMode then
+        iStartX = 1
+        iStartY = 1
+        iDistance = 0
+        tGame.StartPositionSizeX = 6
+        tGame.StartPositionSizeY = 6
+        tConfig.ButtonsCount = 4
+        tGame.PlayerCount = math.floor(tGame.Cols/6)
+    end
+
+    local iX = iStartX
+    local iY = iStartY
+
+    for iPlayerID = 1, tGame.PlayerCount do
+        tGame.StartPositions[iPlayerID] = {}
+        tGame.StartPositions[iPlayerID].X = iX
+        tGame.StartPositions[iPlayerID].Y = iY
+        tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+
+        iY = iY + iDistance + tGame.StartPositionSizeY
+        if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
+            iY = iStartY
+            iX = iX + iDistance + tGame.StartPositionSizeX
+
+            if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end 
         end
-
-        if tConfig.PlayerCount == 1 then
-            iStartX = math.ceil((tGame.iMaxX-tGame.iMinX)/2) - math.floor(tGame.StartPositionSizeX/2)+1
-        end
-
-        local iX = iStartX
-        local iY = iStartY
-
-        for iPlayerID = 1, tGame.PlayerCount do
-            tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
-
-            iY = iY + iDistance + tGame.StartPositionSizeY
-            if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
-                iY = iStartY
-                iX = iX + iDistance + tGame.StartPositionSizeX
-
-                if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end 
-            end
-        end
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end 
-    end  
+    end
 
     CGameMode.InitGameMode()
     CGameMode.Announcer()
@@ -225,7 +229,7 @@ function GameSetupTick()
     end
 
     if not CGameMode.bCountDownStarted and iPlayersReady > 0 and CGameMode.bCanStartGame then
-        CGameMode.StartCountDown(10)
+        CGameMode.StartCountDown(5)
     end
 
     CGameMode.iRealPlayerCount = iPlayersReady
@@ -291,10 +295,6 @@ CGameMode.Announcer = function()
         CAudio.PlayVoicesSync("choose-color.mp3")
     else
         CAudio.PlayVoicesSync("press-center-for-start.mp3")
-    end
-
-    if tGame.ArenaMode then 
-        CAudio.PlayVoicesSync("press-zone-for-start.mp3")
     end
 end
 
@@ -415,7 +415,7 @@ CGameMode.PreviewSequenceForPlayer = function(iPlayerID)
 end
 
 CGameMode.PlayerClickButton = function(iPlayerID, iButtonId)
-    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.tPlayerCanMove[iPlayerID] then return; end
+    if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.tPlayerCanMove[iPlayerID] or CGameMode.tPlayerOut[iPlayerID] then return; end
 
     if iButtonId == CGameMode.tPlayerSequence[iPlayerID][CGameMode.tPlayerSequenceLocalPoint[iPlayerID]+1] then
         CAudio.PlaySystemAsync(CAudio.CLICK)
@@ -491,12 +491,21 @@ CPaint.PlayerGameZone = function(iPlayerID)
         return
     end
 
+    if not tGame.ArenaMode then
     SetRectColorBright(tGame.StartPositions[iPlayerID].X-1, 
         tGame.StartPositions[iPlayerID].Y-1, 
         tGame.StartPositionSizeX+1, 
         tGame.StartPositionSizeY+1, 
         tGame.StartPositions[iPlayerID].Color, 
         1)
+    else
+    SetRectColorBright(tGame.StartPositions[iPlayerID].X, 
+        tGame.StartPositions[iPlayerID].Y, 
+        tGame.StartPositionSizeX-1, 
+        tGame.StartPositionSizeY-1, 
+        tGame.StartPositions[iPlayerID].Color, 
+        1)
+    end
 
     local iX = tGame.StartPositions[iPlayerID].X
     local iY = tGame.StartPositions[iPlayerID].Y
@@ -529,9 +538,11 @@ CPaint.PlayerGameZone = function(iPlayerID)
         end
 
         iX = iX + 3
-        if iX > tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX then
+        if tGame.ArenaMode then iX = iX + 1 end
+        if iX >= tGame.StartPositions[iPlayerID].X + tGame.StartPositionSizeX-1 then
             iX = tGame.StartPositions[iPlayerID].X
             iY = iY + 3
+            if tGame.ArenaMode then iY = iY + 1 end
         end
     end        
 end
