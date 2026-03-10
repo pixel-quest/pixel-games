@@ -239,7 +239,7 @@ AL.Rules.FillFloor = function(tFloor)
         tReturnFloor[iX] = {}
         for iY = 1, #tFloor[iX] do
             if tFloor[iX][iY] then
-                if iY >= (#tFloor[iX]/2) then
+                if iY > (#tFloor[iX]/2) then
                     redPixel(iX, iY)
                 else
                     greenPixel(iX, iY)
