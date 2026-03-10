@@ -126,45 +126,39 @@ function StartGame(gameJson, gameConfigJson)
         tGameResults.ChosenColors = tConfig.ChosenColors
     end
 
-    if tGame.StartPositions == nil then
-        tGame.StartPositions = {}
-        local iX = 1
-        local iY = 1
+    tGame.StartPositions = {}
+    local iX = 1
+    local iY = 1
 
-        if not tGame.TeamCount or tGame.TeamCount == 1 then
-            tGame.TeamCount = 1
-            iX = math.floor(tGame.Cols/2.5)
-            iY = math.floor(tGame.Rows/3)
+    if not tGame.TeamCount or tGame.TeamCount == 1 then
+        tGame.TeamCount = 1
+        iX = math.floor(tGame.Cols/2.5)
+        iY = math.floor(tGame.Rows/3)
 
-            tPlayerInGame[1] = true
-        else
+        tPlayerInGame[1] = true
+    else
+        if tConfig.ChosenColors then
+            tGame.TeamCount = #tConfig.ChosenColors
+            if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
             if tConfig.ChosenColors then
-                tGame.TeamCount = #tConfig.ChosenColors
-                if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
-                if tConfig.ChosenColors then
-                    for iPlayerID = 1, #tConfig.ChosenColors do
-                        tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
-                        tPlayerInGame[iPlayerID] = true
-                    end
+                for iPlayerID = 1, #tConfig.ChosenColors do
+                    tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
+                    tPlayerInGame[iPlayerID] = true
                 end
             end
         end
+    end
 
-        for iPlayerID = 1, tGame.TeamCount do
-            tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+    for iPlayerID = 1, tGame.TeamCount do
+        tGame.StartPositions[iPlayerID] = {}
+        tGame.StartPositions[iPlayerID].X = iX
+        tGame.StartPositions[iPlayerID].Y = iY
+        tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
-            iX = iX + tGame.StartPositionSizeX + 2
-            if iX > tGame.Cols-tGame.StartPositionSizeX then
-                iX = 1
-                iY = iY + tGame.StartPositionSizeX + 1
-            end
-        end
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
+        iX = iX + tGame.StartPositionSizeX + 2
+        if iX > tGame.Cols-tGame.StartPositionSizeX then
+            iX = 1
+            iY = iY + tGame.StartPositionSizeX + 1
         end
     end
 

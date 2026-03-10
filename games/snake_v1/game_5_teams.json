@@ -26,6 +26,6 @@
 
   "TeamCount": 5, 
 
-  "StartPositionSizeX": 6,
-  "StartPositionSizeY": 6
+  "StartPositionSizeX": 3,
+  "StartPositionSizeY": 3
 }
