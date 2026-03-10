@@ -217,10 +217,13 @@ CGameMode.InitGameMode = function()
     CGameMode.iGameZoneSizeX = tGame.iMaxX
     CGameMode.iGameZoneSizeY = tGame.iMaxY - CGameMode.iPlayerZoneSizeY
 
-    if not tGame.MirrorGame then
-        CGameMode.iGameZoneY = CGameMode.iGameZoneY + CGameMode.iPlayerZoneSizeY
-    else
+    if tGame.MirrorGameY then
         CGameMode.iYGravity = 1
+    else
+        CGameMode.iGameZoneY = CGameMode.iGameZoneY + CGameMode.iPlayerZoneSizeY
+    end
+
+    if tGame.MirrorGameX then
         CGameMode.iPipesVel = -1
     end
 
@@ -249,8 +252,10 @@ CGameMode.PaintZones = function()
     local iStartX = tGame.iMaxX-CGameMode.iPlayerZoneSizeX
     local iStartY = tGame.iMinY
 
-    if tGame.MirrorGame then
+    if tGame.MirrorGameX then
         iStartX = tGame.iMinX+1
+    end
+    if tGame.MirrorGameY then
         iStartY = tGame.iMaxY-CGameMode.iPlayerZoneSizeY+1
     end
 
@@ -417,7 +422,7 @@ CPipes.Init = function()
     CPipes.iColor = CColors.GREEN
 
     local iX = CGameMode.iGameZoneX+1
-    if tGame.MirrorGame then
+    if tGame.MirrorGameX then
         iX = CGameMode.iGameZoneX + CGameMode.iGameZoneSizeX-3
     end
 
@@ -444,7 +449,7 @@ CPipes.Tick = function()
 
         tPipe.iX = tPipe.iX + CGameMode.iPipesVel
 
-        if (not tGame.MirrorGame and tPipe.iX <= tGame.Cols) or (tGame.MirrorGame and tPipe.iX > 0) then
+        if (not tGame.MirrorGameX and tPipe.iX <= tGame.Cols) or (tGame.MirrorGameX and tPipe.iX > 0) then
             CPipes.tPipes.Push(tPipe)
         else
             CGameMode.AddScore()
