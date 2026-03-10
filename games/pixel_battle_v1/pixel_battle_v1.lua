@@ -136,36 +136,30 @@ function StartGame(gameJson, gameConfigJson)
         tGameResults.ChosenColors = tConfig.ChosenColors
     end
 
-    if tGame.StartPositions == nil then
-        tGame.StartPositions = {}
-        if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
+    tGame.StartPositions = {}
+    if tGame.PlayerCount == nil then tGame.PlayerCount = 2; end
 
-        tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/math.ceil(tGame.PlayerCount/2))-1
-        tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY)/2)
+    tGame.StartPositionSizeX = math.floor((tGame.iMaxX-tGame.iMinX)/math.ceil(tGame.PlayerCount/2))-1
+    tGame.StartPositionSizeY = math.floor((tGame.iMaxY-tGame.iMinY)/2)
 
-        local iX = tGame.iMinX+1
-        local iY = tGame.iMinY
+    local iX = tGame.iMinX+1
+    local iY = tGame.iMinY
 
-        for iPlayerID = 1, tGame.PlayerCount do
-            tGame.StartPositions[iPlayerID] = {}
-            tGame.StartPositions[iPlayerID].X = iX
-            tGame.StartPositions[iPlayerID].Y = iY
-            tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
+    for iPlayerID = 1, tGame.PlayerCount do
+        tGame.StartPositions[iPlayerID] = {}
+        tGame.StartPositions[iPlayerID].X = iX
+        tGame.StartPositions[iPlayerID].Y = iY
+        tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
-            iY = iY + 1 + tGame.StartPositionSizeY
-            if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
-                iY = 1
-                iX = iX + 1 + tGame.StartPositionSizeX
+        iY = iY + 1 + tGame.StartPositionSizeY
+        if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
+            iY = 1
+            iX = iX + 1 + tGame.StartPositionSizeX
 
-                if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end 
-            end
+            if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then break; end 
         end
-    else
-        for iPlayerID = 1, #tGame.StartPositions do
-            tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-        end 
-    end   
-
+    end
+ 
     iPrevTickTime = CTime.unix()
     CGameMode.InitGameMode()
     CGameMode.Announcer()
