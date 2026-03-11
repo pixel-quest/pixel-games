@@ -162,17 +162,6 @@
     77
   ],
 
-  "StartPositions": [
-    {
-      "X": 2,
-      "Y": 2,
-      "Color": "0x0000FF"
-    }
-  ],
   "StartPositionSizeX": 10,
-  "StartPositionSizeY": 13,
-
-  "PreviewPosX": 14,
-  "PreviewPosY": 2,
-  "PreviewColor": "0x00FF00"
+  "StartPositionSizeY": 13
 }

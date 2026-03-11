@@ -14,13 +14,6 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "PlayerCount": 0,
-  "PlayerCount_Min": 0,
-  "PlayerCount_Max": 6,
-  "PlayerCount_Step": 1,
-  "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
-  "PlayerCount_en": "Player Count",
-
   "GameCountdown": 15,
   "GameCountdown_Hidden": true,
   "GameCountdown_Min": 1,

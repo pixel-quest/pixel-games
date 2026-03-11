@@ -103,17 +103,28 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
-    for iPlayerID = 1, #tGame.StartPositions do
-        tGame.StartPositions[iPlayerID].Color = tonumber(tGame.StartPositions[iPlayerID].Color)
-    end    
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
 
-    tGame.PreviewColor = tonumber(tGame.PreviewColor)
-    CBlock.iColor = tGame.PreviewColor
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)  
 
-    tGameResults.PlayersCount = tConfig.PlayerCount
+    CBlock.iColor = CColors.GREEN
+
+    CGameMode.InitPositions()
 
     tGameStats.TotalStages = tConfig.RoundCount
-    CGameMode.InitPlayers()
     CGameMode.AnnounceGameStart()
 end
 
@@ -253,15 +264,70 @@ CGameMode.bCanStart = false
 CGameMode.tTeamScores = {}
 CGameMode.bStartCountStarted = false
 
+CGameMode.tPlayerColors = {}
+CGameMode.tPlayerColors[1] = CColors.BLUE
+CGameMode.tPlayerColors[2] = CColors.MAGENTA
+CGameMode.tPlayerColors[3] = CColors.CYAN
+CGameMode.tPlayerColors[4] = CColors.RED
+CGameMode.tPlayerColors[5] = CColors.YELLOW
+CGameMode.tPlayerColors[6] = CColors.GREEN
+
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
 
-CGameMode.InitPlayers = function()
-    CGameMode.iPlayerCount = #tGame.StartPositions
+CGameMode.InitPositions = function()
+    tGame.StartPositions = {}
+    local tPos = {}
 
-    for iPlayerID = 1, CGameMode.iPlayerCount do
-        tGameStats.Players[iPlayerID].Color = tGame.StartPositions[iPlayerID].Color
+    local iStartX = tGame.iMinX + 1
+    if (tGame.StartPositionSizeX+1) * 2 >= tGame.Cols then iStartX = tGame.iMinX end
+    local iX = iStartX
+    local iY = tGame.iMinY + 1
+
+    local bPreviewOnWall = false
+    if AL.NFZ.bLoaded then
+        for iZone = 1, #tGame.NoFeetZones do
+            if tGame.NoFeetZones[iZone].SizeX > tGame.StartPositionSizeX and tGame.NoFeetZones[iZone].SizeY > tGame.StartPositionSizeY+1 then
+                tGame.PreviewPosX = tGame.NoFeetZones[iZone].X
+                tGame.PreviewPosY = tGame.NoFeetZones[iZone].Y + math.floor(tGame.NoFeetZones[iZone].SizeY/2) - math.floor(tGame.StartPositionSizeY/2)
+                bPreviewOnWall = true
+                break;
+            end
+        end
     end
+
+    for iPos = 1, 9 do
+        tPos[iPos] = {}
+        tPos[iPos].iX = iX
+        tPos[iPos].iY = iY
+
+        iX = iX + tGame.StartPositionSizeX + 2
+        if iX + tGame.StartPositionSizeX-1 > tGame.iMaxX then
+            iX = iStartX
+            iY = iY + (tGame.StartPositionSizeY*2) - 1
+            if iY + tGame.StartPositionSizeY-1 > tGame.iMaxY then
+                break;
+            end
+        end
+    end
+
+    for iPos = 1, #tPos do
+        if not bPreviewOnWall and ((#tPos == 2 and iPos == 2) or iPos == math.ceil(#tPos/2)) then
+            tGame.PreviewPosX = tPos[iPos].iX
+            tGame.PreviewPosY = tPos[iPos].iY
+        else
+            local iStartPosId = #tGame.StartPositions+1
+            if iStartPosId <= #CGameMode.tPlayerColors then 
+                tGame.StartPositions[iStartPosId] = {}
+                tGame.StartPositions[iStartPosId].X = tPos[iPos].iX
+                tGame.StartPositions[iStartPosId].Y = tPos[iPos].iY
+                tGame.StartPositions[iStartPosId].Color = CGameMode.tPlayerColors[iStartPosId]
+            end
+        end
+    end
+
+    tGameResults.PlayersCount = #tGame.StartPositions
+    CGameMode.iPlayerCount = #tGame.StartPositions
 end
 
 CGameMode.AnnounceGameStart = function()
@@ -662,7 +728,7 @@ CPaint.Preview = function()
             tFloor[iX][iY].iColor = CColors.NONE
             tFloor[iX][iY].iBright = CColors.BRIGHT15
             if CGameMode.tMap[iMapY] and CGameMode.tMap[iMapY][iMapX] and CGameMode.tMap[iMapY][iMapX] == CBlock.BLOCK_TYPE_GROUND then 
-                tFloor[iX][iY].iColor = tGame.PreviewColor
+                tFloor[iX][iY].iColor = CColors.GREEN
                 tFloor[iX][iY].iBright = tConfig.Bright
             end
         end
@@ -690,8 +756,10 @@ end
 CPaint.PlayerZone = function(iPlayerID, iBright)
     for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositionSizeX-1 + tGame.StartPositions[iPlayerID].X do
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
-            tFloor[iX][iY].iBright = iBright
-            tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+            if tFloor[iX] ~= nil and tFloor[iX][iY] ~= nil then
+                tFloor[iX][iY].iBright = iBright
+                tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+            end
         end
     end   
 end
