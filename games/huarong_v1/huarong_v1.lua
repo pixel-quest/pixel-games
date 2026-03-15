@@ -283,6 +283,9 @@ CGameMode.bCanStart = false
 CGameMode.bOneAxisMoveMode = false
 CGameMode.iOneAxisMoveModeScorableCount = 0
 
+CGameMode.iTruePlayerCount = 0
+CGameMode.iFinishCount = 0
+
 CGameMode.StartCountDown = function(iCountDownTime)
     bCountDownStarted = true
     CGameMode.iCountdown = iCountDownTime
@@ -321,6 +324,7 @@ CGameMode.LoadPiecesForPlayers = function(iMapID)
 
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
+            CGameMode.iTruePlayerCount = CGameMode.iTruePlayerCount + 1
             CGameMode.LoadPiecesForPlayer(iPlayerID, iMapID)
         end
     end
@@ -368,9 +372,7 @@ CGameMode.IsPointInBounds = function(iPlayerID, iX, iY)
         or (iX == CGameMode.tFinishPosPlayerY[iPlayerID].iX and iY == CGameMode.tFinishPosPlayerY[iPlayerID].iY)
 end
 
-CGameMode.EndGame = function(iPlayerID)
-    CGameMode.iWinnerID = iPlayerID
-
+CGameMode.EndGame = function()
     iGameState = GAMESTATE_POSTGAME
 
     CAudio.StopBackground()
@@ -570,7 +572,14 @@ CPieces.PieceFinsh = function(iPieceID)
 
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
     if tGameStats.Players[iPlayerID].Score == tGameStats.TargetScore then
-        CGameMode.EndGame(iPlayerID)
+        if CGameMode.iWinnerID == -1 then
+            CGameMode.iWinnerID = iPlayerID
+        end
+
+        CGameMode.iFinishCount = CGameMode.iFinishCount + 1
+        if CGameMode.iFinishCount >= CGameMode.iTruePlayerCount - 1 then
+            CGameMode.EndGame()
+        end
     end
 
     CPieces.PieceBlock(iPieceID, false)
