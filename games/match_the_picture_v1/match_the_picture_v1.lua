@@ -312,7 +312,7 @@ CGameMode.InitPositions = function()
     end
 
     for iPos = 1, #tPos do
-        if not bPreviewOnWall and ((#tPos == 2 and iPos == 2) or iPos == math.ceil(#tPos/2)) then
+        if not bPreviewOnWall and ((#tPos == 2 and iPos == 2) or (#tPos ~= 2 and iPos == math.ceil(#tPos/2))) then
             tGame.PreviewPosX = tPos[iPos].iX
             tGame.PreviewPosY = tPos[iPos].iY
         else
