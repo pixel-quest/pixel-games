@@ -290,14 +290,18 @@ CCoins.Paint = function()
         local bAlive = true
 
         if tCoin.iY > 0 and tCoin.iY <= tGame.Rows then 
-            tFloor[tCoin.iX][tCoin.iY].iColor = tCoin.iColor
-            if tCoin.bTrueColor then
-                tFloor[tCoin.iX][tCoin.iY].iColor = CPicture.PAINTED_COLOR
-            end
-            tFloor[tCoin.iX][tCoin.iY].iBright = tConfig.Bright
+            if tFloor[tCoin.iX][tCoin.iY].iColor == CColors.NONE then
+                tFloor[tCoin.iX][tCoin.iY].iColor = tCoin.iColor
+                if tCoin.bTrueColor then
+                    tFloor[tCoin.iX][tCoin.iY].iColor = CPicture.PAINTED_COLOR
+                end
+                tFloor[tCoin.iX][tCoin.iY].iBright = tConfig.Bright
 
-            if tFloor[tCoin.iX][tCoin.iY].bClick and not tFloor[tCoin.iX][tCoin.iY].bDefect then
-                CCoins.CoinCollected(tCoin.bTrueColor, tCoin.iColor)
+                if tFloor[tCoin.iX][tCoin.iY].bClick and not tFloor[tCoin.iX][tCoin.iY].bDefect then
+                    CCoins.CoinCollected(tCoin.bTrueColor, tCoin.iColor)
+                    bAlive = false
+                end
+            else
                 bAlive = false
             end
         end
@@ -312,11 +316,11 @@ CCoins.Tick = function()
     if CCoins.bSpawn then
         CCoins.bSpawn = false
         for iX = 1, tGame.Cols do
-            if iX < CPicture.iStartX or iX > CPicture.iStartX + CPicture.iSizeX then
+            --if iX < CPicture.iStartX or iX > CPicture.iStartX + CPicture.iSizeX then
                 if math.random(1,5) == 3 then
                     CCoins.NewCoin(iX, -5)
                 end
-            end
+            --end
         end
     else
         CCoins.bSpawn = true
@@ -406,7 +410,12 @@ end
 CPicture.Load = function(sPresetName)
     CPicture.tPicture = {}
 
+    local iSizeY = 0 
+
     for iY = 1, #CPicture.tPresets[sPresetName] do
+        if iY > tGame.Rows then break; end
+
+        iSizeY = iSizeY + 1
         for iX = 1, #CPicture.tPresets[sPresetName][iY] do
             if not CPicture.tPicture[iX] then CPicture.tPicture[iX] = {} end
 
@@ -426,8 +435,6 @@ CPicture.Load = function(sPresetName)
     end
 
     CPicture.iSizeX = #CPicture.tPicture
-    local iSizeY = #CPicture.tPicture[1]
-
     tGameStats.TargetScore = #CPicture.tPixels
 
     CPicture.iStartX = tGame.CenterX - math.ceil(CPicture.iSizeX/2)
@@ -455,6 +462,60 @@ CPicture.tPresets["elka"] =
     {0,0,0,1,1,1,1,1,1,0,0,0},
     {0,0,0,1,1,1,1,1,1,0,0,0},
     {0,0,0,1,1,1,1,1,1,0,0,0},
+}
+CPicture.tPresets["pistol"] = 
+{
+    {0,0,0,0,0,0,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,0,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,0,0,1,1,1,1,1,1,0},
+    {0,0,0,0,0,1,1,1,0,1,1,1,1,0},
+    {0,0,0,0,0,1,0,0,0,1,1,1,1,0},
+    {0,0,0,0,0,1,0,1,0,1,1,1,1,0},
+    {0,0,0,0,1,1,0,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,0,0,0,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+    {0,0,0,1,1,1,1,1,1,1,1,1,0,0},
+    {0,0,0,0,1,1,1,1,1,1,1,0,0,0},
+}
+CPicture.tPresets["korabl"] = 
+{
+    {0,0,0,0,0,0,0,0,0,0,0,0},
+    {0,0,0,0,1,1,1,0,0,0,0,0}, 
+    {0,0,0,1,1,1,1,0,0,0,0,0}, 
+    {0,0,1,1,1,1,1,0,0,0,0,0}, 
+    {0,1,1,1,1,1,1,0,0,0,0,0},    
+    {0,0,1,1,1,1,1,0,0,0,0,0}, 
+    {0,0,0,1,1,1,1,0,0,0,0,0}, 
+    {0,0,0,0,1,1,1,0,0,0,0,0}, 
+    {0,0,0,0,0,1,1,0,0,0,0,0}, 
+    {1,0,0,0,0,1,1,0,0,0,0,1}, 
+    {1,1,0,0,0,1,1,0,0,0,1,1}, 
+    {1,1,1,1,1,1,1,1,1,1,1,1}, 
+    {1,1,1,1,1,1,1,1,1,1,1,1}, 
+    {0,1,1,1,1,1,1,1,1,1,1,0}, 
+    {0,0,1,1,1,1,1,1,1,1,0,0}, 
+}
+CPicture.tPresets["chuvak"] = 
+{
+    {0,0,0,0,1,1,1,0,0,0,0,0},
+    {0,0,1,1,1,1,1,1,0,0,0,0},
+    {0,0,1,0,1,1,1,1,0,0,0,0},
+    {0,0,1,0,1,0,1,1,0,0,0,0},
+    {0,0,1,1,1,1,1,1,0,0,0,0},
+    {0,0,1,0,0,0,1,1,1,1,0,0},
+    {0,0,1,1,1,1,1,1,1,1,0,0},
+    {0,0,1,1,1,1,1,1,1,1,0,0},
+    {0,0,1,1,1,1,1,1,1,1,0,0},
+    {0,0,1,1,1,1,1,1,1,0,0,0},
+    {0,0,1,1,0,0,0,1,1,0,0,0},
+    {0,0,1,1,0,0,0,1,1,0,0,0},
+    {0,0,1,1,0,0,0,1,1,0,0,0},
+    {0,0,1,1,0,0,0,1,1,0,0,0},
+    {0,0,1,1,0,0,0,1,1,0,0,0},
 }
 --//
 

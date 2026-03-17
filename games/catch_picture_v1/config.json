@@ -26,8 +26,8 @@
 	"TimeLimit_en": "Time Limit (0 - infinite)",
 	
 	"PictureName": "elka",
-	"PictureName_List": ["elka"],
-	"PictureName_ru": "Картинка",
-	"PictureName_en": "Image"
+	"PictureName_List": ["elka", "pistol", "korabl", "chuvak"],
+	"PictureName_ru": "Рисунок",
+	"PictureName_en": "Picture"
 
 }
