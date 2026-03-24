@@ -1,0 +1,40 @@
+{
+  "Bright": 5,
+  "Bright_Min": 1,
+  "Bright_Max": 7,
+  "Bright_Step": 1,
+  "Bright_ru": "Яркость",
+
+  "RoundWinTarget": 3,
+  "RoundWinTarget_Min": 1,
+  "RoundWinTarget_Max": 10,
+  "RoundWinTarget_Step": 1,
+  "RoundWinTarget_ru": "Побед для выигрыша матча",
+  "RoundWinTarget_en": "Wins needed to finish match",
+
+  "TurnTimeSec": 8,
+  "TurnTimeSec_Min": 0,
+  "TurnTimeSec_Max": 30,
+  "TurnTimeSec_Step": 1,
+  "TurnTimeSec_ru": "Время на ход (0 = без таймера)",
+  "TurnTimeSec_en": "Turn timer (0 = disabled)",
+
+  "RoundStartCountdown": 2,
+  "RoundStartCountdown_Min": 0,
+  "RoundStartCountdown_Max": 10,
+  "RoundStartCountdown_Step": 1,
+  "RoundStartCountdown_ru": "Отсчет перед стартом",
+  "RoundStartCountdown_en": "Round start countdown",
+
+  "RoundEndDelayMs": 2200,
+  "RoundEndDelayMs_Min": 500,
+  "RoundEndDelayMs_Max": 5000,
+  "RoundEndDelayMs_Step": 100,
+  "RoundEndDelayMs_ru": "Пауза между раундами (мс)",
+  "RoundEndDelayMs_en": "Delay between rounds (ms)",
+
+  "WinDurationMS": 5000,
+  "WinDurationMS_ru": "Длительность финального экрана",
+  "WinDurationMS_en": "After game duration",
+  "WinDurationMS_Hidden": true
+}
