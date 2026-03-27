@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"CoinReward": 2,
+	"CoinReward_Min": 1,
+	"CoinReward_Max": 5,
+	"CoinReward_Step": 1,
+	"CoinReward_ru": "Награда за монетку",
+	"CoinReward_en": "Coin Reward",
+
+	"FadeTime": 5,
+	"FadeTime_Min": 1,
+	"FadeTime_Max": 15,
+	"FadeTime_Step": 1,
+	"FadeTime_ru": "Секунд до сгорания пикселя",
+	"FadeTime_en": "Pixel fade time",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
