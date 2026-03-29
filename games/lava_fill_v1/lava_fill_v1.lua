@@ -71,7 +71,8 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
-    iCoin = -1
+    iCoin = -1,
+    bAnimated = false
 }
 local tButtonStruct = { 
     bClick = false,
@@ -155,6 +156,7 @@ end
 
 function GameTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
+    CObjects.Paint()
     CCoins.Paint()    
     CShape.Paint()
 end
@@ -197,7 +199,8 @@ end
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
         --voice gamename rules
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
+        AL.NewTimer(1000 + (CAudio.GetVoicesDuration("stand_on_green_zone_and_wait.mp3")*1000), function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -234,6 +237,8 @@ CGameMode.StartGame = function()
     CAudio.PlayRandomBackground()
     iGameState = GAMESTATE_GAME
 
+    CGameMode.SpawnNewRandomObjects()
+
     for iCoin = 1, math.random(5,7) do
         CCoins.NewRandomCoin()
     end
@@ -245,18 +250,20 @@ CGameMode.StartGame = function()
         CShape.iFadeTime = CShape.iFadeTime - 1
 
         if CShape.iFadeTime <= 0 then
-            CShape.iFill = CShape.iFill - 1
-            tGameStats.Players[1].Score = CShape.iFill
-            if CShape.iFill <= 0 then
-                CGameMode.EndGame(false)
-            end
-
-            CShape.iFadeTime = tConfig.FadeTime
+            CShape.DecreaseFill()
         end
 
         tGameStats.StageLeftDuration = CShape.iFadeTime
 
         return 1000;
+    end)
+
+    AL.NewTimer(tConfig.ObjectsTickRate, function()
+        if iGameState ~= GAMESTATE_GAME then return; end
+
+        CObjects.Tick()
+
+        return tConfig.ObjectsTickRate
     end)
 end
 
@@ -277,6 +284,63 @@ CGameMode.EndGame = function(bVictory)
     AL.NewTimer(tConfig.WinDurationMS, function()
         iGameState = GAMESTATE_FINISH
     end)        
+end
+
+CGameMode.SpawnNewRandomObjects = function()
+    if not CObjects.bClearing then
+        CObjects.Clear(function() 
+            local iRand = math.random(1,2)
+            local iSize = math.random(2,4)
+            if iRand == 1 then
+                CObjects.NewObject(1, math.random(1,tGame.Rows-iSize), tGame.Cols, iSize, 0, 1)
+            else
+                CObjects.NewObject(math.random(1,tGame.Cols-iSize), 1, iSize, tGame.Rows, 1, 0)
+            end
+        end)
+    end
+end
+
+CGameMode.PlayerStepOnLava = function(iX, iY)
+    AL.NewTimer(tGame.BurnDelay, function()
+        if iGameState == GAMESTATE_GAME and tFloor[iX][iY].bClick and not tFloor[iX][iY].bAnimated then
+            CAudio.PlaySystemAsync(CAudio.MISCLICK)
+
+            CShape.DecreaseFill()
+            tGameStats.StageLeftDuration = CShape.iFadeTime
+
+            CGameMode.AnimatePixelFlicker(iX, iY, 5, CColors.RED)
+        end
+    end)
+end
+
+CGameMode.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
+    if tFloor[iX][iY].bAnimated then return; end
+    tFloor[iX][iY].bAnimated = true
+
+    local iCount = 0
+    AL.NewTimer(30, function()
+        if not tFloor[iX][iY].bAnimated then return; end
+
+        if tFloor[iX][iY].iColor == iColor then
+            tFloor[iX][iY].iBright = tConfig.Bright + 1
+            tFloor[iX][iY].iColor = CColors.MAGENTA
+            iCount = iCount + 1
+        else
+            tFloor[iX][iY].iBright = tConfig.Bright
+            tFloor[iX][iY].iColor = iColor
+            iCount = iCount + 1
+        end
+        
+        if iCount <= iFlickerCount then
+            return 200
+        end
+
+        tFloor[iX][iY].iBright = tConfig.Bright
+        tFloor[iX][iY].iColor = iColor
+        tFloor[iX][iY].bAnimated = false
+
+        return nil
+    end)
 end
 --//
 
@@ -356,22 +420,128 @@ CShape.Init = function()
     end
 end
 
+CShape.DecreaseFill = function()
+    CShape.iFill = CShape.iFill - 1
+    tGameStats.Players[1].Score = CShape.iFill
+    if CShape.iFill <= 0 then
+        CGameMode.EndGame(false)
+    end
+
+    CShape.iFadeTime = tConfig.FadeTime    
+end
+
 CShape.Paint = function()
     for iPixel = 1, #CShape.tShape do
-        if CShape.tShape[iPixel] then
+        if CShape.tShape[iPixel] and not tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].bAnimated then
             if iPixel <= CShape.iFill then
                 tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iColor = CShape.iFillColor
+            
+                if iPixel == CShape.iFill and CShape.iFadeTime < tConfig.Bright then
+                    tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iBright = tConfig.Bright - (tConfig.Bright - CShape.iFadeTime)
+                else
+                    tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iBright = tConfig.Bright+1
+                end
             elseif CShape.tShape[iPixel].bEdge then
                 tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iColor = CShape.iLavaColor
+                tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iBright = tConfig.Bright+1
             end    
+        end
+    end
+end
+--//
 
-            tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iBright = tConfig.Bright
+--objects
+CObjects = {}
+CObjects.tObjects = {}
+CObjects.bClearing = false
 
-            if iPixel == CShape.iFill and CShape.iFadeTime < tConfig.Bright then
-                tFloor[CShape.tShape[iPixel].iX][CShape.tShape[iPixel].iY].iBright = tConfig.Bright - (tConfig.Bright - CShape.iFadeTime)
+CObjects.NewObject = function(iX, iY, iSizeX, iSizeY, iVelX, iVelY)
+    local iObjectID = #CObjects.tObjects+1
+    CObjects.tObjects[iObjectID] = {}
+    CObjects.tObjects[iObjectID].iX = iX
+    CObjects.tObjects[iObjectID].iY = iY
+    CObjects.tObjects[iObjectID].iSizeX = iSizeX
+    CObjects.tObjects[iObjectID].iSizeY = iSizeY
+    CObjects.tObjects[iObjectID].iVelX = iVelX
+    CObjects.tObjects[iObjectID].iVelY = iVelY
+
+    CObjects.tObjects[iObjectID].iBright = 0
+    CObjects.tObjects[iObjectID].iTargetBright = tConfig.Bright-1
+end
+
+CObjects.Tick = function()
+    for iObjectID = 1, #CObjects.tObjects do
+        if CObjects.tObjects[iObjectID] then
+            if CObjects.tObjects[iObjectID].iVelX ~= 0 then
+                CObjects.tObjects[iObjectID].iX = CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iVelX
+
+                if CObjects.tObjects[iObjectID].iX <= 1 or (CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iSizeX-1 >= tGame.Cols) then
+                    CObjects.tObjects[iObjectID].iVelX = -CObjects.tObjects[iObjectID].iVelX
+                end
+            elseif CObjects.tObjects[iObjectID].iVelY ~= 0 then
+                CObjects.tObjects[iObjectID].iY = CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iVelY
+
+                if CObjects.tObjects[iObjectID].iY <= 1 or (CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iSizeY-1 >= tGame.Rows) then
+                    CObjects.tObjects[iObjectID].iVelY = -CObjects.tObjects[iObjectID].iVelY
+                end
+            end
+
+            if not CObjects.bClearing and CObjects.tObjects[iObjectID].iBright < CObjects.tObjects[iObjectID].iTargetBright then
+                CObjects.tObjects[iObjectID].iBright = CObjects.tObjects[iObjectID].iBright + 1
             end
         end
     end
+end
+
+CObjects.Paint = function()
+    for iObjectID = 1, #CObjects.tObjects do
+        if CObjects.tObjects[iObjectID] then
+            for iX = CObjects.tObjects[iObjectID].iX, CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iSizeX-1 do
+                for iY = CObjects.tObjects[iObjectID].iY, CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iSizeY-1 do
+                    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
+                        tFloor[iX][iY].iColor = CColors.RED
+                        tFloor[iX][iY].iBright = CObjects.tObjects[iObjectID].iBright
+
+                        if CObjects.tObjects[iObjectID].iBright == CObjects.tObjects[iObjectID].iTargetBright and tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                            CGameMode.PlayerStepOnLava(iX,iY)
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
+CObjects.Clear = function(fCallback)
+    if #CObjects.tObjects == 0 then
+        fCallback()
+        return;
+    end
+
+    CObjects.bClearing = true
+
+    AL.NewTimer(tConfig.ObjectsTickRate, function()
+        if iGameState ~= GAMESTATE_GAME then return end
+
+        local bDone = false
+
+        for iObjectID = 1, #CObjects.tObjects do
+            if CObjects.tObjects[iObjectID] then
+                CObjects.tObjects[iObjectID].iBright = CObjects.tObjects[iObjectID].iBright-1
+                if CObjects.tObjects[iObjectID].iBright <= 0 then 
+                    bDone = true 
+                end
+            end
+        end
+
+        if not bDone then
+            return tConfig.ObjectsTickRate
+        else
+            CObjects.tObjects = {}
+            CObjects.bClearing = false
+            fCallback()
+        end
+    end)
 end
 --//
 
@@ -439,6 +609,10 @@ CCoins.Collected = function()
     else
         CAudio.PlaySystemAsync(CAudio.CLICK)
         CCoins.NewRandomCoin()
+
+        if CShape.iFill % 5 == 0 then
+            CGameMode.SpawnNewRandomObjects()
+        end
     end
 end
 --//
@@ -484,8 +658,10 @@ end
 function SetGlobalColorBright(iColor, iBright)
     for iX = 1, tGame.Cols do
         for iY = 1, tGame.Rows do
-            tFloor[iX][iY].iColor = iColor
-            tFloor[iX][iY].iBright = iBright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = iColor
+                tFloor[iX][iY].iBright = iBright
+            end
             tFloor[iX][iY].iCoin = -1
         end
     end
@@ -580,6 +756,10 @@ function PixelClick(click)
 
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
+
+        if iGameState == GAMESTATE_GAME and click.Click and not tFloor[click.X][click.Y].bDefect and not tFloor[click.X][click.Y].bAnimated and tFloor[click.X][click.Y].iColor == CColors.RED and tFloor[click.X][click.Y].iBright >= tConfig.Bright-2 then
+            CGameMode.PlayerStepOnLava(click.X, click.Y)
+        end
     end
 end
 

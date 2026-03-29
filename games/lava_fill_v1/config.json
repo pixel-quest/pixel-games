@@ -19,6 +19,10 @@
 	"FadeTime_ru": "Секунд до сгорания пикселя",
 	"FadeTime_en": "Pixel fade time",
 
+	"ObjectsTickRate": 250,
+	"ObjectsTickRate_ru": "Частота премещения объектов",
+	"ObjectsTickRate_en": "Object movement tickrate",
+
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
 
