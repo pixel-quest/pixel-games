@@ -954,7 +954,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
 
                 tGameResults.Score = tGameResults.Score + 100 + (CGameMode.tBase.iHealth - (CGameMode.tSettings.BaseHealth * (tConfig.LivesMultiplier or 1)))
 
-                if not CBuffs.bBuffDropped and CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
+                if not tGame.NoButtonsGame and not CBuffs.bBuffDropped and CBuffs.iBuffsDropped < CBuffs.BUFF_TYPE_COUNT and math.random(1, 100) <= CGameMode.tSettings.BuffDropChance then
                     CBuffs.DropBuffForPlayers()
                 end
             end
