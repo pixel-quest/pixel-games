@@ -1,0 +1,20 @@
+{
+	"MinBright": 3,
+	"MinBright_Min": 1,
+	"MinBright_Max": 4,
+	"MinBright_Step": 1,
+	"MinBright_ru": "Минимальная Яркость",
+
+	"MaxBright": 6,
+	"MaxBright_Min": 4,
+	"MaxBright_Max": 7,
+	"MaxBright_Step": 1,
+	"MaxBright_ru": "Максимальная Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
