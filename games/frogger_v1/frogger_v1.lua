@@ -537,14 +537,16 @@ CUnits.Paint = function()
                         tFloor[iX][iY].iBright = CUnits.tUnits[iUnitID].iBright
 
                         if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iWeight > 5 and not tFloor[iX][iY].bDamageCooldown then
-                            if (CTime.unix() - tFloor[iX][iY].iClickTime)*1000 < tGame.BurnDelay then
-                                CUnits.DamagePlayer(iUnitID)
+                            AL.NewTimer(tGame.BurnDelay, function()
+                                if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDamageCooldown then
+                                    CUnits.DamagePlayer(iUnitID)
 
-                                tFloor[iX][iY].bDamageCooldown = true
-                                AL.NewTimer(500, function()
-                                    tFloor[iX][iY].bDamageCooldown = false
-                                end)
-                            end
+                                    tFloor[iX][iY].bDamageCooldown = true
+                                    AL.NewTimer(500, function()
+                                        tFloor[iX][iY].bDamageCooldown = false
+                                    end)
+                                end
+                            end)
                         end
                     end
                 end
