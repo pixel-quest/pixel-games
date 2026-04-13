@@ -302,7 +302,7 @@ end
 
 CGameMode.PlayerStepOnLava = function(iX, iY)
     AL.NewTimer(tGame.BurnDelay, function()
-        if iGameState == GAMESTATE_GAME and tFloor[iX][iY].bClick and not tFloor[iX][iY].bAnimated then
+        if iGameState == GAMESTATE_GAME and tFloor[iX][iY].bClick and not tFloor[iX][iY].bAnimated and tFloor[iX][iY].iColor == CColors.RED then
             CAudio.PlaySystemAsync(CAudio.MISCLICK)
 
             CShape.DecreaseFill()
