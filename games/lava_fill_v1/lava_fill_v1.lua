@@ -150,7 +150,7 @@ function GameSetupTick()
     CShape.Paint()
 
     if CGameMode.bCanAutoStart and not CGameMode.bCountDownStarted then
-        CGameMode.StartCountDown(10)
+        CGameMode.StartCountDown(5)
     end
 end
 
@@ -198,9 +198,9 @@ end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
-        --voice gamename rules
+        CAudio.PlayVoicesSync("lava-fill/lava-fill-rules.mp3")
         CAudio.PlayVoicesSync("stand_on_green_zone_and_wait.mp3")
-        AL.NewTimer(1000 + (CAudio.GetVoicesDuration("stand_on_green_zone_and_wait.mp3")*1000), function()
+        AL.NewTimer((CAudio.GetVoicesDuration("lava-fill/lava-fill-rules.mp3")*1000) + (CAudio.GetVoicesDuration("stand_on_green_zone_and_wait.mp3")*1000), function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -239,7 +239,7 @@ CGameMode.StartGame = function()
 
     CGameMode.SpawnNewRandomObjects()
 
-    for iCoin = 1, math.random(5,7) do
+    for iCoin = 1, tConfig.CoinCount do
         CCoins.NewRandomCoin()
     end
 

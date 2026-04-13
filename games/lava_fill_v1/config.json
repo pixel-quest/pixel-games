@@ -12,6 +12,13 @@
 	"CoinReward_ru": "Награда за монетку",
 	"CoinReward_en": "Coin Reward",
 
+	"CoinCount": 5,
+	"CoinCount_Min": 3,
+	"CoinCount_Max": 12,
+	"CoinCount_Step": 1,
+	"CoinCount_ru": "Количество монеток на поле",
+	"CoinCount_en": "Amount of coins on the map",
+
 	"FadeTime": 5,
 	"FadeTime_Min": 1,
 	"FadeTime_Max": 15,
@@ -20,8 +27,8 @@
 	"FadeTime_en": "Pixel fade time",
 
 	"ObjectsTickRate": 250,
-	"ObjectsTickRate_ru": "Частота премещения объектов",
-	"ObjectsTickRate_en": "Object movement tickrate",
+	"ObjectsTickRate_ru": "Задержка премещения объектов",
+	"ObjectsTickRate_en": "Object movement delay",
 
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
