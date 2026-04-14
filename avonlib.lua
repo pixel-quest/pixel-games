@@ -292,3 +292,113 @@ AL.SwitchLaser = function(iLine, iRow, bLight)
     return false
 end
 --//
+
+--SHAPES
+AL.Shapes = {}
+
+AL.Shapes.NewRectangle = function(iSizeX, iSizeY, bFill)
+    local tRect = {}
+
+    for iX = -math.floor(iSizeX/2), math.floor(iSizeX/2) do
+        for iY = -math.floor(iSizeY/2), math.floor(iSizeY/2) do
+            local bEdge = (iX == -math.floor(iSizeX/2) or iX == math.floor(iSizeX/2)) or (iY == -math.floor(iSizeY/2) or iY == math.floor(iSizeY/2))
+            if bFill or bEdge then
+                tRect[#tRect+1] = {iX = iX, iY = iY, bEdge = bEdge}
+            end
+        end
+    end
+
+    return tRect
+end
+
+AL.Shapes.NewCircle = function(iRadius, bFill)
+    local tCircle = {}
+
+    local function createPixel(iX, iY, bEdge)
+        tCircle[#tCircle+1] = {iX = iX, iY = iY, bEdge = bEdge}
+    end
+
+    local iStartY = 0
+    if not bFill then iStartY = iRadius end
+    for iY = iStartY, iRadius do
+        local bEdge = iY <= 1 or iY >= iRadius
+
+        local iX = 0
+        local iD = -iRadius-1
+
+        while iX <= iY do
+            createPixel(iX, iY, bEdge)
+            createPixel(-iX, iY, bEdge)
+            createPixel(iX, -iY, bEdge)
+            createPixel(-iX, -iY, bEdge)
+            createPixel(iY, iX, bEdge)
+            createPixel(-iY, iX, bEdge)
+            createPixel(iY, -iX, bEdge)
+            createPixel(-iY, -iX, bEdge)  
+
+            iX = iX + 1
+            if iD < 0 then
+                iD = iD + 2 * iX + 1
+            else
+                iY = iY - 1
+                iD = iD + 2 * (iX - iY) + 1
+            end
+        end
+    end
+
+    return tCircle
+end
+
+AL.Shapes.NewTriangle = function(iSize, bFill)
+    local tTriag = {}
+
+    local iWidth = 0
+    for iY = -math.floor(iSize/2), math.floor(iSize/2) do
+        for iX = -iWidth, iWidth do
+            local bEdge = (iX == -iWidth or iX == iWidth or iY == -math.floor(iSize/2) or iY == math.floor(iSize/2))
+
+            if bFill or bEdge then
+                tTriag[#tTriag+1] = {iX = iX, iY = iY, bEdge = bEdge}
+            end
+        end
+
+        iWidth = iWidth + 1
+    end
+
+    return tTriag
+end
+
+AL.Shapes.NewRhombus = function(iSize, bFill)
+    local tTriag = {}
+
+    local iWidth = 0
+    for iY = -math.floor(iSize/2), math.floor(iSize/2) do
+        for iX = -iWidth, iWidth do
+            local bEdge = (iX == -iWidth or iX == iWidth or iY == -math.floor(iSize/2) or iY == math.floor(iSize/2))
+
+            if bFill or bEdge then
+                tTriag[#tTriag+1] = {iX = iX, iY = iY, bEdge = bEdge}
+            end
+        end
+
+        if iY < 0 then
+            iWidth = iWidth + 1
+        else
+            iWidth = iWidth - 1
+        end
+    end
+
+    return tTriag
+end
+
+AL.Shapes.NewCross = function(iSize)
+    local tCross = {}
+
+    for i = -math.floor(iSize/2), math.floor(iSize/2) do
+        tCross[#tCross+1] = {iX = i, iY = i, bEdge = true}
+        tCross[#tCross+1] = {iX = -i, iY = i, bEdge = true}
+    end
+
+    return tCross
+end
+--//
