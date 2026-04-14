@@ -44,7 +44,23 @@ local tGameStats = {
     StageNum = 1,
     TotalStages = 2,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 0,
+    ScoreboardVariant = 1,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 5,
+        HeaderWidget = {},
+        BottomWidget = {Text = "13:37", Icon = "timer"},
+        GameStatsWidgets = {
+            {
+                Type = "image_text",
+                Position = { col = 0, col_span = 1, row = 0, row_span = 1 },
+                Icon =  "heart",
+                Text = "69",
+                TextPosition = "inside"
+            },
+        },
+    },
     SwitchStages = true,    
 }
 
@@ -102,6 +118,22 @@ function StartGame(gameJson, gameConfigJson)
     AL.NewTimer(5000, function()
         if tGameStats.StageNum == 1 then
             iCurrentColor = tColors[math.random(1,#tColors)]
+
+            --//new scoreboard test
+            tGameStats.Scoreboard.GameStatsWidgets = {}
+            for i = 1, math.random(1,10) do
+                tGameStats.Scoreboard.GameStatsWidgets[i] =             
+                {
+                    Type = "progress_bar",
+                    Position = {Col = 0, ColSpan = 2, Row = i-1, RowSpan = 1},
+                    Value = math.random(1,100),
+                    Label = "Player #"..tostring(i)
+                }
+                tGameStats.Scoreboard.GridRows = i
+            end
+            tGameStats.Scoreboard.BottomWidget.Text = math.random(1,60)..":"..math.random(1,60)
+            --//
+
             return 5000
         else
             return nil
