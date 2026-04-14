@@ -349,6 +349,10 @@ CGameMode.SwitchAllLineLasers = function(iLine)
 
     CLog.print(iLine.." lasers full on")
 end
+
+CGameMode.ColXToLaserX = function(iX)
+    return math.ceil(iX/(tGame.Cols/AL.Lasers.iLines))
+end
 --//
 
 --PATH
@@ -459,11 +463,11 @@ CPath.PlayerClickAtPoint = function(iPoint)
         if (iPoint - CPath.iLastLaserSwitchPoint) > CPath.PAINT_DIFF+1 and CPath.tPath[iLaserPoint] ~= nil then
             CPath.iLastLaserSwitchPoint = iPoint
             CGameMode.SwitchAllLasers(false)
-            CGameMode.SwitchLineLasers(CPath.tPath[iLaserPoint].iX)
+            CGameMode.SwitchLineLasers(CGameMode.ColXToLaserX(CPath.tPath[iLaserPoint].iX))
 
             local iBackPoint = CPath.iTargetPoint-1-CPath.PAINT_DIFF
             if CPath.tPath[iBackPoint] ~= nil and math.abs(CPath.tPath[iLaserPoint].iX - CPath.tPath[iBackPoint].iX) > CPath.PAINT_DIFF then
-                CGameMode.SwitchAllLineLasers(CPath.tPath[iBackPoint].iX)
+                CGameMode.SwitchAllLineLasers(CGameMode.ColXToLaserX(CPath.tPath[iBackPoint].iX))
             end
         end
     end
