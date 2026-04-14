@@ -146,8 +146,8 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     if tGame.Maps == nil then
-        local startCenterX = math.floor(tGame.StartPositionSizeX/2)
-        local startCenterY = math.floor(tGame.StartPositionSizeY/2)
+        local startCenterX = math.ceil(tGame.StartPositionSizeX/2)
+        local startCenterY = math.ceil(tGame.StartPositionSizeY/2)
 
         local function newMap(fCompare)
             local tNewMap = {}
@@ -165,7 +165,7 @@ function StartGame(gameJson, gameConfigJson)
 
         tGame.Maps = {}
 
-        tGame.Maps[1] = newMap(function(iX, iY)
+        tGame.Maps[1] = newMap(function(iX, iY) -- cross
             if (iX >= startCenterX-1 and iX <= startCenterX+1) or (iY >= startCenterY-1 and iY <= startCenterY+1) then
                 return true;
             end
@@ -173,7 +173,7 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)
 
-        tGame.Maps[2] = newMap(function(iX, iY)
+        tGame.Maps[2] = newMap(function(iX, iY) -- lines
             if iY < startCenterY then
                 if iY % 2 == 0 then
                     return true;
@@ -185,7 +185,7 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)
 
-        tGame.Maps[3] = newMap(function(iX, iY)
+        tGame.Maps[3] = newMap(function(iX, iY) -- bridges
             if (iX == startCenterX-3 or iX == startCenterX+3) or (iY == startCenterY-1 or iY == startCenterY+1) or (iX == startCenterX and iY == startCenterY) then
                 return true
             end
@@ -193,15 +193,15 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)
 
-        tGame.Maps[4] = newMap(function(iX, iY)
-            if iX == 1 or iY == 1 or iX == tGame.StartPositionSizeX or iY == tGame.StartPositionSizeY or iX == iY or tGame.StartPositionSizeY - (iX-tGame.StartPositionSizeY) == iY then
+        tGame.Maps[4] = newMap(function(iX, iY) -- falling L
+            if iX == 1 or iY == 1 or iX == tGame.StartPositionSizeX or iY == tGame.StartPositionSizeY or iX == iY or iX == iY+1 or tGame.StartPositionSizeY - (iX-tGame.StartPositionSizeY) == iY or tGame.StartPositionSizeY - (iX-tGame.StartPositionSizeY) == iY+1 then
                 return true
             end
 
             return false
         end)
 
-        tGame.Maps[5] = newMap(function(iX, iY)
+        tGame.Maps[5] = newMap(function(iX, iY) -- bridges 2
             if iX == 2 or iY == 2 or iX == tGame.StartPositionSizeX-1 or iY == tGame.StartPositionSizeY-1 or iX == startCenterX-1 or iX == startCenterX+1 or iY == startCenterY-1 or iY == startCenterY+1 then
                 return true
             end
@@ -209,9 +209,9 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)       
 
-        local iRx6 = math.random(1,tGame.StartPositionSizeX)
-        local iRy6 = math.random(1,tGame.StartPositionSizeY)
-        tGame.Maps[6] = newMap(function(iX, iY)
+        local iRx6 = math.random(1,math.floor(tGame.StartPositionSizeX/2))
+        local iRy6 = math.random(1,math.floor(tGame.StartPositionSizeY/2))
+        tGame.Maps[6] = newMap(function(iX, iY) -- split
 
             if iX == iRx6 or iY == iRy6 then
                 return true
@@ -228,7 +228,7 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)   
 
-        tGame.Maps[7] = newMap(function(iX, iY)
+        tGame.Maps[7] = newMap(function(iX, iY) -- vase
             if iY % 2 == 0 and ((iY < startCenterY and iX > iY and iX < tGame.StartPositionSizeX-iY) or (iY > startCenterY and iX > math.floor(iY/2) and iX < tGame.StartPositionSizeX-math.floor(iY/2))) then
                 return true
             end
@@ -236,7 +236,7 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)    
 
-        tGame.Maps[8] = newMap(function(iX, iY)
+        tGame.Maps[8] = newMap(function(iX, iY) -- double vase
             if iX % 2 == 0 and ((iX < startCenterX and iY > iX/2 and iY < tGame.StartPositionSizeY-iX/2) or (iX > startCenterX and iY > math.floor(iX/4) and iY < tGame.StartPositionSizeY-math.floor(iX/4))) then
                 return true
             end
@@ -244,36 +244,34 @@ function StartGame(gameJson, gameConfigJson)
             return false
         end)
 
-        tGame.Maps[9] = newMap(function(iX, iY)
-            if iY < startCenterY then
-                if iY % 2 == 0 then
-                    return true;
-                end
-            elseif iX > startCenterX and iX % 2 == 0 then
-                return true;
+        local tRandSqares9 = {}
+        for i = 1, math.floor(tGame.StartPositionSizeX/2) do
+            tRandSqares9[i] = {iX = math.random(1, tGame.StartPositionSizeX-2), iY = math.random(1, tGame.StartPositionSizeX-2), iSize = math.random(1,2)} 
+        end
+        tGame.Maps[9] = newMap(function(iX, iY) -- rand squares
+            if iX > 3 and iX <= tGame.StartPositionSizeX-3 and iY >= startCenterY-1 and iY <= startCenterY+1 then return true; end
+
+            for i = 1, #tRandSqares9 do
+                if iX >= tRandSqares9[i].iX and iX <= tRandSqares9[i].iX+tRandSqares9[i].iSize and iY >= tRandSqares9[i].iY and iY <= tRandSqares9[i].iY+tRandSqares9[i].iSize then return true; end
             end
 
             return false
         end)
 
-        tGame.Maps[10] = newMap(function(iX, iY)
-            if iY > startCenterY then
-                if iY % 2 == 0 then
-                    return true;
-                end
-            elseif iX < startCenterX and iX % 2 == 0 then
-                return true;
+        local iInc10 = math.random(3,5)
+        tGame.Maps[10] = newMap(function(iX, iY) -- diag stripes
+            local iMax = math.floor(tGame.StartPositionSizeX/10)*10
+            for iTargetY = iY-iMax, iY+iMax, iInc10 do
+                if iX == iTargetY then return true; end
             end
 
             return false
         end)
 
-        local iRx11 = math.random(1,tGame.StartPositionSizeX)
-        local iRy11 = math.random(1,tGame.StartPositionSizeY)
-        tGame.Maps[11] = newMap(function(iX, iY)
-            if (iX >= iRx11-1 and iX <= iRx11+1) or (iY >= iRy11-1 and iY <= iRy11+1) then
-                return true;
-            end
+        local iCrossPoint11 = startCenterY + math.random(-5,5)
+        tGame.Maps[11] = newMap(function(iX, iY) -- cross road
+            if (iY < iCrossPoint11 and (iX == iY or iX == iY+1)) or (tGame.StartPositionSizeY-iX == iY or tGame.StartPositionSizeY-iX == iY+1) then return true end;
+            if (tGame.StartPositionSizeX-iX == tGame.StartPositionSizeY-iY or tGame.StartPositionSizeX-iX == tGame.StartPositionSizeY-iY+1) then return true end;
 
             return false
         end)
@@ -746,6 +744,33 @@ CMaps.GetRandomMap = function()
     end
 
     --CLog.print("random map #"..CMaps.iRandomMapID)
+    --CMaps.iRandomMapID = 11
+
+    if CMaps.iRandomMapID ~= 5 and math.random(1,2) == 2 then
+        local tFlip = {}
+        local iX = 0
+        local iY = 0
+
+        local iMapStartY = #tGame.Maps[CMaps.iRandomMapID]
+        local iMapEndY = 1
+        local iMapYInc = -1
+        if math.random(1,2) == 2 then
+            iMapEndY = iMapStartY
+            iMapStartY = 1
+            iMapYInc = 1
+        end
+        for iMapY = iMapStartY, iMapEndY, iMapYInc do
+            iY = iY + 1
+            tFlip[iY] = {}
+            for iMapX = #tGame.Maps[CMaps.iRandomMapID][iMapY], 1, -1 do
+                iX = iX + 1
+                tFlip[iY][iX] = tGame.Maps[CMaps.iRandomMapID][iMapY][iMapX]
+            end
+            iX = 0
+        end
+
+        return tFlip
+    end
 
     return tGame.Maps[CMaps.iRandomMapID]
 end
