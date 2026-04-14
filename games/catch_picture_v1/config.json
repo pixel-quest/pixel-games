@@ -25,6 +25,13 @@
 	"TimeLimit_ru": "Лимит времени (0 - бесконечно)",
 	"TimeLimit_en": "Time Limit (0 - infinite)",
 	
+	"TrueCoinChance": 40,
+	"TrueCoinChance_Min": 10,
+	"TrueCoinChance_Max": 75,
+	"TrueCoinChance_Step": 5,
+	"TrueCoinChance_ru": "Шанс появления целевого пикселя",
+	"TrueCoinChance_en": "Target pixel spawn chance",
+
 	"PictureName": "elka",
 	"PictureName_List": ["elka", "pistol", "korabl", "chuvak"],
 	"PictureName_ru": "Рисунок",

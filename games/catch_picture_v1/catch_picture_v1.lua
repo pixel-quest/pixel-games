@@ -341,7 +341,7 @@ CCoins.NewCoin = function(iX, iY)
     local tNewCoin = {}
     tNewCoin.iX = iX
     tNewCoin.iY = iY
-    tNewCoin.bTrueColor = (math.random(1,3) == 2)
+    tNewCoin.bTrueColor = (math.random(1,100) <= tConfig.TrueCoinChance)
     tNewCoin.iColor = CPicture.GetRandomColor()
 
     CCoins.tCoins.Push(tNewCoin)
