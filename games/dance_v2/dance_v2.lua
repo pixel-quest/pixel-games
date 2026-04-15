@@ -45,8 +45,15 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 99,
-    Elements = {},
+    ScoreboardVariant = 1,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "00:00", Icon = "timer"},
+    },
+    GameStatsWidgets = {}
 }
 
 local tGameResults = {
@@ -226,6 +233,8 @@ function GameSetupTick()
         CGameMode.StartCountDown(10)
     end
 
+    if iPlayersReady ~= tGameResults.PlayersCount then CGameMode.UpdatePlayersProgress(); end
+
     tGameResults.PlayersCount = iPlayersReady
 end
 
@@ -370,15 +379,29 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.UpdatePlayersProgress = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+    tGameStats.Scoreboard.GridRows = 0
+
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
-            if CGameMode.tPlayers[iPlayerID].iElementID == nil then
-                table.insert(tGameStats.Elements, {Type = "progressbar", Value = "0", SpecialValue = "0", Color = tGame.StartPositions[iPlayerID].Color, Id = iPlayerID})
-                CGameMode.tPlayers[iPlayerID].iElementID = table.getn(tGameStats.Elements)
-            else
-                tGameStats.Elements[CGameMode.tPlayers[iPlayerID].iElementID].Value = tostring(CGameMode.tPlayers[iPlayerID].iScore)
-                tGameStats.Elements[CGameMode.tPlayers[iPlayerID].iElementID].SpecialValue = tostring(CGameMode.tPlayers[iPlayerID].iScore/tGameStats.TargetScore*100)
-            end
+            tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+
+            local r = string.format("%X",math.floor(CGameMode.tPlayers[iPlayerID].iColor/(256*256)))
+            if string.len(r) == 1 then r = "0"..r end
+            local g = string.format("%X",math.floor(CGameMode.tPlayers[iPlayerID].iColor/256)%256)
+            if string.len(g) == 1 then g = "0"..g end
+            local b = string.format("%X",CGameMode.tPlayers[iPlayerID].iColor%256)
+            if string.len(b) == 1 then b = "0"..b end
+
+            tGameStats.Scoreboard.GameStatsWidgets[tGameStats.Scoreboard.GridRows] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Value = CGameMode.tPlayers[iPlayerID].iScore/tGameStats.TargetScore*100,
+                Label = tostring(CGameMode.tPlayers[iPlayerID].iScore),
+                Color = "#"..r..g..b
+            }
+            CLog.print(CGameMode.tPlayers[iPlayerID].iColor.." "..tGameStats.Scoreboard.GameStatsWidgets[tGameStats.Scoreboard.GridRows].Color)
         end
     end
 end
