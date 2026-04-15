@@ -259,7 +259,7 @@ CGameMode.InitGameMode = function()
     CCircle.iX = tGame.CenterX
     CCircle.iY = tGame.CenterY
 
-    --CCircle.tShape = AL.Shapes.NewCircle(CCircle.CIRCLE_RADIUS, true)
+    CCircle.tShape = AL.Shapes.NewCircle(CCircle.CIRCLE_RADIUS, true)
 end
 
 CGameMode.Announcer = function()
@@ -388,6 +388,7 @@ CGameMode.UpdatePlayersProgress = function()
             Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
             Value = 100,
             Label = "Текущий цвет",
+            LabelEn = "Current Color",
             Color = "#"..r..g..b
         }
 
@@ -405,10 +406,13 @@ CGameMode.UpdatePlayersProgress = function()
                 Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
                 Value = 100,
                 Label = "Следующий цвет",
+                LabelEn = "Next Color",
                 Color = "#"..r..g..b
             }           
         else
             tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Последний цвет!"
+            tGameStats.Scoreboard.GameStatsWidgets[1].LabelEn = "Final Color!"
+            tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
         end
     end
 
@@ -541,58 +545,19 @@ end
 CCircle.Paint = function()
     CCircle.iClickCount = 0
 
-    local iXM = CCircle.iX
-    local iYM = CCircle.iY
-    local iR = CCircle.CIRCLE_RADIUS
+    for iPixel = 1, #CCircle.tShape do
+        local iX = CCircle.iX + CCircle.tShape[iPixel].iX
+        local iY = CCircle.iY + CCircle.tShape[iPixel].iY
 
-    local iX = -iR
-    local iY = 0
-    local iR2 = 2-2*iR
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
+            tFloor[iX][iY].iBright = tConfig.Bright
 
-    local paintCirclePixel = function(iX, iY)
-        for iX2 = iX-1, iX+1 do
-            for iY2 = iY-1, iY+1 do
-                if iX2 > tGame.Cols then
-                    iX2 = (iX2-tGame.Cols)
-                elseif iX2 < 1 then
-                    iX2 = tGame.Cols + (iX2+1)
-                end
-                if iY2 > tGame.Rows then
-                    iY2 = (iY2-tGame.Rows)
-                elseif iY2 < 1 then
-                    iY2 = tGame.Rows + (iY2+1)
-                end
-
-                if tFloor[iX2] and tFloor[iX2][iY2] and tFloor[iX2][iY2].iColor == CColors.NONE then
-                    tFloor[iX2][iY2].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
-                    tFloor[iX2][iY2].iBright = tConfig.Bright
-
-                    if tFloor[iX2][iY2].bClick and not tFloor[iX2][iY2].bDefect then
-                        CCircle.iClickCount = CCircle.iClickCount + 1
-                    end
-                end
+            if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                CCircle.iClickCount = CCircle.iClickCount + 1
             end
         end
     end
-
-    paintCirclePixel(iXM, iYM)
-
-    repeat
-        paintCirclePixel(iXM-iX, iYM+iY)
-        paintCirclePixel(iXM-iY, iYM-iX)
-        paintCirclePixel(iXM+iX, iYM-iY)
-        paintCirclePixel(iXM+iY, iYM+iX)
-
-        iR = iR2
-        if iR <= iY then 
-            iY = iY+1
-            iR2 = iR2 + (iY * 2 + 1) 
-        end
-        if iR > iX or iR2 > iY then 
-            iX = iX+1
-            iR2 = iR2 + (iX * 2 + 1) 
-        end
-    until iX > 0
 end
 --//
 
