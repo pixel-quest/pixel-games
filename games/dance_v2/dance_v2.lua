@@ -402,7 +402,6 @@ CGameMode.UpdatePlayersProgress = function()
                 Label = tostring(CGameMode.tPlayers[iPlayerID].iScore),
                 Color = "#"..r..g..b
             }
-            CLog.print(CGameMode.tPlayers[iPlayerID].iColor.." "..tGameStats.Scoreboard.GameStatsWidgets[tGameStats.Scoreboard.GridRows].Color)
         end
     end
 end
