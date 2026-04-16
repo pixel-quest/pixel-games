@@ -163,7 +163,15 @@ function GameSetupTick()
 
     local iPlayersReadyCount = 0
 
-    for iPlayerID = 1, #CGameMode.tPlayerColors do
+    local iMaxPlayers = #CGameMode.tPlayerColors
+    if tGame.ArenaMode then
+        iMaxPlayers = math.ceil(tGame.Cols/6)
+        POS_SIZE = 6
+        iStartY= tGame.iMinY
+        iStartX = tGame.iMinX
+    end
+
+    for iPlayerID = 1, iMaxPlayers do
         local iBright = 1
         if tPlayerInGame[iPlayerID] then iBright = 3; end
 
@@ -188,8 +196,13 @@ function GameSetupTick()
             CGameMode.tPlayerScores[iPlayerID] = nil
         end
 
-        iStartX = iStartX + 2 + POS_SIZE
-        if iStartX+POS_SIZE-1 >= tGame.iMaxX then
+        if tGame.ArenaMode then
+            iStartX = iStartX + POS_SIZE
+        else
+            iStartX = iStartX + 2 + POS_SIZE
+        end
+
+        if iStartX+POS_SIZE-1 > tGame.iMaxX then
             iStartX = tGame.iMinX+2
             iStartY = iStartY + 3 + POS_SIZE
             if iStartY+POS_SIZE-1 >= tGame.iMaxY then break; end
@@ -258,6 +271,10 @@ CGameMode.InitGameMode = function()
     CCircle.CIRCLE_RADIUS = tConfig.CircleSize
     CCircle.iX = tGame.CenterX
     CCircle.iY = tGame.CenterY
+
+    if tGame.ArenaMode then
+        CCircle.CIRCLE_RADIUS = 2
+    end
 
     CCircle.tShape = AL.Shapes.NewCircle(CCircle.CIRCLE_RADIUS, true)
 end
@@ -552,6 +569,13 @@ CCircle.Paint = function()
         if tFloor[iX] and tFloor[iX][iY] then
             tFloor[iX][iY].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
             tFloor[iX][iY].iBright = tConfig.Bright
+
+            if CCircle.tShape[iPixel].bEdge then
+                local iTimeLeft = tGameStats.StageLeftDuration % tConfig.SwitchDuration
+                if iTimeLeft > 0 and iTimeLeft <= tConfig.Bright then
+                    tFloor[iX][iY].iBright = iTimeLeft
+                end
+            end
 
             if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
                 CCircle.iClickCount = CCircle.iClickCount + 1

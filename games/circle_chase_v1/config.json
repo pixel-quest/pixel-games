@@ -12,7 +12,7 @@
 
 	"CircleSize": 4,
 	"CircleSize_Min": 2,
-	"CircleSize_Max": 6,
+	"CircleSize_Max": 8,
 	"CircleSize_Step": 1,
 	"CircleSize_ru": "Радиус Круга",
 	"CircleSize_en": "Circle Radius",
