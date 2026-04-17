@@ -392,13 +392,6 @@ CGameMode.UpdatePlayersProgress = function()
     if iGameState == GAMESTATE_GAME then
         tGameStats.Scoreboard.GridRows = 1
 
-        local r = string.format("%X",math.floor(CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]/(256*256)))
-        if string.len(r) == 1 then r = "0"..r end
-        local g = string.format("%X",math.floor(CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]/256)%256)
-        if string.len(g) == 1 then g = "0"..g end
-        local b = string.format("%X",CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]%256)
-        if string.len(b) == 1 then b = "0"..b end
-
         tGameStats.Scoreboard.GameStatsWidgets[1] =             
         {
             Type = "progress_bar",
@@ -406,17 +399,10 @@ CGameMode.UpdatePlayersProgress = function()
             Value = 100,
             Label = "Текущий цвет",
             LabelEn = "Current Color",
-            Color = "#"..r..g..b
+            Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]
         }
 
         if CCircle.tPlayersList[CCircle.iListPosition+1] then
-            local r = string.format("%X",math.floor(CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]/(256*256)))
-            if string.len(r) == 1 then r = "0"..r end
-            local g = string.format("%X",math.floor(CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]/256)%256)
-            if string.len(g) == 1 then g = "0"..g end
-            local b = string.format("%X",CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]%256)
-            if string.len(b) == 1 then b = "0"..b end
-
             tGameStats.Scoreboard.GameStatsWidgets[2] =             
             {
                 Type = "progress_bar",
@@ -424,7 +410,7 @@ CGameMode.UpdatePlayersProgress = function()
                 Value = 100,
                 Label = "Следующий цвет",
                 LabelEn = "Next Color",
-                Color = "#"..r..g..b
+                Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]
             }           
         else
             tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Последний цвет!"
@@ -437,20 +423,13 @@ CGameMode.UpdatePlayersProgress = function()
         if tPlayerInGame[iPlayerID] then
             tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
 
-            local r = string.format("%X",math.floor(CGameMode.tPlayerColors[iPlayerID]/(256*256)))
-            if string.len(r) == 1 then r = "0"..r end
-            local g = string.format("%X",math.floor(CGameMode.tPlayerColors[iPlayerID]/256)%256)
-            if string.len(g) == 1 then g = "0"..g end
-            local b = string.format("%X",CGameMode.tPlayerColors[iPlayerID]%256)
-            if string.len(b) == 1 then b = "0"..b end
-
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
             {
                 Type = "progress_bar",
                 Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
                 Value = CGameMode.tPlayerScores[iPlayerID]/CGameMode.iMaxScore*100,
                 Label = tostring(CGameMode.tPlayerScores[iPlayerID]),
-                Color = "#"..r..g..b
+                Color = CGameMode.tPlayerColors[iPlayerID]
             }
         end
     end
