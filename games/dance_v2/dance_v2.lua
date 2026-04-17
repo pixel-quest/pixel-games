@@ -51,7 +51,7 @@ local tGameStats = {
         GridCols = 2,
         GridRows = 2,
         HeaderWidget = {},
-        BottomWidget = {Text = "00:00", Icon = "timer"},
+        BottomWidget = {Text = "", Icon = "timer"},
     },
     GameStatsWidgets = {}
 }
@@ -301,6 +301,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
@@ -333,6 +334,7 @@ CGameMode.StartGame = function()
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
         if tGameStats.StageLeftDuration <= 0 then
             CGameMode.EndGame()
             return nil
@@ -387,20 +389,13 @@ CGameMode.UpdatePlayersProgress = function()
         if tPlayerInGame[iPlayerID] then
             tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
 
-            local r = string.format("%X",math.floor(CGameMode.tPlayers[iPlayerID].iColor/(256*256)))
-            if string.len(r) == 1 then r = "0"..r end
-            local g = string.format("%X",math.floor(CGameMode.tPlayers[iPlayerID].iColor/256)%256)
-            if string.len(g) == 1 then g = "0"..g end
-            local b = string.format("%X",CGameMode.tPlayers[iPlayerID].iColor%256)
-            if string.len(b) == 1 then b = "0"..b end
-
             tGameStats.Scoreboard.GameStatsWidgets[tGameStats.Scoreboard.GridRows] =             
             {
                 Type = "progress_bar",
                 Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
                 Value = CGameMode.tPlayers[iPlayerID].iScore/tGameStats.TargetScore*100,
                 Label = tostring(CGameMode.tPlayers[iPlayerID].iScore),
-                Color = "#"..r..g..b
+                Color = CGameMode.tPlayers[iPlayerID].iColor
             }
         end
     end
@@ -423,6 +418,7 @@ CGameMode.LoadSongPixels = function()
             if iBatchID == #tGame.Song then
                 tGame.Song[iBatchID+1] = {tGame.Song[iBatchID][1]+1000, "F", "F", "F", "F"}
                 tGameStats.StageLeftDuration = math.floor(tGame.Song[iBatchID][1]/1000) + 10
+                tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
             end
         end
     end
