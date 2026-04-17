@@ -102,6 +102,23 @@ function StartGame(gameJson, gameConfigJson)
 
     iPrevTickTime = CTime.unix()
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+    end
+    tGame.CenterX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2)
+    tGame.CenterY = math.ceil((tGame.iMaxY-tGame.iMinY+1)/2)
+
     tGameResults.PlayersCount = tConfig.PlayerCount
 
     if tConfig.ChosenColors ~= nil then
@@ -214,7 +231,7 @@ CGameMode.InitGameMode = function()
     tGameStats.StageNum = 1
 
     CCross.iBright = tConfig.Bright-2
-
+    CCross.tCross = AL.Shapes.NewCross(5)
     CCross.MovementDelay = tConfig.CrossMovementSpeed_Max - tConfig.CrossMovementSpeed
 end
 
@@ -312,11 +329,12 @@ CGameMode.DamagePlayerCheck = function(iX, iY, iDamage)
     if CGameMode.bDamageCooldown or iGameState ~= GAMESTATE_GAME then return; end
 
     if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 then
-        if tFloor[iX][iY].bClick and tFloor[iX][iY].iWeight > 10 then
-            CGameMode.DamagePlayer(iDamage)
-
-            CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
-        end
+        AL.NewTimer(tGame.BurnDelay, function()
+            if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                CGameMode.DamagePlayer(iDamage)
+                CPaint.AnimatePixelFlicker(iX, iY, 3, CColors.RED)
+            end
+        end)
     end
 end
 
@@ -426,9 +444,9 @@ end
 
 CEffect.DrawCurrentEffect = function()
     if CEffect.iCurrentEffect ~= 0 then
-        CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_DRAW]() 
-
         CPaint.Cross()
+
+        CEffect.tEffects[CEffect.iCurrentEffect][CEffect.FUNC_DRAW]() 
 
         if CEffect.iEndId == CEffect.SPECIAL_ENDING_TYPE_COINS then
             CEffect.SpecialEndingPaintCoins()
@@ -448,7 +466,7 @@ CEffect.NextEffectTimer = function()
         iEffectId = math.random(1, #CEffect.tEffects)
     end
     --CLog.print("next effect: "..iEffectId)
-    --iEffectId = 12
+    --iEffectId = 11
 
     CAudio.PlayVoicesSync("dodge/next_effect.mp3")
     CEffect.tEffects[iEffectId][CEffect.FUNC_ANNOUNCER]()
@@ -584,8 +602,8 @@ CEffect.SpecialEndingCoins = function()
         local iY = 0
 
         repeat
-            iX = math.random(1, tGame.Cols)
-            iY = math.random(1, tGame.Rows)
+            iX = math.random(tGame.iMinX, tGame.iMaxX)
+            iY = math.random(tGame.iMinY, tGame.iMaxY)
         until tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bDefect and tFloor[iX][iY].iCoinId == 0 and tFloor[iX][iY].iColor ~= CCross.iColor
 
         CEffect.tCurrentEffectData.tCoins[iCoinId] = {}
@@ -668,173 +686,194 @@ CEffect.tEffects[CEffect.EFFECT_][CEffect.FUNC_UNLOAD] = function()
 end
 --]]
 
----- эффект: выстрел в 4 стороны
-CEffect.EFFECT_SHOT = 1
-CEffect.tEffects[CEffect.EFFECT_SHOT] = {}
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_LENGTH] = 3
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_TICK_DELAY] = 150
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.CONST_SPECIAL_ENDING_ON] = false
+---- эффект: пульс
+CEffect.EFFECT_PULSE = 1
+CEffect.tEffects[CEffect.EFFECT_PULSE] = {}
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.CONST_LENGTH] = 5
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlayVoicesSync("dodge/dodge_effect_shot.mp3")
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlayVoicesSync("dodge/dodge_effect_pulse.mp3")
 end
 
 -- прогрузка переменных эффекта
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_INIT] = function()
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_INIT] = function()
     CCross.bBlockMovement = true
 
-    CEffect.tCurrentEffectData.iMaxProjectiles = 4
-    CEffect.tCurrentEffectData.tProjectiles = {}
+    CEffect.tCurrentEffectData.tPulses = {}
+    CEffect.tCurrentEffectData.iTick = 0
 
-    for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
-        CEffect.tCurrentEffectData.tProjectiles[iProjectileID] = {}
-        CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iX = CCross.iX
-        CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iY = CCross.iY
-        CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelX = 0
-        CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelY = 0
-
-        if iProjectileID == 1 then
-            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelX = -1
-        elseif iProjectileID == 2 then
-            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelY = -1
-        elseif iProjectileID == 3 then
-            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelX = 1
-        elseif iProjectileID == 4 then
-            CEffect.tCurrentEffectData.tProjectiles[iProjectileID].iVelY = 1
-        end
-    end
+    CEffect.tCurrentEffectData.iX = CCross.iX
+    CEffect.tCurrentEffectData.iY = CCross.iY
+    CEffect.tCurrentEffectData.iRadius = 1
+    CEffect.tCurrentEffectData.tShape = AL.Shapes.NewCircle(CEffect.tCurrentEffectData.iRadius, false)
 end
 
 -- звуковое сопровождение эффекта
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_SOUND] = function()
-    CAudio.PlaySystemAsync("plasma.mp3")
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_SOUND] = function()
+    
 end
 
 -- отрисовка эффекта
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_DRAW] = function()
-    for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
-        local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
-        if tProjectile then
-            local iIncX = 1 if tProjectile.iVelX ~= 0 then iIncX = tProjectile.iVelX end
-            local iIncY = 1 if tProjectile.iVelY ~= 0 then iIncY = tProjectile.iVelY end
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_DRAW] = function()
+    for iPulse = 1, #CEffect.tCurrentEffectData.tPulses do
+        if CEffect.tCurrentEffectData.tPulses[iPulse] then
+            local bPainted = false
+            for iPixelId = 1, #CEffect.tCurrentEffectData.tPulses[iPulse].tShape do
+                local iX = CEffect.tCurrentEffectData.tPulses[iPulse].iX + CEffect.tCurrentEffectData.tPulses[iPulse].tShape[iPixelId].iX
+                local iY = CEffect.tCurrentEffectData.tPulses[iPulse].iY + CEffect.tCurrentEffectData.tPulses[iPulse].tShape[iPixelId].iY
 
-            local i = 0
-            for iX = tProjectile.iX, tProjectile.iX + tProjectile.iVelX*2, iIncX do
-                for iY = tProjectile.iY, tProjectile.iY + tProjectile.iVelY*2, iIncY do  
-                    i = i + 1 
-                    CEffect.PaintEffectPixel(iX, iY)
-                    if i >= 2 then
-                        CEffect.PaintEffectPixel(iX+tProjectile.iVelY, iY+tProjectile.iVelX)
-                        CEffect.PaintEffectPixel(iX-tProjectile.iVelY, iY-tProjectile.iVelX)
-                    end
-                    if i >= 3 then
-                        CEffect.PaintEffectPixel(iX+tProjectile.iVelY*2, iY+tProjectile.iVelX*2)
-                        CEffect.PaintEffectPixel(iX-tProjectile.iVelY*2, iY-tProjectile.iVelX*2)
-                    end
+                if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
+                    bPainted = true
+                    tFloor[iX][iY].iColor = CEffect.iColor
+                    tFloor[iX][iY].iBright = tConfig.Bright
+
+                    CGameMode.DamagePlayerCheck(iX, iY, 1)
                 end
+            end
+
+            if not bPainted then
+                CEffect.tCurrentEffectData.tPulses[iPulse] = nil
             end
         end
     end
 end
 
 -- логический цикл эффекта
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_TICK] = function()
-    for iProjectileID = 1, CEffect.tCurrentEffectData.iMaxProjectiles do
-        local tProjectile = CEffect.tCurrentEffectData.tProjectiles[iProjectileID]
-        if tProjectile then
-            tProjectile.iX = tProjectile.iX + tProjectile.iVelX
-            tProjectile.iY = tProjectile.iY + tProjectile.iVelY
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_TICK] = function()
+    if CEffect.tCurrentEffectData.iTick == 0 or CEffect.tCurrentEffectData.iTick % 6 == 0 then
+        local iPulse = #CEffect.tCurrentEffectData.tPulses+1
+        CEffect.tCurrentEffectData.tPulses[iPulse] = {}
+        CEffect.tCurrentEffectData.tPulses[iPulse].iX = CCross.iX
+        CEffect.tCurrentEffectData.tPulses[iPulse].iY = CCross.iY
+        CEffect.tCurrentEffectData.tPulses[iPulse].iRadius = 0
+        CEffect.tCurrentEffectData.tPulses[iPulse].tShape = {}
 
-            if (tProjectile.iX < 1 or tProjectile.iX > tGame.Cols) or (tProjectile.iY < 1 or tProjectile.iY > tGame.Rows) then
-                CEffect.tCurrentEffectData.tProjectiles[iProjectileID] = nil
-            end
+        CAudio.PlaySystemAsync("plasma.mp3")
+    end
+    CEffect.tCurrentEffectData.iTick = CEffect.tCurrentEffectData.iTick + 1
+
+    for iPulse = 1, #CEffect.tCurrentEffectData.tPulses do
+        if CEffect.tCurrentEffectData.tPulses[iPulse] then
+            CEffect.tCurrentEffectData.tPulses[iPulse].iRadius = CEffect.tCurrentEffectData.tPulses[iPulse].iRadius + 1
+            CEffect.tCurrentEffectData.tPulses[iPulse].tShape = AL.Shapes.NewCircle(CEffect.tCurrentEffectData.tPulses[iPulse].iRadius, false)
         end
     end
 end
 
 -- выгрузка эффекта
-CEffect.tEffects[CEffect.EFFECT_SHOT][CEffect.FUNC_UNLOAD] = function()
+CEffect.tEffects[CEffect.EFFECT_PULSE][CEffect.FUNC_UNLOAD] = function()
     CCross.bBlockMovement = false
 end
 ----
 
-----эффект: круг
-CEffect.EFFECT_CIRCLE = 2
-CEffect.tEffects[CEffect.EFFECT_CIRCLE] = {}
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_LENGTH] = 6
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_TICK_DELAY] = 200
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.CONST_SPECIAL_ENDING_ON] = false
+----эффект: безопасная зона
+CEffect.EFFECT_SAFEZONE = 2
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE] = {}
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.CONST_LENGTH] = 10
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.CONST_TICK_DELAY] = 150
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.CONST_SPECIAL_ENDING_ON] = false
 
 -- Озвучка эффекта голосом до отсчёта "Следующий эффект: ..."
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_ANNOUNCER] = function()
-    CAudio.PlayVoicesSync("dodge/dodge_effect_circle.mp3")
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_ANNOUNCER] = function()
+    CAudio.PlayVoicesSync("dodge/dodge_effect_safezone.mp3")
 end
 
 -- прогрузка переменных эффекта
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_INIT] = function()
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_INIT] = function()
     CCross.bBlockMovement = true
+    CCross.bHidden = true
 
     CEffect.tCurrentEffectData.iX = CCross.iX
     CEffect.tCurrentEffectData.iY = CCross.iY
-    CEffect.tCurrentEffectData.iSize = 1
+
+    local iSize = math.floor(tGame.Cols*0.4)
+    CEffect.tCurrentEffectData.tShape = AL.Shapes.NewRhombus(iSize, true)
+
+    CEffect.tCurrentEffectData.iTargetX = math.random(tGame.iMinX, tGame.iMaxX)
+    CEffect.tCurrentEffectData.iTargetY = math.random(tGame.iMinY, tGame.iMaxY)
+
+    CEffect.tCurrentEffectData.fCanMove = function(iX, iY)
+        if iX - iSize/2 < tGame.iMinX or iX + iSize/2 > tGame.iMaxX then return false; end
+        if iY - iSize/2 < tGame.iMinY or iY + iSize/2 > tGame.iMaxY then return false; end
+
+        return true
+    end
 end
 
 -- звуковое сопровождение эффекта
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_SOUND] = function()
-    CAudio.PlaySystemAsync("plasma.mp3")
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_SOUND] = function()
+    
 end
 
 -- отрисовка эффекта
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_DRAW] = function()
-    local function PaintCirclePixel(iX, iY)
-        for iX2 = iX-1, iX+1 do
-            if tFloor[iX2] and tFloor[iX2][iY] and not tFloor[iX2][iY].bAnimated then
-                tFloor[iX2][iY].iColor = CEffect.iColor
-                
-                tFloor[iX2][iY].iBright = tConfig.Bright-2
-                if iX2 == iX then
-                    tFloor[iX2][iY].iBright = tConfig.Bright
-                end
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_DRAW] = function()
+    for iPixelId = 1, #CEffect.tCurrentEffectData.tShape do
+        local iX = CEffect.tCurrentEffectData.iX + CEffect.tCurrentEffectData.tShape[iPixelId].iX
+        local iY = CEffect.tCurrentEffectData.iY + CEffect.tCurrentEffectData.tShape[iPixelId].iY
 
-                CGameMode.DamagePlayerCheck(iX2, iY, 1)
-            end
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CColors.GREEN
+            tFloor[iX][iY].iBright = tConfig.Bright
         end
     end
 
-    local iX = CEffect.tCurrentEffectData.iX
-    local iY = CEffect.tCurrentEffectData.iY
-    local iSize = CEffect.tCurrentEffectData.iSize
-    local iSize2 = 3-2*iSize
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            if tFloor[iX][iY].iColor == CColors.NONE and not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = CEffect.iColor
+                tFloor[iX][iY].iBright = tConfig.Bright-1
 
-    for i = 0, iSize do
-        PaintCirclePixel(iX + i, iY + iSize)
-        PaintCirclePixel(iX + i, iY - iSize)
-        PaintCirclePixel(iX - i, iY + iSize)
-        PaintCirclePixel(iX - i, iY - iSize)
-
-        PaintCirclePixel(iX + iSize, iY + i)
-        PaintCirclePixel(iX + iSize, iY - i)
-        PaintCirclePixel(iX - iSize, iY + i)
-        PaintCirclePixel(iX - iSize, iY - i)
-
-        if iSize2 < 0 then
-            iSize2 = iSize2 + 4*i + 6
-        else
-            iSize2 = iSize2 + 4*(i-iSize) + 10
-            iSize = iSize - 1
+                CGameMode.DamagePlayerCheck(iX, iY, 1)
+            end
         end
     end
 end
 
 -- логический цикл эффекта
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_TICK] = function()
-    CEffect.tCurrentEffectData.iSize = CEffect.tCurrentEffectData.iSize + 1
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_TICK] = function()
+    local bStuck = not CEffect.tCurrentEffectData.fCanMove(CEffect.tCurrentEffectData.iX, CEffect.tCurrentEffectData.iY)
+
+    if bStuck then
+        CEffect.tCurrentEffectData.iTargetX = tGame.CenterX
+        CEffect.tCurrentEffectData.iTargetY = tGame.CenterY
+    end
+
+    if CCross.IsAiOn() or bStuck then
+        local iXPlus = 0
+        local iYPlus = 0
+
+        if CEffect.tCurrentEffectData.iX < CEffect.tCurrentEffectData.iTargetX then
+            iXPlus =  1
+        elseif CEffect.tCurrentEffectData.iX > CEffect.tCurrentEffectData.iTargetX then
+            iXPlus = -1
+        elseif CEffect.tCurrentEffectData.iY < CEffect.tCurrentEffectData.iTargetY then
+            iYPlus = 1
+        elseif CEffect.tCurrentEffectData.iY > CEffect.tCurrentEffectData.iTargetY then
+            iYPlus = -1
+        end
+
+        if (CEffect.tCurrentEffectData.iX == CEffect.tCurrentEffectData.iTargetX and CEffect.tCurrentEffectData.iY == CEffect.tCurrentEffectData.iTargetY) or (not CEffect.tCurrentEffectData.fCanMove(CEffect.tCurrentEffectData.iX+iXPlus, CEffect.tCurrentEffectData.iY+iYPlus) and not bStuck) then
+            CEffect.tCurrentEffectData.iTargetX = math.random(tGame.iMinX, tGame.iMaxX)
+            CEffect.tCurrentEffectData.iTargetY = math.random(tGame.iMinY, tGame.iMaxY)
+        else
+            CEffect.tCurrentEffectData.iX = CEffect.tCurrentEffectData.iX + iXPlus
+            CEffect.tCurrentEffectData.iY = CEffect.tCurrentEffectData.iY + iYPlus
+        end
+    else
+        if CEffect.tCurrentEffectData.fCanMove(CEffect.tCurrentEffectData.iX + CPad.iXPlus, CEffect.tCurrentEffectData.iY + CPad.iYPlus) then
+            CEffect.tCurrentEffectData.iX = CEffect.tCurrentEffectData.iX + CPad.iXPlus
+            CEffect.tCurrentEffectData.iY = CEffect.tCurrentEffectData.iY + CPad.iYPlus            
+        end
+    end
 end
 
 -- выгрузка эффекта
-CEffect.tEffects[CEffect.EFFECT_CIRCLE][CEffect.FUNC_UNLOAD] = function()
+CEffect.tEffects[CEffect.EFFECT_SAFEZONE][CEffect.FUNC_UNLOAD] = function()
     CCross.bBlockMovement = false
+    CCross.bHidden = false
 end
 ----
 
@@ -1522,7 +1561,7 @@ end
 ---- effect spore
 CEffect.EFFECT_SPORE = 11
 CEffect.tEffects[CEffect.EFFECT_SPORE] = {}
-CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_LENGTH] = 15
+CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_LENGTH] = 13
 CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_TICK_DELAY] = 150
 CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.CONST_SPECIAL_ENDING_ON] = true
 
@@ -1536,13 +1575,15 @@ CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_INIT] = function()
     CCross.bBlockMovement = true
     CCross.bHidden = true
 
-    CEffect.tCurrentEffectData.iBallSize = 1
+    CEffect.tCurrentEffectData.iBallSize = 2
 
     CEffect.tCurrentEffectData.iBallX = CCross.iX
     CEffect.tCurrentEffectData.iBallY = CCross.iY
+
+    CEffect.tCurrentEffectData.tShape = AL.Shapes.NewCircle(CEffect.tCurrentEffectData.iBallSize, true)
     
     CEffect.tCurrentEffectData.tFood = {}
-    for iFoodID = 1, math.random(5,6) do
+    for iFoodID = 1, 4 do
         CEffect.tCurrentEffectData.tFood[iFoodID] = {}
         CEffect.tCurrentEffectData.tFood[iFoodID].iX = math.random(1, tGame.Cols)
         CEffect.tCurrentEffectData.tFood[iFoodID].iY = math.random(1, tGame.Rows)
@@ -1556,40 +1597,24 @@ end
 
 -- отрисовка эффекта
 CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_DRAW] = function()
-    local iXM = CEffect.tCurrentEffectData.iBallX 
-    local iYM = CEffect.tCurrentEffectData.iBallY
-    local iR = CEffect.tCurrentEffectData.iBallSize
-
-    local iX = -iR
-    local iY = 0
-    local iR2 = 2-2*iR
-
-    local paintCirclePixel = function(iX, iY)
-        for iX2 = iX-1, iX+1 do
-            CEffect.PaintEffectPixel(iX2, iY)
-        end
+    for iPixelId = 1, #CEffect.tCurrentEffectData.tShape do
+        CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.iBallX + CEffect.tCurrentEffectData.tShape[iPixelId].iX, CEffect.tCurrentEffectData.iBallY + CEffect.tCurrentEffectData.tShape[iPixelId].iY)
     end
-
-    repeat
-        paintCirclePixel(iXM-iX, iYM+iY)
-        paintCirclePixel(iXM-iY, iYM-iX)
-        paintCirclePixel(iXM+iX, iYM-iY)
-        paintCirclePixel(iXM+iY, iYM+iX)
-
-        iR = iR2
-        if iR <= iY then 
-            iY = iY+1
-            iR2 = iR2 + (iY * 2 + 1) 
-        end
-        if iR > iX or iR2 > iY then 
-            iX = iX+1
-            iR2 = iR2 + (iX * 2 + 1) 
-        end
-    until iX > 0
 
     for iFoodID = 1, #CEffect.tCurrentEffectData.tFood do
         if CEffect.tCurrentEffectData.tFood[iFoodID] then
-            CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.tFood[iFoodID].iX, CEffect.tCurrentEffectData.tFood[iFoodID].iY)
+            if tFloor[CEffect.tCurrentEffectData.tFood[iFoodID].iX] and tFloor[CEffect.tCurrentEffectData.tFood[iFoodID].iX][CEffect.tCurrentEffectData.tFood[iFoodID].iY] then
+                if tFloor[CEffect.tCurrentEffectData.tFood[iFoodID].iX][CEffect.tCurrentEffectData.tFood[iFoodID].iY].iColor == CColors.NONE or tFloor[CEffect.tCurrentEffectData.tFood[iFoodID].iX][CEffect.tCurrentEffectData.tFood[iFoodID].iY].bAnimated then
+                    CEffect.PaintEffectPixel(CEffect.tCurrentEffectData.tFood[iFoodID].iX, CEffect.tCurrentEffectData.tFood[iFoodID].iY)
+                else
+                    CEffect.tCurrentEffectData.tFood[iFoodID] = nil
+
+                    CEffect.tCurrentEffectData.iBallSize = CEffect.tCurrentEffectData.iBallSize + 1
+                    CEffect.tCurrentEffectData.tShape = AL.Shapes.NewCircle(CEffect.tCurrentEffectData.iBallSize, true)
+                    
+                    CAudio.PlaySystemAsync("snake/apple_crunch.mp3")
+                end
+            end
         end
     end
 end
@@ -1621,18 +1646,6 @@ CEffect.tEffects[CEffect.EFFECT_SPORE][CEffect.FUNC_TICK] = function()
 
         if CPad.bTrigger then
             CPad.bTrigger = false
-        end
-    end
-
-    local function collisionCheck(iC1X, iC1Y, iC1R, iC2X, iC2Y, iC2R)
-        return math.sqrt((iC2X - iC1X)^2 + (iC2Y - iC1Y)^2) <= iC1R + iC2R
-    end
-
-    for iFoodID = 1, #CEffect.tCurrentEffectData.tFood do
-        if CEffect.tCurrentEffectData.tFood[iFoodID] and collisionCheck(CEffect.tCurrentEffectData.iBallX, CEffect.tCurrentEffectData.iBallY, CEffect.tCurrentEffectData.iBallSize, CEffect.tCurrentEffectData.tFood[iFoodID].iX, CEffect.tCurrentEffectData.tFood[iFoodID].iY, 0) then
-            CEffect.tCurrentEffectData.tFood[iFoodID] = nil
-            CEffect.tCurrentEffectData.iBallSize = CEffect.tCurrentEffectData.iBallSize + 1
-            CAudio.PlaySystemAsync("snake/apple_crunch.mp3")
         end
     end
 end
@@ -1736,6 +1749,7 @@ CCross.iTicksNewDest = 0
 CCross.MovementDelay = 200
 CCross.iLastClickX = 0
 CCross.iLastClickY = 0
+CCross.tCross = {}
 
 CCross.Move = function(iXPlus, iYPlus)
     if CCross.bBlockMovement then return; end
@@ -1850,19 +1864,15 @@ CPaint.ANIMATION_DELAY = 100
 CPaint.Cross = function()
     if CCross.bHidden then return end
 
-    for iX = (CCross.iX - math.floor(CCross.iSize/2)), (CCross.iX + math.floor(CCross.iSize/2)) do
-        if tFloor[iX] and tFloor[iX][CCross.iY] and iX ~= CCross.iX then
-            tFloor[iX][CCross.iY].iColor = CCross.iColor
-            tFloor[iX][CCross.iY].iBright = CCross.iBright
-        end
-    end 
+    for iPixelID = 1, #CCross.tCross do
+        local iX = CCross.iX + CCross.tCross[iPixelID].iX
+        local iY = CCross.iY + CCross.tCross[iPixelID].iY
 
-    for iY = (CCross.iY - math.floor(CCross.iSize/2)), (CCross.iY + math.floor(CCross.iSize/2)) do
-        if tFloor[CCross.iX] and tFloor[CCross.iX][iY] and iY ~= CCross.iY then
-            tFloor[CCross.iX][iY].iColor = CCross.iColor
-            tFloor[CCross.iX][iY].iBright = CCross.iBright
-        end
-    end     
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CCross.iColor
+            tFloor[iX][iY].iBright = CCross.iBright            
+        end       
+    end    
 end
 
 CPaint.AnimatePixelFlicker = function(iX, iY, iFlickerCount, iColor)
