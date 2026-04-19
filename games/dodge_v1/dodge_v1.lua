@@ -2066,14 +2066,26 @@ function GetStats()
         tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
     end
 
-    tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
-    {
-        Type = "progress_bar",
-        Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
-        Value =  tGameStats.StageLeftDuration/tGameStats.StageTotalDuration*100,
-        Text = "",
-        Color = CColors.GREEN
-    }        
+
+    if tGameStats.TotalStars ~= 0 then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+        {    
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+            Value =  tGameStats.CurrentStars/tGameStats.TotalStars*100,
+            Text = "",
+            Color = CColors.BLUE  
+        }
+    else
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+        {
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+            Value =  tGameStats.StageLeftDuration/tGameStats.StageTotalDuration*100,
+            Text = "",
+            Color = CColors.GREEN
+        }   
+    end     
 
     return tGameStats
 end
