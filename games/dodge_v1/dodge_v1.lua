@@ -58,7 +58,15 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 8,
+    ScoreboardVariant = 1,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+        GameStatsWidgets = {}
+    },
 }
 
 local tGameResults = {
@@ -253,10 +261,12 @@ end
 
 CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
+    tGameStats.StageTotalDuration = iCountDownTime
 
     AL.NewTimer(1000, function()
         CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
@@ -477,6 +487,8 @@ CEffect.NextEffectTimer = function()
     end
 
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
+    tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
+    tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
     AL.NewTimer(1000, function()
         if iGameState > GAMESTATE_GAME then return nil; end
 
@@ -491,6 +503,7 @@ CEffect.NextEffectTimer = function()
             return nil
         else
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+            tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
 
             if tGameStats.StageLeftDuration <= 5 then
                 CAudio.ResetSync()
@@ -510,6 +523,8 @@ CEffect.EffectTimer = function()
     end
 
     tGameStats.StageLeftDuration = CEffect.tEffects[CEffect.iCurrentEffect][CEffect.CONST_LENGTH]
+    tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
+    tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
     AL.NewTimer(1000, function()
         if tGameStats.StageLeftDuration <= 0 then
             if iGameState > GAMESTATE_GAME then return nil end
@@ -526,6 +541,7 @@ CEffect.EffectTimer = function()
         else
             --CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+            tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
 
             return 1000
         end
@@ -2027,6 +2043,38 @@ end
 
 --//
 function GetStats()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+
+    tGameStats.Scoreboard.GameStatsWidgets[1] =             
+    {
+        Type = "image_text",
+        Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
+        Icon = "stage",
+        Text = tGameStats.StageNum.."/"..tGameStats.TotalStages,
+        TextPosition = "inside"
+    }
+    if tConfig.TeamHealth > 0 then
+        tGameStats.Scoreboard.GameStatsWidgets[2] =             
+        {
+            Type = "image_text",
+            Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
+            Icon = "heart",
+            Text = tGameStats.CurrentLives,
+            TextPosition = "inside"            
+        }        
+    else
+        tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
+    end
+
+    tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+    {
+        Type = "progress_bar",
+        Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+        Value =  tGameStats.StageLeftDuration/tGameStats.StageTotalDuration*100,
+        Text = "",
+        Color = CColors.GREEN
+    }        
+
     return tGameStats
 end
 
