@@ -1,0 +1,39 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"CoinReward": 2,
+	"CoinReward_Min": 1,
+	"CoinReward_Max": 5,
+	"CoinReward_Step": 1,
+	"CoinReward_ru": "Награда за монетку",
+	"CoinReward_en": "Coin Reward",
+
+	"CoinCount": 5,
+	"CoinCount_Min": 3,
+	"CoinCount_Max": 12,
+	"CoinCount_Step": 1,
+	"CoinCount_ru": "Количество монеток на поле",
+	"CoinCount_en": "Amount of coins on the map",
+
+	"FadeTime": 5,
+	"FadeTime_Min": 1,
+	"FadeTime_Max": 15,
+	"FadeTime_Step": 1,
+	"FadeTime_ru": "Секунд до сгорания пикселя",
+	"FadeTime_en": "Pixel fade time",
+
+	"ObjectsTickRate": 250,
+	"ObjectsTickRate_ru": "Задержка премещения объектов",
+	"ObjectsTickRate_en": "Object movement delay",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}

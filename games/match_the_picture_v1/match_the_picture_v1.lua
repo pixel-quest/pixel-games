@@ -287,8 +287,8 @@ CGameMode.InitPositions = function()
     local bPreviewOnWall = false
     if AL.NFZ.bLoaded then
         for iZone = 1, #tGame.NoFeetZones do
-            if tGame.NoFeetZones[iZone].SizeX > tGame.StartPositionSizeX and tGame.NoFeetZones[iZone].SizeY > tGame.StartPositionSizeY+1 then
-                tGame.PreviewPosX = tGame.NoFeetZones[iZone].X
+            if tGame.NoFeetZones[iZone].SizeX > tGame.StartPositionSizeX+2 and tGame.NoFeetZones[iZone].SizeY > tGame.StartPositionSizeY+2 then
+                tGame.PreviewPosX = tGame.NoFeetZones[iZone].X + 1
                 tGame.PreviewPosY = tGame.NoFeetZones[iZone].Y + math.floor(tGame.NoFeetZones[iZone].SizeY/2) - math.floor(tGame.StartPositionSizeY/2)
                 bPreviewOnWall = true
                 break;

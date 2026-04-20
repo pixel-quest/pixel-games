@@ -1096,8 +1096,9 @@ end
 
 CBlock.RegisterBlockClick = function(iX, iY)
     if iGameState ~= GAMESTATE_GAME or bGamePaused or not CGameMode.bRoundStarted then return; end
+    if tFloor[iX][iY].iColor == CColors.NONE or tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_SAFEGROUND] then return; end
 
-    for iLayer = CBlock.MAX_LAYER, 1, -1 do 
+    for iLayer = CBlock.LAYER_COINS, CBlock.LAYER_GROUND, -1 do 
         if CBlock.tBlocks[iLayer] and CBlock.tBlocks[iLayer][iX] and CBlock.tBlocks[iLayer][iX][iY] and CBlock.tBlocks[iLayer][iX][iY].bVisible and not CBlock.tBlocks[iLayer][iX][iY].bCollected then
             if CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_LAVA and not tFloor[iX][iY].bProtectedFromLava and tFloor[iX][iY].iColor == CBlock.tBLOCK_TYPE_TO_COLOR[CBlock.BLOCK_TYPE_LAVA] then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
@@ -1107,13 +1108,6 @@ CBlock.RegisterBlockClick = function(iX, iY)
             elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_COIN then
                 CBlock.tBlocks[iLayer][iX][iY].bCollected = true
                 CGameMode.PlayerCollectCoin()
-
-                --[[tFloor[iX][iY].bProtectedFromLava = true
-                AL.NewTimer(CPaint.ANIMATION_DELAY*10, function()
-                    tFloor[iX][iY].bProtectedFromLava = false  
-                end)]]
-                break;
-            elseif CBlock.tBlocks[iLayer][iX][iY].iBlockType == CBlock.BLOCK_TYPE_SAFEGROUND then
                 break;
             end
         end

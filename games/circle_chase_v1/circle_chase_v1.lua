@@ -53,7 +53,15 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 6,
+    ScoreboardVariant = 1,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+    },
+    GameStatsWidgets = {}
 }
 
 local tGameResults = {
@@ -151,14 +159,19 @@ function GameSetupTick()
 
     local iStartX = tGame.iMinX + 2
     local iStartY = tGame.iMinY + 1
-    local POS_SIZE = math.floor((tGame.iMaxY-tGame.iMinY+1) / 3)
+    local POS_SIZE = math.floor((tGame.iMaxY-tGame.iMinY+1) / 4)
 
-    local iMaxPlayers = 0
     local iPlayersReadyCount = 0
 
-    for iPlayerID = 1, 6 do
-        iMaxPlayers = iMaxPlayers + 1
+    local iMaxPlayers = #CGameMode.tPlayerColors
+    if tGame.ArenaMode then
+        iMaxPlayers = math.ceil(tGame.Cols/6)
+        POS_SIZE = 6
+        iStartY= tGame.iMinY
+        iStartX = tGame.iMinX
+    end
 
+    for iPlayerID = 1, iMaxPlayers do
         local iBright = 1
         if tPlayerInGame[iPlayerID] then iBright = 3; end
 
@@ -177,14 +190,19 @@ function GameSetupTick()
         if bClick then
             tPlayerInGame[iPlayerID] = true
             iPlayersReadyCount = iPlayersReadyCount + 1
-            tGameStats.Players[iPlayerID].Color = CGameMode.tPlayerColors[iPlayerID]
+            CGameMode.tPlayerScores[iPlayerID] = 0
         elseif not CGameMode.bCountDownStarted then
             tPlayerInGame[iPlayerID] = false
-            tGameStats.Players[iPlayerID].Color = CColors.NONE
+            CGameMode.tPlayerScores[iPlayerID] = nil
         end
 
-        iStartX = iStartX + 2 + POS_SIZE
-        if iStartX+POS_SIZE-1 >= tGame.iMaxX then
+        if tGame.ArenaMode then
+            iStartX = iStartX + POS_SIZE
+        else
+            iStartX = iStartX + 2 + POS_SIZE
+        end
+
+        if iStartX+POS_SIZE-1 > tGame.iMaxX then
             iStartX = tGame.iMinX+2
             iStartY = iStartY + 3 + POS_SIZE
             if iStartY+POS_SIZE-1 >= tGame.iMaxY then break; end
@@ -193,8 +211,12 @@ function GameSetupTick()
 
     if not CGameMode.bCountDownStarted then 
         if CGameMode.bCanAutoStart and iPlayersReadyCount > 1 then
-            CGameMode.StartCountDown(10)
+            CGameMode.StartCountDown(5)
         end
+    end
+
+    if tGameResults.PlayersCount ~= iPlayersReadyCount then
+        CGameMode.UpdatePlayersProgress()
     end
 
     tGameResults.PlayersCount = iPlayersReadyCount
@@ -240,11 +262,21 @@ CGameMode.tPlayerColors[3] = CColors.CYAN
 CGameMode.tPlayerColors[4] = CColors.RED
 CGameMode.tPlayerColors[5] = CColors.YELLOW
 CGameMode.tPlayerColors[6] = CColors.GREEN
+CGameMode.tPlayerColors[7] = CColors.WHITE
+
+CGameMode.tPlayerScores = {}
+CGameMode.iMaxScore = 1
 
 CGameMode.InitGameMode = function()
     CCircle.CIRCLE_RADIUS = tConfig.CircleSize
     CCircle.iX = tGame.CenterX
     CCircle.iY = tGame.CenterY
+
+    if tGame.ArenaMode then
+        CCircle.CIRCLE_RADIUS = 2
+    end
+
+    CCircle.tShape = AL.Shapes.NewCircle(CCircle.CIRCLE_RADIUS, true)
 end
 
 CGameMode.Announcer = function()
@@ -267,10 +299,13 @@ CGameMode.StartCountDown = function(iCountDownTime)
     AL.NewTimer(1000, function()
         CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
             
+            tGameStats.Scoreboard.BottomWidget.Text = ""
+
             return nil
         else
             CAudio.PlayLeftAudio(CGameMode.iCountdown)
@@ -289,12 +324,14 @@ CGameMode.StartGame = function()
 
     tGameStats.StageLeftDuration = tConfig.SwitchDuration*(tGameResults.PlayersCount*2)
     tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
+    tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
 
     CCircle.ListPlayers()
     CCircle.SwitchPlayer()
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
         if iGameState ~= GAMESTATE_GAME or tGameStats.StageLeftDuration == 0 then return nil; end
         return 1000
     end)
@@ -325,14 +362,14 @@ CGameMode.EndGame = function()
 
     local iMaxScore = -1
 
-    for iPlayerID = 1, 6 do
-        if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
-            iMaxScore = tGameStats.Players[iPlayerID].Score
+    for iPlayerID = 1, #CGameMode.tPlayerColors do
+        if tPlayerInGame[iPlayerID] and CGameMode.tPlayerScores[iPlayerID] > iMaxScore then
+            iMaxScore = CGameMode.tPlayerScores[iPlayerID]
             CGameMode.iWinnerID = iPlayerID
         end
     end
 
-    tGameResults.Color = tGameStats.Players[CGameMode.iWinnerID].Color
+    tGameResults.Color = CGameMode.tPlayerColors[CGameMode.iWinnerID]
     tGameResults.Won = true
 
     CAudio.PlaySystemSyncFromScratch(CAudio.GAME_SUCCESS)
@@ -347,10 +384,62 @@ CGameMode.EndGame = function()
         iGameState = GAMESTATE_FINISH
     end)
 end
+
+CGameMode.UpdatePlayersProgress = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+    tGameStats.Scoreboard.GridRows = 0
+
+    if iGameState == GAMESTATE_GAME then
+        tGameStats.Scoreboard.GridRows = 1
+
+        tGameStats.Scoreboard.GameStatsWidgets[1] =             
+        {
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
+            Value = 100,
+            Label = "Текущий цвет",
+            LabelEn = "Current Color",
+            Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]
+        }
+
+        if CCircle.tPlayersList[CCircle.iListPosition+1] then
+            tGameStats.Scoreboard.GameStatsWidgets[2] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
+                Value = 100,
+                Label = "Следующий цвет",
+                LabelEn = "Next Color",
+                Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]
+            }           
+        else
+            tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Последний цвет!"
+            tGameStats.Scoreboard.GameStatsWidgets[1].LabelEn = "Final Color!"
+            tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
+        end
+    end
+
+    for iPlayerID = 1, #CGameMode.tPlayerColors do
+        if tPlayerInGame[iPlayerID] then
+            tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Value = CGameMode.tPlayerScores[iPlayerID]/CGameMode.iMaxScore*100,
+                Label = tostring(CGameMode.tPlayerScores[iPlayerID]),
+                Color = CGameMode.tPlayerColors[iPlayerID]
+            }
+        end
+    end
+end
 --//
 
 --Circle
 CCircle = {}
+
+CCircle.tShape = {}
 
 CCircle.iX = 0
 CCircle.iY = 0
@@ -371,7 +460,7 @@ CCircle.iYPlus = 0
 CCircle.ListPlayers = function()
     local i = 1
 
-    for iPlayerID = 1, 6 do
+    for iPlayerID = 1, #CGameMode.tPlayerColors do
         if tPlayerInGame[iPlayerID] then
             CCircle.tPlayersList[i] = iPlayerID
             i = i + 1
@@ -438,70 +527,40 @@ CCircle.Movement = function()
 end
 
 CCircle.Think = function()
-    tGameStats.Players[CCircle.iCurrentPlayerID].Score = tGameStats.Players[CCircle.iCurrentPlayerID].Score + CCircle.iClickCount
+    CGameMode.tPlayerScores[CCircle.iCurrentPlayerID] = CGameMode.tPlayerScores[CCircle.iCurrentPlayerID] + CCircle.iClickCount
 
-    if tGameStats.Players[CCircle.iCurrentPlayerID].Score > tGameStats.TargetScore then
-        tGameStats.TargetScore = tGameStats.Players[CCircle.iCurrentPlayerID].Score
+    if CGameMode.tPlayerScores[CCircle.iCurrentPlayerID] > CGameMode.iMaxScore then
+        CGameMode.iMaxScore = CGameMode.tPlayerScores[CCircle.iCurrentPlayerID]
     end
 
     tGameResults.Score = tGameResults.Score + CCircle.iClickCount
+
+    CGameMode.UpdatePlayersProgress()
 end
 
 CCircle.Paint = function()
     CCircle.iClickCount = 0
 
-    local iXM = CCircle.iX
-    local iYM = CCircle.iY
-    local iR = CCircle.CIRCLE_RADIUS
+    for iPixel = 1, #CCircle.tShape do
+        local iX = CCircle.iX + CCircle.tShape[iPixel].iX
+        local iY = CCircle.iY + CCircle.tShape[iPixel].iY
 
-    local iX = -iR
-    local iY = 0
-    local iR2 = 2-2*iR
+        if tFloor[iX] and tFloor[iX][iY] then
+            tFloor[iX][iY].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
+            tFloor[iX][iY].iBright = tConfig.Bright
 
-    local paintCirclePixel = function(iX, iY)
-        for iX2 = iX-1, iX+1 do
-            for iY2 = iY-1, iY+1 do
-                if iX2 > tGame.Cols then
-                    iX2 = (iX2-tGame.Cols)
-                elseif iX2 < 1 then
-                    iX2 = tGame.Cols + (iX2+1)
+            if CCircle.tShape[iPixel].bEdge then
+                local iTimeLeft = tGameStats.StageLeftDuration % tConfig.SwitchDuration
+                if iTimeLeft > 0 and iTimeLeft <= tConfig.Bright then
+                    tFloor[iX][iY].iBright = iTimeLeft
                 end
-                if iY2 > tGame.Rows then
-                    iY2 = (iY2-tGame.Rows)
-                elseif iY2 < 1 then
-                    iY2 = tGame.Rows + (iY2+1)
-                end
+            end
 
-                if tFloor[iX2] and tFloor[iX2][iY2] and tFloor[iX2][iY2].iColor == CColors.NONE then
-                    tFloor[iX2][iY2].iColor = CGameMode.tPlayerColors[CCircle.iCurrentPlayerID]
-                    tFloor[iX2][iY2].iBright = tConfig.Bright
-
-                    if tFloor[iX2][iY2].bClick and not tFloor[iX2][iY2].bDefect then
-                        CCircle.iClickCount = CCircle.iClickCount + 1
-                    end
-                end
+            if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
+                CCircle.iClickCount = CCircle.iClickCount + 1
             end
         end
     end
-
-    paintCirclePixel(iXM, iYM)
-
-    repeat
-        paintCirclePixel(iXM-iX, iYM+iY)
-        paintCirclePixel(iXM-iY, iYM-iX)
-        paintCirclePixel(iXM+iX, iYM-iY)
-        paintCirclePixel(iXM+iY, iYM+iX)
-
-        iR = iR2
-        if iR <= iY then 
-            iY = iY+1
-            iR2 = iR2 + (iY * 2 + 1) 
-        end
-        if iR > iX or iR2 > iY then 
-            iX = iX+1
-            iR2 = iR2 + (iX * 2 + 1) 
-        end
-    until iX > 0
 end
 --//
 
