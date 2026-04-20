@@ -45,8 +45,15 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 99,
-    Elements = {},
+    ScoreboardVariant = 1,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+    },
+    GameStatsWidgets = {}
 }
 
 local tGameResults = {
@@ -104,6 +111,7 @@ function StartGame(gameJson, gameConfigJson)
     end
 
     AL.LoadColors()
+    AL.Colors[#AL.Colors+1] = CColors.WHITE
 
     tGame.iMinX = 1
     tGame.iMinY = 1
@@ -198,7 +206,7 @@ function NextTick()
 end
 
 function GameSetupTick()
-    SetGlobalColorBright(CColors.WHITE, tConfig.Bright-1)
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright-1)
     SetAllButtonColorBright(CColors.NONE, 0, false)
     CPaint.PlayerZones()
 
@@ -226,11 +234,13 @@ function GameSetupTick()
         CGameMode.StartCountDown(10)
     end
 
+    if iPlayersReady ~= tGameResults.PlayersCount then CGameMode.UpdatePlayersProgress(); end
+
     tGameResults.PlayersCount = iPlayersReady
 end
 
 function GameTick()
-    SetGlobalColorBright(CColors.WHITE, tConfig.Bright-2)
+    SetGlobalColorBright(CColors.NONE, tConfig.Bright-2)
     SetAllButtonColorBright(CColors.NONE, 0, false)
 
     CPaint.PlayerZones()
@@ -291,6 +301,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
@@ -323,6 +334,7 @@ CGameMode.StartGame = function()
 
     AL.NewTimer(1000, function()
         tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
+        tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
         if tGameStats.StageLeftDuration <= 0 then
             CGameMode.EndGame()
             return nil
@@ -370,15 +382,21 @@ CGameMode.EndGame = function()
 end
 
 CGameMode.UpdatePlayersProgress = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+    tGameStats.Scoreboard.GridRows = 0
+
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
-            if CGameMode.tPlayers[iPlayerID].iElementID == nil then
-                table.insert(tGameStats.Elements, {Type = "progressbar", Value = "0", SpecialValue = "0", Color = tGame.StartPositions[iPlayerID].Color, Id = iPlayerID})
-                CGameMode.tPlayers[iPlayerID].iElementID = table.getn(tGameStats.Elements)
-            else
-                tGameStats.Elements[CGameMode.tPlayers[iPlayerID].iElementID].Value = tostring(CGameMode.tPlayers[iPlayerID].iScore)
-                tGameStats.Elements[CGameMode.tPlayers[iPlayerID].iElementID].SpecialValue = tostring(CGameMode.tPlayers[iPlayerID].iScore/tGameStats.TargetScore*100)
-            end
+            tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+
+            tGameStats.Scoreboard.GameStatsWidgets[tGameStats.Scoreboard.GridRows] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Value = CGameMode.tPlayers[iPlayerID].iScore/tGameStats.TargetScore*100,
+                Label = tostring(CGameMode.tPlayers[iPlayerID].iScore),
+                Color = CGameMode.tPlayers[iPlayerID].iColor
+            }
         end
     end
 end
@@ -400,6 +418,7 @@ CGameMode.LoadSongPixels = function()
             if iBatchID == #tGame.Song then
                 tGame.Song[iBatchID+1] = {tGame.Song[iBatchID][1]+1000, "F", "F", "F", "F"}
                 tGameStats.StageLeftDuration = math.floor(tGame.Song[iBatchID][1]/1000) + 10
+                tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
             end
         end
     end
@@ -579,29 +598,25 @@ CPaint = {}
 CPaint.PlayerZones = function()
     for iPlayerID = 1, #tGame.StartPositions do
         if iGameState == GAMESTATE_SETUP then
-            for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
-                for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
-                    tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
-                    tFloor[iX][iY].iBright = tConfig.Bright
-
-                    if not tPlayerInGame[iPlayerID] then
-                        tFloor[iX][iY].iBright = tConfig.Bright-3
-                    end
-                end
-            end
-
             if tPlayerInGame[iPlayerID] and tGameStats.StageLeftDuration > 0 and tGameStats.StageLeftDuration < 10 then
                 local iStartX = tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1
                 local iStartY = tGame.StartPositions[iPlayerID].Y + math.floor(tGame.StartPositionsSizeY/2) + 2
                 local iX = iStartX
                 local iY = iStartY
 
+                for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
+                    for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
+                        tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+                        tFloor[iX][iY].iBright = 1
+                    end
+                end
+
                 for iLetterX = 1, tLoadedLetters[tGameStats.StageLeftDuration].iSizeX do
                     for iLetterY = 1, tLoadedLetters[tGameStats.StageLeftDuration].iSizeY do
                         
                         if tLoadedLetters[tGameStats.StageLeftDuration].tPaint[iLetterY][iLetterX] > 0 then
-                            tFloor[iX][iY].iColor = CColors.NONE
-                            tFloor[iX][iY].iBright = tConfig.Bright
+                            tFloor[iX][iY].iBright = tConfig.Bright+1
+                            tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
                         end
 
                         iY = iY-1
@@ -611,6 +626,17 @@ CPaint.PlayerZones = function()
                 
                     if iX < tGame.StartPositions[iPlayerID].X then
                         iX = iStartX
+                    end
+                end
+            else
+                for iX = tGame.StartPositions[iPlayerID].X, tGame.StartPositions[iPlayerID].X + tGame.StartPositionsSizeX-1 do
+                    for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositions[iPlayerID].Y + tGame.StartPositionsSizeY-1 do
+                        tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+                        tFloor[iX][iY].iBright = tConfig.Bright
+
+                        if not tPlayerInGame[iPlayerID] then
+                            tFloor[iX][iY].iBright = tConfig.Bright-3
+                        end
                     end
                 end
             end
