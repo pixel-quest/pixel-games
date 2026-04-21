@@ -673,13 +673,15 @@ CObjects.PaintObjects = function()
         if CObjects.tObjects[iObjectID] then
             for iX = CObjects.tObjects[iObjectID].iX, CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iSizeX-1 do
                 for iY = CObjects.tObjects[iObjectID].iY, CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iSizeY-1 do
-                    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated then
+                    if tFloor[iX] and tFloor[iX][iY] and not tFloor[iX][iY].bAnimated and (tFloor[iX][iY].iObjectID == -1 or CObjects.tObjects[tFloor[iX][iY].iObjectID] == nil or CObjects.tObjects[tFloor[iX][iY].iObjectID].iType ~= CObjects.OBJECT_TYPE_SAFEZONE) then
                         tFloor[iX][iY].iColor = CObjects.OBJECT_TYPE_TO_COLOR[CObjects.tObjects[iObjectID].iType]
                         tFloor[iX][iY].iBright = tConfig.Bright 
                         tFloor[iX][iY].iObjectID = iObjectID
 
                         if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
-                            CObjects.Click(iX, iY)
+                            AL.NewTimer(10, function()
+                                CObjects.Click(iX, iY)
+                            end)
                         end
                     end
                 end
@@ -749,7 +751,7 @@ end
 
 CObjects.Click = function(iX, iY)
     local iObjectID = tFloor[iX][iY].iObjectID
-    if iObjectID > 0 and CObjects.tObjects[iObjectID] then
+    if iObjectID > 0 and CObjects.tObjects[iObjectID] and tFloor[iX][iY].iColor == CObjects.OBJECT_TYPE_TO_COLOR[CObjects.tObjects[iObjectID].iType] then
         if CObjects.tObjects[iObjectID].iType == CObjects.OBJECT_TYPE_LAVA then
             CGameMode.PlayerStepOnLava(iX, iY, iObjectID)
         elseif CObjects.tObjects[iObjectID].iType == CObjects.OBJECT_TYPE_COIN then
