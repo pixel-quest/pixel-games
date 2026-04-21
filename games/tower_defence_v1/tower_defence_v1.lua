@@ -144,7 +144,15 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-     ScoreboardVariant = 3,
+    ScoreboardVariant = 3,
+    Scoreboard = 
+    {
+        GridCols = 2,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+        GameStatsWidgets = {},
+    },     
 }
 
 local tGameResults = {
@@ -310,6 +318,7 @@ CGameMode.PrepareGame = function()
     CAudio.PlayVoicesSync("press-center-for-start.mp3")
 
     CGameMode.SpawnUnits(CUnits.UNIT_TYPE_DEFLT)
+    CGameMode.UpdateGameStats()
 
     AL.NewTimer(100, function()
         if iGameState >= GAMESTATE_POSTGAME then return; end
@@ -335,11 +344,10 @@ CGameMode.StartCountDown = function(iCountDownTime)
         CAudio.ResetSync()
         
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
-            CAudio.PlayVoicesSync(CAudio.START_GAME)
-            CAudio.PlayRandomBackground()
             return nil
         else
             CAudio.PlayLeftAudio(CGameMode.iCountdown)
@@ -351,7 +359,9 @@ CGameMode.StartCountDown = function(iCountDownTime)
 end
 
 CGameMode.StartGame = function()
-    --CLog.print("Game Started!")
+    CAudio.PlayVoicesSync(CAudio.START_GAME)
+    CAudio.PlayRandomBackground()
+    tGameStats.Scoreboard.BottomWidget = {}
 
     AL.NewTimer(1, function()
         if iGameState == GAMESTATE_GAME then
@@ -463,6 +473,8 @@ CGameMode.DamageBase = function(iDamageAmount)
     CGameMode.tBase.iHealth = CGameMode.tBase.iHealth - iDamageAmount
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
 
+    CGameMode.UpdateGameStats()
+
     if CGameMode.tBase.iHealth <= 0 then
         CGameMode.Defeat()
     end
@@ -475,6 +487,58 @@ CGameMode.HealBase = function(iHealAmount)
     --end
 
     tGameStats.CurrentLives = CGameMode.tBase.iHealth
+
+    CGameMode.UpdateGameStats()
+end
+
+CGameMode.UpdateGameStats = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+    tGameStats.Scoreboard.GridRows = 2
+
+    tGameStats.Scoreboard.GameStatsWidgets[1] =             
+    {
+        Type = "image_text",
+        Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
+        Icon = "star",
+        TextPosition = "inside",
+        Text = tGameStats.CurrentStars.."/"..tGameStats.TotalStars,
+    }    
+
+    if not tConfig.InfiniteLives then
+        tGameStats.Scoreboard.GameStatsWidgets[2] =             
+        {
+            Type = "image_text",
+            Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
+            Icon = "heart",
+            TextPosition = "inside",
+            Text = tGameStats.CurrentLives,
+        }            
+    else
+        tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
+    end
+
+    if CBuffs.bBuffDropped then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+        {
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+            Value = 100,
+        }
+
+        if CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_HEAL then
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Починить базу"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Repair Base"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.GREEN
+        elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_KILLALL then
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Уничтожить всех врагов"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Destyroy all enemies"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.RED
+        elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_ALLY then
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Вызывать союзника"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Summon an ally"
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.BLUE
+        end      
+    end
 end
 --//
 
@@ -538,12 +602,16 @@ CBuffs.DropBuffForPlayers = function()
     CBuffs.bBuffDropped = true
     CBuffs.iBuffsDropped = CBuffs.iBuffsDropped + 1
     CAudio.PlayVoicesSync("tower-defence/towerdefence-new-buff.mp3")
+
+    CGameMode.UpdateGameStats()
 end
 
 CBuffs.PlayerCollectBuff = function()
     CBuffs.ApplyBuff(CBuffs.iNextBuffType)
 
     tGameResults.Score = tGameResults.Score + 10
+
+    CGameMode.UpdateGameStats()
 end
 --//
 
@@ -948,6 +1016,7 @@ CUnits.UnitKill = function(iUnitID, iReasonID)
 
             if CUnits.tUnits[iUnitID].bScoreable then
                 tGameStats.CurrentStars = tGameStats.CurrentStars + 1
+                CGameMode.UpdateGameStats()
                 if tGameStats.CurrentStars >= tGameStats.TotalStars and CGameMode.tBase.iHealth > 0 then
                     CGameMode.Victory()
                 end
