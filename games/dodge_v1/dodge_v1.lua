@@ -58,7 +58,7 @@ local tGameStats = {
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
-    ScoreboardVariant = 1,
+    ScoreboardVariant = 8,
     Scoreboard = 
     {
         GridCols = 2,
