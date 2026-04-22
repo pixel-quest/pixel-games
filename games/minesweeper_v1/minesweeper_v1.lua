@@ -746,7 +746,7 @@ CMaps.GetRandomMap = function()
     --CLog.print("random map #"..CMaps.iRandomMapID)
     --CMaps.iRandomMapID = 11
 
-    if CMaps.iRandomMapID ~= 5 and math.random(1,2) == 2 then
+    if CMaps.iRandomMapID ~= 6 and math.random(1,2) == 2 then
         local tFlip = {}
         local iX = 0
         local iY = 0
