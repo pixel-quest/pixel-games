@@ -11,6 +11,10 @@
 	"MaxBright_Step": 1,
 	"MaxBright_ru": "Максимальная Яркость",
 
+	"OneTeam": true,
+	"OneTeam_ru": "Одна Команда",
+	"OneTeam_en": "One Team",
+
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true,
 

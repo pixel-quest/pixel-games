@@ -71,6 +71,7 @@ local tFloorStruct = {
     bClick = false,
     bDefect = false,
     iWeight = 0,
+    bAnimated = false,
 }
 local tButtonStruct = { 
     bClick = false,
@@ -150,7 +151,7 @@ end
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
 
-    if tGame.OneTeam then
+    if tConfig.OneTeam then
         tPlayerInGame[1] = true
         tGameStats.Players[1].Color = CColors.GREEN
 
@@ -159,6 +160,7 @@ function GameSetupTick()
         end
 
         tGameResults.PlayersCount = 1
+        CGameMode.iRealPlayerCount = 1
     else
         local iStartX = tGame.iMinX + 2
         local iStartY = tGame.iMinY + 1
@@ -209,6 +211,7 @@ function GameSetupTick()
         end
 
         tGameResults.PlayersCount = iPlayersReadyCount
+        CGameMode.iRealPlayerCount = iPlayersReadyCount
     end
 end
 
@@ -244,6 +247,7 @@ CGameMode.bCountDownStarted = false
 CGameMode.bCanAutoStart = false
 
 CGameMode.iMaxPlayers = 1
+CGameMode.iRealPlayerCount = 1
 CGameMode.iWinnerID = 1
 
 CGameMode.tPlayerColors = {}
@@ -254,10 +258,22 @@ CGameMode.tPlayerColors[4] = CColors.CYAN
 CGameMode.tPlayerColors[5] = CColors.YELLOW
 CGameMode.tPlayerColors[6] = CColors.MAGENTA
 
+CGameMode.EFFECT_TYPE_COIN = 1
+CGameMode.EFFECT_TYPE_PULSE = 2
+CGameMode.EFFECT_TYPE_GUN = 3
+CGameMode.EFFECT_TYPE_MAX = 3
+
+CGameMode.iCurrentEffectType = 1
+
+CGameMode.iRandCoinPlayerId = 1
+
 CGameMode.InitGameMode = function()
     CObjects.iBright = tConfig.MinBright
+    CObjects.MAX_COINS_DISPLAYED = tGame.iMaxX
 
-    if tGame.OneTeam then
+    CEffects.tLoadEffect[CGameMode.iCurrentEffectType]()
+
+    if tConfig.OneTeam then
 
     else
 
@@ -338,7 +354,7 @@ end
 
 CGameMode.EndGame = function(bVictory)    
     if bVictory then
-        if tGame.OneTeam then
+        if tConfig.OneTeam then
             CGameMode.iWinnerID = 1
         else
             local iMaxScore = -999
@@ -372,6 +388,21 @@ CGameMode.EndGame = function(bVictory)
     end)   
 end
 
+CGameMode.NewEffectType = function()
+    local iNew = 0
+    if CObjects.iCoinsDisplayed < 5 and CGameMode.iCurrentEffectType ~= CGameMode.EFFECT_TYPE_COIN then
+        iNew = CGameMode.EFFECT_TYPE_COIN
+    else
+        repeat iNew = math.random(1, CGameMode.EFFECT_TYPE_MAX)
+        until iNew ~= CGameMode.iCurrentEffectType
+    end
+
+    if iNew == CGameMode.EFFECT_TYPE_COIN and CObjects.iCoinsDisplayed > CObjects.MAX_COINS_DISPLAYED then iNew = CGameMode.EFFECT_TYPE_GUN end
+
+    CGameMode.iCurrentEffectType = iNew
+    CEffects.tLoadEffect[CGameMode.iCurrentEffectType]()
+end
+
 CGameMode.LoadSongEvents = function()
     for iBatchID = 1, #tGame.Song+1 do
         if tGame.Song[iBatchID] then
@@ -392,40 +423,29 @@ CGameMode.SongEvent = function(iBatchID)
         if tGame.Song[iBatchID][i] ~= "N" then
             iCount = iCount + 1
         end
-        if string.match(tGame.Song[iBatchID][i], "P") then
-            iCount = iCount + 1
-        end
     end
 
     if iCount > 0 then
         CObjects.iBright = tConfig.MaxBright
 
-        if iCount > 2 or (tGame.Song[iBatchID+1][1] - tGame.Song[iBatchID][1]) > 470 then
-            if tGame.OneTeam then
-                CObjects.NewObject(math.random(1, tGame.Cols), math.random(1, tGame.Rows), CObjects.OBJECT_TYPE_LAVA, math.random(1, CObjects.OBJECT_SHAPE_TYPE_RHMB))
-            else
-                CObjects.NewObject(math.random(1, tGame.Cols), math.random(1, tGame.Rows), CObjects.OBJECT_TYPE_LAVA, math.random(1, CObjects.OBJECT_SHAPE_TYPE_RHMB), CGameMode.GetRandomPlayerID())
-            end
-        else
-            if iCount > 1 or math.random(1,2) == 2 then
-                for iCoin = 1, iCount do
-                    local iX, iY
-                    repeat
-                        iX = math.random(1,tGame.Cols)
-                        iY = math.random(1,tGame.Rows)
-                    until tFloor[iX][iY].iColor == CColors.NONE and not tFloor[iX][iY].bDefect
-                
-                    CObjects.NewObject(iX,iY, CObjects.OBJECT_TYPE_COIN, CObjects.OBJECT_SHAPE_TYPE_NONE, CGameMode.GetRandomPlayerID())
+        if iCount > 1 then
+            CGameMode.SpawnRandomCoin()
+        end
 
-                    if tGame.OneTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
-                end
-            end
+        if iCount > 3 then
+            CGameMode.NewEffectType()
+        end
+
+        CEffects.tSpawnEffect[CGameMode.iCurrentEffectType]()
+
+        if iBatchID > 10 and tGame.Song[iBatchID+1][1] - tGame.Song[iBatchID][1] > 500 then
+            CGameMode.NewEffectType()
         end
     end
 end
 
 CGameMode.GetRandomPlayerID = function()
-    if tGame.OneTeam then return 1; end
+    if tConfig.OneTeam then return 1; end
 
     local iPlayerID = 1
     repeat 
@@ -438,14 +458,150 @@ end
 CGameMode.AddScoreToPlayer = function(iPlayerID, iAmount)
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iAmount
 
-    if not tGame.OneTeam and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+    if not tConfig.OneTeam and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
 
-    if tGame.OneTeam and tGameStats.Players[iPlayerID].Score < 20 then
+    if tConfig.OneTeam and tGameStats.Players[iPlayerID].Score < -20 then
         CGameMode.EndGame(false)
     end
 end
+
+CGameMode.SpawnRandomCoin = function()
+    local iX = 1
+    local iY = 1
+    repeat
+        iX = math.random(tGame.iMinX, tGame.iMaxX)
+        iY = math.random(tGame.iMinY, tGame.iMaxY)
+    until tFloor[iX] and tFloor[iX][iY] and tFloor[iX][iY].iColor == CColors.NONE and not tFloor[iX][iY].bDefect
+
+    if not tConfig.OneTeam then
+        repeat
+            CGameMode.iRandCoinPlayerId = CGameMode.iRandCoinPlayerId + 1
+            if CGameMode.iRandCoinPlayerId > CGameMode.iMaxPlayers then CGameMode.iRandCoinPlayerId = 1 end
+        until tPlayerInGame[CGameMode.iRandCoinPlayerId]
+    end
+
+    CObjects.NewObject(iX, iY, CObjects.OBJECT_TYPE_COIN, CObjects.OBJECT_SHAPE_TYPE_NONE, CGameMode.iRandCoinPlayerId)
+    if tConfig.OneTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
+end
+--//
+
+--Effects
+CEffects = {}
+CEffects.tLoadEffect = {}
+CEffects.tSpawnEffect = {}
+
+----Coin
+CEffects.tLoadEffect[CGameMode.EFFECT_TYPE_COIN] = function()
+    CEffects.iCoinX = math.random(tGame.iMinX+3, tGame.iMaxX-3)
+    CEffects.iCoinY = math.random(tGame.iMinY+3, tGame.iMaxY-3)
+
+    CEffects.iCoinVelX = 1
+    if CEffects.iCoinX > tGame.CenterX then CEffects.iCoinVelX = -1 end
+    CEffects.iCoinVelY = 0
+    if math.random(0,1) == 1 then
+        CEffects.iCoinVelY = 1
+        if CEffects.iCoinY > tGame.CenterY then CEffects.iCoinVelY = -1 end
+    end 
+
+    CEffects.iCoinPlayerID = CGameMode.GetRandomPlayerID()
+
+    CEffects.iCoinSpawned = 0
+    if tConfig.OneTeam then
+        CEffects.iCoinToSpawn = math.random(6,12)
+    else
+        CEffects.iCoinToSpawn = 3*CGameMode.iRealPlayerCount
+    end
+end
+
+CEffects.tSpawnEffect[CGameMode.EFFECT_TYPE_COIN] = function()
+    local iPrevX = CEffects.iCoinX
+    local iPrevY = CEffects.iCoinY
+    local iRepCount = 0
+    repeat
+        CEffects.iCoinX = iPrevX + (CEffects.iCoinVelX*math.random(1,3)) + math.random(-2,2) + math.random(-iRepCount, iRepCount)
+        CEffects.iCoinY = iPrevY + (CEffects.iCoinVelY*math.random(1,3)) + math.random(-2,2) + math.random(-iRepCount, iRepCount)
+
+        iRepCount = iRepCount + 1
+        if iRepCount > 10 then CGameMode.NewEffectType(); return; end
+    until tFloor[CEffects.iCoinX] and tFloor[CEffects.iCoinX][CEffects.iCoinY] and tFloor[CEffects.iCoinX][CEffects.iCoinY].iColor == CColors.NONE and not tFloor[CEffects.iCoinX][CEffects.iCoinY].bDefect
+
+    CObjects.NewObject(CEffects.iCoinX, CEffects.iCoinY, CObjects.OBJECT_TYPE_COIN, CObjects.OBJECT_SHAPE_TYPE_NONE, CEffects.iCoinPlayerID)
+    CEffects.iCoinSpawned = CEffects.iCoinSpawned + 1
+    if tConfig.OneTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
+    
+    if CEffects.iCoinX < tGame.iMinX+3 then CEffects.iCoinVelX = 1 end
+    if CEffects.iCoinX > tGame.iMaxX-3 then CEffects.iCoinVelX = -1 end
+    if CEffects.iCoinY < tGame.iMinY+3 then CEffects.iCoinVelY = 1 end
+    if CEffects.iCoinY > tGame.iMaxY-3 then CEffects.iCoinVelY = -1 end
+
+    if CEffects.iCoinSpawned >= CEffects.iCoinToSpawn then
+        CGameMode.NewEffectType()
+    elseif not tConfig.OneTeam and CEffects.iCoinSpawned % 3 == 0 then 
+        CEffects.iCoinPlayerID = CGameMode.GetRandomPlayerID()
+    end
+end
+----//
+
+----Pulse
+CEffects.tLoadEffect[CGameMode.EFFECT_TYPE_PULSE] = function()
+    CEffects.tPulseShapes = {}
+    CEffects.iPulsePosX = math.random(1, tGame.Cols)
+    CEffects.iPulsePosY = math.random(1, tGame.Rows)
+    CEffects.iPulseCount = 0
+    CEffects.iPulseTotal = math.random(1,3)
+end
+
+CEffects.tSpawnEffect[CGameMode.EFFECT_TYPE_PULSE] = function()
+    CObjects.NewObject(CEffects.iPulsePosX, CEffects.iPulsePosY, CObjects.OBJECT_TYPE_LAVA_EXPANDING_SHAPE, CObjects.OBJECT_SHAPE_TYPE_CIRC, CGameMode.GetRandomPlayerID())
+
+    CEffects.iPulseCount = CEffects.iPulseCount + 1
+
+    if CEffects.iPulseCount >= CEffects.iPulseTotal then
+        CGameMode.NewEffectType()
+    end
+end
+----//
+
+----Gun
+CEffects.tLoadEffect[CGameMode.EFFECT_TYPE_GUN] = function()
+    CEffects.iGunSize = math.random(2,4)
+    CEffects.iGunX = math.random(1,tGame.Cols-CEffects.iGunSize)
+    CEffects.iGunVel = math.random(0,1) if CEffects.iGunVel == 0 then CEffects.iGunVel = 1 end
+    CEffects.bGunTop = true if math.random(1,2) == 2 then CEffects.bGunTop = false end
+    CEffects.iGunShots = 0
+    CEffects.iGunTotal = math.random(6,12)
+end
+
+CEffects.tSpawnEffect[CGameMode.EFFECT_TYPE_GUN] = function()
+    CEffects.iGunX = CEffects.iGunX + (CEffects.iGunSize*CEffects.iGunVel)
+    if (CEffects.iGunVel == -1 and CEffects.iGunX <= 1) or (CEffects.iGunVel == 1 and CEffects.iGunX+CEffects.iGunSize > tGame.Cols) then
+        CEffects.iGunVel = -CEffects.iGunVel
+    else
+        local iY = tGame.Rows 
+        local iVelY = -1 
+        if CEffects.bGunTop then
+            iY = 1
+            iVelY = 1
+        end
+
+        CObjects.NewObject(CEffects.iGunX, iY, CObjects.OBJECT_TYPE_LAVA_STATIC_SHAPE, CObjects.OBJECT_SHAPE_TYPE_RECT, CGameMode.GetRandomPlayerID(), function(tObject)
+            tObject.iShapeSize = CEffects.iGunSize
+            tObject.iVelY = iVelY
+            tObject.tShape = AL.Shapes.NewRectangle(CEffects.iGunSize, 1, false)
+
+            return tObject
+        end)
+
+        CEffects.iGunShots = CEffects.iGunShots + 1
+        if CEffects.iGunShots > CEffects.iGunTotal then
+            CGameMode.NewEffectType()
+        end
+    end
+end
+----//
+
 --//
 
 --Objects
@@ -453,7 +609,8 @@ CObjects = {}
 CObjects.tObjects = AL.Stack()
 
 CObjects.OBJECT_TYPE_COIN = 1
-CObjects.OBJECT_TYPE_LAVA = 2
+CObjects.OBJECT_TYPE_LAVA_STATIC_SHAPE = 2
+CObjects.OBJECT_TYPE_LAVA_EXPANDING_SHAPE = 3
 
 CObjects.OBJECT_SHAPE_TYPE_NONE = 0
 CObjects.OBJECT_SHAPE_TYPE_RECT = 1
@@ -461,9 +618,12 @@ CObjects.OBJECT_SHAPE_TYPE_CIRC = 2
 CObjects.OBJECT_SHAPE_TYPE_TRIG = 3
 CObjects.OBJECT_SHAPE_TYPE_RHMB = 4
 
-CObjects.iBright = 0
+CObjects.MAX_COINS_DISPLAYED = 50
 
-CObjects.NewObject = function(iX, iY, iType, iShapeType, iPlayerID)
+CObjects.iBright = 0
+CObjects.iCoinsDisplayed = 0
+
+CObjects.NewObject = function(iX, iY, iType, iShapeType, iPlayerID, fInitObj)
     local tObject = {}
 
     tObject.iX = iX
@@ -472,16 +632,26 @@ CObjects.NewObject = function(iX, iY, iType, iShapeType, iPlayerID)
     tObject.iShapeType = iShapeType
     tObject.iShapeSize = 1
     tObject.iPlayerID = iPlayerID
+    tObject.iVelX = 0
+    tObject.iVelY = 0
+    tObject.bClicked = false
+
+    if iType == CObjects.OBJECT_TYPE_COIN then
+        if CObjects.iCoinsDisplayed >= CObjects.MAX_COINS_DISPLAYED then return; end
+        CObjects.iCoinsDisplayed = CObjects.iCoinsDisplayed + 1
+    end
 
     tObject.tShape = CObjects.GetShapeForObject(tObject.iShapeType, tObject.iShapeSize)
 
+    if fInitObj then tObject = fInitObj(tObject) end
     CObjects.tObjects.Push(tObject)
 end
 
 CObjects.GetColorForObject = function(tObject)
-    if tObject.iPlayerID ~= nil then
+    if (tObject.iType == CObjects.OBJECT_TYPE_COIN or not tConfig.OneTeam) and tObject.iPlayerID ~= nil then
         return CGameMode.tPlayerColors[tObject.iPlayerID]
     else
+        if tObject.bClicked then return CColors.MAGENTA; end
         return CColors.RED
     end
 end
@@ -489,12 +659,16 @@ end
 CObjects.Paint = function()
     for iObjectID = 1, CObjects.tObjects.Size() do
         local tObject = CObjects.tObjects.Pop()
-        local bClick = false
         local bRemove = false
+        local bClick = false
+        local tClicksPos = {}
 
         if tObject.tShape ~= nil then
             for iPixel = 1, #tObject.tShape do
-                if CObjects.PaintPixel(tObject.iX + tObject.tShape[iPixel].iX, tObject.iY + tObject.tShape[iPixel].iY, CObjects.GetColorForObject(tObject)) then bClick = true end
+                if CObjects.PaintPixel(tObject.iX + tObject.tShape[iPixel].iX, tObject.iY + tObject.tShape[iPixel].iY, CObjects.GetColorForObject(tObject)) then 
+                    bClick = true 
+                    tClicksPos[#tClicksPos+1] = {iX = tObject.iX + tObject.tShape[iPixel].iX, iY = tObject.iY + tObject.tShape[iPixel].iY}
+                end
             end
         else
             bClick = CObjects.PaintPixel(tObject.iX, tObject.iY, CObjects.GetColorForObject(tObject))
@@ -503,19 +677,32 @@ CObjects.Paint = function()
         if bClick then
             if tObject.iType == CObjects.OBJECT_TYPE_COIN then
                 bRemove = true
+                CObjects.iCoinsDisplayed = CObjects.iCoinsDisplayed - 1
 
-                if tGame.OneTeam then
+                if tConfig.OneTeam then
                     CGameMode.AddScoreToPlayer(1, 1)
                 else
                     CGameMode.AddScoreToPlayer(tObject.iPlayerID, 1)
                 end
-            elseif tObject.iType == CObjects.OBJECT_TYPE_LAVA then
-                if tObject.iPlayerID ~= nil then
-                    CGameMode.AddScoreToPlayer(tObject.iPlayerID, 1)
-                elseif tGame.OneTeam then
-                    bRemove = true
-                    CGameMode.AddScoreToPlayer(1, -1)
-                end
+            elseif tObject.iType == CObjects.OBJECT_TYPE_LAVA_STATIC_SHAPE or tObject.iType == CObjects.OBJECT_TYPE_LAVA_EXPANDING_SHAPE then
+                AL.NewTimer(tGame.BurnDelay, function()
+                    local bCheck = false
+                    for iClickPos = 1, #tClicksPos do
+                        if tFloor[tClicksPos[iClickPos].iX][tClicksPos[iClickPos].iY].bClick and not tFloor[tClicksPos[iClickPos].iX][tClicksPos[iClickPos].iY].bDefect and not tFloor[tClicksPos[iClickPos].iX][tClicksPos[iClickPos].iY].bAnimated then
+                            bCheck = true
+                            break;
+                        end
+                    end
+
+                    if bCheck then
+                        if tConfig.OneTeam then
+                            tObject.bClicked = true
+                            CGameMode.AddScoreToPlayer(1, -1)
+                        elseif tObject.iPlayerID ~= nil then
+                            CGameMode.AddScoreToPlayer(tObject.iPlayerID, 1)
+                        end
+                    end
+                end)
             end
         end
 
@@ -541,13 +728,21 @@ end
 CObjects.Tick = function()
     for iObjectID = 1, CObjects.tObjects.Size() do
         local tObject = CObjects.tObjects.Pop()
+        local bPush = true
 
-        if tObject.iType == CObjects.OBJECT_TYPE_LAVA and tObject.iShapeType > CObjects.OBJECT_SHAPE_TYPE_NONE then
+        if tObject.iType == CObjects.OBJECT_TYPE_LAVA_EXPANDING_SHAPE and tObject.iShapeType > CObjects.OBJECT_SHAPE_TYPE_NONE then
             tObject.iShapeSize = tObject.iShapeSize + 1
             tObject.tShape = CObjects.GetShapeForObject(tObject.iShapeType, tObject.iShapeSize)
+
+            bPush = tObject.iShapeSize < tGame.Cols + tGame.Rows
+        elseif tObject.iType == CObjects.OBJECT_TYPE_LAVA_STATIC_SHAPE then
+            tObject.iX = tObject.iX + tObject.iVelX
+            tObject.iY = tObject.iY + tObject.iVelY
+
+            bPush = tObject.iX+tObject.iShapeSize > 1 and tObject.iX-tObject.iShapeSize < tGame.Cols and tObject.iY+tObject.iShapeSize > 1 and tObject.iY-tObject.iShapeSize < tGame.Rows
         end
 
-        if tObject.iShapeSize < tGame.Cols + tGame.Rows then
+        if bPush then
             CObjects.tObjects.Push(tObject)
         end
     end
@@ -725,113 +920,3 @@ function DefectButton(defect)
         tButtons[defect.Button].iBright = CColors.BRIGHT0
     end    
 end
-
---SHAPES
-AL.Shapes = {}
-
-AL.Shapes.NewRectangle = function(iSizeX, iSizeY, bFill)
-    local tRect = {}
-
-    for iX = -math.floor(iSizeX/2), math.floor(iSizeX/2) do
-        for iY = -math.floor(iSizeY/2), math.floor(iSizeY/2) do
-            local bEdge = (iX == -math.floor(iSizeX/2) or iX == math.floor(iSizeX/2)) or (iY == -math.floor(iSizeY/2) or iY == math.floor(iSizeY/2))
-            if bFill or bEdge then
-                tRect[#tRect+1] = {iX = iX, iY = iY, bEdge = bEdge}
-            end
-        end
-    end
-
-    return tRect
-end
-
-AL.Shapes.NewCircle = function(iRadius, bFill)
-    local tCircle = {}
-
-    local function createPixel(iX, iY, bEdge)
-        tCircle[#tCircle+1] = {iX = iX, iY = iY, bEdge = bEdge}
-    end
-
-    local iStartY = 0
-    if not bFill then iStartY = iRadius end
-    for iY = iStartY, iRadius do
-        local bEdge = iY <= 1 or iY >= iRadius
-
-        local iX = 0
-        local iD = -iRadius-1
-
-        while iX <= iY do
-            createPixel(iX, iY, bEdge)
-            createPixel(-iX, iY, bEdge)
-            createPixel(iX, -iY, bEdge)
-            createPixel(-iX, -iY, bEdge)
-            createPixel(iY, iX, bEdge)
-            createPixel(-iY, iX, bEdge)
-            createPixel(iY, -iX, bEdge)
-            createPixel(-iY, -iX, bEdge)  
-
-            iX = iX + 1
-            if iD < 0 then
-                iD = iD + 2 * iX + 1
-            else
-                iY = iY - 1
-                iD = iD + 2 * (iX - iY) + 1
-            end
-        end
-    end
-
-    return tCircle
-end
-
-AL.Shapes.NewTriangle = function(iSize, bFill)
-    local tTriag = {}
-
-    local iWidth = 0
-    for iY = -math.floor(iSize/2), math.floor(iSize/2) do
-        for iX = -iWidth, iWidth do
-            local bEdge = (iX == -iWidth or iX == iWidth or iY == -math.floor(iSize/2) or iY == math.floor(iSize/2))
-
-            if bFill or bEdge then
-                tTriag[#tTriag+1] = {iX = iX, iY = iY, bEdge = bEdge}
-            end
-        end
-
-        iWidth = iWidth + 1
-    end
-
-    return tTriag
-end
-
-AL.Shapes.NewRhombus = function(iSize, bFill)
-    local tTriag = {}
-
-    local iWidth = 0
-    for iY = -math.floor(iSize/2), math.floor(iSize/2) do
-        for iX = -iWidth, iWidth do
-            local bEdge = (iX == -iWidth or iX == iWidth or iY == -math.floor(iSize/2) or iY == math.floor(iSize/2))
-
-            if bFill or bEdge then
-                tTriag[#tTriag+1] = {iX = iX, iY = iY, bEdge = bEdge}
-            end
-        end
-
-        if iY < 0 then
-            iWidth = iWidth + 1
-        else
-            iWidth = iWidth - 1
-        end
-    end
-
-    return tTriag
-end
-
-AL.Shapes.NewCross = function(iSize)
-    local tCross = {}
-
-    for i = -math.floor(iSize/2), math.floor(iSize/2) do
-        tCross[#tCross+1] = {iX = i, iY = i, bEdge = true}
-        tCross[#tCross+1] = {iX = -i, iY = i, bEdge = true}
-    end
-
-    return tCross
-end
---//
