@@ -61,11 +61,19 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.RED },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 6,
+    Scoreboard = 
+    {
+        GridCols = 4,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+        GameStatsWidgets = {},
+    },
 }
 
 local tGameResults = {
@@ -104,6 +112,7 @@ tTeamColors[2] = CColors.YELLOW
 tTeamColors[3] = CColors.MAGENTA
 tTeamColors[4] = CColors.BLUE
 tTeamColors[5] = CColors.CYAN
+tTeamColors[6] = CColors.WHITE
 
 function StartGame(gameJson, gameConfigJson)
     tGame = CJson.decode(gameJson)
@@ -131,22 +140,23 @@ function StartGame(gameJson, gameConfigJson)
         local iX = 1
         local iY = 1
 
-        if not tGame.TeamCount or tGame.TeamCount == 1 then
-            tGame.TeamCount = 1
+        local iTeams = #tTeamColors
+
+        if tConfig.SingleTeam then
             iX = math.floor(tGame.Cols/2.5)
             iY = math.floor(tGame.Rows/3)
 
             tGame.StartPositionSizeX = 6
             tGame.StartPositionSizeY = 6
 
+            CGameMode.tTeamScore[1] = 0
             tPlayerInGame[1] = true
+            iTeams = 1
         else
             tGame.StartPositionSizeX = 3
             tGame.StartPositionSizeY = 3
 
             if tConfig.ChosenColors then
-                tGame.TeamCount = #tConfig.ChosenColors
-                if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
                 if tConfig.ChosenColors then
                     for iPlayerID = 1, #tConfig.ChosenColors do
                         tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
@@ -156,7 +166,7 @@ function StartGame(gameJson, gameConfigJson)
             end
         end
 
-        for iPlayerID = 1, tGame.TeamCount do
+        for iPlayerID = 1, iTeams do
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
@@ -215,12 +225,11 @@ function GameSetupTick()
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
             if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (bCountDownStarted and tPlayerInGame[iPos]) or (tConfig.ChosenColors and tPlayerInGame[iPos]) then
-                tGameStats.Players[iPos].Color = tPos.Color
+                CGameMode.tTeamScore[iPos] = 0
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
                 tPlayerInGame[iPos] = true
             else
-                tGameStats.Players[iPos].Color = CColors.NONE
                 tPlayerInGame[iPos] = false
             end
 
@@ -237,6 +246,8 @@ function GameSetupTick()
             CGameMode.StartCountDown(tConfig.GameCountdown)
         end
     end
+
+    CGameMode.UpdatePlayersProgress()
 end
 
 function GameTick()
@@ -274,6 +285,8 @@ CGameMode.tPixels = {}
 CGameMode.tBlockList = {}
 CGameMode.bArenaMode = false
 CGameMode.bCanStart = false
+CGameMode.tTeamScore = {}
+CGameMode.iSnakeScore = 0
 
 CGameMode.InitGameMode = function()
     tGameStats.TargetScore = tConfig.TargetScore
@@ -316,6 +329,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
 
     AL.NewTimer(100, function()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
+        tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
@@ -343,6 +357,8 @@ CGameMode.StartGame = function()
             CGameMode.PlacePixelForPlayer(iPlayerID)
         end 
     end
+
+    tGameStats.Scoreboard.BottomWidget = {}
 
     --tGameStats.StageLeftDuration = tConfig.GameTime
 
@@ -392,10 +408,12 @@ CGameMode.PlayerClickPixel = function(iPixelID)
 
     CAudio.PlaySystemAsync(CAudio.CLICK)
 
-    tGameResults.Score = tGameResults.Score + tGameStats.TargetScore - tGameStats.Players[6].Score
+    tGameResults.Score = tGameResults.Score + tGameStats.TargetScore - CGameMode.iSnakeScore
 
-    tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + 1
-    if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
+    CGameMode.tTeamScore[iPlayerID] = CGameMode.tTeamScore[iPlayerID] + 1
+    CGameMode.UpdatePlayersProgress()
+
+    if CGameMode.tTeamScore[iPlayerID] >= tGameStats.TargetScore then
         CGameMode.iWinnerID = iPlayerID
         CGameMode.EndGame(true)
         return;
@@ -438,17 +456,6 @@ CGameMode.EndGame = function(bVictory)
         if #tGame.StartPositions == 1 then
             CGameMode.iWinnerID = 1
         else
-            --[[
-            local iMaxScore = -999
-            
-            for iPlayerID = 1, #tGame.StartPositions do
-                if tPlayerInGame[iPlayerID] and tGameStats.Players[iPlayerID].Score > iMaxScore then
-                    CGameMode.iWinnerID = iPlayerID
-                    iMaxScore = tGameStats.Players[iPlayerID].Score
-                end
-            end
-            ]]
-
             CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
         end
 
@@ -464,7 +471,7 @@ CGameMode.EndGame = function(bVictory)
     iGameState = GAMESTATE_POSTGAME
 
     if CGameMode.bVictory then
-        SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+        SetGlobalColorBright(tTeamColors[CGameMode.iWinnerID], tConfig.Bright)
     else
         SetGlobalColorBright(CColors.RED, tConfig.Bright)
     end
@@ -485,6 +492,56 @@ CGameMode.LoadBlockList = function()
             CGameMode.tBlockList[iBlockID].iY = iY
         end
     end
+end
+
+CGameMode.UpdatePlayersProgress = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+
+    tGameStats.Scoreboard.GridRows = 1
+    
+    tGameStats.Scoreboard.GameStatsWidgets[1] =             
+    {
+        Type = "image_text",
+        Position = {Col = 0, ColSpan = 2, Row = 0, RowSpan = 1},
+        Icon = "star",
+        TextPosition = "left",
+        Text = "Цель: "..tGameStats.TargetScore,
+        TextEn = "Target: "..tGameStats.TargetScore,
+    }    
+
+    tGameStats.Scoreboard.GameStatsWidgets[2] =             
+    {
+        Type = "progress_bar",
+        Position = {Col = 2, ColSpan = 2, Row = 0, RowSpan = 1},
+        Value = CGameMode.iSnakeScore/tGameStats.TargetScore*100,
+        Label = tostring("Змейка: "..CGameMode.iSnakeScore),
+        LabelEn = tostring("Snake: "..CGameMode.iSnakeScore),
+        Color = CColors.RED
+    }             
+
+    local iTruePlayer = 0
+    for iPlayerID = 1, #tTeamColors do
+        if tPlayerInGame[iPlayerID] or (iPlayerID == 1 and tConfig.SingleTeam) then
+            iTruePlayer = iTruePlayer + 1
+            if iTruePlayer % 2 ~= 0 then
+                tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+            end
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Value = CGameMode.tTeamScore[iPlayerID]/tGameStats.TargetScore*100,
+                Label = CGameMode.tTeamScore[iPlayerID],
+                Color = tTeamColors[iPlayerID]
+            }
+            if iTruePlayer % 2 == 0 then
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Position.Col = 2
+            end          
+        end
+    end
+    if iTruePlayer == 1 then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Position.ColSpan = 4
+    end    
 end
 --//
 
@@ -547,8 +604,9 @@ CSnake.Think = function()
         end
     end
 
-    if tFloor[CSnake.iHeadX][CSnake.iHeadY].bBlocked and tGameStats.Players[6].Score > 0 and tGameStats.Players[6].Score > CSnake.iLength*0.75 then
-        tGameStats.Players[6].Score = tGameStats.Players[6].Score - 1
+    if tFloor[CSnake.iHeadX][CSnake.iHeadY].bBlocked and CGameMode.iSnakeScore > 0 and CGameMode.iSnakeScore > CSnake.iLength*0.75 then
+        CGameMode.iSnakeScore = CGameMode.iSnakeScore - 1
+        CGameMode.UpdatePlayersProgress()
     end       
 end
 
@@ -719,8 +777,10 @@ CSnake.PlayerStepOnSnake = function()
 end
 
 CSnake.DamagePlayer = function()
-    tGameStats.Players[6].Score = tGameStats.Players[6].Score + 1
-    if tGameStats.Players[6].Score >= tGameStats.TargetScore then
+    CGameMode.iSnakeScore = CGameMode.iSnakeScore + 1
+    CGameMode.UpdatePlayersProgress()
+
+    if CGameMode.iSnakeScore >= tGameStats.TargetScore then
         CGameMode.EndGame(false)
     end 
 end
