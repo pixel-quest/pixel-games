@@ -493,7 +493,7 @@ end
 
 CGameMode.UpdateGameStats = function()
     tGameStats.Scoreboard.GameStatsWidgets = {}
-    tGameStats.Scoreboard.GridRows = 2
+    tGameStats.Scoreboard.GridRows = 1
 
     tGameStats.Scoreboard.GameStatsWidgets[1] =             
     {
@@ -518,6 +518,7 @@ CGameMode.UpdateGameStats = function()
     end
 
     if CBuffs.bBuffDropped then
+        tGameStats.Scoreboard.GridRows = 2
         tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
         {
             Type = "progress_bar",
