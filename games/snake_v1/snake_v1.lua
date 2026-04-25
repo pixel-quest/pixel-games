@@ -61,14 +61,14 @@ local tGameStats = {
         { Score = 0, Lives = 0, Color = CColors.NONE },
         { Score = 0, Lives = 0, Color = CColors.RED },
     },
-    TargetScore = 0,
+    TargetScore = 1,
     StageNum = 0,
     TotalStages = 0,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 6,
     Scoreboard = 
     {
-        GridCols = 2,
+        GridCols = 4,
         GridRows = 2,
         HeaderWidget = {},
         BottomWidget = {Text = "", Icon = "timer"},
@@ -140,22 +140,23 @@ function StartGame(gameJson, gameConfigJson)
         local iX = 1
         local iY = 1
 
-        if not tGame.TeamCount or tGame.TeamCount == 1 then
-            tGame.TeamCount = 1
+        local iTeams = #tTeamColors
+
+        if tConfig.SingleTeam then
             iX = math.floor(tGame.Cols/2.5)
             iY = math.floor(tGame.Rows/3)
 
             tGame.StartPositionSizeX = 6
             tGame.StartPositionSizeY = 6
 
+            CGameMode.tTeamScore[1] = 0
             tPlayerInGame[1] = true
+            iTeams = 1
         else
             tGame.StartPositionSizeX = 3
             tGame.StartPositionSizeY = 3
 
             if tConfig.ChosenColors then
-                tGame.TeamCount = #tConfig.ChosenColors
-                if tGame.TeamCount > 5 then tGame.TeamCount = 5; end
                 if tConfig.ChosenColors then
                     for iPlayerID = 1, #tConfig.ChosenColors do
                         tTeamColors[iPlayerID] = tonumber(tConfig.ChosenColors[iPlayerID])
@@ -165,7 +166,7 @@ function StartGame(gameJson, gameConfigJson)
             end
         end
 
-        for iPlayerID = 1, tGame.TeamCount do
+        for iPlayerID = 1, iTeams do
             tGame.StartPositions[iPlayerID] = {}
             tGame.StartPositions[iPlayerID].X = iX
             tGame.StartPositions[iPlayerID].Y = iY
@@ -497,19 +498,34 @@ CGameMode.UpdatePlayersProgress = function()
     tGameStats.Scoreboard.GameStatsWidgets = {}
 
     tGameStats.Scoreboard.GridRows = 1
+    
     tGameStats.Scoreboard.GameStatsWidgets[1] =             
     {
-        Type = "progress_bar",
+        Type = "image_text",
         Position = {Col = 0, ColSpan = 2, Row = 0, RowSpan = 1},
+        Icon = "star",
+        TextPosition = "left",
+        Text = "Цель: "..tGameStats.TargetScore,
+        TextEn = "Target: "..tGameStats.TargetScore,
+    }    
+
+    tGameStats.Scoreboard.GameStatsWidgets[2] =             
+    {
+        Type = "progress_bar",
+        Position = {Col = 2, ColSpan = 2, Row = 0, RowSpan = 1},
         Value = CGameMode.iSnakeScore/tGameStats.TargetScore*100,
         Label = tostring("Змейка: "..CGameMode.iSnakeScore),
         LabelEn = tostring("Snake: "..CGameMode.iSnakeScore),
         Color = CColors.RED
     }             
 
-    for iPlayerID = 1, tGame.TeamCount do
-        if tPlayerInGame[iPlayerID] then
-            tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+    local iTruePlayer = 0
+    for iPlayerID = 1, #tTeamColors do
+        if tPlayerInGame[iPlayerID] or (iPlayerID == 1 and tConfig.SingleTeam) then
+            iTruePlayer = iTruePlayer + 1
+            if iTruePlayer % 2 ~= 0 then
+                tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+            end
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
             {
                 Type = "progress_bar",
@@ -517,20 +533,15 @@ CGameMode.UpdatePlayersProgress = function()
                 Value = CGameMode.tTeamScore[iPlayerID]/tGameStats.TargetScore*100,
                 Label = CGameMode.tTeamScore[iPlayerID],
                 Color = tTeamColors[iPlayerID]
-            }            
+            }
+            if iTruePlayer % 2 == 0 then
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Position.Col = 2
+            end          
         end
     end
-
-    tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
-    tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
-    {
-        Type = "image_text",
-        Position = {Col = 0, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
-        Icon = "star",
-        TextPosition = "left",
-        Text = "Цель: "..tGameStats.TargetScore,
-        TextEn = "Target: "..tGameStats.TargetScore,
-    }       
+    if iTruePlayer == 1 then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Position.ColSpan = 4
+    end    
 end
 --//
 
