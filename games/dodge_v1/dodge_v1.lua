@@ -241,6 +241,11 @@ CGameMode.InitGameMode = function()
     CCross.iBright = tConfig.Bright-2
     CCross.tCross = AL.Shapes.NewCross(5)
     CCross.MovementDelay = tConfig.CrossMovementSpeed_Max - tConfig.CrossMovementSpeed
+
+    AL.NewTimer(250, function()
+        CGameMode.UpdateGameStats()
+        return 250
+    end)
 end
 
 CGameMode.Announcer = function()
@@ -266,7 +271,7 @@ CGameMode.StartCountDown = function(iCountDownTime)
     AL.NewTimer(1000, function()
         CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
-        tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
+        tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
 
         if CGameMode.iCountdown <= 0 then
             CGameMode.StartGame()
@@ -404,6 +409,51 @@ CGameMode.RandomLasers = function(iCount)
         end
     end
 end
+
+CGameMode.UpdateGameStats = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+
+    tGameStats.Scoreboard.GameStatsWidgets[1] =             
+    {
+        Type = "image_text",
+        Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
+        Icon = "stage",
+        Text = tGameStats.StageNum.."/"..tGameStats.TotalStages,
+        TextPosition = "inside"
+    }
+    if tConfig.TeamHealth > 0 then
+        tGameStats.Scoreboard.GameStatsWidgets[2] =             
+        {
+            Type = "image_text",
+            Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
+            Icon = "heart",
+            Text = tGameStats.CurrentLives,
+            TextPosition = "inside"            
+        }        
+    else
+        tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
+    end
+
+    if tGameStats.TotalStars ~= 0 then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+        {    
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+            Value =  tGameStats.CurrentStars/tGameStats.TotalStars*100,
+            Text = "",
+            Color = CColors.BLUE  
+        }
+    elseif tGameStats.StageTotalDuration > 0 then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
+        {
+            Type = "progress_bar",
+            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
+            Value =  tGameStats.StageLeftDuration/tGameStats.StageTotalDuration*100,
+            Text = "",
+            Color = CColors.GREEN
+        }   
+    end     
+end
 --//
 
 --effect
@@ -488,7 +538,7 @@ CEffect.NextEffectTimer = function()
 
     tGameStats.StageLeftDuration = tConfig.PauseBetweenEffects
     tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
-    tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
+    tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
     AL.NewTimer(1000, function()
         if iGameState > GAMESTATE_GAME then return nil; end
 
@@ -503,7 +553,7 @@ CEffect.NextEffectTimer = function()
             return nil
         else
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
-            tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
+            tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
 
             if tGameStats.StageLeftDuration <= 5 then
                 CAudio.ResetSync()
@@ -524,7 +574,7 @@ CEffect.EffectTimer = function()
 
     tGameStats.StageLeftDuration = CEffect.tEffects[CEffect.iCurrentEffect][CEffect.CONST_LENGTH]
     tGameStats.StageTotalDuration = tGameStats.StageLeftDuration
-    tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
+    tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
     AL.NewTimer(1000, function()
         if tGameStats.StageLeftDuration <= 0 then
             if iGameState > GAMESTATE_GAME then return nil end
@@ -541,7 +591,7 @@ CEffect.EffectTimer = function()
         else
             --CAudio.PlayLeftAudio(tGameStats.StageLeftDuration)
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
-            tGameStats.Scoreboard.BottomWidget.Text = tostring(tGameStats.StageLeftDuration)
+            tGameStats.Scoreboard.BottomWidget.Text = tGameStats.StageLeftDuration
 
             return 1000
         end
@@ -2043,50 +2093,6 @@ end
 
 --//
 function GetStats()
-    tGameStats.Scoreboard.GameStatsWidgets = {}
-
-    tGameStats.Scoreboard.GameStatsWidgets[1] =             
-    {
-        Type = "image_text",
-        Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
-        Icon = "stage",
-        Text = tGameStats.StageNum.."/"..tGameStats.TotalStages,
-        TextPosition = "inside"
-    }
-    if tConfig.TeamHealth > 0 then
-        tGameStats.Scoreboard.GameStatsWidgets[2] =             
-        {
-            Type = "image_text",
-            Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
-            Icon = "heart",
-            Text = tGameStats.CurrentLives,
-            TextPosition = "inside"            
-        }        
-    else
-        tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
-    end
-
-
-    if tGameStats.TotalStars ~= 0 then
-        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
-        {    
-            Type = "progress_bar",
-            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
-            Value =  tGameStats.CurrentStars/tGameStats.TotalStars*100,
-            Text = "",
-            Color = CColors.BLUE  
-        }
-    else
-        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] = 
-        {
-            Type = "progress_bar",
-            Position = {Col = 0, ColSpan = 2, Row = 1, RowSpan = 1},
-            Value =  tGameStats.StageLeftDuration/tGameStats.StageTotalDuration*100,
-            Text = "",
-            Color = CColors.GREEN
-        }   
-    end     
-
     return tGameStats
 end
 
