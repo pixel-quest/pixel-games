@@ -26,7 +26,7 @@
 	"FadeTime_ru": "Секунд до сгорания пикселя",
 	"FadeTime_en": "Pixel fade time",
 
-	"ObjectsTickRate": 250,
+	"ObjectsTickRate": 150,
 	"ObjectsTickRate_ru": "Задержка премещения объектов",
 	"ObjectsTickRate_en": "Object movement delay",
 
