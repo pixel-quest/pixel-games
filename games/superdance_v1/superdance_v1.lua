@@ -151,7 +151,7 @@ end
 function GameSetupTick()
     SetGlobalColorBright(CColors.NONE, CColors.BRIGHT0)
 
-    if tConfig.OneTeam then
+    if tConfig.SingleTeam then
         tPlayerInGame[1] = true
         tGameStats.Players[1].Color = CColors.GREEN
 
@@ -169,7 +169,7 @@ function GameSetupTick()
         CGameMode.iMaxPlayers = 0
         local iPlayersReadyCount = 0
 
-        for iPlayerID = 1, 6 do
+        for iPlayerID = 1, #CGameMode.tPlayerColors do
             CGameMode.iMaxPlayers = CGameMode.iMaxPlayers + 1
 
             local iBright = 1
@@ -267,23 +267,25 @@ CGameMode.iCurrentEffectType = 1
 
 CGameMode.iRandCoinPlayerId = 1
 
+CGameMode.tCoinsSpawnedForPlayer = {}
+
 CGameMode.InitGameMode = function()
     CObjects.iBright = tConfig.MinBright
     CObjects.MAX_COINS_DISPLAYED = tGame.iMaxX
-
-    CEffects.tLoadEffect[CGameMode.iCurrentEffectType]()
-
-    if tConfig.OneTeam then
-
-    else
-
-    end
 end
 
 CGameMode.Announcer = function()
+    local sVoice = "superdance/superdance-rules-single.mp3"
+    if not tConfig.SingleTeam then
+        sVoice = "superdance/superdance-rules-mp.mp3"
+    end
+
     if not tConfig.SkipTutorial then
-        --voice gamename rules
-        AL.NewTimer(1000, function()
+        CAudio.PlayVoicesSync(sVoice)
+        if not tConfig.SingleTeam then
+            CAudio.PlayVoicesSync("choose-color.mp3")
+        end
+        AL.NewTimer(CAudio.GetVoicesDuration(sVoice) * 1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -323,6 +325,8 @@ CGameMode.StartGame = function()
     CAudio.PlayDanceSync(tGame["SongName"])
     CGameMode.LoadSongEvents()
 
+    CEffects.tLoadEffect[CGameMode.iCurrentEffectType]()
+
     AL.NewTimer(100, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
@@ -331,12 +335,12 @@ CGameMode.StartGame = function()
         return 100
     end)
 
-    AL.NewTimer(120, function()
+    AL.NewTimer(tConfig.TickRate, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CObjects.Tick()
 
-        return 120
+        return tConfig.TickRate
     end)
 
     AL.NewTimer(1000, function()
@@ -354,7 +358,7 @@ end
 
 CGameMode.EndGame = function(bVictory)    
     if bVictory then
-        if tConfig.OneTeam then
+        if tConfig.SingleTeam then
             CGameMode.iWinnerID = 1
         else
             local iMaxScore = -999
@@ -390,7 +394,7 @@ end
 
 CGameMode.NewEffectType = function()
     local iNew = 0
-    if CObjects.iCoinsDisplayed < 5 and CGameMode.iCurrentEffectType ~= CGameMode.EFFECT_TYPE_COIN then
+    if CObjects.iCoinsDisplayed < 10 and CGameMode.iCurrentEffectType ~= CGameMode.EFFECT_TYPE_COIN then
         iNew = CGameMode.EFFECT_TYPE_COIN
     else
         repeat iNew = math.random(1, CGameMode.EFFECT_TYPE_MAX)
@@ -445,7 +449,7 @@ CGameMode.SongEvent = function(iBatchID)
 end
 
 CGameMode.GetRandomPlayerID = function()
-    if tConfig.OneTeam then return 1; end
+    if tConfig.SingleTeam then return 1; end
 
     local iPlayerID = 1
     repeat 
@@ -455,14 +459,29 @@ CGameMode.GetRandomPlayerID = function()
     return iPlayerID
 end
 
+CGameMode.GetLeastCoinsPlayer = function()
+    if tConfig.SingleTeam then return 1 end
+
+    local iMin = 99999
+    local iFound = 1
+    for iPlayerID = 1, CGameMode.iMaxPlayers do 
+        if tPlayerInGame[iPlayerID] and (CGameMode.tCoinsSpawnedForPlayer[iPlayerID] or 0) < iMin then
+            iMin = CGameMode.tCoinsSpawnedForPlayer[iPlayerID] or 0
+            iFound = iPlayerID
+        end
+    end
+
+    return iFound
+end
+
 CGameMode.AddScoreToPlayer = function(iPlayerID, iAmount)
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iAmount
 
-    if not tConfig.OneTeam and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
+    if not tConfig.SingleTeam and tGameStats.Players[iPlayerID].Score > tGameStats.TargetScore then
         tGameStats.TargetScore = tGameStats.Players[iPlayerID].Score
     end
 
-    if tConfig.OneTeam and tGameStats.Players[iPlayerID].Score < -20 then
+    if tConfig.SingleTeam and tGameStats.Players[iPlayerID].Score < -20 then
         CGameMode.EndGame(false)
     end
 end
@@ -475,7 +494,7 @@ CGameMode.SpawnRandomCoin = function()
         iY = math.random(tGame.iMinY, tGame.iMaxY)
     until tFloor[iX] and tFloor[iX][iY] and tFloor[iX][iY].iColor == CColors.NONE and not tFloor[iX][iY].bDefect
 
-    if not tConfig.OneTeam then
+    if not tConfig.SingleTeam then
         repeat
             CGameMode.iRandCoinPlayerId = CGameMode.iRandCoinPlayerId + 1
             if CGameMode.iRandCoinPlayerId > CGameMode.iMaxPlayers then CGameMode.iRandCoinPlayerId = 1 end
@@ -483,7 +502,7 @@ CGameMode.SpawnRandomCoin = function()
     end
 
     CObjects.NewObject(iX, iY, CObjects.OBJECT_TYPE_COIN, CObjects.OBJECT_SHAPE_TYPE_NONE, CGameMode.iRandCoinPlayerId)
-    if tConfig.OneTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
+    if tConfig.SingleTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
 end
 --//
 
@@ -505,10 +524,10 @@ CEffects.tLoadEffect[CGameMode.EFFECT_TYPE_COIN] = function()
         if CEffects.iCoinY > tGame.CenterY then CEffects.iCoinVelY = -1 end
     end 
 
-    CEffects.iCoinPlayerID = CGameMode.GetRandomPlayerID()
+    CEffects.iCoinPlayerID = CGameMode.GetLeastCoinsPlayer()
 
     CEffects.iCoinSpawned = 0
-    if tConfig.OneTeam then
+    if tConfig.SingleTeam then
         CEffects.iCoinToSpawn = math.random(6,12)
     else
         CEffects.iCoinToSpawn = 3*CGameMode.iRealPlayerCount
@@ -529,7 +548,7 @@ CEffects.tSpawnEffect[CGameMode.EFFECT_TYPE_COIN] = function()
 
     CObjects.NewObject(CEffects.iCoinX, CEffects.iCoinY, CObjects.OBJECT_TYPE_COIN, CObjects.OBJECT_SHAPE_TYPE_NONE, CEffects.iCoinPlayerID)
     CEffects.iCoinSpawned = CEffects.iCoinSpawned + 1
-    if tConfig.OneTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
+    if tConfig.SingleTeam then tGameStats.TargetScore = tGameStats.TargetScore + 1 end
     
     if CEffects.iCoinX < tGame.iMinX+3 then CEffects.iCoinVelX = 1 end
     if CEffects.iCoinX > tGame.iMaxX-3 then CEffects.iCoinVelX = -1 end
@@ -538,8 +557,8 @@ CEffects.tSpawnEffect[CGameMode.EFFECT_TYPE_COIN] = function()
 
     if CEffects.iCoinSpawned >= CEffects.iCoinToSpawn then
         CGameMode.NewEffectType()
-    elseif not tConfig.OneTeam and CEffects.iCoinSpawned % 3 == 0 then 
-        CEffects.iCoinPlayerID = CGameMode.GetRandomPlayerID()
+    elseif not tConfig.SingleTeam and CEffects.iCoinSpawned % 3 == 0 then 
+        CEffects.iCoinPlayerID = CGameMode.GetLeastCoinsPlayer()
     end
 end
 ----//
@@ -639,6 +658,7 @@ CObjects.NewObject = function(iX, iY, iType, iShapeType, iPlayerID, fInitObj)
     if iType == CObjects.OBJECT_TYPE_COIN then
         if CObjects.iCoinsDisplayed >= CObjects.MAX_COINS_DISPLAYED then return; end
         CObjects.iCoinsDisplayed = CObjects.iCoinsDisplayed + 1
+        CGameMode.tCoinsSpawnedForPlayer[iPlayerID] = (CGameMode.tCoinsSpawnedForPlayer[iPlayerID] or 0) + 1
     end
 
     tObject.tShape = CObjects.GetShapeForObject(tObject.iShapeType, tObject.iShapeSize)
@@ -648,7 +668,7 @@ CObjects.NewObject = function(iX, iY, iType, iShapeType, iPlayerID, fInitObj)
 end
 
 CObjects.GetColorForObject = function(tObject)
-    if (tObject.iType == CObjects.OBJECT_TYPE_COIN or not tConfig.OneTeam) and tObject.iPlayerID ~= nil then
+    if (tObject.iType == CObjects.OBJECT_TYPE_COIN or not tConfig.SingleTeam) and tObject.iPlayerID ~= nil then
         return CGameMode.tPlayerColors[tObject.iPlayerID]
     else
         if tObject.bClicked then return CColors.MAGENTA; end
@@ -679,7 +699,7 @@ CObjects.Paint = function()
                 bRemove = true
                 CObjects.iCoinsDisplayed = CObjects.iCoinsDisplayed - 1
 
-                if tConfig.OneTeam then
+                if tConfig.SingleTeam then
                     CGameMode.AddScoreToPlayer(1, 1)
                 else
                     CGameMode.AddScoreToPlayer(tObject.iPlayerID, 1)
@@ -695,7 +715,7 @@ CObjects.Paint = function()
                     end
 
                     if bCheck then
-                        if tConfig.OneTeam then
+                        if tConfig.SingleTeam then
                             tObject.bClicked = true
                             CGameMode.AddScoreToPlayer(1, -1)
                         elseif tObject.iPlayerID ~= nil then
