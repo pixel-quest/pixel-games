@@ -59,6 +59,14 @@ local tGameStats = {
     TotalStages = 0,
     TargetColor = CColors.NONE,
     ScoreboardVariant = 5,
+    Scoreboard = 
+    {
+        GridCols = 6,
+        GridRows = 2,
+        HeaderWidget = {},
+        BottomWidget = {Text = "", Icon = "timer"},
+        GameStatsWidgets = {}
+    },
 }
 
 local tGameResults = {
@@ -190,6 +198,8 @@ function GameSetupTickSinglePlayer()
             CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
         end
     end
+
+    CGameMode.UpdatePlayersProgress()
 end
 
 function GameSetupTickMultiPlayer()
@@ -199,12 +209,10 @@ function GameSetupTickMultiPlayer()
         if iPos <= #tGame.StartPositions then
             local iBright = CColors.BRIGHT15
             if CheckPositionClick(tPos, tGame.StartPositionSizeX, tGame.StartPositionSizeY) or (CGameMode.bStartCountStarted and tPlayerInGame[iPos]) then
-                tGameStats.Players[iPos].Color = tPos.Color
                 iBright = CColors.BRIGHT30
                 iPlayersReady = iPlayersReady + 1
                 tPlayerInGame[iPos] = true
             else
-                tGameStats.Players[iPos].Color = CColors.NONE
                 tPlayerInGame[iPos] = false
             end
 
@@ -217,6 +225,7 @@ function GameSetupTickMultiPlayer()
     end
 
     CGameMode.iAlivePlayerCount = iPlayersReady
+    CGameMode.UpdatePlayersProgress()
 end
 
 function GameTick()
@@ -271,6 +280,7 @@ CGameMode.tPlayerColors[3] = CColors.CYAN
 CGameMode.tPlayerColors[4] = CColors.RED
 CGameMode.tPlayerColors[5] = CColors.YELLOW
 CGameMode.tPlayerColors[6] = CColors.GREEN
+CGameMode.tPlayerColors[7] = CColors.WHITE
 
 CGameMode.tMap = {}
 CGameMode.iMapCoinCount = 0
@@ -287,8 +297,8 @@ CGameMode.InitPositions = function()
     local bPreviewOnWall = false
     if AL.NFZ.bLoaded then
         for iZone = 1, #tGame.NoFeetZones do
-            if tGame.NoFeetZones[iZone].SizeX > tGame.StartPositionSizeX+2 and tGame.NoFeetZones[iZone].SizeY > tGame.StartPositionSizeY+2 then
-                tGame.PreviewPosX = tGame.NoFeetZones[iZone].X + 1
+            if tGame.NoFeetZones[iZone].SizeX > tGame.StartPositionSizeX+1 and tGame.NoFeetZones[iZone].SizeY > tGame.StartPositionSizeY+1 then
+                tGame.PreviewPosX = tGame.NoFeetZones[iZone].X + 2
                 tGame.PreviewPosY = tGame.NoFeetZones[iZone].Y + math.floor(tGame.NoFeetZones[iZone].SizeY/2) - math.floor(tGame.StartPositionSizeY/2)
                 bPreviewOnWall = true
                 break;
@@ -321,7 +331,6 @@ CGameMode.InitPositions = function()
                 tGame.StartPositions[iStartPosId] = {}
                 tGame.StartPositions[iStartPosId].X = tPos[iPos].iX
                 tGame.StartPositions[iStartPosId].Y = tPos[iPos].iY
-                tGame.StartPositions[iStartPosId].Color = CGameMode.tPlayerColors[iStartPosId]
             end
         end
     end
@@ -442,17 +451,13 @@ CGameMode.EndRound = function()
     if CGameMode.iRound == tGameStats.TotalStages then
         CGameMode.EndGame()
     else
-        for iPlayerID = 1, #tGame.StartPositions do
-            if tPlayerInGame[iPlayerID] then
-                tGameStats.Players[iPlayerID].Score = 0
-            end
-        end
-
         CGameMode.iRound = CGameMode.iRound + 1
         tGameStats.StageNum = CGameMode.iRound
 
         CGameMode.StartNextRoundCountDown(tConfig.RoundCountdown)
     end
+
+    CGameMode.UpdatePlayersProgress()
 end
 
 CGameMode.EndGame = function()
@@ -477,11 +482,11 @@ CGameMode.EndGame = function()
             end
         end
 
-        CAudio.PlaySyncColorSound(tGame.StartPositions[CGameMode.iWinnerID].Color)
+        CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[CGameMode.iWinnerID])
         CAudio.PlayVoicesSync(CAudio.VICTORY)
 
         tGameResults.Won = true
-        tGameResults.Color = tGame.StartPositions[CGameMode.iWinnerID].Color
+        tGameResults.Color = CGameMode.tPlayerColors[CGameMode.iWinnerID]
     end
 
     iGameState = GAMESTATE_POSTGAME
@@ -490,7 +495,7 @@ CGameMode.EndGame = function()
         iGameState = GAMESTATE_FINISH
     end)   
 
-    SetGlobalColorBright(tGameStats.Players[CGameMode.iWinnerID].Color, tConfig.Bright)
+    SetGlobalColorBright(CGameMode.tPlayerColors[CGameMode.iWinnerID], tConfig.Bright)
 end
 
 CGameMode.PlayerTouchedGround = function(iPlayerID, iX, iY)
@@ -521,8 +526,7 @@ CGameMode.AddPlayerFieldScore = function(iPlayerID, iScorePlus)
     end
 
     CGameMode.tPlayerFieldScore[iPlayerID] = CGameMode.tPlayerFieldScore[iPlayerID] + iScorePlus
-
-    tGameStats.Players[iPlayerID].Score = CGameMode.tPlayerFieldScore[iPlayerID]
+    CGameMode.UpdatePlayersProgress()
 end
 
 CGameMode.CalculatePlayerField = function(iPlayerID)
@@ -548,6 +552,49 @@ CGameMode.PlayerFinish = function(iPlayerID)
     if CGameMode.iFinishedCount == CGameMode.iAlivePlayerCount then
         CGameMode.EndRound()
     end    
+end
+
+CGameMode.UpdatePlayersProgress = function()
+    tGameStats.Scoreboard.GameStatsWidgets = {}
+    tGameStats.Scoreboard.GridRows = 0   
+
+    local iTruePlayer = 0
+    for iPlayerID = 1, #tGame.StartPositions do
+        if tPlayerInGame[iPlayerID] then
+            local iCol = 3
+
+            iTruePlayer = iTruePlayer + 1
+            if iTruePlayer % 2 ~= 0 then
+                tGameStats.Scoreboard.GridRows = tGameStats.Scoreboard.GridRows + 1
+                iCol = 0
+            end
+
+            local iScore = 0
+            if CGameMode.tPlayerFieldScore[iPlayerID] then iScore = CGameMode.tPlayerFieldScore[iPlayerID] end
+            local iCoins = CGameMode.iMapCoinCount or 0; if iCoins <= 0 then iCoins = 1 end
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
+            {
+                Type = "progress_bar",
+                Position = {Col = iCol, ColSpan = 2, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Value = iScore/iCoins*100,
+                Label = tostring(math.floor(iScore/iCoins*100)).."%",
+                Color = CGameMode.tPlayerColors[iPlayerID]
+            }
+            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
+            {
+                Type = "image_text",
+                Position = {Col = iCol+2, ColSpan = 1, Row = tGameStats.Scoreboard.GridRows-1, RowSpan = 1},
+                Icon = "star",
+                Text = CGameMode.tTeamScores[iPlayerID] or "",
+                TextPosition = "inside",
+                Color = CGameMode.tPlayerColors[iPlayerID]
+            }
+        end
+    end
+    if iTruePlayer == 1 then 
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets-1].Position.ColSpan = 5 
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Position.Col = 5
+    end
 end
 --//
 
@@ -758,7 +805,7 @@ CPaint.PlayerZone = function(iPlayerID, iBright)
         for iY = tGame.StartPositions[iPlayerID].Y, tGame.StartPositionSizeY-1 + tGame.StartPositions[iPlayerID].Y do
             if tFloor[iX] ~= nil and tFloor[iX][iY] ~= nil then
                 tFloor[iX][iY].iBright = iBright
-                tFloor[iX][iY].iColor = tGame.StartPositions[iPlayerID].Color
+                tFloor[iX][iY].iColor = CGameMode.tPlayerColors[iPlayerID]
             end
         end
     end   
@@ -773,11 +820,11 @@ CPaint.PlayersFrames = function()
 end
 
 CPaint.PlayerFrame = function(iPlayerID, iBright)
-    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y-1}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright)
-    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, tGame.StartPositions[iPlayerID].Color, iBright)
+    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y-1}, tGame.StartPositionSizeX-1, CGameMode.tPlayerColors[iPlayerID], iBright)
+    SetColColorBright({X = tGame.StartPositions[iPlayerID].X, Y = tGame.StartPositions[iPlayerID].Y + tGame.StartPositionSizeY}, tGame.StartPositionSizeX-1, CGameMode.tPlayerColors[iPlayerID], iBright)
 
-    SetRowColorBright(tGame.StartPositions[iPlayerID].X-1, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright)
-    SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, tGame.StartPositions[iPlayerID].Color, iBright)
+    SetRowColorBright(tGame.StartPositions[iPlayerID].X-1, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, CGameMode.tPlayerColors[iPlayerID], iBright)
+    SetRowColorBright(tGame.StartPositions[iPlayerID].X+tGame.StartPositionSizeX, tGame.StartPositions[iPlayerID].Y-1, tGame.StartPositionSizeY-1, CGameMode.tPlayerColors[iPlayerID], iBright)
 end
 
 CPaint.ResetAnimation = function()
