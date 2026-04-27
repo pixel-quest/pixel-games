@@ -496,21 +496,24 @@ CStages.StageSpawn[CStages.STAGE_BUTTONS] = function()
     CObjects.tObjects[iLava2].iTargetX = tGame.CenterX
     CObjects.tObjects[iLava2].bCollidable = true
 
-    local iTotalButtons = #tGame.Buttons
+    local tValidButtons = {}
     for iButton, tButton in pairs(tButtons) do
-        if not tButtons[iButton] or tButtons[iButton].bDefect then
-            iTotalButtons = iTotalButtons-1
+        if tButtons[iButton] and not tButtons[iButton].bDefect then
+            tValidButtons[#tValidButtons+1] = iButton
         end
     end
 
-    local iReqButtons = math.floor(iTotalButtons/3)
+    if #tValidButtons < 2 then
+        CGameMode.SetStage(CStages.STAGE_PIXELSONLAVA)
+    end
 
+    local iReqButtons = math.floor(#tValidButtons/3)+1
     local iAttemptsCount = 0;
     while tGameStats.TotalStars < iReqButtons do
         iAttemptsCount = iAttemptsCount + 1;
         if iAttemptsCount > iReqButtons*3 then break; end
 
-        local iButton = tGame.Buttons[math.random(1,#tGame.Buttons)]
+        local iButton = tValidButtons[math.random(1,#tValidButtons)]
         if tButtons[iButton] and not tButtons[iButton].bDefect and tButtons[iButton].iColor == CColors.NONE then
             tButtons[iButton].iColor = CColors.BLUE
             tButtons[iButton].iBright = tConfig.Bright
