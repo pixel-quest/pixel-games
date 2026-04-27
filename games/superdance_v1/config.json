@@ -1,0 +1,31 @@
+{
+	"MinBright": 3,
+	"MinBright_Min": 1,
+	"MinBright_Max": 4,
+	"MinBright_Step": 1,
+	"MinBright_ru": "Минимальная Яркость",
+
+	"MaxBright": 6,
+	"MaxBright_Min": 4,
+	"MaxBright_Max": 7,
+	"MaxBright_Step": 1,
+	"MaxBright_ru": "Максимальная Яркость",
+
+	"SingleTeam": true,
+	"SingleTeam_ru": "Одна Команда",
+	"SingleTeam_en": "One Team",
+
+	"TickRate": 150,
+	"TickRate_Min": 50,
+	"TickRate_Max": 500,
+	"TickRate_Step": 50,
+	"TickRate_ru": "Задержка перемещения объектов",
+	"TickRate_en": "Objects movement delay",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
