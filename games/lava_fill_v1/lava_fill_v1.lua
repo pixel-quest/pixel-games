@@ -292,9 +292,9 @@ CGameMode.SpawnNewRandomObjects = function()
             local iRand = math.random(1,2)
             local iSize = math.random(2,4)
             if iRand == 1 then
-                CObjects.NewObject(1, math.random(1,tGame.Rows-iSize), tGame.Cols, iSize, 0, 1)
+                CObjects.NewObject(1, -iSize, tGame.Cols, iSize, 0, 1)
             else
-                CObjects.NewObject(math.random(1,tGame.Cols-iSize), 1, iSize, tGame.Rows, 1, 0)
+                CObjects.NewObject(-iSize, 1, iSize, tGame.Rows, 1, 0)
             end
         end)
     end
@@ -475,14 +475,18 @@ CObjects.Tick = function()
             if CObjects.tObjects[iObjectID].iVelX ~= 0 then
                 CObjects.tObjects[iObjectID].iX = CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iVelX
 
-                if CObjects.tObjects[iObjectID].iX <= 1 or (CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iSizeX-1 >= tGame.Cols) then
-                    CObjects.tObjects[iObjectID].iVelX = -CObjects.tObjects[iObjectID].iVelX
+                if CObjects.tObjects[iObjectID].iX <= 1  then
+                    CObjects.tObjects[iObjectID].iVelX = 1
+                elseif (CObjects.tObjects[iObjectID].iX + CObjects.tObjects[iObjectID].iSizeX-1 >= tGame.Cols) then
+                    CObjects.tObjects[iObjectID].iVelX = -1
                 end
             elseif CObjects.tObjects[iObjectID].iVelY ~= 0 then
                 CObjects.tObjects[iObjectID].iY = CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iVelY
 
-                if CObjects.tObjects[iObjectID].iY <= 1 or (CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iSizeY-1 >= tGame.Rows) then
-                    CObjects.tObjects[iObjectID].iVelY = -CObjects.tObjects[iObjectID].iVelY
+                if CObjects.tObjects[iObjectID].iY <= 1  then
+                    CObjects.tObjects[iObjectID].iVelY = 1
+                elseif (CObjects.tObjects[iObjectID].iY + CObjects.tObjects[iObjectID].iSizeY-1 >= tGame.Rows) then
+                    CObjects.tObjects[iObjectID].iVelY = -1
                 end
             end
 
