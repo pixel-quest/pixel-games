@@ -23,10 +23,10 @@
 
   "PlayerLives": 0,
   "PlayerLives_Min": 0,
-  "PlayerLives_Max": 50,
+  "PlayerLives_Max": 100,
   "PlayerLives_Step": 5,
-  "PlayerLives_ru": "Жизни команды(только если 1 команда)",
-  "PlayerLives_en": "Team Lives(1 team only)",
+  "PlayerLives_ru": "Жизни (0 для бесконечных)",
+  "PlayerLives_en": "Lives (0 for infinite)",
 
   "RoundCountdown": 25,
   "RoundCountdown_Min": 10,
