@@ -11,9 +11,16 @@
 	"MaxBright_Step": 1,
 	"MaxBright_ru": "Максимальная Яркость",
 
-	"SingleTeam": true,
+	"SingleTeam": false,
 	"SingleTeam_ru": "Одна Команда",
 	"SingleTeam_en": "One Team",
+
+	"TeamLives": 20,
+	"TeamLives_Min": 5,
+	"TeamLives_Max": 100,
+	"TeamLives_Step": 5,
+	"TeamLives_ru": "Жизни Команды (если одна команда)",
+	"TeamLives_en": "Team Lives (for One Team)",
 
 	"TickRate": 150,
 	"TickRate_Min": 50,
