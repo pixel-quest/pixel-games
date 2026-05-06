@@ -99,7 +99,7 @@ function StartGame(gameJson, gameConfigJson)
         --CAudio.PlayVoicesSyncFromScratch("choose-color.mp3")
         CPaint.LoadDemo("_choice")
 
-        local iTime = 10
+        local iTime = (tConfig.PlayDelay or 0) + (tConfig.VideoDuration or 0) + 10
 
         AL.NewTimer(1000, function()
             iTime = iTime -1
