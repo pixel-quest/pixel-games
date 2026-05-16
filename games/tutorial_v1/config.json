@@ -5,6 +5,13 @@
 	"Bright_Step": 1,
 	"Bright_ru": "Яркость",
 
+	"ObjectTickRate": 300,
+	"ObjectTickRate_Min": 50,
+	"ObjectTickRate_Max": 750,
+	"ObjectTickRate_Step": 50,
+	"ObjectTickRate_ru": "Частота движения объектов",
+	"ObjectTickRate_en": "Object Movement Rate",
+
 	"WinDurationMS": 5000,
 	"WinDurationMS_Hidden": true
 }

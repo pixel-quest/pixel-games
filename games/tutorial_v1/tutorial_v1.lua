@@ -183,12 +183,13 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.StartGame = function()
-    AL.NewTimer(CObjects.iObjectTickRate, function()
+    AL.NewTimer(100, function()
         if iGameState ~= GAMESTATE_GAME then return; end
 
         CObjects.Tick()
 
-        return CObjects.iObjectTickRate;
+        if CStages.iCurrentStageID < CStages.STAGE_LAVAINTRODUCTION then return 100; end
+        return tConfig.ObjectTickRate;
     end)    
 
     CGameMode.SetStage(CStages.STAGE_INTRO)
@@ -408,8 +409,6 @@ end
 
 --LAVAINTRODUCTION
 CStages.StageSpawn[CStages.STAGE_LAVAINTRODUCTION] = function()
-    CObjects.iObjectTickRate = 250
-
     CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     AL.NewTimer(50, function()
@@ -627,8 +626,6 @@ CObjects.OBJECT_TYPE_TO_COLOR = {}
 CObjects.OBJECT_TYPE_TO_COLOR[CObjects.OBJECT_TYPE_SAFEZONE] = CColors.GREEN
 CObjects.OBJECT_TYPE_TO_COLOR[CObjects.OBJECT_TYPE_LAVA] = CColors.RED
 CObjects.OBJECT_TYPE_TO_COLOR[CObjects.OBJECT_TYPE_COIN] = CColors.BLUE
-
-CObjects.iObjectTickRate = 100
 
 CObjects.NewObject = function(iX, iY, iSizeX, iSizeY, iType)
     local iObjectID = #CObjects.tObjects+1
