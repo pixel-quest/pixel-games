@@ -392,11 +392,13 @@ CStages.StageClick[CStages.STAGE_APEARINGPIXELS] = function(iX, iY)
                 for iFCoinID = 1, #CStages.tFutureCoins do
                     local iX = CStages.tFutureCoins[iFCoinID].iX
                     local iY = CStages.tFutureCoins[iFCoinID].iY
-                    AL.NewTimer(50*iX, function()
-                        CObjects.tObjects[tFloor[iX][iY].iObjectID] = nil
-                        CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_COIN)
-                    end)
-                    tGameStats.TotalStars = tGameStats.TotalStars + 1
+                    if not tFloor[iX][iY].bDefect then
+                        AL.NewTimer(50*iX, function()
+                            CObjects.tObjects[tFloor[iX][iY].iObjectID] = nil
+                            CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_COIN)
+                        end)
+                        tGameStats.TotalStars = tGameStats.TotalStars + 1
+                    end
                 end
                 CStages.tFutureCoins = {}
             end
@@ -551,9 +553,11 @@ CStages.StageSpawn[CStages.STAGE_PIXELSONLAVA] = function()
     local function spawnBatch(iStartX, iEndX, iY)
         for iX = iStartX, iEndX do
             if iX % 2 == 0 then
-                CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_LAVA)
-                CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_COIN)
-                tGameStats.TotalStars = tGameStats.TotalStars + 1
+                if not tFloor[iX][iY].bDefect then
+                    CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_LAVA)
+                    CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_COIN)
+                    tGameStats.TotalStars = tGameStats.TotalStars + 1
+                end
             end
         end
     end
