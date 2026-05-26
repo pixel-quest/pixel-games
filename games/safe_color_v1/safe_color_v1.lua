@@ -129,7 +129,6 @@ local Pixel = { -- пиксель тип
     Defect = false,
     EffectActivatedAt = nil,
 }
-local StartPlayersCount = 0 -- количество игроков в момент нажатия кнопки старт
 
 local CountDownStarted = false
 local PlayerInGame = {}
@@ -160,6 +159,8 @@ tColors[5] = colors.CYAN
 tColors[6] = colors.BLUE
 tColors[7] = colors.WHITE
 
+local activePlayersCount = 0
+
 for iColorId = 1, 6 do
     if math.random(1,100) >= 50 then
         local iRand = math.random(1,6)
@@ -189,11 +190,13 @@ function StartGame(gameJson, gameConfigJson)
 
     local iMinX = 1
     local iMaxX = GameObj.Cols
+    local iMinY = 1
 
     if AL.RoomHasNFZ(GameObj) then
         AL.LoadNFZInfo()
         iMinX = AL.NFZ.iMinX
         iMaxX = AL.NFZ.iMaxX
+        iMinY = AL.NFZ.iMinY
     end
 
     GameObj.StartTime = 3
@@ -203,19 +206,21 @@ function StartGame(gameJson, gameConfigJson)
         for iPlayerID = 1, #GameConfigObj.ChosenColors do
             GameObj.StartPositions[iPlayerID] = {}
             GameObj.StartPositions[iPlayerID].Color = tonumber(GameConfigObj.ChosenColors[iPlayerID])
-
-            GameStats.Players[iPlayerID].Color = GameObj.StartPositions[iPlayerID].Color
             PlayerInGame[iPlayerID] = true
         end
 
         GameResults.ChosenColors = GameConfigObj.ChosenColors
     else
-        if GameObj.StartPositions == nil then
-            GameObj.StartPositions = {}
+        GameObj.StartPositions = {}
 
-            local iX = iMinX + 2
-            local iY = math.floor(GameObj.Rows/2)
-            for iPlayerID = 1, 6 do
+        if not GameObj.ArenaMode then
+            local iX = iMinX + 1
+            local iY = math.floor(GameObj.Rows/3)
+
+            local iMaxPlayers = math.ceil(GameObj.Cols/2)
+            if iMaxPlayers > 14 then iMaxPlayers = 14 end
+
+            for iPlayerID = 1, iMaxPlayers do
                 GameObj.StartPositions[iPlayerID] = {}
                 GameObj.StartPositions[iPlayerID].X = iX
                 GameObj.StartPositions[iPlayerID].Y = iY
@@ -223,15 +228,27 @@ function StartGame(gameJson, gameConfigJson)
 
                 iX = iX + (GameObj.StartPositionSize*2)
                 if iX + GameObj.StartPositionSize-1 > iMaxX then
-                    iX = iMinX + 2
-                    iY = iY + (GameObj.StartPositionSize+1)
+                    iX = iMinX + 1
+                    iY = iY + (GameObj.StartPositionSize*2)
                 end
             end
         else
-            for iPlayerID = 1, #GameObj.StartPositions do
-                GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-            end 
-        end   
+            GameObj.StartPositionSize = 6
+            local iX = iMinX
+            local iY = iMinY
+
+            for iPlayerID = 1, 6 do
+                GameObj.StartPositions[iPlayerID] = {}
+                GameObj.StartPositions[iPlayerID].X = iX
+                GameObj.StartPositions[iPlayerID].Y = iY
+                GameObj.StartPositions[iPlayerID].Color = colors.GREEN
+
+                iX = iX + (GameObj.StartPositionSize)
+                if iX + GameObj.StartPositionSize-1 > iMaxX then
+                    break;
+                end                    
+            end
+        end
 
         if not GameConfigObj.SkipTutorial then
             audio.PlayVoicesSyncFromScratch("safe-color/safe-color-game.mp3") -- Игра "Безопасный цвет"
@@ -290,27 +307,25 @@ function NextTick()
             bDisPos = true
         end
 
-        StartPlayersCount = 0
+        activePlayersCount = 0
         if not GameConfigObj.ChosenColors then
             -- если есть хоть один клик на позиции, подсвечиваем её и заводим игрока по индексу
             for positionIndex, startPosition in ipairs(GameObj.StartPositions) do
                 local bright = colors.BRIGHT15
                 if checkPositionClick(startPosition, GameObj.StartPositionSize) or (CountDownStarted and PlayerInGame[positionIndex]) or (not bDisPos and PlayerInGame[positionIndex]) then
-                    GameStats.Players[positionIndex].Color = startPosition.Color
                     bright = GameConfigObj.Bright
                     PlayerInGame[positionIndex] = true
-                    StartPlayersCount = StartPlayersCount + 1
+                    activePlayersCount = activePlayersCount + 1
                 elseif bDisPos then                
-                    GameStats.Players[positionIndex].Color = colors.NONE
                     PlayerInGame[positionIndex] = false
                 end
                 setColorBrightForStartPosition(startPosition, GameObj.StartPositionSize, startPosition.Color, bright)
             end
         else
-            StartPlayersCount = #GameConfigObj.ChosenColors
+            activePlayersCount = #GameConfigObj.ChosenColors
         end
 
-        if StartPlayersCount > 0 and (time.unix() - GameObj.StartTime) >= iGameLoadTime and not GameStarted then
+        if activePlayersCount > 0 and (time.unix() - GameObj.StartTime) >= iGameLoadTime and not GameStarted then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
@@ -442,12 +457,6 @@ function ButtonClick(click)
         return -- не интересуют кнопки не из списка, иначе будет ошибка
     end
     ButtonsList[click.Button].Click = click.Click
-
-    -- нажали кнопку, стартуем обратный отсчет
-    if StartPlayersCount == 0 and click.Click then
-        StartPlayersCount = countActivePlayers()
-        StageStartTime = time.unix()
-    end
 end
 
 -- DefectPixel (служебный): метод дефектовки/раздефектовки пикселя
@@ -560,10 +569,28 @@ function switchStage(newStage)
     end
 
     -- дозаполним нужный цвет по количеству игроков
-    for p = 1, countActivePlayers() do
+    for p = 1, activePlayersCount do
         for randomAttempt = 0, 50 do
             x = math.random(GameObj.Cols/2)*2-1
             y = math.random(GameObj.Rows/2)*2-1 + GameObj.YOffset
+
+            if GameObj.ArenaMode == true then
+                x = math.random(GameObj.StartPositions[p].X,GameObj.StartPositions[p].X+GameObj.StartPositionSize-1)           
+                y = math.random(GameObj.StartPositions[p].Y,GameObj.StartPositions[p].Y+GameObj.StartPositionSize-1)      
+
+                if x % 2 == 0 then 
+                    x = x - 1
+                    if x < GameObj.StartPositions[p].X then
+                        x = GameObj.StartPositions[p].X
+                    end
+                end
+                if y % 2 == 0 then 
+                    y = y - 1
+                    if y < GameObj.StartPositions[p].Y then
+                        y = GameObj.StartPositions[p].Y
+                    end
+                end
+            end
 
             if AL.NFZ.bLoaded and AL.IsPixelInNFZ(x, y) then
                 goto continue
@@ -635,18 +662,6 @@ function setColorBrightForStartPosition(startPosition, positionSize, color, brig
         FloorMatrix[x][y].Color = color
         FloorMatrix[x][y].Bright = bright
         ::continue::
-    end
-end
-
--- Найти игрока по цвету
-function getPlayerByColor(color)
-    if color == colors.NONE then
-        return nil
-    end
-    for playerIdx, player in ipairs(GameStats.Players) do
-        if player.Color == color then
-            return player
-        end
     end
 end
 
