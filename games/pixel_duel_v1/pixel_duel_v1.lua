@@ -329,7 +329,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
+        if (StartPlayersCount > 1 or StartPlayersCount == #GameObj.StartPositions) and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
