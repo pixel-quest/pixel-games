@@ -269,15 +269,15 @@ CStages.StageClick = {}
 
 --INTRO
 CStages.StageSpawn[CStages.STAGE_INTRO] = function()
-    local iSlice1 = CObjects.NewObject(-tGame.iMaxX, tGame.CenterY-math.floor(CStages.iSafeZoneSize/4)-1, tGame.iMaxX-tGame.iMinX+1, math.floor(CStages.iSafeZoneSize/2)+1, CObjects.OBJECT_TYPE_SAFEZONE)
+    local iSlice1 = CObjects.NewObject(-tGame.Cols, tGame.CenterY-math.floor(CStages.iSafeZoneSize/4)-1, tGame.Cols, math.floor(CStages.iSafeZoneSize/2)+1, CObjects.OBJECT_TYPE_SAFEZONE)
     CObjects.tObjects[iSlice1].iTargetX = tGame.iMinX
     CObjects.tObjects[iSlice1].iVelX = 1
-    local iSlice2 = CObjects.NewObject(tGame.iMaxX, tGame.CenterY+math.floor(CStages.iSafeZoneSize/4)-1, tGame.iMaxX-tGame.iMinX+1, math.floor(CStages.iSafeZoneSize/2)+1, CObjects.OBJECT_TYPE_SAFEZONE)
+    local iSlice2 = CObjects.NewObject(tGame.Cols, tGame.CenterY+math.floor(CStages.iSafeZoneSize/4)-1, tGame.Cols, math.floor(CStages.iSafeZoneSize/2)+1, CObjects.OBJECT_TYPE_SAFEZONE)
     CObjects.tObjects[iSlice2].iTargetX = tGame.iMinX
     CObjects.tObjects[iSlice2].iVelX = -1
 
     local function lavaspawn(iStartY, iEndY)
-        for iX = tGame.iMinX, (tGame.iMaxX-tGame.iMinX+1) do
+        for iX = 1, tGame.Cols do
             for iY = iStartY, iEndY do
                 AL.NewTimer(math.random(200, 2500), function()
                     CObjects.NewObject(iX, iY, 1, 1, CObjects.OBJECT_TYPE_LAVA)
@@ -288,7 +288,7 @@ CStages.StageSpawn[CStages.STAGE_INTRO] = function()
 
     AL.NewTimer(1500, function()
         lavaspawn(1, CObjects.tObjects[iSlice1].iY-1)
-        lavaspawn(CObjects.tObjects[iSlice2].iY+CObjects.tObjects[iSlice2].iSizeY, tGame.iMaxY)
+        lavaspawn(CObjects.tObjects[iSlice2].iY+CObjects.tObjects[iSlice2].iSizeY, tGame.Rows)
     end)
 
     CAudio.PlayVoicesSync("tutorial/welcome_tutorial.mp3")
@@ -308,8 +308,8 @@ end
 CStages.StageSpawn[CStages.STAGE_BLUEPIXEL] = function()
     CGameMode.bLavaSoundOn = true
 
-    CObjects.NewObject(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
+    CObjects.NewObject(1, 1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
+    CObjects.NewObject(1, CStages.iSafeZoneSize+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     local iCoinX = tGame.CenterX
     local iCoinY = Round(CStages.iSafeZoneSize*2+1+(CStages.iSafeZoneSize/2))
@@ -345,11 +345,11 @@ end
 
 --APEARINGPIXELS
 CStages.StageSpawn[CStages.STAGE_APEARINGPIXELS] = function()
-    CObjects.NewObject(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize*2+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
+    CObjects.NewObject(1, 1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
+    CObjects.NewObject(1, CStages.iSafeZoneSize*2+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_LAVA)
 
-    local iStartX = tGame.iMinX
-    local iEndX = tGame.iMaxX
+    local iStartX = 1
+    local iEndX = tGame.Cols
     local iStartY = CStages.iSafeZoneSize+1
     local iEndY = CStages.iSafeZoneSize+CStages.iSafeZoneSize
 
@@ -411,16 +411,16 @@ end
 
 --LAVAINTRODUCTION
 CStages.StageSpawn[CStages.STAGE_LAVAINTRODUCTION] = function()
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
+    CObjects.NewObject(1, CStages.iSafeZoneSize+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     AL.NewTimer(50, function()
         CObjects.SpawnCoinsRandomly(math.floor(tGame.Cols/4), false)
 
-        local iLava1 = CObjects.NewObject(tGame.iMinX, tGame.iMinY, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
+        local iLava1 = CObjects.NewObject(1, tGame.iMinY, tGame.Cols, 1, CObjects.OBJECT_TYPE_LAVA)
         CObjects.tObjects[iLava1].iVelY = 1
         CObjects.tObjects[iLava1].iTargetY = CStages.iSafeZoneSize
         CObjects.tObjects[iLava1].bCollidable = true
-        local iLava2 = CObjects.NewObject(tGame.iMinX, tGame.iMaxY-1, tGame.iMaxX-tGame.iMinX+1, 1, CObjects.OBJECT_TYPE_LAVA)
+        local iLava2 = CObjects.NewObject(1, tGame.iMaxY-1, tGame.Cols, 1, CObjects.OBJECT_TYPE_LAVA)
         CObjects.tObjects[iLava2].iVelY = -1
         CObjects.tObjects[iLava2].iTargetY = CStages.iSafeZoneSize*2+1
         CObjects.tObjects[iLava2].bCollidable = true    
@@ -450,11 +450,11 @@ end
 
 --DISAPEARINGLAVA
 CStages.StageSpawn[CStages.STAGE_DISAPEARINGLAVA] = function()
-    local iLava1 = CObjects.NewObject(tGame.iMinX, tGame.iMinY, 1, tGame.iMaxY-tGame.iMinY+1, CObjects.OBJECT_TYPE_LAVA)
+    local iLava1 = CObjects.NewObject(1, 1, 1, tGame.Rows, CObjects.OBJECT_TYPE_LAVA)
     CObjects.tObjects[iLava1].iVelX = 1
     CObjects.tObjects[iLava1].bCollidable = true
 
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
+    CObjects.NewObject(1, CStages.iSafeZoneSize+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     AL.NewTimer(50, function()
         CObjects.SpawnCoinsRandomly(math.floor(tGame.Cols/2), true)
@@ -487,7 +487,7 @@ end
 
 --BUTTONS
 CStages.StageSpawn[CStages.STAGE_BUTTONS] = function()
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
+    CObjects.NewObject(1, CStages.iSafeZoneSize+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     local iLava1 = CObjects.NewObject(tGame.iMinX, tGame.iMinY, 1, tGame.iMaxY-tGame.iMinY+1, CObjects.OBJECT_TYPE_LAVA)
     CObjects.tObjects[iLava1].iVelX = 1
@@ -548,7 +548,7 @@ end
 --PIXELSONLAVA
 CStages.StageSpawn[CStages.STAGE_PIXELSONLAVA] = function()
     CGameMode.bLavaSoundOn = false
-    CObjects.NewObject(tGame.iMinX, CStages.iSafeZoneSize+1, tGame.iMaxX-tGame.iMinY+1, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
+    CObjects.NewObject(1, CStages.iSafeZoneSize+1, tGame.Cols, CStages.iSafeZoneSize, CObjects.OBJECT_TYPE_SAFEZONE)
 
     local function spawnBatch(iStartX, iEndX, iY)
         for iX = iStartX, iEndX do
