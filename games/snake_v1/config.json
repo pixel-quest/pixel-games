@@ -16,7 +16,7 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
-  "SingleTeam": true,
+  "SingleTeam": false,
   "SingleTeam_ru": "Одна команда",
   "SingleTeam_en": "Single Team",
 
