@@ -16,6 +16,10 @@
   "SkipTutorial_ru": "Пропустить обучение", 
   "SkipTutorial_en": "Skip tutorial", 
 
+  "SingleTeam": true,
+  "SingleTeam_ru": "Одна команда",
+  "SingleTeam_en": "Single Team",
+
   "WinDurationMS": 5000,
   "WinDurationMS_ru": "Длительность конца игры",
   "WinDurationMS_en": "After game duration",
