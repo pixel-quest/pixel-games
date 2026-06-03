@@ -135,16 +135,42 @@ function StartGame(gameJson, gameConfigJson)
         tGameResults.ChosenColors = tConfig.ChosenColors
     end
 
+    if AL.RoomHasNFZ(tGame) then
+        AL.LoadNFZInfo()
+    end
+    tGame.iMinX = 1
+    tGame.iMinY = 1
+    tGame.iMaxX = tGame.Cols
+    tGame.iMaxY = tGame.Rows
+    tGame.iMinCoinX = 1
+    tGame.iMaxCoinX = tGame.Cols
+    tGame.iMinCoinY = 1
+    tGame.iMaxCoinY = tGame.Rows
+    if AL.NFZ.bLoaded then
+        tGame.iMinX = AL.NFZ.iMinX
+        tGame.iMinY = AL.NFZ.iMinY
+        tGame.iMaxX = AL.NFZ.iMaxX
+        tGame.iMaxY = AL.NFZ.iMaxY
+
+        tGame.CenterX = AL.NFZ.iCenterX
+        tGame.CenterY = AL.NFZ.iCenterY
+        
+        if tGame.Cols - tGame.iMaxX > 6 then tGame.iMaxCoinX = tGame.iMaxX + 6 end
+        if tGame.Rows - tGame.iMaxY > 6 then tGame.iMaxCoinY = tGame.iMaxY + 6 end
+        tGame.iMinCoinX = tGame.iMinX
+        tGame.iMinCoinY = tGame.iMinY
+    end
+
     if not tGame.ArenaMode then
         tGame.StartPositions = {}
-        local iX = 1
-        local iY = 1
+        local iX = tGame.iMinX
+        local iY = tGame.iMinY
 
         local iTeams = #tTeamColors
 
         if tConfig.SingleTeam then
-            iX = math.floor(tGame.Cols/2.5)
-            iY = math.floor(tGame.Rows/3)
+            iX = math.floor((tGame.iMaxX-tGame.iMinX+1)/2.5)
+            iY = math.floor((tGame.iMaxY-tGame.iMinY+1)/3)
 
             tGame.StartPositionSizeX = 6
             tGame.StartPositionSizeY = 6
@@ -173,8 +199,8 @@ function StartGame(gameJson, gameConfigJson)
             tGame.StartPositions[iPlayerID].Color = tTeamColors[iPlayerID]
 
             iX = iX + tGame.StartPositionSizeX + 2
-            if iX > tGame.Cols-tGame.StartPositionSizeX then
-                iX = 1
+            if iX > tGame.iMaxX-tGame.StartPositionSizeX then
+                iX = tGame.iMinX
                 iY = iY + tGame.StartPositionSizeX + 1
             end
         end
@@ -435,8 +461,8 @@ CGameMode.RandomPositionForPixel = function(iMinX, iMaxX, iMinY, iMaxY)
     if iMaxY == nil then iMaxY = tGame.Rows end
 
     repeat
-        iX = math.random(iMinX, iMaxX)
-        iY = math.random(iMinY, iMaxY)
+        iX = math.random(tGame.iMinCoinX, tGame.iMaxCoinX)
+        iY = math.random(tGame.iMinCoinY, tGame.iMaxCoinY)
     until CGameMode.IsValidPixelPosition(iX, iY)
 
     return iX, iY
