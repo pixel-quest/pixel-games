@@ -505,8 +505,7 @@ CGameMode.UpdatePlayersProgress = function()
         Position = {Col = 0, ColSpan = 2, Row = 0, RowSpan = 1},
         Icon = "star",
         TextPosition = "left",
-        Text = "Цель: "..tGameStats.TargetScore,
-        TextEn = "Target: "..tGameStats.TargetScore,
+        Text = "Цель: "..tGameStats.TargetScore
     }    
 
     tGameStats.Scoreboard.GameStatsWidgets[2] =             
@@ -515,9 +514,12 @@ CGameMode.UpdatePlayersProgress = function()
         Position = {Col = 2, ColSpan = 2, Row = 0, RowSpan = 1},
         Value = CGameMode.iSnakeScore/tGameStats.TargetScore*100,
         Label = tostring("Змейка: "..CGameMode.iSnakeScore),
-        LabelEn = tostring("Snake: "..CGameMode.iSnakeScore),
         Color = CColors.RED
     }             
+    if tGame.Locale and tGame.Locale ~= "ru" then
+        tGameStats.Scoreboard.GameStatsWidgets[1].Text = "Target: "..tGameStats.TargetScore
+        tGameStats.Scoreboard.GameStatsWidgets[2].Label = tostring("Snake: "..CGameMode.iSnakeScore)
+    end
 
     local iTruePlayer = 0
     for iPlayerID = 1, #tTeamColors do
