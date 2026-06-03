@@ -398,9 +398,11 @@ CGameMode.UpdatePlayersProgress = function()
             Position = {Col = 0, ColSpan = 1, Row = 0, RowSpan = 1},
             Value = 100,
             Label = "Текущий цвет",
-            LabelEn = "Current Color",
             Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition]]
         }
+        if tGame.Locale and tGame.Locale ~= "ru" then
+            tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Current Color"
+        end
 
         if CCircle.tPlayersList[CCircle.iListPosition+1] then
             tGameStats.Scoreboard.GameStatsWidgets[2] =             
@@ -409,13 +411,17 @@ CGameMode.UpdatePlayersProgress = function()
                 Position = {Col = 1, ColSpan = 1, Row = 0, RowSpan = 1},
                 Value = 100,
                 Label = "Следующий цвет",
-                LabelEn = "Next Color",
                 Color = CGameMode.tPlayerColors[CCircle.tPlayersList[CCircle.iListPosition+1]]
-            }           
+            }       
+            if tGame.Locale and tGame.Locale ~= "ru" then
+                tGameStats.Scoreboard.GameStatsWidgets[2].Label = "Next Color"
+            end    
         else
             tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Последний цвет!"
-            tGameStats.Scoreboard.GameStatsWidgets[1].LabelEn = "Final Color!"
             tGameStats.Scoreboard.GameStatsWidgets[1].Position.ColSpan = 2
+            if tGame.Locale and tGame.Locale ~= "ru" then
+                tGameStats.Scoreboard.GameStatsWidgets[1].Label = "Final Color!"
+            end
         end
     end
 
