@@ -528,15 +528,21 @@ CGameMode.UpdateGameStats = function()
 
         if CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_HEAL then
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Починить базу"
-            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Repair Base"
+            if tGame.Locale and tGame.Locale ~= "ru" then 
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Bonus: Repair Base"
+            end
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.GREEN
         elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_KILLALL then
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Уничтожить всех врагов"
-            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Destyroy all enemies"
+            if tGame.Locale and tGame.Locale ~= "ru" then
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Bonus: Destroy all enemies"
+            end
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.RED
         elseif CBuffs.iNextBuffType == CBuffs.BUFF_TYPE_ALLY then
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Бонус: Вызывать союзника"
-            tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].LabelEn = "Bonus: Summon an ally"
+            if tGame.Locale and tGame.Locale ~= "ru" then
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = "Bonus: Summon an ally"
+            end
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Color = CColors.BLUE
         end      
     end
