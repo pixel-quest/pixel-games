@@ -88,12 +88,12 @@ local GameStats = {
     CurrentLives = 0,
     TotalLives = 0,
     Players = { -- максимум 6 игроков
-        { Score = 0, Lives = 0, Color = colors.RED },
-        { Score = 0, Lives = 0, Color = colors.YELLOW },
-        { Score = 0, Lives = 0, Color = colors.GREEN },
-        { Score = 0, Lives = 0, Color = colors.CYAN },
-        { Score = 0, Lives = 0, Color = colors.BLUE },
-        { Score = 0, Lives = 0, Color = colors.MAGENTA },
+        { Score = 0, Lives = 0, Color = colors.NONE },
+        { Score = 0, Lives = 0, Color = colors.NONE },
+        { Score = 0, Lives = 0, Color = colors.NONE },
+        { Score = 0, Lives = 0, Color = colors.NONE },
+        { Score = 0, Lives = 0, Color = colors.NONE },
+        { Score = 0, Lives = 0, Color = colors.NONE },
     },
     TargetScore = 0,
     StageNum = 0,
@@ -142,6 +142,15 @@ local LeftAudioPlayed = { -- 5... 4... 3... 2... 1... Победа
     [3] = false,
     [2] = false,
     [1] = false,
+}
+
+local tPlayerColors = {
+    colors.RED,
+    colors.YELLOW,
+    colors.GREEN,
+    colors.BLUE,
+    colors.CYAN,
+    colors.MAGENTA,
 }
 
 -- StartGame (служебный): инициализация и старт игры
@@ -211,22 +220,41 @@ function StartGame(gameJson, gameConfigJson)
 
         GameResults.ChosenColors = GameConfigObj.ChosenColors
     else
-        GameObj.StartPositionSize = 2
         GameObj.StartPositions = {}
-        local iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
-        local iPosY = math.floor((GameObj.iMaxY-GameObj.iMinY)/2.5)
-        log.print(iPosY)
-        for iPlayerID = 1, GameConfigObj.PlayerCount do
-            GameObj.StartPositions[iPlayerID] = {}
-            GameObj.StartPositions[iPlayerID].X = iPosX
-            GameObj.StartPositions[iPlayerID].Y = iPosY
-            GameObj.StartPositions[iPlayerID].Color = GameStats.Players[iPlayerID].Color
 
-            iPosX = iPosX + (GameObj.StartPositionSize*2)
-            if iPlayerID == (GameConfigObj.PlayerCount/2) then
-                iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
-                iPosY = iPosY + GameObj.StartPositionSize*2
+        if not GameObj.ArenaMode then
+            GameObj.StartPositionSize = 2
+
+            local iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
+            local iPosY = math.floor((GameObj.iMaxY-GameObj.iMinY)/2.5)
+            for iPlayerID = 1, GameConfigObj.PlayerCount do
+                GameObj.StartPositions[iPlayerID] = {}
+                GameObj.StartPositions[iPlayerID].X = iPosX
+                GameObj.StartPositions[iPlayerID].Y = iPosY
+                GameObj.StartPositions[iPlayerID].Color = tPlayerColors[iPlayerID]
+
+                iPosX = iPosX + (GameObj.StartPositionSize*2)
+                if iPlayerID == (GameConfigObj.PlayerCount/2) then
+                    iPosX = math.floor((GameObj.iMaxX-GameObj.iMinX)/3)
+                    iPosY = iPosY + GameObj.StartPositionSize*2
+                end
             end
+        else
+            GameObj.StartPositionSize = 6
+
+            local iPosX = GameObj.iMinX
+            local iPosY = GameObj.iMinY
+            for iPlayerID = 1, 6 do
+                GameObj.StartPositions[iPlayerID] = {}
+                GameObj.StartPositions[iPlayerID].X = iPosX
+                GameObj.StartPositions[iPlayerID].Y = iPosY
+                GameObj.StartPositions[iPlayerID].Color = tPlayerColors[iPlayerID]
+
+                iPosX = iPosX + GameObj.StartPositionSize
+                if iPosX + GameObj.StartPositionSize-1 > GameObj.iMaxX then
+                    break;
+                end
+            end            
         end
     end
 
@@ -301,7 +329,7 @@ function NextTick()
         end
         ]]
 
-        if StartPlayersCount > 1 and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
+        if (StartPlayersCount > 1 or StartPlayersCount == #GameObj.StartPositions) and ((time.unix() - GameStartTime > GameObj.StartTime) or GameConfigObj.SkipTutorial and GameConfigObj.ChosenColors ~= nil) then
             if not CountDownStarted then
                StageStartTime = time.unix()
             end
@@ -577,9 +605,25 @@ function placePixel(color)
     if color == colors.NONE then
         return
     end
+
+    local minX = 1
+    local maxX = GameObj.Cols
+    local minY = 1
+    local maxY = GameObj.Rows
+
+    if GameObj.ArenaMode ~= nil and GameObj.ArenaMode then
+        local _,player = getPlayerByColor(color)
+        if player and player > 0 then
+            minX = GameObj.StartPositions[player].X
+            maxX = GameObj.StartPositions[player].X + GameObj.StartPositionSize-1
+            minY = GameObj.StartPositions[player].Y
+            maxY = GameObj.StartPositions[player].Y + GameObj.StartPositionSize-1
+        end
+    end
+
     for randomAttempt=1,100 do
-        local x = math.random(1, GameObj.Cols)
-        local y = math.random(1, GameObj.Rows)
+        local x = math.random(minX, maxX)
+        local y = math.random(minY, maxY)
         if FloorMatrix[x][y].Color == colors.NONE and
                 not FloorMatrix[x][y].Click and
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
@@ -633,7 +677,7 @@ function getPlayerByColor(color)
     end
     for playerIdx, player in ipairs(GameStats.Players) do
         if player.Color == color then
-            return player
+            return player, playerIdx
         end
     end
 end

@@ -231,9 +231,9 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
             GameObj.StartTime = GameObj.StartTime + audio.GetVoicesDuration("sea-is-rough/statues-game.mp3")
         end
     else
-        if GameObj.StartPositions == nil then
-            GameObj.StartPositions = {}
+        GameObj.StartPositions = {}
 
+        if not GameObj.ArenaMode then
             local iX = GameObj.iMinX + 1
             local iY = GameObj.CenterY
             for iPlayerID = 1, 6 do
@@ -249,10 +249,22 @@ function StartGame(gameJson, gameConfigJson) -- старт игры
                 end
             end
         else
-            for iPlayerID = 1, #GameObj.StartPositions do
-                GameObj.StartPositions[iPlayerID].Color = tonumber(GameObj.StartPositions[iPlayerID].Color)
-            end 
-        end     
+            GameObj.StartPositionSize = 6
+            local iX = GameObj.iMinX
+            local iY = GameObj.iMinY
+
+            for iPlayerID = 1, 6 do
+                GameObj.StartPositions[iPlayerID] = {}
+                GameObj.StartPositions[iPlayerID].X = iX
+                GameObj.StartPositions[iPlayerID].Y = iY
+                GameObj.StartPositions[iPlayerID].Color = tColors[iPlayerID]
+
+                iX = iX + (GameObj.StartPositionSize)
+                if iX + GameObj.StartPositionSize-1 > GameObj.iMaxX then
+                    break;
+                end                    
+            end
+        end
 
         if GameConfigObj.SkipTutorial then
             audio.PlayVoicesSync("choose-color.mp3")
@@ -328,7 +340,7 @@ function NextTick()
             StartPlayersCount = #GameConfigObj.ChosenColors
         end
 
-        if StartPlayersCount > 1 and (((time.unix() - GameObj.StartTime) >= iGameLoadTime)) then
+        if (StartPlayersCount > 1 or StartPlayersCount == #GameObj.StartPositions) and (((time.unix() - GameObj.StartTime) >= iGameLoadTime)) then
             if not CountDownStarted then StageStartTime = time.unix() end
             CountDownStarted = true
 
@@ -632,6 +644,15 @@ function placePixel(color)
     for randomAttempt=1,10 do
         local x = math.random(1, GameObj.Cols)
         local y = math.random(1, GameObj.Rows)
+
+        if GameObj.ArenaMode == true then
+            local _,player = getPlayerByColor(color)
+            if player and GameObj.StartPositions[player] and math.random(1,4) ~= 4 then
+                x = math.random(GameObj.StartPositions[player].X, GameObj.StartPositions[player].X+GameObj.StartPositionSize-1)
+                y = math.random(GameObj.StartPositions[player].Y, GameObj.StartPositions[player].Y+GameObj.StartPositionSize-1)
+            end
+        end
+
         if FloorMatrix[x][y].Color == colors.NONE and
                 -- not FloorMatrix[x][y].Click and -- под ноги не размещаем
                 not FloorMatrix[x][y].Defect then -- не назначаем на дефектные пиксели
@@ -685,7 +706,7 @@ function getPlayerByColor(color)
     end
     for playerIdx, player in ipairs(GameStats.Players) do
         if player.Color == color then
-            return player
+            return player, playerIdx
         end
     end
 end

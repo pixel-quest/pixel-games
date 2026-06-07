@@ -1,0 +1,35 @@
+{
+  "Cols": 18,
+  "Rows": 6,
+  "Buttons": [
+    2,
+    6,
+    10,
+    14,
+    18,
+    22,
+    26,
+    30,
+    34,
+    38,
+    42,
+    46,
+    50,
+    54,
+    58,
+    62,
+    65,
+    69,
+    73,
+    77
+  ],
+
+  "ArenaMode": true,
+
+  "BurnEffect": {
+    "DurationOnMs": 200,
+    "DurationOffMs": 120,
+    "TotalDurationMs": 1500
+  },
+  "StartPositionSize": 2
+}
