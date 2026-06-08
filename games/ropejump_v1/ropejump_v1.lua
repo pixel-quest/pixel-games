@@ -210,7 +210,7 @@ CGameMode.tCoin = {}
 CGameMode.BRIDGE_HEIGHT = 4
 
 CGameMode.InitGameMode = function()
-    if tGame.DamageDelay == nil then tGame.DamageDelay = 250; end
+    if tGame.BurnDelay == nil then tGame.BurnDelay = 250; end
 
     tGameStats.TotalLives = tConfig.TeamHealth
     tGameStats.CurrentLives = tConfig.TeamHealth
@@ -402,14 +402,19 @@ CRope.iVelocity = 10
 
 CRope.Paint = function()
     if CRope.iY > 0 and CRope.iY <= tGame.Rows then
+        local iY = CRope.iY
         for iX = 1, tGame.Cols do
-            if not tFloor[iX][CRope.iY].bAnimated then
-                tFloor[iX][CRope.iY].iColor = CColors.RED
-                tFloor[iX][CRope.iY].iBright = tConfig.Bright
+            if not tFloor[iX][iY].bAnimated then
+                tFloor[iX][iY].iColor = CColors.RED
+                tFloor[iX][iY].iBright = tConfig.Bright
 
-                if tFloor[iX][CRope.iY].bClick and tFloor[iX][CRope.iY].iWeight > 10 and (CTime.unix() - tFloor[iX][CRope.iY].iTime)*1000 <= tGame.DamageDelay then
-                    CRope.DamagePlayer()
-                    CGameMode.AnimateDamage(iX, CRope.iY)
+                if tFloor[iX][iY].bClick then
+                    AL.NewTimer(tGame.BurnDelay, function()
+                        if tFloor[iX][iY].bClick then
+                            CRope.DamagePlayer()
+                            CGameMode.AnimateDamage(iX, iY)
+                        end
+                    end)
                 end
             end
         end
