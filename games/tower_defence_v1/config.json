@@ -53,15 +53,13 @@
   "UnitSpawnDelay_Min": 1000,
   "UnitSpawnDelay_Max": 10000,
   "UnitSpawnDelay_Step": 1000,
-  "UnitSpawnDelay_ru": "Задержка между появлением юнитов",
+  "UnitSpawnDelay_ru": "Задержка между появлением врагов",
   "UnitSpawnDelay_en": "Delay between unit spawns",
-  "UnitSpawnDelay_Hidden": true,
   
   "UnitThinkDelay": 500,
   "UnitThinkDelay_Min": 100,
   "UnitThinkDelay_Max": 5000,
   "UnitThinkDelay_Step": 100,
-  "UnitThinkDelay_ru": "Частота передвижения юнитов",
-  "UnitThinkDelay_en": "Unit movement tick rate",
-  "UnitThinkDelay_Hidden": true
+  "UnitThinkDelay_ru": "Задержка передвижения врагов",
+  "UnitThinkDelay_en": "Unit movement delay"
 }
