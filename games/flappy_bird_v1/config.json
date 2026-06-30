@@ -33,11 +33,18 @@
 	"Lives_en": "Lives",
 
 	"TickRate": 500,
-	"TickRate_Min": 250,
+	"TickRate_Min": 200,
 	"TickRate_Max": 1000,
 	"TickRate_Step": 50,
 	"TickRate_ru": "Частота движения труб/гравитации",
 	"TickRate_en": "Pipes/Gravity Tick-Rate",
+
+	"SpeedUp": 3,
+	"SpeedUp_Min": 0,
+	"SpeedUp_Max": 10,
+	"SpeedUp_Step": 1,
+	"SpeedUp_ru": "Уменьшение частоты за каждую трубу",
+	"SpeedUp_en": "Tick-Rate decrease per pipe",
 
 	"SkipTutorial": false,
 	"SkipTutorial_ru": "Пропустить обучение", 
