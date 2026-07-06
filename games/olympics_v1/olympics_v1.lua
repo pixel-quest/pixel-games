@@ -143,7 +143,7 @@ function StartGame(gameJson, gameConfigJson)
     local iX = iMinX
     local iY = iMinY+1
 
-    for iPlayerID = 1, 6 do
+    for iPlayerID = 1, tConfig.MaxPlayerCount do
         tGame.StartPositions[iPlayerID] = {}
         tGame.StartPositions[iPlayerID].X = iX
         tGame.StartPositions[iPlayerID].Y = iY
