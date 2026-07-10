@@ -38,7 +38,6 @@
   "SongStartDelayMS_en": "Song Start Delay",
 
   "OutOfZoneSound": true,
-  "OutOfZoneSound_Hidden": true,
   "OutOfZoneSound_ru": "Включить звук выхода с зоны",
   "OutOfZoneSound_en": "Enable 'Out Of Zone' warning sound"
 }
