@@ -198,12 +198,12 @@ end
 
 -- PauseGame (служебный): пауза игры
 function PauseGame()
-    audio.PlayVoicesSync(audio.PAUSE)
+    --audio.PlayVoicesSync(audio.PAUSE)
 end
 
 -- ResumeGame (служебный): снятие игры с паузы
 function ResumeGame()
-    audio.PlayVoicesSync(audio.START_GAME)
+    --audio.PlayVoicesSync(audio.START_GAME)
 end
 
 -- SwitchStage (служебный): может быть использован для принудительного переключению этапа
