@@ -64,7 +64,7 @@ local tGameStats = {
         GridCols = 6,
         GridRows = 2,
         HeaderWidget = {},
-        BottomWidget = {Text = "", Icon = "timer"},
+        BottomWidget = {},
         GameStatsWidgets = {}
     },
 }
@@ -551,7 +551,9 @@ CGameMode.PlayerFinish = function(iPlayerID)
 
     if CGameMode.iFinishedCount == CGameMode.iAlivePlayerCount then
         CGameMode.EndRound()
-    end    
+    else
+        CGameMode.UpdatePlayersProgress()
+    end
 end
 
 CGameMode.UpdatePlayersProgress = function()
