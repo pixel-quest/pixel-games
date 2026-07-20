@@ -21,6 +21,13 @@
 	"PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
 	"PlayerCount_en": "Player Count",
 
+	"RoundCount": 2,
+	"RoundCount_Min": 1, 
+	"RoundCount_Max": 5, 
+	"RoundCount_Step": 1, 
+	"RoundCount_ru": "Количество раундов", 
+	"RoundCount_en": "Round Count", 
+
 	"PixelPoints": 1,
 	"PixelPoints_Hidden": true,
 	"PixelPoints_Min": 1,

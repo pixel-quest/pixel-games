@@ -254,13 +254,22 @@ CGameMode = {}
 CGameMode.iCountdown = 0
 CGameMode.iWinnerID = 0
 CGameMode.tPlayerFieldInfo = {}
+CGameMode.tPlayerRoundScore = {}
+CGameMode.iRoundGoal = 1
+CGameMode.iRoundFinishedPlayers = 0
+CGameMode.iRoundTotalPlayers = 0
 CGameMode.bArenaCanStart = false
 CGameMode.bCanStartGame = false
 CGameMode.bCountdownStarted = false
+CGameMode.bRoundOn = false
 
 CGameMode.InitGameMode = function()
     tGameResults.PlayersCount = tConfig.PlayerCount
-    tGameStats.TargetScore = tGame.StartPositionSizeX * tGame.StartPositionSizeY    
+    tGameStats.StageNum = 1
+    tGameStats.TotalStages = tConfig.RoundCount or 1  
+    CGameMode.iRoundGoal = tGame.StartPositionSizeX * tGame.StartPositionSizeY
+    tGameStats.TargetScore = CGameMode.iRoundGoal * tGameStats.TotalStages
+    CGameMode.iRoundFinishedPlayers = 0
 end
 
 CGameMode.Announcer = function()
@@ -281,11 +290,23 @@ CGameMode.Announcer = function()
 end
 
 CGameMode.PrepareGame = function()
+    CGameMode.tPlayerRoundScore = {}
+    CGameMode.tPlayerFieldInfo = {}
+    CGameMode.iRoundTotalPlayers = 0
+
     for iPlayerID = 1, #tGame.StartPositions do
         if tPlayerInGame[iPlayerID] then
+            CGameMode.tPlayerRoundScore[iPlayerID] = 0
             CGameMode.tPlayerFieldInfo[iPlayerID] = {}
             CGameMode.tPlayerFieldInfo[iPlayerID].iFillY = 0
             CGameMode.tPlayerFieldInfo[iPlayerID].iFillX = 0
+            CGameMode.iRoundTotalPlayers = CGameMode.iRoundTotalPlayers + 1
+        end
+    end
+
+    for iX = 1, tGame.Cols do
+        for iY = 1, tGame.Rows do
+            tFloor[iX][iY].iCoinPlayerID = 0
         end
     end
 end
@@ -295,15 +316,18 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
-            CGameMode.StartGame()
+            CGameMode.StartRound()
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
+            
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -311,12 +335,16 @@ CGameMode.StartCountDown = function(iCountDownTime)
     end)
 end
 
-CGameMode.StartGame = function()
+CGameMode.StartRound = function()
     CGameMode.PrepareGame()
     iGameState = GAMESTATE_GAME
-
-    CAudio.PlayVoicesSync(CAudio.START_GAME)
+    CGameMode.bRoundOn = true
+    
+    if tGameStats.StageNum == 1 then
+        CAudio.PlayVoicesSync(CAudio.START_GAME)
+    end
     CAudio.PlayRandomBackground()
+    
     CGameMode.GameLoop()
 end
 
@@ -333,9 +361,30 @@ end
 CGameMode.PlayerAddScore = function(iPlayerID, iBonus)
     tGameStats.Players[iPlayerID].Score = tGameStats.Players[iPlayerID].Score + iBonus
     tGameResults.Score = tGameResults.Score + iBonus
+    CGameMode.tPlayerRoundScore[iPlayerID] = CGameMode.tPlayerRoundScore[iPlayerID] + iBonus 
 
-    if tGameStats.Players[iPlayerID].Score >= tGameStats.TargetScore then
-        CGameMode.EndGame(iPlayerID)
+    if CGameMode.tPlayerRoundScore[iPlayerID] >= CGameMode.iRoundGoal then
+        CGameMode.iRoundFinishedPlayers = CGameMode.iRoundFinishedPlayers + 1
+
+        if tGameStats.StageNum == tGameStats.TotalStages then
+            CGameMode.EndRound()
+        elseif CGameMode.iRoundFinishedPlayers == 1 then
+            CAudio.PlayVoicesSync("left_10sec.mp3")
+            
+            local iTimeLeft = 12
+            tGameStats.StageLeftDuration = iTimeLeft
+            AL.NewTimer(1000, function()
+                iTimeLeft = iTimeLeft -1
+                tGameStats.StageLeftDuration = iTimeLeft
+
+                if iTimeLeft <= 0 or CGameMode.iRoundFinishedPlayers >= CGameMode.iRoundTotalPlayers then
+                    CGameMode.EndRound()    
+                    return nil;
+                end
+
+                return 1000;
+            end)
+        end
     else
         CGameMode.tPlayerFieldInfo[iPlayerID].iFillY = CGameMode.tPlayerFieldInfo[iPlayerID].iFillY + iBonus
         if CGameMode.tPlayerFieldInfo[iPlayerID].iFillY >= tGame.StartPositionSizeY then
@@ -349,7 +398,7 @@ CGameMode.SpawnCoins = function()
     local iCoinCount = math.random(1,3)
 
     for iPlayerID = 1, #tGame.StartPositions do
-        if tPlayerInGame[iPlayerID] then
+        if tPlayerInGame[iPlayerID] and CGameMode.tPlayerRoundScore[iPlayerID] < CGameMode.iRoundGoal then
             for iCoin = 1, iCoinCount do
                 CGameMode.SpawnCoinForPlayer(iPlayerID)
             end
@@ -397,10 +446,32 @@ CGameMode.IsPlayerPaintedZone = function(iPlayerID, iX, iY)
     or (iX == tGame.StartPositions[iPlayerID].X + CGameMode.tPlayerFieldInfo[iPlayerID].iFillX and iY < tGame.StartPositions[iPlayerID].Y + CGameMode.tPlayerFieldInfo[iPlayerID].iFillY)
 end
 
+CGameMode.EndRound = function()
+    CAudio.StopBackground()
+    CGameMode.bRoundOn = false
+
+    if tGameStats.StageNum == tGameStats.TotalStages then
+        local iGameWinnerID = 1
+        local iMaxScore = -1
+
+        for iPlayerID = 1, 6 do
+            if tGameStats.Players[iPlayerID].Score > iMaxScore then
+                iGameWinnerID = iPlayerID
+                iMaxScore = tGameStats.Players[iPlayerID].Score
+            end
+        end
+
+        CGameMode.EndGame(iGameWinnerID)
+    else
+        CAudio.PlayVoicesSync(tGameStats.TotalStages-tGameStats.StageNum.."-rounds-left.mp3")
+        tGameStats.StageNum = tGameStats.StageNum + 1
+        CGameMode.StartCountDown(10)
+    end
+end
+
 CGameMode.EndGame = function(iWinnerID)
     iGameState = GAMESTATE_POSTGAME
 
-    CAudio.StopBackground()
     CAudio.PlaySyncColorSound(tGame.StartPositions[iWinnerID].Color)
     CAudio.PlayVoicesSync(CAudio.VICTORY)
 
@@ -443,7 +514,7 @@ CPaint.PlayerGameZone = function(iPlayerID)
                 iColor = CColors.BLUE
             end
 
-            if CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) or tGameStats.StageLeftDuration > 0 then
+            if CGameMode.IsPlayerPaintedZone(iPlayerID, iX, iY) or not CGameMode.bRoundOn or CGameMode.tPlayerRoundScore[iPlayerID] >= CGameMode.iRoundGoal then
                 iColor = tGame.StartPositions[iPlayerID].Color
             end
 
@@ -599,7 +670,7 @@ function PixelClick(click)
         tFloor[click.X][click.Y].bClick = click.Click
         tFloor[click.X][click.Y].iWeight = click.Weight
 
-        if click.Click and not tFloor[click.X][click.Y].bDefect and iGameState == GAMESTATE_GAME then
+        if click.Click and not tFloor[click.X][click.Y].bDefect and iGameState == GAMESTATE_GAME and CGameMode.bRoundOn then
             if tFloor[click.X][click.Y].iCoinPlayerID > 0 then
                 CGameMode.PlayerCollectCoin(tFloor[click.X][click.Y].iCoinPlayerID, click.X, click.Y)
             end
