@@ -12,7 +12,7 @@
   "PlayerCount_ru": "Количество игроков(для статистики, на игру не влияет)",
   "PlayerCount_en": "Player Count",
 
-  "Difficulty": 2,
+  "Difficulty": 3,
   "Difficulty_Min": 1,
   "Difficulty_Max": 10,
   "Difficulty_Step": 1,
