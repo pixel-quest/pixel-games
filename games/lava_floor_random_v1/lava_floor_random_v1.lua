@@ -217,6 +217,8 @@ CGameMode.tGameSetupCoins = {}
 CGameMode.iGameSetupCollectedCoins = 0
 
 CGameMode.iRoundTimeLimit = 60
+CGameMode.bRoundTimerPaused = false
+CGameMode.bFirstRound = true
 
 CGameMode.bCanStart = false
 
@@ -365,9 +367,16 @@ CGameMode.StartRound = function()
     tGameStats.CurrentStars = 0
     tGameStats.TotalStars = CGameMode.iMapCoinReq
 
+    if CGameMode.bFirstRound and tConfig.StartTimerOnHalfCoins then
+        CGameMode.bRoundTimerPaused = true
+    end
+
+    CGameMode.bFirstRound = false
+
     tGameStats.StageLeftDuration = CGameMode.iRoundTimeLimit
     AL.NewTimer(1000, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
+        if CGameMode.bRoundTimerPaused then return 1000; end
 
         if CGameMode.bRoundStarted then
             tGameStats.StageLeftDuration = tGameStats.StageLeftDuration - 1
@@ -430,6 +439,7 @@ CGameMode.PlayerCollectCoin = function()
     if CGameMode.iMapCoinCollected == CGameMode.iMapCoinReq then
         CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         tGameStats.TotalStars = CGameMode.iMapCoinCount
+        CGameMode.bRoundTimerPaused = false
     elseif CGameMode.iMapCoinCollected == CGameMode.iMapCoinCount then
         CAudio.PlaySystemAsync(CAudio.STAGE_DONE)
         CGameMode.EndRound()

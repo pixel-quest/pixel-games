@@ -46,6 +46,10 @@
 	"ObjectsTickRate_ru": "Частота премещения объектов",
 	"ObjectsTickRate_en": "Object movement tickrate",
 
+	"StartTimerOnHalfCoins": false,
+	"StartTimerOnHalfCoins_ru": "Запускать таймер только на половине монет",
+	"StartTimerOnHalfCoins_en": "Start timer only after half coins collected",
+
 	"ForcePattern": "none",
 	"ForcePattern_Hidden": true,
 	"ForcePattern_List": ["SAFEEDGES","SQUAREFIELD","LL","DOORS","CROSSHAIR","CENTERSAFE","ARROWS","DASH"],
