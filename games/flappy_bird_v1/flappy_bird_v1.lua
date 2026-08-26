@@ -186,6 +186,9 @@ CGameMode.bCanAutoStart = false
 
 CGameMode.MAX_PLAYERS = 6
 
+CGameMode.iTickRate = 500
+CGameMode.iTickRateMin = 250
+
 CGameMode.iGameZoneX = 1
 CGameMode.iGameZoneY = 1
 CGameMode.iGameZoneSizeX = 10
@@ -211,6 +214,9 @@ CGameMode.tPlayerColors[6] = CColors.RED
 
 CGameMode.InitGameMode = function()
     --CGameMode.iPlayerZoneSizeX = math.floor((tGame.iMaxX-tGame.iMinX+1)/(CGameMode.MAX_PLAYERS+1))
+
+    CGameMode.iTickRate = tConfig.TickRate
+    CGameMode.iTickRateMin = tConfig.TickRate_Min
 
     CGameMode.iGameZoneX = tGame.iMinX
     CGameMode.iGameZoneY = tGame.iMinY
@@ -340,28 +346,28 @@ CGameMode.StartGame = function()
 
     CGameMode.SpawnBirds()
 
-    AL.NewTimer(tConfig.TickRate * 4, function()
+    AL.NewTimer(CGameMode.iTickRate * 4, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CPipes.Tick()
 
-        return tConfig.TickRate 
+        return CGameMode.iTickRate 
     end)
 
-    AL.NewTimer(tConfig.TickRate , function()
+    AL.NewTimer(CGameMode.iTickRate , function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CBirds.Tick()
 
-        return tConfig.TickRate      
+        return CGameMode.iTickRate      
     end)
 
-    AL.NewTimer(tConfig.TickRate/3, function()
+    AL.NewTimer(CGameMode.iTickRate/3, function()
         if iGameState ~= GAMESTATE_GAME then return nil; end
 
         CBirds.Animate()
 
-        return tConfig.TickRate/3
+        return CGameMode.iTickRate/3
     end)
 end
 
@@ -454,6 +460,10 @@ CPipes.Tick = function()
         else
             CGameMode.AddScore()
             CPipes.AddNew(tPipe.iX + ((-CGameMode.iPipesVel * (CPipes.PIPE_SIZE_X + tConfig.StepSize-1)*10)))
+
+            if tConfig.SpeedUp and tConfig.SpeedUp > 0 and CGameMode.iTickRate > CGameMode.iTickRateMin then
+                CGameMode.iTickRate = CGameMode.iTickRate - tConfig.SpeedUp
+            end
         end
     end
 end
@@ -588,7 +598,7 @@ CBirds.PlayerTapBird = function(tBird)
         tBird.iY = tBird.iY + -CGameMode.iYGravity
 
         tBird.bTapCD = true
-        AL.NewTimer(tConfig.TickRate/2.5, function()
+        AL.NewTimer(CGameMode.iTickRate/2.5, function()
             tBird.bTapCD = false
         end)
 
