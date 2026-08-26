@@ -408,9 +408,9 @@ CRope.Paint = function()
                 tFloor[iX][iY].iColor = CColors.RED
                 tFloor[iX][iY].iBright = tConfig.Bright
 
-                if tFloor[iX][iY].bClick then
+                if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
                     AL.NewTimer(tGame.BurnDelay, function()
-                        if tFloor[iX][iY].bClick then
+                        if tFloor[iX][iY].bClick and not tFloor[iX][iY].bDefect then
                             CRope.DamagePlayer()
                             CGameMode.AnimateDamage(iX, iY)
                         end
