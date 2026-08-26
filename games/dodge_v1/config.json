@@ -52,7 +52,7 @@
 	"EffectsCount_ru": "Количество раундов/эффектов до конца игры",
 	"EffectsCount_en": "Round/Effect Count",
 
-	"TeamHealth": 15,
+	"TeamHealth": 50,
 	"TeamHealth_Min": 0,
 	"TeamHealth_Max": 250,
 	"TeamHealth_Step": 5,
