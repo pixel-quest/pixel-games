@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"TargetScore": 15,
+	"TargetScore_Min": 5,
+	"TargetScore_Max": 40,
+	"TargetScore_Step": 5,
+	"TargetScore_ru": "Цель",
+	"TargetScore_en": "Target",
+
+	"TotalLives": 0,
+	"TotalLives_Min": 0,
+	"TotalLives_Max": 100,
+	"TotalLives_Step": 10,
+	"TotalLives_ru": "Жизни (0 = беск)",
+	"TotalLives_en": "Lives (0 = infinite)",
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial"	
+}
