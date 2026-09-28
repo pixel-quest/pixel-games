@@ -183,11 +183,14 @@ CGameMode.InitGameMode = function()
 end
 
 CGameMode.Announcer = function()
-    --voice gamename rules
-
-    AL.NewTimer(1000, function()
+    if not tConfig.SkipTutorial then
+        --voice gamename rules
+        AL.NewTimer(1000, function()
+            CGameMode.bCanAutoStart = true
+        end)    
+    else
         CGameMode.bCanAutoStart = true
-    end)    
+    end
 end
 
 CGameMode.StartCountDown = function(iCountDownTime)
@@ -195,7 +198,6 @@ CGameMode.StartCountDown = function(iCountDownTime)
     CGameMode.iCountdown = iCountDownTime
 
     AL.NewTimer(1000, function()
-        CAudio.ResetSync()
         tGameStats.StageLeftDuration = CGameMode.iCountdown
 
         if CGameMode.iCountdown <= 0 then
@@ -203,7 +205,11 @@ CGameMode.StartCountDown = function(iCountDownTime)
             
             return nil
         else
-            CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            if CGameMode.iCountdown <= 5 then
+                CAudio.ResetSync()
+                CAudio.PlayLeftAudio(CGameMode.iCountdown)
+            end
+
             CGameMode.iCountdown = CGameMode.iCountdown - 1
 
             return 1000
@@ -285,6 +291,32 @@ function ReverseTable(t)
         t[i], t[#t-i+1] = t[#t-i+1], t[i]
     end
     return t
+end
+
+function ShuffleTable(t)
+    for i = #t, 2, -1 do
+        local j = math.random(i)
+        t[i], t[j] = t[j], t[i]
+    end
+
+    return t
+end
+
+function TableConcat(...)
+    local tR = {}
+    local i = 1
+    local function addtable(t)
+        for j = 1, #t do
+            tR[i] = t[j]
+            i = i + 1
+        end
+    end
+
+    for _,t in pairs({...}) do
+        addtable(t)
+    end
+
+    return tR
 end
 --//
 
