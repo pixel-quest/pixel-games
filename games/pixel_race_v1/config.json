@@ -14,6 +14,10 @@
 	"SkipTutorial_ru": "Пропустить обучение", 
 	"SkipTutorial_en": "Skip tutorial", 
 
+	"DrawCoinsBeforeStart": true,
+	"DrawCoinsBeforeStart_ru": "Рисовать монетки до старта игры", 
+	"DrawCoinsBeforeStart_en": "Draw coins before start of the game", 
+
   	"TimeLimit": 60,
   	"TimeLimit_Min": 30,
   	"TimeLimit_Max": 300,

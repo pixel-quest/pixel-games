@@ -159,6 +159,10 @@ function GameSetupTick()
     CPaint.Track()
     CPaint.StartPositions()
 
+    if tConfig.DrawCoinsBeforeStart then
+        CPaint.Pixels()
+    end
+
     local iPlayersReady = 0
 
     for iPlayerID = 1, #CGameMode.tPlayerStartPositionTrackSegment do
@@ -179,7 +183,7 @@ function GameSetupTick()
     end
 
     if not CGameMode.bCountDownStarted and iPlayersReady > 1 and CGameMode.bCanAutoStart then
-        CGameMode.StartCountDown(10)
+        CGameMode.StartCountDown(5)
     end
 
     tGameResults.PlayersCount = iPlayersReady
@@ -224,18 +228,7 @@ CGameMode.iWinnerID = 0
 
 CGameMode.InitGameMode = function()
     CTrack.GenerateTrack()
-    local iSegmentId = 2
-    for iPlayerId = 1, 6 do
-        CGameMode.tPlayerStartPositionTrackSegment[iPlayerId] = iSegmentId
-
-        CGameMode.tPlayerTargetPixel[iPlayerId] = {}
-        CGameMode.tPlayerTargetPixel[iPlayerId].iSegmentId = iSegmentId
-        CGameMode.tPlayerTargetPixel[iPlayerId].iSegmentPixelId = 1
-
-        CGameMode.NewTargetPixelForPlayer(iPlayerId)
-
-        iSegmentId = iSegmentId + 2
-    end
+    CGameMode.NewTargetPixelForAllPlayers()
 end
 
 CGameMode.Announcer = function()
@@ -279,6 +272,8 @@ CGameMode.StartGame = function()
     CAudio.PlayRandomBackground()
 
     iGameState = GAMESTATE_GAME
+
+    --CGameMode.NewTargetPixelForAllPlayers()
 
     tGameStats.StageLeftDuration = tConfig.TimeLimit
 
@@ -344,6 +339,21 @@ CGameMode.NewTargetPixelForPlayer = function(iPlayerId)
         if i == 10 then
             CGameMode.NewTargetPixelForPlayer(iPlayerId)
         end
+    end
+end
+
+CGameMode.NewTargetPixelForAllPlayers = function()
+    local iSegmentId = 4
+    for iPlayerId = 1, 6 do
+        CGameMode.tPlayerStartPositionTrackSegment[iPlayerId] = iSegmentId
+
+        CGameMode.tPlayerTargetPixel[iPlayerId] = {}
+        CGameMode.tPlayerTargetPixel[iPlayerId].iSegmentId = iSegmentId
+        CGameMode.tPlayerTargetPixel[iPlayerId].iSegmentPixelId = 1
+
+        CGameMode.NewTargetPixelForPlayer(iPlayerId)
+
+        iSegmentId = iSegmentId + 2
     end
 end
 
@@ -458,9 +468,11 @@ CPaint.Pixels = function()
             tFloor[tSegmentPixel.iX][tSegmentPixel.iY].iColor = tGameStats.Players[iPlayerId].Color
             tFloor[tSegmentPixel.iX][tSegmentPixel.iY].iBright = tConfig.Bright
         
-            if tFloor[tSegmentPixel.iX][tSegmentPixel.iY].bClick or tFloor[tSegmentPixel.iX][tSegmentPixel.iY].bDefect then
-                CGameMode.PlayerCollectTargetPixel(iPlayerId)
-                tSegmentPixel.iTeamId = 0
+            if iGameState == GAMESTATE_GAME then
+                if tFloor[tSegmentPixel.iX][tSegmentPixel.iY].bClick or tFloor[tSegmentPixel.iX][tSegmentPixel.iY].bDefect then
+                    CGameMode.PlayerCollectTargetPixel(iPlayerId)
+                    tSegmentPixel.iTeamId = 0
+                end
             end
         end
     end

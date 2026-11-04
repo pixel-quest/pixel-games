@@ -1152,6 +1152,8 @@ CProjectile.CalculateProjectile = function(iProjectileID)
             CProjectile.Destroy(iProjectileID)
             return;
         end
+    elseif tFloor[CProjectile.tProjectiles[iProjectileID].iX][CProjectile.tProjectiles[iProjectileID].iY].bClick and not tFloor[CProjectile.tProjectiles[iProjectileID].iX][CProjectile.tProjectiles[iProjectileID].iY].bDefect then
+        CProjectile.Destroy(iProjectileID)
     end
 end
 --//
