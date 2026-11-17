@@ -194,7 +194,7 @@ function GameSetupTick()
 
     if not CGameMode.bCountDownStarted then
         if iPlayersReady > 1 and CGameMode.bCanAutoStart then
-            CGameMode.StartCountDown(9)
+            CGameMode.StartCountDown(3)
         end
     end    
 
@@ -242,12 +242,30 @@ CGameMode.tColors[5] = CColors.MAGENTA
 CGameMode.tColors[6] = CColors.CYAN
 CGameMode.tColors[7] = CColors.WHITE
 
+CGameMode.tColorName = {}
+CGameMode.tColorName[CColors.RED] = "Красный"
+CGameMode.tColorName[CColors.GREEN] = "Зелёный"
+CGameMode.tColorName[CColors.YELLOW] = "Жёлтый"
+CGameMode.tColorName[CColors.BLUE] = "Синий"
+CGameMode.tColorName[CColors.MAGENTA] = "Розовый"
+CGameMode.tColorName[CColors.CYAN] = "Голубой"
+CGameMode.tColorName[CColors.WHITE] = "Белый"
+
+CGameMode.tColorNameEn = {}
+CGameMode.tColorNameEn[CColors.RED] = "Red"
+CGameMode.tColorNameEn[CColors.GREEN] = "Green"
+CGameMode.tColorNameEn[CColors.YELLOW] = "Yellow"
+CGameMode.tColorNameEn[CColors.BLUE] = "Blue"
+CGameMode.tColorNameEn[CColors.MAGENTA] = "Magenta"
+CGameMode.tColorNameEn[CColors.CYAN] = "Cyan"
+CGameMode.tColorNameEn[CColors.WHITE] = "White"
+
 CGameMode.tPlayerColors = {}
 CGameMode.tPlayerColors[1] = CColors.BLUE
 CGameMode.tPlayerColors[2] = CColors.MAGENTA
 CGameMode.tPlayerColors[3] = CColors.CYAN
-CGameMode.tPlayerColors[4] = CColors.YELLOW
-CGameMode.tPlayerColors[5] = CColors.GREEN
+CGameMode.tPlayerColors[4] = CColors.GREEN
+CGameMode.tPlayerColors[5] = CColors.YELLOW
 CGameMode.tPlayerColors[6] = CColors.RED
 CGameMode.tPlayerColors[7] = CColors.WHITE
 
@@ -278,9 +296,9 @@ end
 
 CGameMode.Announcer = function()
     if not tConfig.SkipTutorial then
+        CAudio.PlayVoicesSync("recipe/recipe-rules.mp3")
         CAudio.PlayVoicesSync("choose-color.mp3")
-        --voice gamename rules
-        AL.NewTimer(1000, function()
+        AL.NewTimer((CAudio.GetVoicesDuration("recipe/recipe-rules.mp3") + CAudio.GetVoicesDuration("choose-color.mp3"))*1000, function()
             CGameMode.bCanAutoStart = true
         end)    
     else
@@ -330,16 +348,18 @@ CGameMode.EndGame = function()
     end
     tGameResults.Won = bVictory
 
-    if bVictory then
-        CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[iWinnerID])
-        CAudio.PlayVoicesSync(CAudio.VICTORY)
-        SetGlobalColorBright(CGameMode.tPlayerColors[iWinnerID], tConfig.Bright)
-        tGameResults.Color = CGameMode.tPlayerColors[iWinnerID]
-    else
-        CAudio.PlayVoicesSync(CAudio.DEFEAT)
-        SetGlobalColorBright(CColors.RED, tConfig.Bright)
-        tGameResults.Color = CColors.RED
-    end
+    AL.NewTimer(1, function()
+        if bVictory then
+            CAudio.PlaySyncColorSound(CGameMode.tPlayerColors[iWinnerID])
+            CAudio.PlayVoicesSync(CAudio.VICTORY)
+            SetGlobalColorBright(CGameMode.tPlayerColors[iWinnerID], tConfig.Bright)
+            tGameResults.Color = CGameMode.tPlayerColors[iWinnerID]
+        else
+            CAudio.PlayVoicesSync(CAudio.DEFEAT)
+            SetGlobalColorBright(CColors.RED, tConfig.Bright)
+            tGameResults.Color = CColors.RED
+        end
+    end)
 
     iGameState = GAMESTATE_POSTGAME
     AL.NewTimer(tConfig.WinDurationMS, function()
@@ -393,7 +413,7 @@ end
 CGameMode.UpdatePlayersProgress = function()
     tGameStats.Scoreboard.GameStatsWidgets = {}
     tGameStats.Scoreboard.GridCols = tConfig.RecipeLength
-    tGameStats.Scoreboard.GridRows = 3
+    tGameStats.Scoreboard.GridRows = 4
 
     tGameStats.Scoreboard.GameStatsWidgets[1] =             
     {
@@ -421,12 +441,27 @@ CGameMode.UpdatePlayersProgress = function()
             tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
             {
                 Type = "progress_bar",
-                Position = {Col = iRecipeColor-1, ColSpan = 1, Row = 3, RowSpan = 1},
+                Position = {Col = iRecipeColor-1, ColSpan = 1, Row = 2, RowSpan = 1},
                 Value = 100,
-                Label = "",
+                Label = CGameMode.tColorName[CGameMode.tRecipe[iRecipeColor]],
                 Color = CGameMode.tRecipe[iRecipeColor]
             }
+            if tGame.Locale and tGame.Locale ~= "ru" then
+                tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Label = CGameMode.tColorNameEn[CGameMode.tRecipe[iRecipeColor]]
+            end
         end
+    end
+
+    tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets+1] =             
+    {
+        Type = "image_text",
+        Position = {Col = 0, ColSpan = tGameStats.Scoreboard.GridCols, Row = 3, RowSpan = 1},
+        Icon = "star",
+        TextPosition = "left",
+        Text = "Игроки:"
+    }            
+    if tGame.Locale and tGame.Locale ~= "ru" then
+        tGameStats.Scoreboard.GameStatsWidgets[#tGameStats.Scoreboard.GameStatsWidgets].Text = "Players:"
     end
 
     local iTruePlayer = 0
