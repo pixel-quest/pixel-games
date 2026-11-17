@@ -1,0 +1,28 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial",
+
+	"RecipeLength": 4,
+	"RecipeLength_Min": 3,
+	"RecipeLength_Max": 7,
+	"RecipeLength_Step": 1,
+	"RecipeLength_ru": "Длинна рецепта",
+	"RecipeLength_en": "Recipe Length",
+
+	"RoundCount": 5,
+	"RoundCount_Min": 1,
+	"RoundCount_Max": 25,
+	"RoundCount_Step": 1,
+	"RoundCount_ru": "Количество Раундов",
+	"RoundCount_en": "Round Count"	
+}
