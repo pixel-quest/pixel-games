@@ -1,0 +1,21 @@
+{
+	"Bright": 5,
+	"Bright_Min": 1,
+	"Bright_Max": 7,
+	"Bright_Step": 1,
+	"Bright_ru": "Яркость",
+
+	"WinDurationMS": 5000,
+	"WinDurationMS_Hidden": true,
+
+	"SkipTutorial": false,
+	"SkipTutorial_ru": "Пропустить обучение", 
+	"SkipTutorial_en": "Skip tutorial",
+
+	"TimeLimit": 60,
+	"TimeLimit_Min": 30,
+	"TimeLimit_Max": 300,
+	"TimeLimit_Step": 10,
+	"TimeLimit_ru": "Лимит времени",
+	"TimeLimit_en": "Time limit"
+}
